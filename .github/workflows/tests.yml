@@ -38,6 +38,10 @@ jobs:
         run: python sparse_tetris_4d_optimized.py --test --backend python
       - name: Test NumPy backend
         run: python sparse_tetris_4d_optimized.py --test --backend numpy
+      - name: Test compact network structure
+        run: |
+          python tests/test_network_structure.py --backend python
+          python tests/test_network_structure.py --backend numpy
       - name: Test automatic fallback without site packages
         run: python -S sparse_tetris_4d_optimized.py --test --backend auto
 

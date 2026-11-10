@@ -10,6 +10,7 @@ import statistics
 import sys
 import time
 from collections import deque
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from fractions import Fraction
 from functools import lru_cache
@@ -98,69 +99,188 @@ def roughness_term(difference: float) -> float:
 ROUGHNESS_TABLE = tuple(roughness_term(d) for d in range(-HEIGHT, HEIGHT + 1))
 
 
+SIGMOID_TABLE = tuple(sigmoid(d - SIGMOID_THRESHOLD) for d in range(-HEIGHT, HEIGHT + 1))
+
+
+def _integer_table(values: tuple[float, ...]) -> tuple[tuple[int, ...], int]:
+    ratios = tuple(value.as_integer_ratio() for value in values)
+    denominator = max(d for _, d in ratios)
+    return tuple(n * (denominator // d) for n, d in ratios), denominator
+
+
+ROUGHNESS_TICKS, ROUGHNESS_DENOMINATOR = _integer_table(ROUGHNESS_TABLE[HEIGHT:])
+_OUTPUT_SIGNALS = tuple(h * HEIGHT_WEIGHT for h in range(HEIGHT + 1)) + tuple(
+    value * HIDDEN_OUTPUT_WEIGHT for value in SIGMOID_TABLE)
+_OUTPUT_TICKS, OUTPUT_DENOMINATOR = _integer_table(_OUTPUT_SIGNALS)
+HEIGHT_OUTPUT_TICKS = _OUTPUT_TICKS[:HEIGHT + 1]
+PAIR_OUTPUT_TICKS = tuple(_OUTPUT_TICKS[HEIGHT + 1 + HEIGHT + d]
+                          + _OUTPUT_TICKS[HEIGHT + 1 + HEIGHT - d] for d in range(HEIGHT + 1))
+PAIR_ACTIVE_COUNTS = tuple(int(SIGMOID_TABLE[HEIGHT + d] >= .5)
+                           + int(SIGMOID_TABLE[HEIGHT - d] >= .5) for d in range(HEIGHT + 1))
+del _OUTPUT_SIGNALS, _OUTPUT_TICKS
+
+
+@lru_cache(maxsize=16)
+def pooled_histograms(heights: tuple[int, ...]) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    if len(heights) != AREA or any(not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights):
+        raise ValueError('Histogram pooling requires 4096 integer column heights in [0, 16].')
+    if BACKEND == 'numpy':
+        np, a, b, _ = numpy_tables()
+        values = np.asarray(heights, dtype=np.int16)
+        counts = np.bincount(values, minlength=HEIGHT + 1)
+        differences = np.bincount(np.abs(values[b] - values[a]), minlength=HEIGHT + 1)
+        return tuple(map(int, counts)), tuple(map(int, differences))
+    counts, differences = [0] * (HEIGHT + 1), [0] * (HEIGHT + 1)
+    for h in heights:
+        counts[h] += 1
+    for a, b in NEIGHBORS:
+        differences[abs(heights[b] - heights[a])] += 1
+    return tuple(counts), tuple(differences)
+
+
 @lru_cache(maxsize=16)
 def sigmoid_roughness(heights: tuple[int, ...]) -> float:
-    if BACKEND == 'numpy':
-        np, a, b, table = numpy_tables()
-        values = np.asarray(heights, dtype=np.int16)
-        return math.fsum(table[values[b] - values[a] + HEIGHT].tolist())
-    return math.fsum(ROUGHNESS_TABLE[heights[b] - heights[a] + HEIGHT] for a, b in NEIGHBORS)
+    if BACKEND != 'numpy':
+        return math.fsum(ROUGHNESS_TABLE[heights[b] - heights[a] + HEIGHT] for a, b in NEIGHBORS)
+    counts = pooled_histograms(heights)[1]
+    return sum(count * tick for count, tick in zip(counts, ROUGHNESS_TICKS)) / ROUGHNESS_DENOMINATOR
 
 
-def make_network() -> tuple[Node, ...]:
-    nodes = []
-    for i, (a, b) in enumerate(NEIGHBORS):
-        axis = 'X' if i < len(X_PAIRS) else 'Y' if i < len(X_PAIRS) + len(Y_PAIRS) else 'W'
+class SharedSigmoidNetwork(Sequence):
+    __slots__ = ()
+
+    def __len__(self) -> int:
+        return 2 * len(NEIGHBORS) + 1
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return tuple(self[i] for i in range(*index.indices(len(self))))
+        if not isinstance(index, int):
+            raise TypeError('Neuron indices must be integers or slices.')
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError('Neuron index out of range.')
+        if index == len(self) - 1:
+            edges = tuple((i, HEIGHT_WEIGHT) for i in range(AREA))
+            edges += ((AREA, HOLES_WEIGHT), (AREA + 1, LAYERS_WEIGHT))
+            edges += tuple((INPUT_COUNT + i, HIDDEN_OUTPUT_WEIGHT) for i in range(index))
+            return Node('score', edges, OUTPUT_BIAS, 'linear')
+        pair, direction = divmod(index, 2)
+        a, b = NEIGHBORS[pair]
+        axis = 'X' if pair < len(X_PAIRS) else 'Y' if pair < len(X_PAIRS) + len(Y_PAIRS) else 'W'
         x, y, w = column_coordinates(a)
-        for sign in (1, -1):
-            nodes.append(Node(f'{axis}{"+" if sign > 0 else "-"}_{x},{y},{w}',
-                              ((b, float(sign)), (a, float(-sign))), -SIGMOID_THRESHOLD, 'sigmoid'))
-    edges = tuple((i, HEIGHT_WEIGHT) for i in range(AREA))
-    edges += ((AREA, HOLES_WEIGHT), (AREA + 1, LAYERS_WEIGHT))
-    edges += tuple((INPUT_COUNT + i, HIDDEN_OUTPUT_WEIGHT) for i in range(len(nodes)))
-    nodes.append(Node('score', edges, OUTPUT_BIAS, 'linear'))
-    return tuple(nodes)
+        sign = 1.0 if direction == 0 else -1.0
+        return Node(f'{axis}{"+" if direction == 0 else "-"}_{x},{y},{w}',
+                    ((b, sign), (a, -sign)), -SIGMOID_THRESHOLD, 'sigmoid')
+
+
+def make_network() -> SharedSigmoidNetwork:
+    return SharedSigmoidNetwork()
 
 
 NETWORK = make_network()
 OUTPUT_INDEX = INPUT_COUNT + len(NETWORK) - 1
 
 
-SIGMOID_TABLE = tuple(sigmoid(d - SIGMOID_THRESHOLD) for d in range(-HEIGHT, HEIGHT + 1))
+def _pooled_output(histograms, holes: float, layers: float) -> float:
+    heights, differences = histograms
+    numerator = sum(count * tick for count, tick in zip(heights, HEIGHT_OUTPUT_TICKS))
+    numerator += sum(count * tick for count, tick in zip(differences, PAIR_OUTPUT_TICKS))
+    denominator = OUTPUT_DENOMINATOR
+    for signal in (holes * HOLES_WEIGHT, layers * LAYERS_WEIGHT):
+        n, d = signal.as_integer_ratio()
+        if d > denominator:
+            numerator *= d // denominator
+            denominator = d
+        numerator += n * (denominator // d)
+    return OUTPUT_BIAS + numerator / denominator
 
 
-def network_forward(heights: tuple[int, ...], holes: int, layers: int) -> list[float]:
-    if len(heights) != AREA:
-        raise ValueError(f'Expected {AREA} column heights.')
-    values = list(map(float, heights)) + [float(holes), float(layers)]
-    if not all(map(math.isfinite, values)):
-        raise ValueError('Network inputs must be finite.')
-    if BACKEND == 'numpy':
-        np, a, b, _ = numpy_tables()
-        inputs = np.asarray(values)
-        differences = inputs[b] - inputs[a]
-        if np.all((differences >= -HEIGHT) & (differences <= HEIGHT) & (differences == np.floor(differences))):
-            differences = differences.astype(np.int32)
-            table, output_weights = numpy_network_data()
+class NetworkTrace(Sequence):
+    __slots__ = ('inputs', 'histograms', 'output', 'active_count')
+
+    def __init__(self, heights: tuple[int, ...], holes: int, layers: int) -> None:
+        if len(heights) != AREA:
+            raise ValueError(f'Expected {AREA} column heights.')
+        self.inputs = tuple(heights) + (float(holes), float(layers))
+        if not math.isfinite(self.inputs[AREA]) or not math.isfinite(self.inputs[AREA + 1]):
+            raise ValueError('Network inputs must be finite.')
+        try:
+            self.histograms = pooled_histograms(tuple(heights))
+        except ValueError:
+            self.histograms = None
+        if self.histograms is not None:
+            self.output = _pooled_output(self.histograms, self.inputs[AREA], self.inputs[AREA + 1])
+            self.active_count = sum(n * active for n, active in zip(self.histograms[1], PAIR_ACTIVE_COUNTS))
+        else:
+            self.inputs = tuple(map(float, self.inputs))
+            if not all(map(math.isfinite, self.inputs)):
+                raise ValueError('Network inputs must be finite.')
+            signals = [h * HEIGHT_WEIGHT for h in self.inputs[:AREA]]
+            signals.extend((self.inputs[AREA] * HOLES_WEIGHT, self.inputs[AREA + 1] * LAYERS_WEIGHT))
+            active = 0
+            for a, b in NEIGHBORS:
+                d = self.inputs[b] - self.inputs[a]
+                u, v = sigmoid(d - SIGMOID_THRESHOLD), sigmoid(-d - SIGMOID_THRESHOLD)
+                signals.extend((u * HIDDEN_OUTPUT_WEIGHT, v * HIDDEN_OUTPUT_WEIGHT))
+                active += (u >= .5) + (v >= .5)
+            self.output, self.active_count = OUTPUT_BIAS + math.fsum(signals), active
+
+    def __len__(self) -> int:
+        return OUTPUT_INDEX + 1
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [self[i] for i in range(*index.indices(len(self)))]
+        if not isinstance(index, int):
+            raise TypeError('Activation indices must be integers or slices.')
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError('Activation index out of range.')
+        if index < INPUT_COUNT:
+            return float(self.inputs[index])
+        if index == OUTPUT_INDEX:
+            return self.output
+        pair, direction = divmod(index - INPUT_COUNT, 2)
+        a, b = NEIGHBORS[pair]
+        d = self.inputs[b] - self.inputs[a]
+        if direction:
+            d = -d
+        if self.histograms is not None:
+            return SIGMOID_TABLE[int(d) + HEIGHT]
+        return sigmoid(d - SIGMOID_THRESHOLD)
+
+    def expand(self) -> list[float]:
+        values = list(map(float, self.inputs))
+        if self.histograms is not None and BACKEND == 'numpy':
+            np, a, b, _ = numpy_tables()
+            inputs = np.asarray(self.inputs[:AREA], dtype=np.int16)
+            differences = inputs[b] - inputs[a]
+            table = numpy_network_data()
             hidden = np.empty((len(NEIGHBORS), 2), dtype=np.float64)
             hidden[:, 0] = table[differences + HEIGHT]
             hidden[:, 1] = table[HEIGHT - differences]
-            activations = np.concatenate((inputs, hidden.ravel()))
-            output = NETWORK[-1].bias + math.fsum((activations * output_weights).tolist())
-            result = activations.tolist()
-            result.append(output)
-            return result
-    table = SIGMOID_TABLE
-    extend = values.extend
-    for a, b in NEIGHBORS:
-        d = heights[b] - heights[a]
-        if isinstance(d, int) and -HEIGHT <= d <= HEIGHT:
-            extend((table[d + HEIGHT], table[HEIGHT - d]))
+            values.extend(hidden.ravel().tolist())
+        elif self.histograms is not None:
+            for a, b in NEIGHBORS:
+                d = int(self.inputs[b] - self.inputs[a])
+                values.extend((SIGMOID_TABLE[d + HEIGHT], SIGMOID_TABLE[HEIGHT - d]))
         else:
-            extend((sigmoid(d - SIGMOID_THRESHOLD), sigmoid(-d - SIGMOID_THRESHOLD)))
-    node = NETWORK[-1]
-    values.append(node.bias + math.fsum(values[i] * weight for i, weight in node.edges))
-    return values
+            for a, b in NEIGHBORS:
+                d = self.inputs[b] - self.inputs[a]
+                values.extend((sigmoid(d - SIGMOID_THRESHOLD), sigmoid(-d - SIGMOID_THRESHOLD)))
+        values.append(self.output)
+        return values
+
+
+def network_trace(heights: tuple[int, ...], holes: int, layers: int) -> NetworkTrace:
+    return NetworkTrace(heights, holes, layers)
+
+
+def network_forward(heights: tuple[int, ...], holes: int, layers: int) -> list[float]:
+    return network_trace(heights, holes, layers).expand()
 
 
 def network_score(heights: tuple[int, ...], holes: int, layers: int) -> float:
@@ -172,7 +292,18 @@ def network_metadata(include_nodes: bool = False) -> dict:
               'input_count': INPUT_COUNT, 'height_inputs': AREA, 'sigmoid_units': len(NETWORK) - 1,
               'linear_output_units': 1, 'neighbor_pairs': len(NEIGHBORS),
               'computational_units': len(NETWORK), 'displayed_nodes': OUTPUT_INDEX + 1,
-              'nonzero_connections': sum(len(n.edges) for n in NETWORK), 'nonzero_biases': len(NETWORK),
+              'nonzero_connections': INPUT_COUNT + 6 * len(NEIGHBORS), 'nonzero_biases': len(NETWORK),
+              'execution': {'representation': 'shared sigmoid stencil with exact histogram pooling',
+                            'shared_sigmoid_filters': 2, 'sigmoid_lookup_entries': len(SIGMOID_TABLE),
+                            'filters': [{'weights': [1.0, -1.0], 'bias': -SIGMOID_THRESHOLD, 'activation': 'sigmoid'},
+                                        {'weights': [-1.0, 1.0], 'bias': -SIGMOID_THRESHOLD, 'activation': 'sigmoid'}],
+                            'pooling': 'Sum responses weighted by their integer occurrence counts.',
+                            'absolute_difference_bins': HEIGHT + 1, 'height_bins': HEIGHT + 1,
+                            'stored_neuron_objects': 0, 'stored_per_edge_weights': 0,
+                            'logical_hidden_activations': len(NETWORK) - 1,
+                            'expanded_graph': 'Logical nodes and edges are reconstructed on demand.',
+                            'rounding': 'Integer accumulation of binary float terms, then one rounding; no reassociation drift.',
+                            'ui': 'Only visible activations are reconstructed; the score covers every W page.'},
               'coefficients': {'height': HEIGHT_WEIGHT, 'holes': HOLES_WEIGHT,
                                'layers': LAYERS_WEIGHT, 'roughness': BUMP_WEIGHT},
               'sigmoid': {'threshold': SIGMOID_THRESHOLD, 'slope': SIGMOID_SLOPE,
@@ -624,7 +755,7 @@ def numpy_tables():
 
 @lru_cache(maxsize=1)
 def numpy_network_data():
-    return _NUMPY.asarray(SIGMOID_TABLE), _NUMPY.asarray([weight for _, weight in NETWORK[-1].edges])
+    return _NUMPY.asarray(SIGMOID_TABLE)
 
 
 @lru_cache(maxsize=16)
@@ -1233,8 +1364,8 @@ class NetworkView:
         changed = move is not self.move
         if changed:
             self.move = move
-            self.values = None if move is None else network_forward(move.heights, move.holes, move.layers)
-            self.active_count = 0 if self.values is None else sum(value >= .5 for value in self.values[INPUT_COUNT:-1])
+            self.values = None if move is None else network_trace(move.heights, move.holes, move.layers)
+            self.active_count = 0 if self.values is None else self.values.active_count
         if w != self.w:
             self.w = w
             self.layout_key = None
@@ -1368,21 +1499,21 @@ class NetworkView:
                     c.itemconfigure(label, text=text)
                 self.paint_state[index] = state
         active = self.active_count
-        c.itemconfigure(self.summary_item, text=f'Global: {active:,}/23,040 ≥ 0.50 · 73,218 edges · page: {len(self.positions):,} nodes')
+        c.itemconfigure(self.summary_item, text=f'{active:,}/23,040 ≥ 0.50 · 2 shared filters / 17 bins · page: {len(self.positions):,}')
         if self.values is None:
             text = 'No selected legal drop. Values are unavailable, not zero.\nThe network updates after a search or a manual move.'
         elif selected is None:
-            text = ('Actual forward pass after the selected drop and hyperlayer clears.\nThe output uses all 16 W pages, not just the displayed section.\nW± units connect this page to W+1; height inputs are not normalized.')
+            text = ('Shared sigmoid stencil: 2 filters, 33 lookup values, 17 pooled difference bins.\nHeatmap cells reconstruct the original logical activations on demand.\nThe output uses all 16 W pages; weights, biases and search are unchanged.')
         elif selected < INPUT_COUNT:
             text = f'{self.name(selected)} = {self.values[selected]:g}\n'
             text += 'Column height after drop and clears.' if selected < AREA else 'Total empty cells below occupied cells.' if selected == AREA else 'Full X/Y/W hyperlayers cleared by this move.'
             text += f'\n{len(edges)} incident connections. Hidden pages remain part of the computation.'
         else:
-            node = NETWORK[selected - INPUT_COUNT]
             value = self.values[selected]
             if selected == OUTPUT_INDEX:
-                text = f'Linear score = {value:+.6f}\n4098 direct inputs + 23040 sigmoid activations + bias {OUTPUT_BIAS:.6f}.\nThe bias cancels the flat-surface sigmoid baseline; search is separate.'
+                text = f'Linear score = {value:+.6f}\nExact pooled sum of 4098 inputs + 23040 logical sigmoid activations.\n2 shared filters; no stored dense graph. Output bias {OUTPUT_BIAS:.6f}.'
             else:
+                node = NETWORK[selected - INPUT_COUNT]
                 terms = ' '.join(f'{weight:+g}×{self.name(source)}[{self.values[source]:g}]' for source, weight in node.edges)
                 pre = node.bias + sum(self.values[source] * weight for source, weight in node.edges)
                 text = f'{node.name}: z = {terms} {node.bias:+g} = {pre:g}\nsigmoid(z) = {value:.6f}\nOutput contribution = {value:.6f} × {HIDDEN_OUTPUT_WEIGHT:.6f} = {value * HIDDEN_OUTPUT_WEIGHT:.6f}'
@@ -2185,7 +2316,8 @@ def main() -> int:
     mode.add_argument('--test', action='store_true')
     mode.add_argument('--catalog', action='store_true', help='Export names, cells, sizes and rotations of every piece.')
     mode.add_argument('--benchmark', action='store_true')
-    mode.add_argument('--network', action='store_true', help='Export the complete explicit network, including every connection.')
+    mode.add_argument('--network', action='store_true', help='Export the compact shared-sigmoid architecture.')
+    mode.add_argument('--network-expanded', action='store_true', help='Expand every logical neuron and connection for inspection.')
     parser.add_argument('--backend', choices=('auto', 'python', 'numpy'), default='auto',
                         help='Auto uses NumPy when installed; python needs only the standard library.')
     parser.add_argument('--seed', type=int, default=7)
@@ -2209,8 +2341,8 @@ def main() -> int:
             result = run_self_tests()
         elif args.catalog:
             result = piece_catalog()
-        elif args.network:
-            result = network_metadata(True)
+        elif args.network or args.network_expanded:
+            result = network_metadata(args.network_expanded)
         elif args.benchmark:
             runs = []
             for policy in (('network', 'random') if args.compare else ('network',)):

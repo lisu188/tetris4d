@@ -1,0 +1,112 @@
+{
+  "passed": true,
+  "scope": "Lossless shared-sigmoid representation and histogram pooling, not neuron pruning or training.",
+  "base_commit": "b3f2e8b4eea26f2f3fdeb18a2c7c4666103ffc0a",
+  "source_blob_sha": "61e7dd923d3784a1f20cd4af9d58b10eb1dc322e",
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "numpy": "2.3.5"
+  },
+  "preserved": {
+    "logical_sigmoid_units": 23040,
+    "logical_connections": 73218,
+    "raw_inputs": 4098,
+    "sigmoid_filters": 2,
+    "well": [16, 16, 16, 16],
+    "piece_types": 15,
+    "depth": 2,
+    "beam": 4,
+    "candidates": 2048
+  },
+  "regression_tests": {
+    "unittest_cases": 8,
+    "backends": ["python", "numpy"],
+    "passed": true
+  },
+  "gui_pages": {
+    "passed": true,
+    "activation_checks": 27203,
+    "covered_logical_nodes": 27139,
+    "pages": 16,
+    "callback_errors": [],
+    "sizes": [[740, 700], [520, 440]]
+  },
+  "network_export_bytes": {
+    "compact": 3444,
+    "expanded": 6896069
+  },
+  "engine_assertions_per_suite": 67034,
+  "engine_backends_passed": ["python", "numpy", "auto_without_site_packages"],
+  "exact_comparisons": {
+    "integer_feature_sets_per_backend": 49,
+    "activation_values_both_backends": 2659622,
+    "max_absolute_error": 0.0,
+    "fractional_feature_sets_per_backend": 4,
+    "identical_gameplay_moves": 150,
+    "piece_sets": ["classic", "expanded", "4d"]
+  },
+  "benchmark": {
+    "numpy": {
+      "base_commit": "b3f2e8b4eea26f2f3fdeb18a2c7c4666103ffc0a",
+      "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+      "backend": "numpy",
+      "fixture_seed": 8303,
+      "fixtures": 20,
+      "repetitions": 5,
+      "exact_activation_matches": 542780,
+      "timings": {
+        "baseline_full_trace_cold": {
+          "median_ms": 1.5141137499995239,
+          "repetitions_ms": [1.5141137499995239, 1.4901143000088268, 1.4584420000005593, 1.5756144000079075, 1.5244821500004946]
+        },
+        "compact_full_trace_cold": {
+          "median_ms": 1.1408319999986816,
+          "repetitions_ms": [1.100198950007325, 1.049773049999203, 1.3762775999907717, 1.143489349999527, 1.1408319999986816]
+        },
+        "compact_lazy_trace_cold": {
+          "median_ms": 0.38902640000060273,
+          "repetitions_ms": [0.39122279999901366, 0.38117259999808084, 0.37994369999978517, 0.38902640000060273, 0.41506540000000314]
+        },
+        "compact_lazy_trace_warm": {
+          "median_ms": 0.02142149999902661,
+          "repetitions_ms": [0.02142149999902661, 0.020141749996582803, 0.021727116666170332, 0.022809349998927548, 0.02082981667020552]
+        }
+      },
+      "stored_graph_bytes": {"baseline": 11450469, "compact": 32},
+      "note": "Graph memory excludes shared adjacency and response tables. Cold clears feature caches, not imports. Timings are network tracing, not whole-game FPS.",
+      "trace_bytes": {"baseline": 895680, "compact": 34768}
+    },
+    "python": {
+      "base_commit": "b3f2e8b4eea26f2f3fdeb18a2c7c4666103ffc0a",
+      "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+      "backend": "python",
+      "fixture_seed": 8303,
+      "fixtures": 20,
+      "repetitions": 5,
+      "exact_activation_matches": 542780,
+      "timings": {
+        "baseline_full_trace_cold": {
+          "median_ms": 2.7683398500016665,
+          "repetitions_ms": [2.824747750003098, 2.7683398500016665, 2.9041483500009235, 2.7632297000081962, 2.7150899499929437]
+        },
+        "compact_full_trace_cold": {
+          "median_ms": 2.142555699992954,
+          "repetitions_ms": [2.151133999996091, 2.1357453499945223, 2.252600350004741, 2.1182571500048653, 2.142555699992954]
+        },
+        "compact_lazy_trace_cold": {
+          "median_ms": 1.0586654500002624,
+          "repetitions_ms": [1.0897750000026463, 0.9580290499911825, 1.0833129499928873, 1.0586654500002624, 1.0191504499971415]
+        },
+        "compact_lazy_trace_warm": {
+          "median_ms": 0.024009516668381064,
+          "repetitions_ms": [0.024009516668381064, 0.02733909999885024, 0.021473766666228283, 0.022718033331633098, 0.024598050000198175]
+        }
+      },
+      "stored_graph_bytes": {"baseline": 11450469, "compact": 32},
+      "note": "Graph memory excludes shared adjacency and response tables. Cold clears feature caches, not imports. Timings are network tracing, not whole-game FPS.",
+      "trace_bytes": {"baseline": 317432, "compact": 34768}
+    }
+  },
+  "limitations": "Exact comparisons are measured on this platform; no whole-game FPS or total-process-memory speedup is claimed."
+}
