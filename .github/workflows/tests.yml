@@ -33,7 +33,7 @@ jobs:
       - name: Install optional accelerator
         run: python -m pip install -r requirements-numpy.txt
       - name: Check syntax
-        run: python -m py_compile sparse_tetris_4d_optimized.py
+        run: python -m py_compile sparse_tetris_4d_optimized.py tools/train_agent.py tools/evaluate_agent.py tests/test_training.py
       - name: Test standard-library backend
         run: python sparse_tetris_4d_optimized.py --test --backend python
       - name: Test NumPy backend
@@ -44,6 +44,15 @@ jobs:
           python tests/test_network_structure.py --backend numpy
       - name: Test automatic fallback without site packages
         run: python -S sparse_tetris_4d_optimized.py --test --backend auto
+      - name: Test checkpoint and training implementation
+        run: |
+          python tests/test_training.py --backend python
+          python tests/test_training.py --backend numpy
+      - name: Test trained checkpoint
+        run: |
+          python sparse_tetris_4d_optimized.py --test --backend python --weights models/trained-sigmoid.json
+          python sparse_tetris_4d_optimized.py --test --backend numpy --weights models/trained-sigmoid.json
+          python -S sparse_tetris_4d_optimized.py --test --backend auto --weights models/trained-sigmoid.json
 
   gui:
     name: Tkinter smoke test / virtual display
@@ -64,3 +73,7 @@ jobs:
         run: |
           xvfb-run -a -s '-screen 0 1560x960x24' python sparse_tetris_4d_optimized.py --gui-smoke --backend numpy > gui-smoke.json
           python -c "import json; r = json.load(open('gui-smoke.json', encoding='utf-8')); assert r['passed'] and r['selected_drop'] and r['visible_network_nodes'] > 0, r; print(r)"
+      - name: Run trained graphical smoke test
+        run: |
+          xvfb-run -a -s '-screen 0 1560x960x24' python sparse_tetris_4d_optimized.py --gui-smoke --backend numpy --weights models/trained-sigmoid.json > trained-gui-smoke.json
+          python -c "import json; r = json.load(open('trained-gui-smoke.json', encoding='utf-8')); assert r['passed'] and r['selected_drop'] and r['visible_network_nodes'] > 0, r; print(r)"

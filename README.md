@@ -1,6 +1,6 @@
 # Tetris 4D
 
-A single-file Python/Tkinter falling-block game on a **16 × 16 × 16 × 16** board, with rigid pieces, a fixed sparse sigmoid evaluator, and live network activation visualization.
+A single-file Python/Tkinter falling-block game on a **16 × 16 × 16 × 16** board, with rigid pieces, a sparse sigmoid evaluator with optional trained checkpoints, and live network activation visualization.
 
 ## Run
 
@@ -122,3 +122,19 @@ The application remains in `sparse_tetris_4d_optimized.py`, including its built-
 The evaluator now uses two shared sigmoid filters, exact histogram pooling and lazy activation traces. Logical neurons and gameplay are unchanged. See [network structure and measurements](docs/network-structure.md).
 
 `--network` exports the compact structure; `--network-expanded` reconstructs every logical neuron and connection.
+
+## Gameplay-trained checkpoint
+
+A reproducible cross-entropy policy search has trained three shared sigmoid parameters. The baseline remains the default; load the checkpoint explicitly:
+
+```bash
+python sparse_tetris_4d_optimized.py --weights models/trained-sigmoid.json
+```
+
+On six unseen 1,000-piece games with the normal two-piece search, mean final holes decreased from 139.0 to 63.8. Both policies survived every capped game and neither cleared a hyperlayer; this demonstrates better packing in this sample, not improved survival or scoring. See [training, held-out results, and limitations](docs/training.md).
+
+Continue the saved optimizer without replacing this checkpoint:
+
+```bash
+python tools/train_agent.py --resume models/trained-sigmoid.json --generations 20 --output models/continued.json --report validation/continued.json
+```
