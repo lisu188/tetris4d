@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "environment": {
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "engine_and_gui": {
+    "trained_numpy_tests.json": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.503
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 5.359
+    },
+    "trained_python_tests.json": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.959
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 5.93
+    },
+    "trained_nosite_tests.json": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.347
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 4.109
+    },
+    "trained_gui.json": {
+      "passed": true,
+      "callback_errors": [],
+      "selected_drop": true,
+      "visible_network_nodes": 1731
+    }
+  },
+  "new_unit_tests": {
+    "cases": 10,
+    "python": "passed",
+    "numpy": "passed"
+  },
+  "original_structure_tests": {
+    "cases": 8,
+    "numpy": "passed"
+  },
+  "resume_check": {
+    "passed": true,
+    "identical": [
+      "parameters",
+      "optimizer mean",
+      "optimizer std",
+      "RNG state",
+      "history"
+    ],
+    "protocol": "one generation + resume one versus two uninterrupted; four candidates, one training episode, four-piece limit"
+  },
+  "application_git_blob": "1a1c9111aaba4a8f79b3c40e6b33a35925de1575"
+}

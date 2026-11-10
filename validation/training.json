@@ -1,0 +1,826 @@
+{
+  "passed": true,
+  "training_baseline": {
+    "parameters": {
+      "height": -0.510066,
+      "holes": -0.35663,
+      "layers": 0.760666,
+      "roughness": -0.184483,
+      "threshold": 2.0
+    },
+    "summary": {
+      "mean_fitness": 0.5318028590063281,
+      "mean_pieces": 91.0,
+      "mean_new_holes": 245.625,
+      "total_hyperlayers": 0,
+      "survived_to_cap": 4,
+      "episodes": 8
+    },
+    "runs": [
+      {
+        "seed": 101,
+        "kind": "empty",
+        "piece_set": "expanded",
+        "pieces": 128,
+        "cells_placed": 770,
+        "hyperlayers": 0,
+        "holes": 41,
+        "initial_holes": 0,
+        "new_holes": 41,
+        "max_height": 4,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.9866883116883117,
+        "evaluations": 65536
+      },
+      {
+        "seed": 102,
+        "kind": "rough",
+        "piece_set": "classic",
+        "pieces": 128,
+        "cells_placed": 512,
+        "hyperlayers": 0,
+        "holes": 127,
+        "initial_holes": 0,
+        "new_holes": 127,
+        "max_height": 11,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.93798828125,
+        "evaluations": 65536
+      },
+      {
+        "seed": 103,
+        "kind": "pocket4",
+        "piece_set": "4d",
+        "pieces": 21,
+        "cells_placed": 156,
+        "hyperlayers": 0,
+        "holes": 288,
+        "initial_holes": 0,
+        "new_holes": 288,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": -0.29747596153846156,
+        "evaluations": 14008
+      },
+      {
+        "seed": 104,
+        "kind": "pocket5",
+        "piece_set": "expanded",
+        "pieces": 61,
+        "cells_placed": 368,
+        "hyperlayers": 0,
+        "holes": 351,
+        "initial_holes": 0,
+        "new_holes": 351,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.23811141304347827,
+        "evaluations": 31232
+      },
+      {
+        "seed": 105,
+        "kind": "empty",
+        "piece_set": "4d",
+        "pieces": 128,
+        "cells_placed": 992,
+        "hyperlayers": 0,
+        "holes": 89,
+        "initial_holes": 0,
+        "new_holes": 89,
+        "max_height": 4,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.977570564516129,
+        "evaluations": 65536
+      },
+      {
+        "seed": 106,
+        "kind": "rough",
+        "piece_set": "expanded",
+        "pieces": 128,
+        "cells_placed": 766,
+        "hyperlayers": 0,
+        "holes": 375,
+        "initial_holes": 0,
+        "new_holes": 375,
+        "max_height": 11,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.8776109660574413,
+        "evaluations": 65536
+      },
+      {
+        "seed": 107,
+        "kind": "pocket4",
+        "piece_set": "classic",
+        "pieces": 92,
+        "cells_placed": 368,
+        "hyperlayers": 0,
+        "holes": 277,
+        "initial_holes": 0,
+        "new_holes": 277,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.5305706521739131,
+        "evaluations": 184099
+      },
+      {
+        "seed": 108,
+        "kind": "pocket5",
+        "piece_set": "4d",
+        "pieces": 42,
+        "cells_placed": 321,
+        "hyperlayers": 0,
+        "holes": 417,
+        "initial_holes": 0,
+        "new_holes": 417,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.003358644859813076,
+        "evaluations": 25913
+      }
+    ],
+    "seconds": 4.9749
+  },
+  "training_champion": {
+    "parameters": {
+      "height": -0.510066,
+      "holes": -0.7685650472003598,
+      "layers": 0.760666,
+      "roughness": -0.2629078098390759,
+      "threshold": 3.9612832250311807
+    },
+    "summary": {
+      "mean_fitness": 0.5960297233999057,
+      "mean_pieces": 96.625,
+      "mean_new_holes": 266.625,
+      "total_hyperlayers": 0,
+      "survived_to_cap": 4,
+      "episodes": 8
+    },
+    "runs": [
+      {
+        "seed": 101,
+        "kind": "empty",
+        "piece_set": "expanded",
+        "pieces": 128,
+        "cells_placed": 770,
+        "hyperlayers": 0,
+        "holes": 30,
+        "initial_holes": 0,
+        "new_holes": 30,
+        "max_height": 4,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.9902597402597403,
+        "evaluations": 65536
+      },
+      {
+        "seed": 102,
+        "kind": "rough",
+        "piece_set": "classic",
+        "pieces": 128,
+        "cells_placed": 512,
+        "hyperlayers": 0,
+        "holes": 100,
+        "initial_holes": 0,
+        "new_holes": 100,
+        "max_height": 11,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.951171875,
+        "evaluations": 65536
+      },
+      {
+        "seed": 103,
+        "kind": "pocket4",
+        "piece_set": "4d",
+        "pieces": 31,
+        "cells_placed": 239,
+        "hyperlayers": 0,
+        "holes": 326,
+        "initial_holes": 0,
+        "new_holes": 326,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": -0.09881668410041838,
+        "evaluations": 96876
+      },
+      {
+        "seed": 104,
+        "kind": "pocket5",
+        "piece_set": "expanded",
+        "pieces": 99,
+        "cells_placed": 597,
+        "hyperlayers": 0,
+        "holes": 601,
+        "initial_holes": 0,
+        "new_holes": 601,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.521762458123953,
+        "evaluations": 112427
+      },
+      {
+        "seed": 105,
+        "kind": "empty",
+        "piece_set": "4d",
+        "pieces": 128,
+        "cells_placed": 992,
+        "hyperlayers": 0,
+        "holes": 62,
+        "initial_holes": 0,
+        "new_holes": 62,
+        "max_height": 4,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.984375,
+        "evaluations": 65536
+      },
+      {
+        "seed": 106,
+        "kind": "rough",
+        "piece_set": "expanded",
+        "pieces": 128,
+        "cells_placed": 766,
+        "hyperlayers": 0,
+        "holes": 361,
+        "initial_holes": 0,
+        "new_holes": 361,
+        "max_height": 12,
+        "topped_out": false,
+        "capped": true,
+        "fitness": 0.8821801566579635,
+        "evaluations": 65536
+      },
+      {
+        "seed": 107,
+        "kind": "pocket4",
+        "piece_set": "classic",
+        "pieces": 89,
+        "cells_placed": 356,
+        "hyperlayers": 0,
+        "holes": 293,
+        "initial_holes": 0,
+        "new_holes": 293,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.4895540730337079,
+        "evaluations": 130571
+      },
+      {
+        "seed": 108,
+        "kind": "pocket5",
+        "piece_set": "4d",
+        "pieces": 42,
+        "cells_placed": 321,
+        "hyperlayers": 0,
+        "holes": 360,
+        "initial_holes": 0,
+        "new_holes": 360,
+        "max_height": 16,
+        "topped_out": true,
+        "capped": false,
+        "fitness": 0.04775116822429909,
+        "evaluations": 24904
+      }
+    ],
+    "seconds": 5.6538
+  },
+  "validation": {
+    "baseline": {
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.35663,
+        "layers": 0.760666,
+        "roughness": -0.184483,
+        "threshold": 2.0
+      },
+      "summary": {
+        "mean_fitness": 0.7638206215415312,
+        "mean_pieces": 91.125,
+        "mean_new_holes": 254.625,
+        "total_hyperlayers": 8,
+        "survived_to_cap": 4,
+        "episodes": 8
+      },
+      "runs": [
+        {
+          "seed": 1001,
+          "kind": "empty",
+          "piece_set": "expanded",
+          "pieces": 128,
+          "cells_placed": 774,
+          "hyperlayers": 0,
+          "holes": 40,
+          "initial_holes": 0,
+          "new_holes": 40,
+          "max_height": 4,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 0.9870801033591732,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1002,
+          "kind": "rough",
+          "piece_set": "classic",
+          "pieces": 128,
+          "cells_placed": 512,
+          "hyperlayers": 4,
+          "holes": 83,
+          "initial_holes": 0,
+          "new_holes": 83,
+          "max_height": 7,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 1.95947265625,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1003,
+          "kind": "pocket4",
+          "piece_set": "4d",
+          "pieces": 18,
+          "cells_placed": 134,
+          "hyperlayers": 0,
+          "holes": 321,
+          "initial_holes": 0,
+          "new_holes": 321,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": -0.45825559701492535,
+          "evaluations": 12415
+        },
+        {
+          "seed": 1004,
+          "kind": "pocket5",
+          "piece_set": "expanded",
+          "pieces": 63,
+          "cells_placed": 377,
+          "hyperlayers": 0,
+          "holes": 279,
+          "initial_holes": 0,
+          "new_holes": 279,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": 0.3071742374005305,
+          "evaluations": 33539
+        },
+        {
+          "seed": 1005,
+          "kind": "empty",
+          "piece_set": "4d",
+          "pieces": 128,
+          "cells_placed": 992,
+          "hyperlayers": 0,
+          "holes": 89,
+          "initial_holes": 0,
+          "new_holes": 89,
+          "max_height": 4,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 0.977570564516129,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1006,
+          "kind": "rough",
+          "piece_set": "expanded",
+          "pieces": 128,
+          "cells_placed": 766,
+          "hyperlayers": 4,
+          "holes": 408,
+          "initial_holes": 0,
+          "new_holes": 408,
+          "max_height": 7,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 1.866840731070496,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1007,
+          "kind": "pocket4",
+          "piece_set": "classic",
+          "pieces": 92,
+          "cells_placed": 368,
+          "hyperlayers": 0,
+          "holes": 285,
+          "initial_holes": 0,
+          "new_holes": 285,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": 0.5251358695652174,
+          "evaluations": 112885
+        },
+        {
+          "seed": 1008,
+          "kind": "pocket5",
+          "piece_set": "4d",
+          "pieces": 44,
+          "cells_placed": 334,
+          "hyperlayers": 0,
+          "holes": 532,
+          "initial_holes": 0,
+          "new_holes": 532,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": -0.05445359281437123,
+          "evaluations": 33488
+        }
+      ],
+      "seconds": 4.4906
+    },
+    "trained": {
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.7685650472003598,
+        "layers": 0.760666,
+        "roughness": -0.2629078098390759,
+        "threshold": 3.9612832250311807
+      },
+      "summary": {
+        "mean_fitness": 0.7804839638584097,
+        "mean_pieces": 91.25,
+        "mean_new_holes": 226.375,
+        "total_hyperlayers": 8,
+        "survived_to_cap": 4,
+        "episodes": 8
+      },
+      "runs": [
+        {
+          "seed": 1001,
+          "kind": "empty",
+          "piece_set": "expanded",
+          "pieces": 128,
+          "cells_placed": 774,
+          "hyperlayers": 0,
+          "holes": 37,
+          "initial_holes": 0,
+          "new_holes": 37,
+          "max_height": 4,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 0.9880490956072352,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1002,
+          "kind": "rough",
+          "piece_set": "classic",
+          "pieces": 128,
+          "cells_placed": 512,
+          "hyperlayers": 4,
+          "holes": 81,
+          "initial_holes": 0,
+          "new_holes": 81,
+          "max_height": 7,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 1.96044921875,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1003,
+          "kind": "pocket4",
+          "piece_set": "4d",
+          "pieces": 18,
+          "cells_placed": 134,
+          "hyperlayers": 0,
+          "holes": 325,
+          "initial_holes": 0,
+          "new_holes": 325,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": -0.46571828358208955,
+          "evaluations": 12415
+        },
+        {
+          "seed": 1004,
+          "kind": "pocket5",
+          "piece_set": "expanded",
+          "pieces": 58,
+          "cells_placed": 347,
+          "hyperlayers": 0,
+          "holes": 277,
+          "initial_holes": 0,
+          "new_holes": 277,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": 0.2535572766570605,
+          "evaluations": 29696
+        },
+        {
+          "seed": 1005,
+          "kind": "empty",
+          "piece_set": "4d",
+          "pieces": 128,
+          "cells_placed": 992,
+          "hyperlayers": 0,
+          "holes": 70,
+          "initial_holes": 0,
+          "new_holes": 70,
+          "max_height": 4,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 0.9823588709677419,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1006,
+          "kind": "rough",
+          "piece_set": "expanded",
+          "pieces": 128,
+          "cells_placed": 766,
+          "hyperlayers": 4,
+          "holes": 353,
+          "initial_holes": 0,
+          "new_holes": 353,
+          "max_height": 8,
+          "topped_out": false,
+          "capped": true,
+          "fitness": 1.8847911227154046,
+          "evaluations": 65536
+        },
+        {
+          "seed": 1007,
+          "kind": "pocket4",
+          "piece_set": "classic",
+          "pieces": 98,
+          "cells_placed": 392,
+          "hyperlayers": 0,
+          "holes": 280,
+          "initial_holes": 0,
+          "new_holes": 280,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": 0.5870535714285714,
+          "evaluations": 233963
+        },
+        {
+          "seed": 1008,
+          "kind": "pocket5",
+          "piece_set": "4d",
+          "pieces": 44,
+          "cells_placed": 334,
+          "hyperlayers": 0,
+          "holes": 388,
+          "initial_holes": 0,
+          "new_holes": 388,
+          "max_height": 16,
+          "topped_out": true,
+          "capped": false,
+          "fitness": 0.05333083832335328,
+          "evaluations": 26189
+        }
+      ],
+      "seconds": 4.5956
+    },
+    "improved": true
+  },
+  "history": [
+    {
+      "generation": 1,
+      "best_fitness": 0.5666022686458289,
+      "generation_mean_fitness": 0.5422460684076124,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.3172925004636946,
+        "layers": 0.760666,
+        "roughness": -0.2933902810577861,
+        "threshold": 4.307517538574738
+      },
+      "rollout_pieces": 8876,
+      "evaluations": 6330413
+    },
+    {
+      "generation": 2,
+      "best_fitness": 0.5734895092199147,
+      "generation_mean_fitness": 0.5454009332454227,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.6358007009217084,
+        "layers": 0.760666,
+        "roughness": -0.2825156796896662,
+        "threshold": 2.734822805344443
+      },
+      "rollout_pieces": 9038,
+      "evaluations": 7050222
+    },
+    {
+      "generation": 3,
+      "best_fitness": 0.5780119930733268,
+      "generation_mean_fitness": 0.5595148256546191,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -1.023468708556476,
+        "layers": 0.760666,
+        "roughness": -0.3192631774762942,
+        "threshold": 3.3965199318540407
+      },
+      "rollout_pieces": 9073,
+      "evaluations": 7138232
+    },
+    {
+      "generation": 4,
+      "best_fitness": 0.5852126751129428,
+      "generation_mean_fitness": 0.5607017355002297,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.739852663489052,
+        "layers": 0.760666,
+        "roughness": -0.2501974236166304,
+        "threshold": 3.5931125295409703
+      },
+      "rollout_pieces": 9016,
+      "evaluations": 6961331
+    },
+    {
+      "generation": 5,
+      "best_fitness": 0.5946509689591147,
+      "generation_mean_fitness": 0.5735757056970702,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.7058558940729027,
+        "layers": 0.760666,
+        "roughness": -0.2935284612973436,
+        "threshold": 4.273213181685828
+      },
+      "rollout_pieces": 9039,
+      "evaluations": 7394336
+    },
+    {
+      "generation": 6,
+      "best_fitness": 0.5950184547823849,
+      "generation_mean_fitness": 0.5789905566529927,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.6991816621810899,
+        "layers": 0.760666,
+        "roughness": -0.2846431666194667,
+        "threshold": 4.2133777511196735
+      },
+      "rollout_pieces": 9097,
+      "evaluations": 7216473
+    },
+    {
+      "generation": 7,
+      "best_fitness": 0.5950184547823849,
+      "generation_mean_fitness": 0.5747742956069648,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.6991816621810899,
+        "layers": 0.760666,
+        "roughness": -0.2846431666194667,
+        "threshold": 4.2133777511196735
+      },
+      "rollout_pieces": 9033,
+      "evaluations": 6904786
+    },
+    {
+      "generation": 8,
+      "best_fitness": 0.5960297233999057,
+      "generation_mean_fitness": 0.5810852177680204,
+      "parameters": {
+        "height": -0.510066,
+        "holes": -0.7685650472003598,
+        "layers": 0.760666,
+        "roughness": -0.2629078098390759,
+        "threshold": 3.9612832250311807
+      },
+      "rollout_pieces": 9087,
+      "evaluations": 7221964
+    }
+  ],
+  "config": {
+    "settings": {
+      "pieces": 128,
+      "depth": 1,
+      "beam": 4,
+      "candidates": 512,
+      "backend": "numpy"
+    },
+    "train_specs": [
+      {
+        "seed": 101,
+        "kind": "empty",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 102,
+        "kind": "rough",
+        "piece_set": "classic"
+      },
+      {
+        "seed": 103,
+        "kind": "pocket4",
+        "piece_set": "4d"
+      },
+      {
+        "seed": 104,
+        "kind": "pocket5",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 105,
+        "kind": "empty",
+        "piece_set": "4d"
+      },
+      {
+        "seed": 106,
+        "kind": "rough",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 107,
+        "kind": "pocket4",
+        "piece_set": "classic"
+      },
+      {
+        "seed": 108,
+        "kind": "pocket5",
+        "piece_set": "4d"
+      }
+    ],
+    "validation_specs": [
+      {
+        "seed": 1001,
+        "kind": "empty",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 1002,
+        "kind": "rough",
+        "piece_set": "classic"
+      },
+      {
+        "seed": 1003,
+        "kind": "pocket4",
+        "piece_set": "4d"
+      },
+      {
+        "seed": 1004,
+        "kind": "pocket5",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 1005,
+        "kind": "empty",
+        "piece_set": "4d"
+      },
+      {
+        "seed": 1006,
+        "kind": "rough",
+        "piece_set": "expanded"
+      },
+      {
+        "seed": 1007,
+        "kind": "pocket4",
+        "piece_set": "classic"
+      },
+      {
+        "seed": 1008,
+        "kind": "pocket5",
+        "piece_set": "4d"
+      }
+    ],
+    "population": 12,
+    "seed": 20261110
+  },
+  "wall_seconds": 149.953,
+  "training": {
+    "method": "cross-entropy policy search",
+    "trained_parameters": [
+      "holes",
+      "roughness",
+      "threshold"
+    ],
+    "generation": 8,
+    "seed": 20261110,
+    "status": "validation-improved",
+    "base_commit": "f7d79639ca50274a0fffb770b664f1505b6788af",
+    "source_sha256": "399404ea6758601e928cadf629ce6bfa1b077d39145fb519798c269b05ce9377",
+    "rollout_pieces": 72259,
+    "candidate_evaluations": 56217757,
+    "training_episodes": 768,
+    "fitness": "pieces / episode_limit + 0.25 * hyperlayers - 0.25 * added_holes / max(1, cells_placed)",
+    "note": "Curriculum uses full-size boards with synthetic starting stacks; shaped reward is not proof of longer full games."
+  }
+}
