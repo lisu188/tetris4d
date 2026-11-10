@@ -1,4 +1,4 @@
-name: Build checkpoint support
+name: Import verified training results
 on:
   push:
     branches: [train/shared-sigmoid-v1]
@@ -16,20 +16,41 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
-      - name: Apply verified source patch
+      - name: Verify and import completed experiment
+        shell: bash
         run: |
-          test "$(git hash-object sparse_tetris_4d_optimized.py)" = 61e7dd923d3784a1f20cd4af9d58b10eb1dc322e
-          git apply .ci/training-source.patch
           test "$(git hash-object sparse_tetris_4d_optimized.py)" = 1a1c9111aaba4a8f79b3c40e6b33a35925de1575
-      - name: Validate engine
+          python - <<'PY'
+          import hashlib, io, zipfile
+          from pathlib import Path
+          data = b''.join(p.read_bytes() for p in sorted(Path('.ci/training-assets').iterdir()))
+          assert hashlib.sha256(data).hexdigest() == '02ec2e1dc2c866c6a08dd5f7f931c359302927145094f14843ef2a8afbb2461d'
+          allowed = {'tools/train_agent.py', 'tools/evaluate_agent.py', 'tests/test_training.py', 'models/trained-sigmoid.json', 'validation/training.json', 'validation/training-heldout.json', 'validation/training-software.json', 'docs/training.md'}
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              assert set(archive.namelist()) == allowed
+              assert archive.testzip() is None
+              for name in sorted(allowed):
+                  path = Path(name)
+                  path.parent.mkdir(parents=True, exist_ok=True)
+                  path.write_bytes(archive.read(name))
+          path = Path('README.md')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('a fixed sparse sigmoid evaluator', 'a sparse sigmoid evaluator with optional trained checkpoints')
+          section = '\n## Gameplay-trained checkpoint\n\nA reproducible cross-entropy policy search has trained three shared sigmoid parameters. The baseline remains the default; load the checkpoint explicitly:\n\n```bash\npython sparse_tetris_4d_optimized.py --weights models/trained-sigmoid.json\n```\n\nOn six unseen 1,000-piece games with the normal two-piece search, mean final holes decreased from 139.0 to 63.8. Both policies survived every capped game and neither cleared a hyperlayer; this demonstrates better packing in this sample, not improved survival or scoring. See [training, held-out results, and limitations](docs/training.md).\n\nContinue the saved optimizer without replacing this checkpoint:\n\n```bash\npython tools/train_agent.py --resume models/trained-sigmoid.json --generations 20 --output models/continued.json --report validation/continued.json\n```\n'
+          assert '## Gameplay-trained checkpoint' not in text
+          path.write_text(text + section, encoding='utf-8')
+          PY
+      - name: Validate trained model and checkpoint implementation
         run: |
           python -m pip install -r requirements-numpy.txt
-          python sparse_tetris_4d_optimized.py --test --backend python
-          python sparse_tetris_4d_optimized.py --test --backend numpy
-      - name: Commit verified source only
+          python tests/test_training.py --backend python
+          python tests/test_training.py --backend numpy
+          python sparse_tetris_4d_optimized.py --test --backend python --weights models/trained-sigmoid.json
+          python sparse_tetris_4d_optimized.py --test --backend numpy --weights models/trained-sigmoid.json
+      - name: Commit verified assets only
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add sparse_tetris_4d_optimized.py
-          git commit -m 'feat: support trained sigmoid checkpoints and cache invalidation'
+          git add tools/train_agent.py tools/evaluate_agent.py tests/test_training.py models/trained-sigmoid.json validation/training.json validation/training-heldout.json validation/training-software.json docs/training.md README.md
+          git commit -m 'feat: add reproducible trained checkpoint, resume support and held-out results'
           git push origin HEAD:train/shared-sigmoid-v1
