@@ -116,3 +116,9 @@ python sparse_tetris_4d_optimized.py --network --output network.json
 ```
 
 The application remains in `sparse_tetris_4d_optimized.py`, including its built-in tests. NumPy is optional; Tkinter is only imported when launching the interface.
+
+## Compact shared-sigmoid network
+
+The evaluator now uses two shared sigmoid filters, exact histogram pooling and lazy activation traces. Logical neurons and gameplay are unchanged. See [network structure and measurements](docs/network-structure.md).
+
+`--network` exports the compact structure; `--network-expanded` reconstructs every logical neuron and connection.
