@@ -1,0 +1,131 @@
+--- a/sparse_tetris_4d_optimized.py
++++ b/sparse_tetris_4d_optimized.py
+@@ -198,11 +198,12 @@
+ 
+ 
+ class NetworkTrace(Sequence):
+-    __slots__ = ('inputs', 'histograms', 'output', 'active_count')
++    __slots__ = ('inputs', 'histograms', 'output', 'active_count', 'revision')
+ 
+     def __init__(self, heights: tuple[int, ...], holes: int, layers: int) -> None:
+         if len(heights) != AREA:
+             raise ValueError(f'Expected {AREA} column heights.')
++        self.revision = MODEL_REVISION
+         self.inputs = tuple(heights) + (float(holes), float(layers))
+         if not math.isfinite(self.inputs[AREA]) or not math.isfinite(self.inputs[AREA + 1]):
+             raise ValueError('Network inputs must be finite.')
+@@ -231,6 +232,8 @@
+         return OUTPUT_INDEX + 1
+ 
+     def __getitem__(self, index):
++        if self.revision != MODEL_REVISION:
++            raise RuntimeError('The model changed; create a new activation trace.')
+         if isinstance(index, slice):
+             return [self[i] for i in range(*index.indices(len(self)))]
+         if not isinstance(index, int):
+@@ -253,6 +256,8 @@
+         return sigmoid(d - SIGMOID_THRESHOLD)
+ 
+     def expand(self) -> list[float]:
++        if self.revision != MODEL_REVISION:
++            raise RuntimeError('The model changed; create a new activation trace.')
+         values = list(map(float, self.inputs))
+         if self.histograms is not None and BACKEND == 'numpy':
+             np, a, b, _ = numpy_tables()
+@@ -285,6 +290,70 @@
+ 
+ def network_score(heights: tuple[int, ...], holes: int, layers: int) -> float:
+     return HEIGHT_WEIGHT * sum(heights) + HOLES_WEIGHT * holes + LAYERS_WEIGHT * layers + BUMP_WEIGHT * sigmoid_roughness(heights)
++
++
++BASELINE_PARAMETERS = {'height': HEIGHT_WEIGHT, 'holes': HOLES_WEIGHT,
++                       'layers': LAYERS_WEIGHT, 'roughness': BUMP_WEIGHT,
++                       'threshold': SIGMOID_THRESHOLD}
++MODEL_TRAINING = {'method': 'none', 'description': 'Untrained inherited heuristic coefficients.'}
++MODEL_REVISION = 0
++
++
++def network_parameters() -> dict[str, float]:
++    return {'height': HEIGHT_WEIGHT, 'holes': HOLES_WEIGHT, 'layers': LAYERS_WEIGHT,
++            'roughness': BUMP_WEIGHT, 'threshold': SIGMOID_THRESHOLD}
++
++
++def configure_network(parameters: dict[str, float], training: dict | None = None) -> None:
++    global HEIGHT_WEIGHT, HOLES_WEIGHT, LAYERS_WEIGHT, BUMP_WEIGHT, SIGMOID_THRESHOLD
++    global SIGMOID_BASELINE, HIDDEN_OUTPUT_WEIGHT, OUTPUT_BIAS, ROUGHNESS_TABLE, SIGMOID_TABLE
++    global ROUGHNESS_TICKS, ROUGHNESS_DENOMINATOR, HEIGHT_OUTPUT_TICKS, PAIR_OUTPUT_TICKS
++    global OUTPUT_DENOMINATOR, PAIR_ACTIVE_COUNTS, MODEL_TRAINING, MODEL_REVISION
++    if not isinstance(parameters, dict) or set(parameters) != set(BASELINE_PARAMETERS):
++        raise ValueError('Model parameters must contain height, holes, layers, roughness and threshold.')
++    if any(type(value) not in (int, float) or not math.isfinite(value) for value in parameters.values()):
++        raise ValueError('Model parameters must be finite numbers, not booleans or strings.')
++    values = {key: float(value) for key, value in parameters.items()}
++    if not (-100 <= values['height'] < 0 and -100 <= values['holes'] <= 0
++            and 0 <= values['layers'] <= 100 and -100 <= values['roughness'] <= 0
++            and .25 <= values['threshold'] <= 6):
++        raise ValueError('Model parameters exceed supported bounds or have invalid signs.')
++    if training is not None and not isinstance(training, dict):
++        raise ValueError('Training metadata must be an object.')
++    metadata = json.loads(json.dumps(training or {'method': 'custom'}, allow_nan=False))
++    HEIGHT_WEIGHT, HOLES_WEIGHT, LAYERS_WEIGHT = values['height'], values['holes'], values['layers']
++    BUMP_WEIGHT, SIGMOID_THRESHOLD = values['roughness'], values['threshold']
++    SIGMOID_BASELINE = 2 * sigmoid(-SIGMOID_THRESHOLD)
++    HIDDEN_OUTPUT_WEIGHT = BUMP_WEIGHT * ROUGHNESS_SCALE
++    OUTPUT_BIAS = -HIDDEN_OUTPUT_WEIGHT * len(NEIGHBORS) * SIGMOID_BASELINE
++    ROUGHNESS_TABLE = tuple(roughness_term(d) for d in range(-HEIGHT, HEIGHT + 1))
++    SIGMOID_TABLE = tuple(sigmoid(d - SIGMOID_THRESHOLD) for d in range(-HEIGHT, HEIGHT + 1))
++    ROUGHNESS_TICKS, ROUGHNESS_DENOMINATOR = _integer_table(ROUGHNESS_TABLE[HEIGHT:])
++    signals = tuple(h * HEIGHT_WEIGHT for h in range(HEIGHT + 1)) + tuple(
++        value * HIDDEN_OUTPUT_WEIGHT for value in SIGMOID_TABLE)
++    ticks, OUTPUT_DENOMINATOR = _integer_table(signals)
++    HEIGHT_OUTPUT_TICKS = ticks[:HEIGHT + 1]
++    PAIR_OUTPUT_TICKS = tuple(ticks[HEIGHT + 1 + HEIGHT + d] + ticks[HEIGHT + 1 + HEIGHT - d]
++                             for d in range(HEIGHT + 1))
++    PAIR_ACTIVE_COUNTS = tuple(int(SIGMOID_TABLE[HEIGHT + d] >= .5) + int(SIGMOID_TABLE[HEIGHT - d] >= .5)
++                               for d in range(HEIGHT + 1))
++    for function in (pooled_histograms, sigmoid_roughness, evaluate_board, numpy_tables, numpy_network_data):
++        function.cache_clear()
++    MODEL_TRAINING = metadata
++    MODEL_REVISION += 1
++
++
++def load_checkpoint(path: Path | str) -> dict:
++    path = Path(path)
++    if path.stat().st_size > 2_000_000:
++        raise ValueError('Checkpoint exceeds the 2 MB limit.')
++    checkpoint = json.loads(path.read_text(encoding='utf-8'))
++    if (not isinstance(checkpoint, dict) or checkpoint.get('schema') != 1
++            or checkpoint.get('kind') != 'tetris4d-shared-sigmoid'
++            or checkpoint.get('well') != [WIDTH, DEPTH, HEIGHT, FOURTH]):
++        raise ValueError('Incompatible Tetris 4D checkpoint.')
++    configure_network(checkpoint.get('parameters'), checkpoint.get('training'))
++    return checkpoint
+ 
+ 
+ def network_metadata(include_nodes: bool = False) -> dict:
+@@ -309,7 +378,7 @@
+               'sigmoid': {'threshold': SIGMOID_THRESHOLD, 'slope': SIGMOID_SLOPE,
+                           'roughness_scale': ROUGHNESS_SCALE, 'hidden_output_weight': HIDDEN_OUTPUT_WEIGHT,
+                           'output_bias': OUTPUT_BIAS},
+-              'training': 'None. Fixed inherited heuristic coefficients, not optimized for 4D.',
++              'training': dict(MODEL_TRAINING),
+               'search': {'default_depth': 2, 'default_beam': DEFAULT_BEAM,
+                          'candidate_limit_per_board': DEFAULT_CANDIDATES,
+                          'sampling': 'Deterministic stratified sampling of orientations and origins; 0 means exhaustive.'},
+@@ -2320,6 +2389,7 @@
+     mode.add_argument('--network-expanded', action='store_true', help='Expand every logical neuron and connection for inspection.')
+     parser.add_argument('--backend', choices=('auto', 'python', 'numpy'), default='auto',
+                         help='Auto uses NumPy when installed; python needs only the standard library.')
++    parser.add_argument('--weights', type=Path, help='Load a validated JSON checkpoint before evaluation or play.')
+     parser.add_argument('--seed', type=int, default=7)
+     parser.add_argument('--piece-set', choices=tuple(PIECE_SETS), default='expanded',
+                         help='expanded: all 15 pieces; classic: original 7; 4d: only the 8 new shapes.')
+@@ -2337,6 +2407,8 @@
+         parser.error('beam, pieces and games must be positive; candidates must be nonnegative.')
+     try:
+         configure_backend(args.backend)
++        if args.weights:
++            load_checkpoint(args.weights)
+         if args.test:
+             result = run_self_tests()
+         elif args.catalog:
