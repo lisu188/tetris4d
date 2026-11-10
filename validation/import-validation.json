@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-10",
+  "source": "sparse_tetris_4d_optimized.py",
+  "sha256": "7bf05835f313604c93024f242fbd45a85e90445c4f3a092afa3e7ae50a8e8f08",
+  "git_blob_sha": "8098bdc5ff15565b7ef7d01db4ac9549bee30b97",
+  "source_imported_without_modifications": true,
+  "python_version": "3.13.5",
+  "numpy_version": "2.3.5",
+  "tests": {
+    "python": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.332
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 4.1
+    },
+    "numpy": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.107
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 3.299
+    },
+    "auto_without_site_packages": {
+      "passed": true,
+      "assertions": 67034,
+      "piece_tests": {
+        "passed": true,
+        "assertions": 3505,
+        "new_pieces": 8,
+        "catalog_has_no_rotation_duplicates": true,
+        "all_new_shapes_affine_dimension": 4,
+        "independent_new_piece_drop_cases": 96,
+        "new_piece_hyperlayer_clear_cases": 21,
+        "wall_seconds": 1.372
+      },
+      "rotation_checks": 5616,
+      "unique_orientations": 936,
+      "independent_drop_cases": 80,
+      "literal_network_cases": 30,
+      "wall_seconds": 4.231
+    }
+  }
+}
