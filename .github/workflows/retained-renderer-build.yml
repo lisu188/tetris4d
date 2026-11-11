@@ -18,6 +18,22 @@ jobs:
         with:
           python-version: '3.12'
       - run: python .ci/apply-retained-renderer.py
+      - name: Adapt reference fixture dataclass identity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/test_renderer_optimization.py')
+          s = p.read_text()
+          s = s.replace('import ast\n', 'import ast\nfrom dataclasses import asdict\n')
+          helper = '\ndef reference_move(move):\n    if move is None:\n        return None\n    return baseline.Move(baseline.Candidate(**asdict(move.candidate)), move.before, move.board, move.heights, move.holes)\n\n'
+          assert s.count('\ndef snapshot(canvas):') == 1
+          s = s.replace('\ndef snapshot(canvas):', helper + '\ndef snapshot(canvas):')
+          assert s.count('old.draw(board, move, progress, 7, cutoff)') == 1
+          s = s.replace('old.draw(board, move, progress, 7, cutoff)', 'old.draw(board, reference_move(move), progress, 7, cutoff)')
+          assert s.count('old.draw(frame, visible, selected)') == 1
+          s = s.replace('old.draw(frame, visible, selected)', 'old.draw(frame, reference_move(visible), selected)')
+          p.write_text(s)
+          PY
       - name: Ensure display dependencies
         run: |
           if ! command -v xvfb-run || ! command -v xauth || ! python -c 'import tkinter'; then
@@ -41,6 +57,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add sparse_tetris_4d_optimized.py validation/rendering-performance.json
+          git add sparse_tetris_4d_optimized.py tests/test_renderer_optimization.py validation/rendering-performance.json
           git commit -m 'perf: retain atlas cells, append ownership and batch static mesh drawing'
           git push origin HEAD:perf/retained-render-build-20261111
