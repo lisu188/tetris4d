@@ -1,0 +1,20 @@
+{
+  "platform": "Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "torch_installed": true,
+  "cuda_available": true,
+  "gpus": [
+    {
+      "name": "NVIDIA GeForce RTX 4060 Ti",
+      "vram_bytes": 8585216000,
+      "compute_capability": [
+        8,
+        9
+      ]
+    }
+  ],
+  "nvidia_smi": "NVIDIA GeForce RTX 4060 Ti, 8188 MiB, 616.92",
+  "torch_version": "2.14.1+cu130",
+  "torch_cuda_runtime": "13.0",
+  "note": "Diagnostic only; GPU neural policy is proposed, not trained or selected by the game."
+}

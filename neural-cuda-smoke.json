@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "torch": "2.14.1+cu130",
+  "cuda_runtime": "13.0",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "parameter_count": 62485,
+  "finite_gradients": true,
+  "weight_update": true,
+  "loss": 3.7796175479888916,
+  "seconds": 1.1562809070019284,
+  "peak_allocated_mib": 39.85400390625,
+  "peak_reserved_mib": 44.0,
+  "note": "Forward/backward/optimizer smoke test, not a trained playing-strength result."
+}
