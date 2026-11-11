@@ -72,7 +72,7 @@ def run() -> dict:
             check(app.planned is not None, 'Selecting accessible target did not recover')
             app.reset()
             app.target.set('1')
-            app.game.board = (0,) + (2,) * (game.AREA - 1)
+            app.game.board = (0, 10) + (2,) * (game.AREA - 2)
             app.game.current = 'I'
             app.refresh_plan()
             ready()
@@ -81,10 +81,29 @@ def run() -> dict:
             app.place()
             root.update()
             check(app.game.layers == 1, 'GUI did not commit the clear')
-            check(app.goal_complete and not app.running and app.search is None, 'GUI did not pause at first clear')
-            check('CLEARED' in app.status.get(), 'Clear milestone is not displayed')
+            check(not app.goal_complete and app.running, 'GUI paused at a clear without an explicit request')
+            check(app.search is not None or app.planned is not None, 'GUI did not plan after clearing')
+            check(int(app.target.get()) == 2, 'Compacted board was not retargeted')
+            app.running = False
+            ready()
+            previous = app.game.pieces
+            app.place()
+            ready()
+            check(app.game.pieces == previous + 1, 'Post-clear placement was not committed')
+            check('continuous play' in app.target_progress.get(), 'Continuous progress status absent')
+            app.reset()
+            app.target.set('1')
+            app.stop_after_clear = True
+            app.game.board = (0,) + (2,) * (game.AREA - 1)
+            app.game.current = 'I'
+            app.refresh_plan()
+            ready()
+            app.running = True
+            app.place()
+            root.update()
+            check(app.goal_complete and not app.running and app.search is None, 'Explicit pause on clear ignored')
             app.toggle()
-            check(not app.running, 'Completed objective must remain paused')
+            check(not app.running, 'Explicit first-clear pause was not preserved')
             app.policy.set('network')
             app.change_policy()
             ready()
