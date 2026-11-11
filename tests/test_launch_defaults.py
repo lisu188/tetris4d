@@ -40,7 +40,7 @@ class LaunchDefaultsTests(unittest.TestCase):
     def test_no_arguments_load_trained_hyperlayer_defaults(self):
         with patch.object(sys, 'argv', [str(ROOT / 'sparse_tetris_4d_optimized.py')]):
             args = self.launch(None)
-        self.assertEqual(args.policy, 'hyperlayer')
+        self.assertEqual(args.policy, 'sustained')
         self.assertEqual(args.target, 1)
         self.assertEqual(args.weights, CHECKPOINT)
         self.assertEqual(args.piece_set, 'expanded')
@@ -101,13 +101,13 @@ class LaunchDefaultsTests(unittest.TestCase):
         args = self.launch(['--target', '3', '--backend', 'python'])
         self.assertEqual(args.target, 3)
         self.assertEqual(game.BACKEND, 'python')
-        self.assertEqual(args.policy, 'hyperlayer')
+        self.assertEqual(args.policy, 'sustained')
 
     def test_benchmark_dispatch_uses_default_policy(self):
         result = {'seed': 7, 'pieces': 1, 'hyperlayers': 0}
         with patch.object(game, 'run_game', return_value=result) as run, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(game.main(['--benchmark', '--games', '1', '--pieces', '1']), 0)
-        self.assertEqual(run.call_args.args[5], 'hyperlayer')
+        self.assertEqual(run.call_args.args[5], 'sustained')
         self.assertEqual(run.call_args.args[7], 1)
         self.assertEqual(game.network_parameters(), TRAINED)
 

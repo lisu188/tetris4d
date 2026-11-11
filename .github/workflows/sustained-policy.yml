@@ -1,0 +1,64 @@
+name: Sustained clearing policy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      long_games:
+        description: Run the paired 16000-piece policy evaluation
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sustained-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-numpy.txt
+      - run: python tests/test_sustained_policy.py
+      - run: python -S tests/test_sustained_policy.py
+      - run: python tests/test_continuous.py --backend numpy
+      - run: python tools/gpu_probe.py --output gpu-info.json
+
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-numpy.txt
+      - run: python tools/build_native.py
+      - run: python tests/test_sustained_policy.py --trajectory-pieces 2600
+      - name: Check no-argument policy defaults through CLI benchmark
+        run: |
+          python sparse_tetris_4d_optimized.py --benchmark --pieces 2600 --games 1 --output sustained-default.json
+          python -c "import json; r=json.load(open('sustained-default.json', encoding='utf-8'))['runs'][0]; assert r['policy'] == 'sustained' and r['pieces'] == 2600 and r['hyperlayers'] >= 2 and not r['game_over'] and r['stop_reason'] == 'piece_limit', r"
+      - name: Check explicit first-clear stopping
+        run: |
+          python sparse_tetris_4d_optimized.py --benchmark --pieces 2000 --games 1 --stop-after-clear --output sustained-first.json
+          python -c "import json; r=json.load(open('sustained-first.json', encoding='utf-8'))['runs'][0]; assert r['policy'] == 'sustained' and r['hyperlayers'] == 1 and r['stop_reason'] == 'first_clear', r"
+      - if: github.event_name == 'workflow_dispatch' && inputs.long_games
+        run: python tools/evaluate_sustained.py --backend native --workers 4 --output sustained-evaluation.json

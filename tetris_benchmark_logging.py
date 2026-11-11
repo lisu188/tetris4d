@@ -276,7 +276,7 @@ class BenchmarkLog:
                         latency = time.perf_counter_ns() - latency_start
                         self.observe('search_elapsed_latency', latency)
                         self.emit('decision', index=self.decisions,
-                                  backend=self._backend(), policy='hyperlayer' if name.startswith('hyperlayer') else 'network',
+                                  backend=self._backend(), policy=decision.policy if decision is not None else ('sustained' if name.startswith('sustained') else 'hyperlayer' if name.startswith('hyperlayer') else 'network'),
                                   piece=args[1] if len(args) > 1 else kwargs.get('piece'),
                                   work_wall_ns=wall_total, process_cpu_ns=cpu_total,
                                   elapsed_latency_ns=latency, slices=slices, found=decision is not None,
@@ -320,7 +320,7 @@ class BenchmarkLog:
             if hasattr(self.game, name):
                 self._timed(self.game, name, label)
         self._timed(self.game.PlacementBatch, '__init__', 'batch_preparation')
-        for name in ('decision_steps', 'hyperlayer_decision_steps'):
+        for name in ('decision_steps', 'hyperlayer_decision_steps', 'sustained_decision_steps'):
             self._search(name)
         original_commit = self.game.Game.commit
         @wraps(original_commit)

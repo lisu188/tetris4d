@@ -188,7 +188,7 @@ class NativeTests(unittest.TestCase):
         with patch.object(game, 'launch_demo', return_value=0) as launch:
             self.assertEqual(game.main([]), 0)
         args = launch.call_args.args[0]
-        self.assertEqual(args.policy, 'hyperlayer')
+        self.assertEqual(args.policy, 'sustained')
         self.assertFalse(args.stop_after_clear)
         self.assertEqual(game.BACKEND, 'native')
 

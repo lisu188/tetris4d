@@ -18,7 +18,7 @@ from tetris_benchmark_logging import BenchmarkLog
 def expected_moves(count):
     state, target, results = game.Game(7), 1, []
     for _ in range(count):
-        decision = game.choose_hyperlayer_move(state.board, state.current, target, 2048, state.pieces)
+        decision = game.choose_sustained_move(state.board, state.current, target, 2048, state.pieces)
         state.commit(decision.move)
         results.append((decision.move.candidate, state.board, state.current, state.next_piece))
         if decision.move.layers:
@@ -66,7 +66,7 @@ def run():
                     check(isinstance(app.speed_box, ttk.Combobox), 'Speed must be a selector')
                     check(not any(isinstance(w, ttk.Scale) for w in descendants(root)), 'Speed slider remains')
                     check('Unlimited' in tuple(app.speed_box['values']), 'Unlimited option missing')
-                    check(app.speed.get() == 3, 'Animated default changed unexpectedly')
+                    check(app.speed.get() == 0 and app.speed_choice.get() == 'Unlimited' and app.policy.get() == 'sustained', 'Unlimited sustained defaults missing')
                     app.speed_choice.set('Unlimited')
                     app.speed_box.event_generate('<<ComboboxSelected>>')
                     root.update()

@@ -64,6 +64,16 @@ class ContinuousTests(unittest.TestCase):
         app.refresh_plan.assert_called_once()
         self.assertEqual(sum(mask.bit_count() for mask in app.game.board), 4)
 
+    def test_sustained_policy_retargets_and_continues(self):
+        app = self.app_before_clear(policy='sustained')
+        app.place()
+        self.assertTrue(app.running)
+        self.assertFalse(app.goal_complete)
+        self.assertEqual(app.game.layers, 1)
+        self.assertEqual(app.target.get(), '2')
+        app.refresh_plan.assert_called_once()
+        self.assertEqual(sum(mask.bit_count() for mask in app.game.board), 4)
+
     def test_single_step_does_not_start_autoplay(self):
         app = self.app_before_clear(running=False)
         app.place()
@@ -72,7 +82,7 @@ class ContinuousTests(unittest.TestCase):
         self.assertEqual(app.target.get(), '2')
 
     def test_explicit_stop_on_clear_remains_available(self):
-        for policy in ('hyperlayer', 'network'):
+        for policy in ('hyperlayer', 'network', 'sustained'):
             app = self.app_before_clear(stop=True, policy=policy)
             app.place()
             self.assertFalse(app.running)
@@ -107,11 +117,11 @@ class ContinuousTests(unittest.TestCase):
             with patch.object(game, 'launch_demo', return_value=0) as launch:
                 self.assertEqual(game.main(arguments), 0)
             self.assertEqual(launch.call_args.args[0].stop_after_clear, expected)
-            self.assertEqual(launch.call_args.args[0].policy, 'hyperlayer')
+            self.assertEqual(launch.call_args.args[0].policy, 'sustained')
 
 
 class ContinuousIntegrationTests(unittest.TestCase):
-    def test_default_policy_clears_twice_and_keeps_playing(self):
+    def test_legacy_policy_clears_twice_and_keeps_playing(self):
         game.load_checkpoint(ROOT / 'models/trained-sigmoid.json')
         result = game.run_game(7, 2600, 2, 4, 2048, 'hyperlayer')
         self.assertEqual(result['pieces'], 2600)
