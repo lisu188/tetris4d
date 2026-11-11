@@ -35,6 +35,10 @@ BATCH_SIZE = 512
 BACKEND = "auto"
 _NUMPY = None
 _NUMPY_TRIED = False
+_NATIVE = None
+_NATIVE_INFO = {'available': False, 'reason': 'Not initialized'}
+_NATIVE_USE_AVX2 = False
+_NATIVE_USE_BMI2 = False
 AXIS_NAMES = 'XYZW'
 PLANES = tuple(itertools.combinations(range(4), 2))
 PLANE_NAMES = tuple(AXIS_NAMES[a] + AXIS_NAMES[b] for a, b in PLANES)
@@ -124,7 +128,7 @@ del _OUTPUT_SIGNALS, _OUTPUT_TICKS
 def pooled_histograms(heights: tuple[int, ...]) -> tuple[tuple[int, ...], tuple[int, ...]]:
     if len(heights) != AREA or any(not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights):
         raise ValueError('Histogram pooling requires 4096 integer column heights in [0, 16].')
-    if BACKEND == 'numpy':
+    if BACKEND in ('numpy', 'native'):
         np, a, b, _ = numpy_tables()
         values = np.asarray(heights, dtype=np.int16)
         counts = np.bincount(values, minlength=HEIGHT + 1)
@@ -140,7 +144,7 @@ def pooled_histograms(heights: tuple[int, ...]) -> tuple[tuple[int, ...], tuple[
 
 @lru_cache(maxsize=16)
 def sigmoid_roughness(heights: tuple[int, ...]) -> float:
-    if BACKEND != 'numpy':
+    if BACKEND not in ('numpy', 'native'):
         return math.fsum(ROUGHNESS_TABLE[heights[b] - heights[a] + HEIGHT] for a, b in NEIGHBORS)
     counts = pooled_histograms(heights)[1]
     return sum(count * tick for count, tick in zip(counts, ROUGHNESS_TICKS)) / ROUGHNESS_DENOMINATOR
@@ -259,7 +263,7 @@ class NetworkTrace(Sequence):
         if self.revision != MODEL_REVISION:
             raise RuntimeError('The model changed; create a new activation trace.')
         values = list(map(float, self.inputs))
-        if self.histograms is not None and BACKEND == 'numpy':
+        if self.histograms is not None and BACKEND in ('numpy', 'native'):
             np, a, b, _ = numpy_tables()
             inputs = np.asarray(self.inputs[:AREA], dtype=np.int16)
             differences = inputs[b] - inputs[a]
@@ -555,6 +559,11 @@ def clear_layers(board: Board) -> tuple[Board, int]:
     if not full:
         return board, 0
     count = full.bit_count()
+    if BACKEND == 'native':
+        columns = _NUMPY.asarray(board, dtype=_NUMPY.uint16)
+        result = _NUMPY.empty(AREA, dtype=_NUMPY.uint16)
+        _native_check(_NATIVE.t4_compact(columns.ctypes.data, result.ctypes.data, full, int(_NATIVE_USE_BMI2)))
+        return tuple(map(int, result)), count
     columns = list(board)
     while full:
         z = full.bit_length() - 1
@@ -575,24 +584,36 @@ class BoardEvaluation:
     score: float
     near_clear: bool = False
     array_heights: object = None
+    native_board: object = None
+    native_heights: object = None
+    native_counts: object = None
 
 
 @lru_cache(maxsize=8)
 def evaluate_board(board: Board) -> BoardEvaluation:
     if len(board) != AREA or any(not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board):
         raise ValueError('Invalid 4D board.')
-    heights, holes = board_features(board)
-    counts = [0] * HEIGHT
-    for mask in board:
-        while mask:
-            bit = mask & -mask
-            counts[bit.bit_length() - 1] += 1
-            mask ^= bit
+    native = _native_features(board) if BACKEND == 'native' else None
+    if native is not None:
+        heights = tuple(map(int, native[1]))
+        holes = int(native[3][1])
+        counts = tuple(map(int, native[2]))
+    else:
+        heights, holes = board_features(board)
+        counts = [0] * HEIGHT
+        for mask in board:
+            while mask:
+                bit = mask & -mask
+                counts[bit.bit_length() - 1] += 1
+                mask ^= bit
     roughness = sigmoid_roughness(heights)
     height_sum = sum(heights)
     score = HEIGHT_WEIGHT * height_sum + HOLES_WEIGHT * holes + BUMP_WEIGHT * roughness
-    return BoardEvaluation(board, heights, height_sum, holes, roughness, tuple(counts), score,
-                           max(counts) + max(PIECE_SIZES.values()) >= AREA)
+    context = BoardEvaluation(board, heights, height_sum, holes, roughness, tuple(counts), score,
+                              max(counts) + max(PIECE_SIZES.values()) >= AREA)
+    if native is not None:
+        context.native_board, context.native_heights, context.native_counts = native[:3]
+    return context
 
 
 @dataclass(frozen=True, slots=True)
@@ -773,7 +794,7 @@ def specifications(piece: str, limit: int = DEFAULT_CANDIDATES, salt: int = 0) -
 
 
 def has_legal_move(board: Board, piece: str) -> bool:
-    heights = tuple(mask.bit_length() for mask in board)
+    heights = evaluate_board(board).heights if BACKEND == 'native' else tuple(mask.bit_length() for mask in board)
     for r, x, y, w in specifications(piece, 0):
         shape = SHAPES[piece][r]
         base = column_index(x, y, w)
@@ -803,9 +824,9 @@ def candidate_key(candidate: Candidate) -> tuple:
 
 
 def configure_backend(name: str = 'auto') -> str:
-    global BACKEND, _NUMPY, _NUMPY_TRIED
-    if name not in ('auto', 'python', 'numpy'):
-        raise ValueError('Backend must be auto, python, or numpy.')
+    global BACKEND, _NUMPY, _NUMPY_TRIED, _NATIVE_INFO
+    if name not in ('auto', 'python', 'numpy', 'native'):
+        raise ValueError('Backend must be auto, python, numpy, or native.')
     if name != 'python' and not _NUMPY_TRIED:
         _NUMPY_TRIED = True
         try:
@@ -813,10 +834,170 @@ def configure_backend(name: str = 'auto') -> str:
             _NUMPY = numpy
         except ImportError:
             _NUMPY = None
-    if name == 'numpy' and _NUMPY is None:
+    if name in ('numpy', 'native') and _NUMPY is None:
         raise ValueError('NumPy is not installed. Install numpy or use --backend python.')
-    BACKEND = 'numpy' if name != 'python' and _NUMPY is not None else 'python'
+    selected = 'numpy' if name != 'python' and _NUMPY is not None else 'python'
+    if name in ('auto', 'native') and _NUMPY is not None:
+        try:
+            if _load_native():
+                selected = 'native'
+            elif name == 'native':
+                raise ValueError(_NATIVE_INFO.get('reason', 'Native library unavailable.'))
+        except (OSError, ValueError, AttributeError) as error:
+            _NATIVE_INFO = {'available': False, 'reason': str(error)}
+            if name == 'native':
+                raise ValueError(f'Native backend unavailable: {error}') from error
+            print(f'Native backend unavailable; using NumPy: {error}', file=sys.stderr)
+    if selected != BACKEND:
+        for function in (evaluate_board, target_layer_status, pooled_histograms, sigmoid_roughness):
+            function.cache_clear()
+    BACKEND = selected
     return BACKEND
+
+def native_backend_info() -> dict:
+    return dict(_NATIVE_INFO, selected=BACKEND,
+                avx2_enabled=_NATIVE_USE_AVX2, bmi2_enabled=_NATIVE_USE_BMI2)
+
+
+def _load_native() -> bool:
+    global _NATIVE, _NATIVE_INFO, _NATIVE_USE_AVX2, _NATIVE_USE_BMI2
+    import ctypes
+    import hashlib
+    import os
+    extension = '.dylib' if sys.platform == 'darwin' else '.so'
+    library_path = Path(__file__).resolve().parent / 'native' / ('libtetris4d_native' + extension)
+    if _NATIVE is None:
+        if not library_path.is_file():
+            _NATIVE_INFO = {'available': False, 'reason': 'Build with python tools/build_native.py'}
+            return False
+        source = library_path.with_name('tetris_native.c')
+        manifest = json.loads(library_path.with_suffix(extension + '.json').read_text(encoding='utf-8'))
+        if (manifest.get('source_sha256') != hashlib.sha256(source.read_bytes()).hexdigest()
+                or manifest.get('binary_sha256') != hashlib.sha256(library_path.read_bytes()).hexdigest()):
+            raise ValueError('Native library is stale or altered; rebuild with python tools/build_native.py.')
+        library = ctypes.CDLL(str(library_path))
+        library.t4_abi.argtypes = []
+        library.t4_abi.restype = ctypes.c_int
+        library.t4_shape_stride.argtypes = []
+        library.t4_shape_stride.restype = ctypes.c_int
+        if library.t4_abi() != 1 or library.t4_shape_stride() != 182:
+            raise ValueError('Incompatible native ABI; rebuild with python tools/build_native.py.')
+        pointer, integer, real = ctypes.c_void_p, ctypes.c_int, ctypes.c_double
+        signatures = {
+            't4_capabilities': [],
+            't4_validate_shapes': [pointer, integer],
+            't4_features': [pointer, pointer, pointer, pointer],
+            't4_buried': [pointer, integer],
+            't4_compact': [pointer, pointer, ctypes.c_uint, integer],
+            't4_scores': [pointer, pointer, pointer, pointer, integer, pointer, integer, integer,
+                          real, real, real, real, pointer, pointer, pointer, pointer, pointer, integer],
+        }
+        for name, arguments in signatures.items():
+            function = getattr(library, name)
+            function.argtypes, function.restype = arguments, integer
+        _NATIVE = library
+    capabilities = _NATIVE.t4_capabilities()
+    requested = os.environ.get('TETRIS_NATIVE_ISA', 'auto').lower()
+    if requested not in ('auto', 'scalar', 'avx2'):
+        raise ValueError('TETRIS_NATIVE_ISA must be auto, scalar, or avx2.')
+    if requested == 'avx2' and not capabilities & 1:
+        raise ValueError('AVX2 was requested but is not usable on this CPU/OS.')
+    _NATIVE_USE_AVX2 = requested != 'scalar' and bool(capabilities & 1)
+    _NATIVE_USE_BMI2 = requested != 'scalar' and bool(capabilities & 2)
+    _NATIVE_INFO = {'available': True, 'library': str(library_path), 'abi': 1,
+                    'isa': requested, 'avx2_available': bool(capabilities & 1),
+                    'bmi2_available': bool(capabilities & 2)}
+    return True
+
+
+def _native_check(result: int) -> None:
+    if result:
+        raise ValueError(f'Native kernel rejected its input (code {result}).')
+
+
+def _native_features(board: Board):
+    np = _NUMPY
+    columns = np.asarray(board, dtype=np.uint16)
+    heights = np.empty(AREA, dtype=np.int32)
+    counts = np.empty(HEIGHT, dtype=np.int32)
+    totals = np.empty(2, dtype=np.int32)
+    _native_check(_NATIVE.t4_features(columns.ctypes.data, heights.ctypes.data,
+                                      counts.ctypes.data, totals.ctypes.data))
+    for array in (columns, heights, counts):
+        array.flags.writeable = False
+    return columns, heights, counts, totals
+
+
+def _native_context(context: BoardEvaluation) -> None:
+    if context.native_board is None:
+        board, heights, counts, _ = _native_features(context.board)
+        context.native_board, context.native_heights, context.native_counts = board, heights, counts
+
+
+@lru_cache(maxsize=16)
+def native_shapes(piece: str):
+    np = _NUMPY
+    shapes = SHAPES[piece]
+    records = np.zeros((len(shapes), 182), dtype=np.int32)
+    for r, shape in enumerate(shapes):
+        row = records[r]
+        row[:6] = (*shape.extents, len(shape.columns), PIECE_SIZES[piece])
+        for dz, count in shape.levels:
+            row[6+dz] = count
+        lookup = {offset: i for i, (offset, _, _) in enumerate(shape.columns)}
+        for i, (offset, mask, bottom) in enumerate(shape.columns):
+            start = 22 + i*10
+            row[start:start+4] = (offset, mask, bottom, mask.bit_length())
+            row[start+4:start+10] = -1
+            coordinates = column_coordinates(offset)
+            for direction, step in enumerate((-1, 1, -WIDTH, WIDTH, -SLICE_AREA, SLICE_AREA)):
+                coord = coordinates[direction // 2]
+                if 0 <= coord + (-1 if direction % 2 == 0 else 1) < 16:
+                    row[start+4+direction] = lookup.get(offset+step, -1)
+    _native_check(_NATIVE.t4_validate_shapes(records.ctypes.data, len(shapes)))
+    records.flags.writeable = False
+    return records
+
+
+@lru_cache(maxsize=2)
+def native_roughness_deltas(table: tuple[float, ...]):
+    if any(table[HEIGHT+d] != table[HEIGHT-d] for d in range(HEIGHT+1)):
+        raise ValueError('Native roughness requires a symmetric sigmoid response.')
+    positive = _NUMPY.asarray(table[HEIGHT:], dtype=_NUMPY.float64)
+    result = positive[:, None] - positive[None, :]
+    result.flags.writeable = False
+    return result
+
+
+def native_scores(context: BoardEvaluation, piece: str, specs, target: int = -1):
+    np = _NUMPY
+    if type(target) is not int or not -1 <= target < HEIGHT:
+        raise ValueError('Native target must be an integer in [-1, 15].')
+    raw = np.asarray(specs)
+    if raw.ndim != 2 or raw.shape[1] != 4 or not 1 <= len(raw) <= BATCH_SIZE or raw.dtype.kind not in 'iu':
+        raise ValueError('Native scoring requires 1..512 four-integer placement specifications.')
+    if raw.dtype != np.int32 and (np.any(raw < 0) or np.any(raw > (1 << 31) - 1)):
+        raise ValueError('Native placement indices exceed their valid integer range.')
+    raw = np.ascontiguousarray(raw, dtype=np.int32)
+    _native_context(context)
+    records = native_shapes(piece)
+    table = native_roughness_deltas(ROUGHNESS_TABLE)
+    scores = np.empty(len(raw), dtype=np.float64)
+    z, gains = np.empty(len(raw), dtype=np.int32), np.empty(len(raw), dtype=np.int32)
+    clear_flags = np.empty(len(raw), dtype=np.uint8)
+    _native_check(_NATIVE.t4_scores(context.native_board.ctypes.data, context.native_heights.ctypes.data,
+        context.native_counts.ctypes.data, records.ctypes.data, len(records), raw.ctypes.data,
+        len(raw), target, context.score, HEIGHT_WEIGHT, HOLES_WEIGHT, BUMP_WEIGHT,
+        table.ctypes.data, scores.ctypes.data, z.ctypes.data, gains.ctypes.data,
+        clear_flags.ctypes.data, int(_NATIVE_USE_AVX2)))
+    clears = {}
+    for row in np.flatnonzero(clear_flags):
+        candidate = score_candidate(context, piece, *map(int, raw[row]))
+        if candidate is None:
+            raise AssertionError('Native clear candidate must be legal.')
+        clears[int(row)] = candidate
+        scores[row] = candidate.score
+    return scores, z, clears, gains
 
 
 @lru_cache(maxsize=1)
@@ -857,11 +1038,15 @@ def numpy_shape_data(piece: str):
 
 
 class PlacementBatch:
-    __slots__ = ('piece', 'specs', 'data')
+    __slots__ = ('piece', 'specs', 'data', 'native')
 
     def __init__(self, piece: str, specs: tuple[tuple[int, int, int, int], ...]) -> None:
         self.piece, self.specs, self.data = piece, specs, None
-        if BACKEND != 'numpy' or not specs:
+        self.native = BACKEND == 'native' and bool(specs)
+        if self.native:
+            self.data = _NUMPY.asarray(specs, dtype=_NUMPY.int32)
+            return
+        if BACKEND not in ('numpy', 'native') or not specs:
             return
         np = _NUMPY
         offsets, bottoms, tops, valid, partners, dimensions = numpy_shape_data(piece)
@@ -883,6 +1068,9 @@ class PlacementBatch:
                      edge_valid, dimensions[r, 2], np.arange(len(specs))[:, None, None])
 
     def scores(self, context: BoardEvaluation):
+        if self.native:
+            scores, z, clears, _ = native_scores(context, self.piece, self.data)
+            return scores, z, clears
         np = _NUMPY
         indices, bottoms, tops, present, local, local_safe, neighbors, edge_valid, heights4d, rows = self.data
         if context.array_heights is None:
@@ -1039,6 +1227,13 @@ class TargetLayerStatus:
 def target_layer_status(board: Board, target: int = 1) -> TargetLayerStatus:
     if not isinstance(target, int) or isinstance(target, bool) or not 0 <= target < HEIGHT:
         raise ValueError(f'Target Z must be an integer in [0, {HEIGHT - 1}].')
+    if BACKEND == 'native':
+        context = evaluate_board(board)
+        _native_context(context)
+        buried = _NATIVE.t4_buried(context.native_board.ctypes.data, target)
+        if buried < 0:
+            _native_check(buried)
+        return TargetLayerStatus(target, context.fill_counts[target], buried)
     if len(board) != AREA or any(not isinstance(mask, int) or not 0 <= mask < (1 << HEIGHT) for mask in board):
         raise ValueError('Expected 4096 valid vertical column masks.')
     bit = 1 << target
@@ -1098,7 +1293,17 @@ def hyperlayer_decision_steps(board: Board, piece: str, target: int = 1,
             break
         while specs := tuple(itertools.islice(iterator, BATCH_SIZE)):
             batch = PlacementBatch(piece, specs)
-            if batch.data is not None:
+            if batch.native:
+                np = _NUMPY
+                scores, z, clears, gains = native_scores(context, piece, batch.data, target)
+                valid = np.flatnonzero(np.isfinite(scores))
+                if len(valid):
+                    index = int(valid[np.argmax(scores[valid])])
+                    key = (int(gains[index]), float(scores[index]))
+                    if best_key is None or key > best_key:
+                        best_key = key
+                        best = clears.get(index) or Candidate(piece, *specs[index], int(z[index]), 0, key[1])
+            elif batch.data is not None:
                 np = _NUMPY
                 scores, z, clears = batch.scores(context)
                 indices, _, tops, present, *_ = batch.data
@@ -2605,8 +2810,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     mode.add_argument('--benchmark', action='store_true')
     mode.add_argument('--network', action='store_true', help='Export the compact shared-sigmoid architecture.')
     mode.add_argument('--network-expanded', action='store_true', help='Expand every logical neuron and connection for inspection.')
-    parser.add_argument('--backend', choices=('auto', 'python', 'numpy'), default='auto',
-                        help='Auto uses NumPy when installed; python needs only the standard library.')
+    parser.add_argument('--backend', choices=('auto', 'python', 'numpy', 'native'), default='auto',
+                        help='Auto uses a locally built native scorer, then NumPy, then Python. Build native with tools/build_native.py.')
     weights = parser.add_mutually_exclusive_group()
     weights.add_argument('--weights', type=Path,
                          default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',

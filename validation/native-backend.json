@@ -1,0 +1,265 @@
+{
+  "base_commit": "cf668464d2b1b213e2cfdf2541352fe7cccdc168",
+  "tests": {
+    "passed": true,
+    "unit_tests": 12,
+    "trajectory": {
+      "identical_moves": 2600,
+      "clear_events": [
+        1251,
+        2478
+      ],
+      "active_target": 4,
+      "summary": {
+        "seed": 7,
+        "piece_set": "expanded",
+        "pieces": 2600,
+        "cells_placed": 15598,
+        "piece_counts": {
+          "I": 173,
+          "O": 174,
+          "T": 173,
+          "L": 174,
+          "S": 173,
+          "B": 173,
+          "C": 173,
+          "NOVA": 174,
+          "STAIR": 173,
+          "FORK": 173,
+          "HOOK": 174,
+          "BRIDGE": 173,
+          "RING": 173,
+          "CROSS": 174,
+          "HYPER": 173
+        },
+        "hyperlayers": 2,
+        "score": 200,
+        "game_over": false,
+        "max_height": 7,
+        "holes": 2598,
+        "occupied_cells": 7406
+      },
+      "native": {
+        "available": true,
+        "library": "/mnt/data/tetris4d-native/native/libtetris4d_native.so",
+        "abi": 1,
+        "isa": "auto",
+        "avx2_available": true,
+        "bmi2_available": true,
+        "selected": "native",
+        "avx2_enabled": true,
+        "bmi2_enabled": true
+      }
+    }
+  },
+  "candidate_comparisons": 109728,
+  "compaction_comparisons": 917504,
+  "neural_lookahead_moves_compared": 72,
+  "sanitizer": "undefined behavior; all 12 unit tests passed",
+  "gui": {
+    "passed": true,
+    "callback_errors": [],
+    "selected_drop": true,
+    "visible_network_nodes": 1731
+  },
+  "engine_native": {
+    "passed": true,
+    "assertions": 67034,
+    "piece_tests": {
+      "passed": true,
+      "assertions": 3505,
+      "new_pieces": 8,
+      "catalog_has_no_rotation_duplicates": true,
+      "all_new_shapes_affine_dimension": 4,
+      "independent_new_piece_drop_cases": 96,
+      "new_piece_hyperlayer_clear_cases": 21,
+      "wall_seconds": 1.064
+    },
+    "rotation_checks": 5616,
+    "unique_orientations": 936,
+    "independent_drop_cases": 80,
+    "literal_network_cases": 30,
+    "wall_seconds": 3.437
+  },
+  "engine_python_baseline": {
+    "passed": true,
+    "assertions": 67034,
+    "piece_tests": {
+      "passed": true,
+      "assertions": 3505,
+      "new_pieces": 8,
+      "catalog_has_no_rotation_duplicates": true,
+      "all_new_shapes_affine_dimension": 4,
+      "independent_new_piece_drop_cases": 96,
+      "new_piece_hyperlayer_clear_cases": 21,
+      "wall_seconds": 1.287
+    },
+    "rotation_checks": 5616,
+    "unique_orientations": 936,
+    "independent_drop_cases": 80,
+    "literal_network_cases": 30,
+    "wall_seconds": 4.207
+  },
+  "engine_auto_no_site_packages": {
+    "passed": true,
+    "assertions": 67034,
+    "piece_tests": {
+      "passed": true,
+      "assertions": 3505,
+      "new_pieces": 8,
+      "catalog_has_no_rotation_duplicates": true,
+      "all_new_shapes_affine_dimension": 4,
+      "independent_new_piece_drop_cases": 96,
+      "new_piece_hyperlayer_clear_cases": 21,
+      "wall_seconds": 1.43
+    },
+    "rotation_checks": 5616,
+    "unique_orientations": 936,
+    "independent_drop_cases": 80,
+    "literal_network_cases": 30,
+    "wall_seconds": 4.482
+  },
+  "benchmark": {
+    "environment": {
+      "python": "3.13.5",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "machine": "x86_64",
+      "numpy": "2.3.5",
+      "cpu": {
+        "vendor_id": "AuthenticAMD",
+        "model name": "AMD EPYC 9V74 80-Core Processor",
+        "flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext cpuid_fault vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm arch_capabilities"
+      },
+      "native": {
+        "available": true,
+        "library": "/mnt/data/tetris4d-native/native/libtetris4d_native.so",
+        "abi": 1,
+        "isa": "auto",
+        "avx2_available": true,
+        "bmi2_available": true,
+        "selected": "native",
+        "avx2_enabled": true,
+        "bmi2_enabled": true
+      }
+    },
+    "seed": 7,
+    "pieces": 300,
+    "repetitions": 5,
+    "policy": "hyperlayer",
+    "candidates": 2048,
+    "timings_include": "run_game wall time including search, board bookkeeping and validation; no GUI or import/build time",
+    "reference_summary_matches": true,
+    "gameplay": {
+      "numpy": {
+        "seconds": [
+          2.033668108000029,
+          2.0452388799999426,
+          2.092223669999953,
+          2.1774376470000334,
+          2.0523322330000155
+        ],
+        "median_seconds": 2.0523322330000155,
+        "speedup_vs_numpy": 1.0
+      },
+      "native-scalar": {
+        "seconds": [
+          0.9382033130000309,
+          0.9643229250000331,
+          0.9838347830000203,
+          0.9551508580000245,
+          0.9357030999999552
+        ],
+        "median_seconds": 0.9551508580000245,
+        "speedup_vs_numpy": 2.1486995649015714
+      },
+      "native": {
+        "seconds": [
+          0.9976741809999794,
+          0.9578579059999583,
+          0.9689041240000051,
+          0.9463382849999107,
+          0.9475879809999697
+        ],
+        "median_seconds": 0.9578579059999583,
+        "speedup_vs_numpy": 2.142627022384367
+      }
+    },
+    "batch_prepare_and_score": {
+      "numpy": {
+        "median_ms_per_512_candidates": 0.6150464500001362,
+        "samples_ms": [
+          0.6124419266666337,
+          0.6100383366666998,
+          0.6214058300001094,
+          0.6150464500001362,
+          0.623611553333679
+        ]
+      },
+      "native-scalar": {
+        "median_ms_per_512_candidates": 0.15143674333368531,
+        "samples_ms": [
+          0.15760006000012555,
+          0.15017934666692173,
+          0.15143674333368531,
+          0.1513099166667568,
+          0.15196718000008028
+        ]
+      },
+      "native": {
+        "median_ms_per_512_candidates": 0.16553541999996924,
+        "samples_ms": [
+          0.1617609300001277,
+          0.19141728333352148,
+          0.1752947233330815,
+          0.16553541999996924,
+          0.15674684333362165
+        ]
+      }
+    },
+    "final_summary": {
+      "seed": 7,
+      "piece_set": "expanded",
+      "pieces": 300,
+      "cells_placed": 1800,
+      "piece_counts": {
+        "I": 20,
+        "O": 20,
+        "T": 20,
+        "L": 20,
+        "S": 20,
+        "B": 20,
+        "C": 20,
+        "NOVA": 20,
+        "STAIR": 20,
+        "FORK": 20,
+        "HOOK": 20,
+        "BRIDGE": 20,
+        "RING": 20,
+        "CROSS": 20,
+        "HYPER": 20
+      },
+      "hyperlayers": 0,
+      "score": 0,
+      "game_over": false,
+      "max_height": 4,
+      "holes": 720,
+      "occupied_cells": 1800,
+      "policy": "hyperlayer",
+      "capped": true,
+      "piece_limit": 300,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 1,
+      "first_clear_piece": null,
+      "clear_events": [],
+      "stop_reason": "piece_limit"
+    }
+  },
+  "limitations": [
+    "Local Linux, not the user WSL machine.",
+    "No GPU, renderer rewrite, or persistent native incremental engine.",
+    "AVX2 did not outperform native scalar on the measured sample."
+  ]
+}

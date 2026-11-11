@@ -163,3 +163,10 @@ Continue the saved optimizer without replacing this checkpoint:
 ```bash
 python tools/train_agent.py --resume models/trained-sigmoid.json --generations 20 --output models/continued.json --report validation/continued.json
 ```
+
+
+## Native scorer for WSL/Linux
+
+An optional strict-float C backend fuses candidate scoring and target rejection, with runtime-gated AVX2 landing and BMI2 compaction. Build with `python tools/build_native.py`; normal no-argument launch then selects it automatically. NumPy and Python remain fallbacks. See [build commands, WSL diagnostics, validation and measured performance](docs/native-backend.md).
+
+Run `python tests/test_native.py --trajectory-pieces 2600` and `python tools/benchmark_native.py --output native-benchmark.json` to validate and measure on your machine.
