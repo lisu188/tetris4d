@@ -1,0 +1,37 @@
+name: Stage verified launch defaults
+on:
+  push:
+    branches: [defaults/hyperlayer-build-20261111]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: defaults/hyperlayer-build-20261111
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Apply and verify source change
+        shell: bash
+        run: |
+          test "$(git hash-object sparse_tetris_4d_optimized.py)" = 0a45c4103dd34be322577cc053468c53d4f44dbd
+          python .ci/apply-default-launch.py
+          test "$(git hash-object sparse_tetris_4d_optimized.py)" = 1ecea0c50865663dae62c47e2b7e6a9b36eb0955
+          test "$(git hash-object tests/test_launch_defaults.py)" = ad879aba2cff51a743d0e14f34f703958bf31e97
+          python -m pip install -r requirements-numpy.txt
+          python tests/test_launch_defaults.py
+          python -S tests/test_launch_defaults.py
+          python sparse_tetris_4d_optimized.py --test --backend python --baseline
+          python sparse_tetris_4d_optimized.py --test --backend numpy
+      - name: Commit verified source and documentation only
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sparse_tetris_4d_optimized.py README.md docs/first-hyperlayer.md docs/training.md tests/test_hyperlayer_gui.py
+          git commit -m 'feat: default to trained hyperlayer planner without arguments'
+          git push origin HEAD:defaults/hyperlayer-build-20261111
