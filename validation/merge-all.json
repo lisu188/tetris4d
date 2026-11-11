@@ -1,0 +1,34 @@
+{
+  "status": "validated_for_merge",
+  "base_commit": "dda012084e0a28498863ce82033a93ac4e02428f",
+  "reconciled_branches": {
+    "optimize/shared-sigmoid-structure": "863e87fab49c4677f6def98d9b884d855bf9bbaa",
+    "train/shared-sigmoid-v1": "5d84a38177e05c5d4f9c976473db4b94ce525167"
+  },
+  "resolution": "The optimization and training implementation was already incorporated on main. Preserve its newer source, checkpoint, tests and documentation; exclude obsolete import patches, encoded assets and one-time build workflows. Add the verified hyperlayer patch without changing its implementation.",
+  "patch_sha256": "a3e30576b44dddd3e9ed8d2ffdebece0373af5abb917f101204be2136980a990",
+  "source_blob_sha": "0a45c4103dd34be322577cc053468c53d4f44dbd",
+  "import_workflow_run": 42975503940,
+  "fresh_local_validation": {
+    "engine_assertions_per_backend": 67034,
+    "engine_backends": ["python", "numpy"],
+    "planner_tests_per_backend": 15,
+    "planner_backends": ["python", "numpy", "auto_without_site_packages"],
+    "auto_without_site_packages_skipped_numpy_comparison": 1,
+    "network_structure_tests_numpy": 8,
+    "checkpoint_training_tests_numpy": 10,
+    "gui_assertions": 90,
+    "gui_sizes": [[1560, 960], [1120, 760]],
+    "gui_environment": "Linux virtual display, not native Windows/macOS",
+    "seed": 7,
+    "pieces_to_first_clear": 1251,
+    "hyperlayers": 1,
+    "cleared_z": [1],
+    "independent_replay_checks": 15018,
+    "cells_before_clear": 7512,
+    "cells_removed": 4096,
+    "final_mass": 3416,
+    "replay_sha256": "5b087db620f69f356692c058535a5838242ae8d6bba2f39bcdd00d773fcf0860"
+  },
+  "historical_report_note": "hyperlayer-integration.json is the unchanged pre-publication report; its publication=false fields describe the earlier session, not the current GitHub merge status. Consult the PR and Git history for publication status."
+}
