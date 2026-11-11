@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "assertions": 95,
+  "assertions": 103,
   "backend": "native",
   "runs": [
     {
@@ -9,16 +9,16 @@
         960
       ],
       "identical_moves": 64,
-      "heartbeat_callbacks": 26,
+      "heartbeat_callbacks": 25,
       "rendering": {
         "adaptive_frameskip": true,
         "requested_fps": 30.0,
-        "requests": 51,
-        "rendered_frames": 27,
-        "deferred_requests": 24,
+        "requests": 55,
+        "rendered_frames": 28,
+        "deferred_requests": 27,
         "coalesced_requests": 127,
-        "interval_ms": 77.26014798659807,
-        "render_ema_ms": 38.630073993299035,
+        "interval_ms": 80.59497476692097,
+        "render_ema_ms": 40.297487383460485,
         "playback_mode": "unlimited",
         "animation_rate_per_second": null,
         "visible_w_sections": [
@@ -39,8 +39,8 @@
           14,
           15
         ],
-        "scene_rebuilds": 127,
-        "unchanged_section_skips": 289
+        "scene_rebuilds": 129,
+        "unchanged_section_skips": 303
       }
     },
     {
@@ -49,16 +49,16 @@
         760
       ],
       "identical_moves": 64,
-      "heartbeat_callbacks": 26,
+      "heartbeat_callbacks": 25,
       "rendering": {
         "adaptive_frameskip": true,
         "requested_fps": 30.0,
-        "requests": 51,
+        "requests": 52,
         "rendered_frames": 27,
-        "deferred_requests": 24,
+        "deferred_requests": 25,
         "coalesced_requests": 127,
-        "interval_ms": 80.3362852713216,
-        "render_ema_ms": 40.1681426356608,
+        "interval_ms": 80.0288862817611,
+        "render_ema_ms": 40.01444314088055,
         "playback_mode": "unlimited",
         "animation_rate_per_second": null,
         "visible_w_sections": [

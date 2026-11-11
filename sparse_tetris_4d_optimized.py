@@ -2533,7 +2533,10 @@ class TetrisApp:
 
     def _draw_now(self) -> None:
         w = self.w_slice.get()
-        self.network.update(self.planned, w)
+        trace_move = self.planned
+        if trace_move is None and self.speed.get() == 0 and not self.human.get():
+            trace_move = self.game.last_move
+        self.network.update(trace_move, w)
         if self.policy.get() == 'hyperlayer':
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
@@ -2543,9 +2546,10 @@ class TetrisApp:
         self.well.draw(self.game, self.planned, self.progress, w, self.cutoff.get())
         self.atlas.draw(self.game, self.planned, w)
         self.stats.set(f'Pieces {self.game.pieces:,} | Cells {self.game.cells_placed:,} | Clears {self.game.layers:,} | {self.game.piece_set}')
-        if self.planned:
-            m, p = self.planned, self.planned.candidate
-            self.features.set(f'{m.piece} · {PIECE_SIZES[m.piece]} CELLS\nHeight sum {sum(m.heights):>7}\nHoles      {m.holes:>7}\nClears     {m.layers:>7}\nScore      {m.score:>+9.3f}\nX {p.x:02}  Y {p.y:02}  W {p.w:02}')
+        if trace_move:
+            m, p = trace_move, trace_move.candidate
+            label = 'LAST COMMITTED\n' if self.planned is None else ''
+            self.features.set(label + f'{m.piece} · {PIECE_SIZES[m.piece]} CELLS\nHeight sum {sum(m.heights):>7}\nHoles      {m.holes:>7}\nClears     {m.layers:>7}\nScore      {m.score:>+9.3f}\nX {p.x:02}  Y {p.y:02}  W {p.w:02}')
         else:
             self.features.set('Planning a legal drop…' if self.search is not None else 'No legal drop selected.')
         key = (self.game.current, self.game.next_piece, self.planned,

@@ -19,3 +19,5 @@ xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_unlimited_speed_gui.py
 ```
 
 The trajectory test exercises the actual GUI logic methods with a mock root/variables and no rendering, comparing every move and board to the headless reference. The GUI suite uses real Tk callbacks and tests visibility, selection, pause/step/manual controls, explicit and continuous clear handling, callback delivery and telemetry at two window sizes. Neither is a WSLg throughput benchmark.
+
+While Unlimited is between decisions, the activation panel retains the last committed move's actual trace and labels its features LAST COMMITTED. It does not draw that piece again on the board. Finite-rate and Human previews retain their previous behavior.
