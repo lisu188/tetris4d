@@ -29,7 +29,9 @@ An already buried target is refused rather than falsely treated as reachable. Th
 
 The Planner and Target Z selectors operate on the current game. Switching them cancels any pending search/drop. The progress indicator shows global coverage out of 4,096 and the number of buried gaps, not only the currently displayed W section. Sigmoid heatmaps continue to show the actual full-board score for the selected afterstate.
 
-Autoplay and benchmark target mode stop after the first hyperlayer clear. The GUI displays the milestone and remains paused until the user switches policy, enables Human mode, or restarts. This scope is intentional: repeated clearing and indefinite survival were not established by the research. Manual play does not enforce the planner's extra restrictions.
+Autoplay and benchmarks continue after clears by default. After compaction the planner retains an accessible current target or selects the nearest incomplete, unburied target, with lower Z breaking equal-distance ties. It does not reset the board, refill cells, change the piece stream, or weaken target protection. Single-step and manual pause remain paused. An explicit `--stop-after-clear` pauses the GUI or stops benchmarks at their first clear; `tools/first_hyperlayer.py` intentionally retains its first-clear replay format. A blocked target selected manually still pauses rather than silently bypassing the protection rule.
+
+On seed 7, the continuous default configuration reached 5,000 pieces without topping out, with clears at pieces 1,251, 2,478 and 3,880. The successive target levels were 1, 2, 4 and 5. This is one finite regression trajectory, not proof of indefinite survival; the remaining stack and holes can still grow. Benchmark reports retain `first_clear_piece` and also include `clear_events` and `active_target`.
 
 ## Verification
 
@@ -37,7 +39,7 @@ The integration reproduced all seven stored research trajectories exactly: 8,660
 
 The replay verifier independently reconstructs the shuffled bag, descends each rigid piece with occupied-cell sets, tests overlap/bounds, counts complete hyperlayers, compacts them, and checks conservation and final state. It shares the registered orientation catalog but does not call the engine's placement, drop, clearing, or commit functions. It validates complete or partial replays; the runner additionally exits nonzero when it fails to clear within the requested cap.
 
-Tests include all 15 piece types, target boundaries, matching Python/NumPy choices, unsampled final-gap repair, safe exhaustive fallback, cancellation, model/physics preservation, malformed inputs, and replay tampering. UI tests cover both 1560x960 and 1120x760 on Linux Xvfb, target changes, stalled-target recovery, first-clear pause, and switching back to normal play. Native Windows/macOS GUI was not tested locally.
+Tests include all 15 piece types, target boundaries, matching Python/NumPy choices, unsampled final-gap repair, safe exhaustive fallback, cancellation, model/physics preservation, malformed inputs, and replay tampering. UI tests cover both 1560x960 and 1120x760 on Linux Xvfb, target changes, stalled-target recovery, continuous post-clear retargeting, explicit first-clear pause, and switching back to normal play. Native Windows/macOS GUI was not tested locally.
 
 ```bash
 python tests/test_hyperlayer.py --backend python

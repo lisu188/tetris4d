@@ -1046,6 +1046,15 @@ def target_layer_status(board: Board, target: int = 1) -> TargetLayerStatus:
                              sum(not (mask & bit) and bool(mask >> (target + 1)) for mask in board))
 
 
+def next_hyperlayer_target(board: Board, preferred: int = 1) -> int | None:
+    target_layer_status(board, preferred)
+    for target in sorted(range(HEIGHT), key=lambda level: (abs(level - preferred), level)):
+        status = target_layer_status(board, target)
+        if not status.buried and status.filled < AREA:
+            return target
+    return None
+
+
 def target_candidate_metrics(board: Board, candidate: Candidate, target: int) -> tuple[int, int]:
     bit, gain, buried = 1 << target, 0, 0
     base = column_index(candidate.x, candidate.y, candidate.w)
@@ -1731,7 +1740,7 @@ class NetworkView:
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
                  candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
-                 policy: str = 'hyperlayer', target: int = 1) -> None:
+                 policy: str = 'hyperlayer', target: int = 1, stop_after_clear: bool = False) -> None:
         import tkinter as tk
         from tkinter import ttk
         self.root, self.beam, self.candidates = root, beam, candidates
@@ -1741,6 +1750,7 @@ class TetrisApp:
         self.game = Game(seed, piece_set)
         self.policy = tk.StringVar(value=policy)
         self.target = tk.StringVar(value=str(target))
+        self.stop_after_clear = stop_after_clear
         self.goal_complete = False
         self.planner_blocked = ''
         self.target_progress = tk.StringVar()
@@ -1992,7 +2002,7 @@ class TetrisApp:
         self.planner_blocked = ''
         self.lookahead_button.configure(state='disabled' if self.policy.get() == 'hyperlayer' else 'normal')
         self.target_box.configure(state='readonly' if self.policy.get() == 'hyperlayer' else 'disabled')
-        if self.goal_complete and self.policy.get() == 'hyperlayer' and not self.human.get():
+        if self.goal_complete and not self.human.get():
             self.running = self.pending_step = False
             self.start_button.configure(text='Clear reached')
             self.network.update(None, self.w_slice.get())
@@ -2043,7 +2053,7 @@ class TetrisApp:
         self.refresh_plan()
 
     def toggle(self) -> None:
-        if self.human.get() or self.game.game_over or self.planner_blocked or (self.goal_complete and self.policy.get() == 'hyperlayer'):
+        if self.human.get() or self.game.game_over or self.planner_blocked or self.goal_complete:
             return
         self.running = not self.running
         self.previous = time.perf_counter()
@@ -2068,9 +2078,14 @@ class TetrisApp:
             return
         cleared = self.planned.layers
         self.game.commit(self.planned)
-        if cleared and self.policy.get() == 'hyperlayer' and not self.human.get():
-            self.goal_complete = True
-            self.running = False
+        if cleared and not self.human.get():
+            if self.stop_after_clear:
+                self.goal_complete = True
+                self.running = False
+            elif self.policy.get() == 'hyperlayer':
+                target = next_hyperlayer_target(self.game.board, int(self.target.get()))
+                if target is not None:
+                    self.target.set(str(target))
         self.manual_rotation = 0
         self.pending_step = False
         self.refresh_plan()
@@ -2141,8 +2156,8 @@ class TetrisApp:
         w = self.w_slice.get()
         if self.policy.get() == 'hyperlayer':
             layer = target_layer_status(self.game.board, int(self.target.get()))
-            self.target_progress.set('First clear reached. Switch planner or restart to continue.' if self.goal_complete else
-                                     f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · pause on first clear')
+            behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
+            self.target_progress.set(f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · {behavior}')
         else:
             self.target_progress.set('Neural score with optional next-piece lookahead')
         self.well.draw(self.game, self.planned, self.progress, w, self.cutoff.get())
@@ -2168,8 +2183,8 @@ class TetrisApp:
             self.search_status.set(f'{label} · {self.decision.evaluations:,} evals · {self.decision.milliseconds:.0f} ms')
         else:
             self.search_status.set('Manual' if self.human.get() else '')
-        if self.goal_complete and self.policy.get() == 'hyperlayer' and not self.human.get():
-            self.status.set('HYPERLAYER CLEARED. Autoplay paused. Select network to continue, Human to play, or R to restart.')
+        if self.goal_complete and not self.human.get():
+            self.status.set('HYPERLAYER CLEARED. Paused by --stop-after-clear. Restart or change planner to play again.')
         elif self.planner_blocked:
             self.status.set(self.planner_blocked)
         elif self.game.game_over:
@@ -2496,6 +2511,7 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
     target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
     first_clear = None
+    active_target, clear_events = target, []
     stop_reason = 'piece_limit'
     rng = random.Random(seed ^ 0x5EEDBEEF)
     started = time.perf_counter()
@@ -2504,7 +2520,7 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
             break
         if policy in ('network', 'hyperlayer'):
             if policy == 'hyperlayer':
-                decision = choose_hyperlayer_move(game.board, game.current, target, candidates, game.pieces)
+                decision = choose_hyperlayer_move(game.board, game.current, active_target, candidates, game.pieces)
             else:
                 decision = choose_move(game.board, game.current, game.next_piece, depth, beam, candidates,
                                        seed * 8191 + game.pieces)
@@ -2534,18 +2550,26 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
         game.commit(move)
         if sum(v.bit_count() for v in game.board) != game.cells_placed - game.layers * AREA:
             raise AssertionError('Game mass conservation failed.')
-        if move.layers and first_clear is None:
-            first_clear = game.pieces
-        if move.layers and (stop_after_clear or policy == 'hyperlayer'):
-            stop_reason = 'first_clear'
-            break
+        if move.layers:
+            if first_clear is None:
+                first_clear = game.pieces
+            clear_events.append({'piece': game.pieces, 'layers': move.layers,
+                                 'total_layers': game.layers, 'target': active_target if policy == 'hyperlayer' else None})
+            if stop_after_clear:
+                stop_reason = 'first_clear'
+                break
+            if policy == 'hyperlayer':
+                following_target = next_hyperlayer_target(game.board, active_target)
+                if following_target is not None:
+                    active_target = following_target
     if game.game_over and stop_reason != 'first_clear':
         stop_reason = 'top_out'
     result = game.summary()
     result.update(backend=BACKEND, policy=policy, capped=not game.game_over and game.pieces == pieces,
                   piece_limit=pieces, depth=depth if policy == 'network' else 1 if policy == 'hyperlayer' else None,
                   beam=beam if policy == 'network' else None, candidates=candidates if policy != 'random' else 512,
-                  target=target if policy == 'hyperlayer' else None, first_clear_piece=first_clear, stop_reason=stop_reason,
+                  target=target if policy == 'hyperlayer' else None, active_target=active_target if policy == 'hyperlayer' else None,
+                  first_clear_piece=first_clear, clear_events=clear_events, stop_reason=stop_reason,
                   mean_decision_ms=round(statistics.fmean(timings), 3) if timings else None,
                   wall_seconds=round(time.perf_counter() - started, 3))
     return result
@@ -2561,7 +2585,7 @@ def launch_demo(args) -> int:
     except Exception as error:
         print(f'A desktop display is required: {error}. Use --test or --benchmark.', file=sys.stderr)
         return 2
-    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target)
+    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target, args.stop_after_clear)
     if args.gui_smoke:
         def finish():
             result = {'passed': not app.errors, 'callback_errors': app.errors,
@@ -2589,9 +2613,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                          help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
     weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
     parser.add_argument('--policy', choices=('network', 'hyperlayer'), default='hyperlayer',
-                        help='Default: hyperlayer, protecting target access with depth 1 and pausing after a clear; network restores neural-only search.')
+                        help='Default: continuous hyperlayer search with depth 1 and automatic retargeting after clears; network uses neural-only search.')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
-    parser.add_argument('--stop-after-clear', action='store_true', help='Stop benchmark games after their first clear; always enabled for hyperlayer.')
+    parser.add_argument('--stop-after-clear', action='store_true', help='Pause autoplay or stop benchmarks after the first clear; disabled by default.')
     parser.add_argument('--seed', type=int, default=7)
     parser.add_argument('--piece-set', choices=tuple(PIECE_SETS), default='expanded',
                         help='expanded: all 15 pieces; classic: original 7; 4d: only the 8 new shapes.')
