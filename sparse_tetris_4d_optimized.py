@@ -792,6 +792,10 @@ class Decision:
     beam: int
     candidates: int
     sampled: bool
+    policy: str = 'network'
+    target: int | None = None
+    coverage_gain: int = 0
+    exhaustive_fallback: bool = False
 
 
 def candidate_key(candidate: Candidate) -> tuple:
@@ -1017,6 +1021,119 @@ def decision_steps(board: Board, piece: str, next_piece: str | None = None, dept
 
 def choose_move(*args, **kwargs) -> Decision | None:
     steps = decision_steps(*args, **kwargs)
+    while True:
+        try:
+            next(steps)
+        except StopIteration as result:
+            return result.value
+
+
+@dataclass(frozen=True, slots=True)
+class TargetLayerStatus:
+    target: int
+    filled: int
+    buried: int
+
+
+@lru_cache(maxsize=16, typed=True)
+def target_layer_status(board: Board, target: int = 1) -> TargetLayerStatus:
+    if not isinstance(target, int) or isinstance(target, bool) or not 0 <= target < HEIGHT:
+        raise ValueError(f'Target Z must be an integer in [0, {HEIGHT - 1}].')
+    if len(board) != AREA or any(not isinstance(mask, int) or not 0 <= mask < (1 << HEIGHT) for mask in board):
+        raise ValueError('Expected 4096 valid vertical column masks.')
+    bit = 1 << target
+    return TargetLayerStatus(target, sum(bool(mask & bit) for mask in board),
+                             sum(not (mask & bit) and bool(mask >> (target + 1)) for mask in board))
+
+
+def target_candidate_metrics(board: Board, candidate: Candidate, target: int) -> tuple[int, int]:
+    bit, gain, buried = 1 << target, 0, 0
+    base = column_index(candidate.x, candidate.y, candidate.w)
+    for offset, mask, _ in SHAPES[candidate.piece][candidate.rotation].columns:
+        old = board[base + offset]
+        added = mask << candidate.z
+        if not old & bit:
+            gain += bool(added & bit)
+            buried += bool((old | added) >> (target + 1)) and not bool(added & bit)
+    return gain, buried
+
+
+@lru_cache(maxsize=16)
+def numpy_column_masks(piece: str):
+    masks = _NUMPY.zeros_like(numpy_shape_data(piece)[0])
+    for r, shape in enumerate(SHAPES[piece]):
+        for i, (_, mask, _) in enumerate(shape.columns):
+            masks[r, i] = mask
+    return masks
+
+
+def hyperlayer_decision_steps(board: Board, piece: str, target: int = 1,
+                              candidates: int = DEFAULT_CANDIDATES,
+                              salt: int = 0) -> Generator[int, None, Decision | None]:
+    if piece not in SHAPES or not isinstance(candidates, int) or candidates < 0:
+        raise ValueError('Unknown piece or invalid candidate budget.')
+    status = target_layer_status(board, target)
+    if status.buried or status.filled == AREA:
+        return None
+    if BACKEND == 'auto':
+        configure_backend()
+    started = time.perf_counter()
+    context, evaluations, best, best_key = evaluate_board(board), 0, None, None
+    missing = (i for i, mask in enumerate(board) if not mask & (1 << target))
+    vertical = tuple(r for r, shape in enumerate(SHAPES[piece]) if len(shape.columns) == 1) if piece == 'I' else ()
+    anchored = ((r, *column_coordinates(i)) for i in missing for r in vertical)
+    initial = itertools.chain(specifications(piece, candidates, salt), anchored)
+    fallback = False
+    for iterator in (initial, specifications(piece, 0)):
+        if fallback and (best is not None or not candidates):
+            break
+        while specs := tuple(itertools.islice(iterator, BATCH_SIZE)):
+            batch = PlacementBatch(piece, specs)
+            if batch.data is not None:
+                np = _NUMPY
+                scores, z, clears = batch.scores(context)
+                indices, _, tops, present, *_ = batch.data
+                old = context.array_heights[indices]
+                rotations = np.asarray([spec[0] for spec in specs], dtype=np.int32)
+                relative = target - z
+                on_target = ((numpy_column_masks(piece)[rotations] >> np.clip(relative, 0, HEIGHT)[:, None]) & 1).astype(bool)
+                on_target &= (relative >= 0)[:, None] & (relative < HEIGHT)[:, None] & present
+                gap = old <= target
+                gains = np.sum(gap & on_target, axis=1)
+                blocked = np.any(gap & (z[:, None] + tops > target) & ~on_target & present, axis=1)
+                valid = np.flatnonzero(np.isfinite(scores) & ~blocked)
+                if len(valid):
+                    high = int(gains[valid].max())
+                    valid = valid[gains[valid] == high]
+                    index = int(valid[np.argmax(scores[valid])])
+                    key = (high, float(scores[index]))
+                    if best_key is None or key > best_key:
+                        best_key = key
+                        best = clears.get(index) or Candidate(piece, *specs[index], int(z[index]), 0, key[1])
+            else:
+                for spec in specs:
+                    candidate = score_candidate(context, piece, *spec)
+                    if candidate is None:
+                        continue
+                    gain, buried = target_candidate_metrics(board, candidate, target)
+                    key = (gain, candidate.score)
+                    if not buried and (best_key is None or key > best_key):
+                        best_key, best = key, candidate
+            evaluations += len(specs)
+            yield evaluations
+            if fallback and best is not None:
+                break
+        if best is not None:
+            move = materialize_move(board, best)
+            return Decision(move, move.score, evaluations, (time.perf_counter() - started) * 1000,
+                            1, 1, candidates, bool(candidates and candidates < placement_count(piece)),
+                            'hyperlayer', target, best_key[0], fallback)
+        fallback = True
+    return None
+
+
+def choose_hyperlayer_move(*args, **kwargs) -> Decision | None:
+    steps = hyperlayer_decision_steps(*args, **kwargs)
     while True:
         try:
             next(steps)
@@ -1572,7 +1689,7 @@ class NetworkView:
         if self.values is None:
             text = 'No selected legal drop. Values are unavailable, not zero.\nThe network updates after a search or a manual move.'
         elif selected is None:
-            text = ('Shared sigmoid stencil: 2 filters, 33 lookup values, 17 pooled difference bins.\nHeatmap cells reconstruct the original logical activations on demand.\nThe output uses all 16 W pages; weights, biases and search are unchanged.')
+            text = ('Shared sigmoid stencil: 2 filters, 33 lookup values, 17 pooled difference bins.\nHeatmap cells reconstruct the original logical activations on demand.\nThe output uses all 16 W pages; target constraints are outside the sigmoid network.')
         elif selected < INPUT_COUNT:
             text = f'{self.name(selected)} = {self.values[selected]:g}\n'
             text += 'Column height after drop and clears.' if selected < AREA else 'Total empty cells below occupied cells.' if selected == AREA else 'Full X/Y/W hyperlayers cleared by this move.'
@@ -1613,11 +1730,20 @@ class NetworkView:
 
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
-                 candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded') -> None:
+                 candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
+                 policy: str = 'network', target: int = 1) -> None:
         import tkinter as tk
         from tkinter import ttk
         self.root, self.beam, self.candidates = root, beam, candidates
+        if policy not in ('network', 'hyperlayer'):
+            raise ValueError('Unknown planner policy.')
+        target_layer_status(EMPTY_BOARD, target)
         self.game = Game(seed, piece_set)
+        self.policy = tk.StringVar(value=policy)
+        self.target = tk.StringVar(value=str(target))
+        self.goal_complete = False
+        self.planner_blocked = ''
+        self.target_progress = tk.StringVar()
         self.running = self.closed = self.pending_step = False
         self.progress, self.previous = 0.0, time.perf_counter()
         self.search = None
@@ -1714,7 +1840,8 @@ class TetrisApp:
         ttk.Button(controls, text='Restart', command=self.reset, style='Tetris.TButton').pack(side='left')
         ttk.Button(controls, text='New seed', command=lambda: self.reset(True), style='Tetris.TButton').pack(side='left', padx=5)
         ttk.Checkbutton(controls, text='Human', variable=self.human, command=self.change_mode, style='Tetris.TCheckbutton').pack(side='left', padx=5)
-        ttk.Checkbutton(controls, text='Lookahead', variable=self.lookahead, command=self.refresh_plan, style='Tetris.TCheckbutton').pack(side='left', padx=5)
+        self.lookahead_button = ttk.Checkbutton(controls, text='Lookahead', variable=self.lookahead, command=self.refresh_plan, style='Tetris.TCheckbutton')
+        self.lookahead_button.pack(side='left', padx=5)
         ttk.Label(controls, text='Speed', style='Muted.Tetris.TLabel').pack(side='left', padx=(12, 5))
         ttk.Scale(controls, from_=.5, to=12, variable=self.speed, length=150).pack(side='left')
         ttk.Label(controls, textvariable=self.search_status, style='Muted.Tetris.TLabel').pack(side='right')
@@ -1733,7 +1860,18 @@ class TetrisApp:
         self.piece_set_box.pack(side='left', padx=5)
         self.piece_set_box.bind('<<ComboboxSelected>>', self.change_piece_set)
         ttk.Button(rotations_row, text='New pieces', command=self.show_gallery, style='Tetris.TButton').pack(side='left')
-        ttk.Label(outer, textvariable=self.status, style='Muted.Tetris.TLabel', wraplength=1400).grid(row=6, column=0, sticky='w')
+        policy_row = ttk.Frame(outer, style='Tetris.TFrame')
+        policy_row.grid(row=6, column=0, sticky='ew', pady=(0, 5))
+        ttk.Label(policy_row, text='Planner:', style='Muted.Tetris.TLabel').pack(side='left')
+        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer'), state='readonly', width=12)
+        self.policy_box.pack(side='left', padx=6)
+        self.policy_box.bind('<<ComboboxSelected>>', self.change_policy)
+        ttk.Label(policy_row, text='Target Z:', style='Muted.Tetris.TLabel').pack(side='left')
+        self.target_box = ttk.Combobox(policy_row, textvariable=self.target, values=tuple(range(HEIGHT)), state='readonly', width=3)
+        self.target_box.pack(side='left', padx=6)
+        self.target_box.bind('<<ComboboxSelected>>', self.change_policy)
+        ttk.Label(policy_row, textvariable=self.target_progress, style='Muted.Tetris.TLabel').pack(side='left', padx=8)
+        ttk.Label(outer, textvariable=self.status, style='Muted.Tetris.TLabel', wraplength=1400).grid(row=7, column=0, sticky='w')
         def install_keys(widget) -> None:
             widget.bindtags(('Tetris4DKeys',) + widget.bindtags())
             for child in widget.winfo_children():
@@ -1745,6 +1883,11 @@ class TetrisApp:
         root.bind('<Configure>', lambda event: self.redraw_small())
         self.refresh_plan()
         self.tick_id = root.after(16, self.tick)
+
+    def change_policy(self, event=None) -> None:
+        self.running = self.pending_step = self.goal_complete = False
+        self.start_button.configure(text='Start')
+        self.refresh_plan()
 
     def change_piece_set(self, event=None) -> None:
         self.game.piece_set = self.piece_set.get()
@@ -1846,6 +1989,15 @@ class TetrisApp:
         self.planned = self.decision = None
         self.progress = 0
         self.evaluations = 0
+        self.planner_blocked = ''
+        self.lookahead_button.configure(state='disabled' if self.policy.get() == 'hyperlayer' else 'normal')
+        self.target_box.configure(state='readonly' if self.policy.get() == 'hyperlayer' else 'disabled')
+        if self.goal_complete and self.policy.get() == 'hyperlayer' and not self.human.get():
+            self.running = self.pending_step = False
+            self.start_button.configure(text='Clear reached')
+            self.network.update(None, self.w_slice.get())
+            self.draw()
+            return
         if self.game.game_over:
             self.running = False
             self.start_button.configure(text='Start')
@@ -1862,9 +2014,13 @@ class TetrisApp:
                                      self.manual_x, self.manual_y, self.manual_w)
             self.finish_plan()
         else:
-            self.search = decision_steps(self.game.board, self.game.current, self.game.next_piece,
-                                         2 if self.lookahead.get() else 1, self.beam, self.candidates,
-                                         self.game.seed * 8191 + self.game.pieces)
+            if self.policy.get() == 'hyperlayer':
+                self.search = hyperlayer_decision_steps(self.game.board, self.game.current, int(self.target.get()),
+                                                        self.candidates, self.game.pieces)
+            else:
+                self.search = decision_steps(self.game.board, self.game.current, self.game.next_piece,
+                                             2 if self.lookahead.get() else 1, self.beam, self.candidates,
+                                             self.game.seed * 8191 + self.game.pieces)
             self.network.update(None, self.w_slice.get())
             self.draw()
 
@@ -1887,7 +2043,7 @@ class TetrisApp:
         self.refresh_plan()
 
     def toggle(self) -> None:
-        if self.human.get() or self.game.game_over:
+        if self.human.get() or self.game.game_over or self.planner_blocked or (self.goal_complete and self.policy.get() == 'hyperlayer'):
             return
         self.running = not self.running
         self.previous = time.perf_counter()
@@ -1900,6 +2056,8 @@ class TetrisApp:
         if new_seed:
             self.game.seed += 1
         self.game.reset()
+        self.goal_complete = False
+        self.planner_blocked = ''
         self.manual_rotation = self.manual_x = self.manual_y = self.manual_w = 0
         self.start_button.configure(text='Start')
         self.last_small_view = None
@@ -1908,7 +2066,11 @@ class TetrisApp:
     def place(self) -> None:
         if self.planned is None or self.game.game_over:
             return
+        cleared = self.planned.layers
         self.game.commit(self.planned)
+        if cleared and self.policy.get() == 'hyperlayer' and not self.human.get():
+            self.goal_complete = True
+            self.running = False
         self.manual_rotation = 0
         self.pending_step = False
         self.refresh_plan()
@@ -1930,7 +2092,7 @@ class TetrisApp:
         self.refresh_plan()
 
     def key_down(self, event) -> str | None:
-        if event.widget is self.piece_set_box:
+        if event.widget in (self.piece_set_box, self.policy_box, self.target_box):
             return None
         key = event.keysym.lower()
         shifted_planes = {'exclam': 0, 'at': 1, 'numbersign': 2, 'dollar': 3, 'percent': 4, 'asciicircum': 5}
@@ -1977,6 +2139,12 @@ class TetrisApp:
         if self.closed or not hasattr(self, 'well'):
             return
         w = self.w_slice.get()
+        if self.policy.get() == 'hyperlayer':
+            layer = target_layer_status(self.game.board, int(self.target.get()))
+            self.target_progress.set('First clear reached. Switch planner or restart to continue.' if self.goal_complete else
+                                     f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · pause on first clear')
+        else:
+            self.target_progress.set('Neural score with optional next-piece lookahead')
         self.well.draw(self.game, self.planned, self.progress, w, self.cutoff.get())
         self.atlas.draw(self.game, self.planned, w)
         self.stats.set(f'Pieces {self.game.pieces:,} | Cells {self.game.cells_placed:,} | Clears {self.game.layers:,} | {self.game.piece_set}')
@@ -1996,15 +2164,21 @@ class TetrisApp:
         if self.search is not None:
             self.search_status.set(f'Searching: {self.evaluations:,} candidates')
         elif self.decision:
-            self.search_status.set(f'Depth {self.decision.depth} · {self.decision.evaluations:,} evals · {self.decision.milliseconds:.0f} ms')
+            label = f'Target +{self.decision.coverage_gain}' if self.decision.policy == 'hyperlayer' else f'Depth {self.decision.depth}'
+            self.search_status.set(f'{label} · {self.decision.evaluations:,} evals · {self.decision.milliseconds:.0f} ms')
         else:
             self.search_status.set('Manual' if self.human.get() else '')
-        if self.game.game_over:
+        if self.goal_complete and self.policy.get() == 'hyperlayer' and not self.human.get():
+            self.status.set('HYPERLAYER CLEARED. Autoplay paused. Select network to continue, Human to play, or R to restart.')
+        elif self.planner_blocked:
+            self.status.set(self.planner_blocked)
+        elif self.game.game_over:
             self.status.set('GAME OVER. No legal rigid placement remains. R restarts.')
         elif self.human.get():
             self.status.set('Human: arrows/WASD move X/Y · Q/E move W · 1–6 rotate XY/XZ/XW/YZ/YW/ZW · Shift reverses · Space/Enter drops · [ ] selects W view.')
         else:
-            mode = f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}'
+            mode = ('hyperlayer planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() == 'hyperlayer' else
+                    f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}')
             self.status.set(f'{"Running" if self.running else "Paused"} · {mode} · Space start/pause · Enter step · [ ] W view · R restart. A clear needs 4,096 cells at one Z.')
 
     def tick(self) -> None:
@@ -2024,8 +2198,13 @@ class TetrisApp:
                     self.search = None
                     self.planned = self.decision.move if self.decision else None
                     if self.decision is None:
-                        self.game.game_over = True
-                        self.running = False
+                        self.running = self.pending_step = False
+                        self.game.game_over = not has_legal_move(self.game.board, self.game.current)
+                        if not self.game.game_over:
+                            layer = target_layer_status(self.game.board, int(self.target.get()))
+                            reason = f'{layer.buried} buried target gaps' if layer.buried else 'no target-preserving placement'
+                            self.planner_blocked = f'PLANNER PAUSED: {reason}. Choose another target, Human, network, or restart. Not game over.'
+                        self.start_button.configure(text='Paused')
                     self.finish_plan()
                     if self.pending_step:
                         self.place()
@@ -2311,20 +2490,27 @@ def run_self_tests() -> dict:
 
 
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
-             piece_set: str = 'expanded') -> dict:
-    if policy not in ('network', 'random'):
+             piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
+    if policy not in ('network', 'random', 'hyperlayer'):
         raise ValueError('Unknown policy.')
+    target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
+    first_clear = None
+    stop_reason = 'piece_limit'
     rng = random.Random(seed ^ 0x5EEDBEEF)
     started = time.perf_counter()
     for _ in range(pieces):
         if game.game_over:
             break
-        if policy == 'network':
-            decision = choose_move(game.board, game.current, game.next_piece, depth, beam, candidates,
-                                   seed * 8191 + game.pieces)
+        if policy in ('network', 'hyperlayer'):
+            if policy == 'hyperlayer':
+                decision = choose_hyperlayer_move(game.board, game.current, target, candidates, game.pieces)
+            else:
+                decision = choose_move(game.board, game.current, game.next_piece, depth, beam, candidates,
+                                       seed * 8191 + game.pieces)
             if decision is None:
-                game.game_over = True
+                game.game_over = not has_legal_move(game.board, game.current)
+                stop_reason = 'top_out' if game.game_over else 'planner_blocked'
                 break
             timings.append(decision.milliseconds)
             move = decision.move
@@ -2348,10 +2534,18 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
         game.commit(move)
         if sum(v.bit_count() for v in game.board) != game.cells_placed - game.layers * AREA:
             raise AssertionError('Game mass conservation failed.')
+        if move.layers and first_clear is None:
+            first_clear = game.pieces
+        if move.layers and (stop_after_clear or policy == 'hyperlayer'):
+            stop_reason = 'first_clear'
+            break
+    if game.game_over and stop_reason != 'first_clear':
+        stop_reason = 'top_out'
     result = game.summary()
     result.update(backend=BACKEND, policy=policy, capped=not game.game_over and game.pieces == pieces,
-                  piece_limit=pieces, depth=depth if policy == 'network' else None,
-                  beam=beam if policy == 'network' else None, candidates=candidates if policy == 'network' else 512,
+                  piece_limit=pieces, depth=depth if policy == 'network' else 1 if policy == 'hyperlayer' else None,
+                  beam=beam if policy == 'network' else None, candidates=candidates if policy != 'random' else 512,
+                  target=target if policy == 'hyperlayer' else None, first_clear_piece=first_clear, stop_reason=stop_reason,
                   mean_decision_ms=round(statistics.fmean(timings), 3) if timings else None,
                   wall_seconds=round(time.perf_counter() - started, 3))
     return result
@@ -2367,7 +2561,7 @@ def launch_demo(args) -> int:
     except Exception as error:
         print(f'A desktop display is required: {error}. Use --test or --benchmark.', file=sys.stderr)
         return 2
-    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set)
+    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target)
     if args.gui_smoke:
         def finish():
             result = {'passed': not app.errors, 'callback_errors': app.errors,
@@ -2390,6 +2584,10 @@ def main() -> int:
     parser.add_argument('--backend', choices=('auto', 'python', 'numpy'), default='auto',
                         help='Auto uses NumPy when installed; python needs only the standard library.')
     parser.add_argument('--weights', type=Path, help='Load a validated JSON checkpoint before evaluation or play.')
+    parser.add_argument('--policy', choices=('network', 'hyperlayer'), default='network',
+                        help='hyperlayer protects access and prioritizes target coverage; uses depth 1 and pauses after a clear.')
+    parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
+    parser.add_argument('--stop-after-clear', action='store_true', help='Stop benchmark games after their first clear; always enabled for hyperlayer.')
     parser.add_argument('--seed', type=int, default=7)
     parser.add_argument('--piece-set', choices=tuple(PIECE_SETS), default='expanded',
                         help='expanded: all 15 pieces; classic: original 7; 4d: only the 8 new shapes.')
@@ -2417,9 +2615,9 @@ def main() -> int:
             result = network_metadata(args.network_expanded)
         elif args.benchmark:
             runs = []
-            for policy in (('network', 'random') if args.compare else ('network',)):
+            for policy in ((args.policy, 'random') if args.compare else (args.policy,)):
                 for i in range(args.games):
-                    run = run_game(args.seed + i, args.pieces, args.depth, args.beam, args.candidates, policy, args.piece_set)
+                    run = run_game(args.seed + i, args.pieces, args.depth, args.beam, args.candidates, policy, args.piece_set, args.target, args.stop_after_clear)
                     runs.append(run)
                     print(f'{policy} seed={run["seed"]} pieces={run["pieces"]} hyperlayers={run["hyperlayers"]}', file=sys.stderr, flush=True)
             result = {'network': network_metadata(), 'runs': runs,

@@ -58,6 +58,29 @@ python sparse_tetris_4d_optimized.py --piece-set 4d
 python sparse_tetris_4d_optimized.py --catalog --output pieces.json
 ```
 
+## Clear the first hyperlayer
+
+Enable the target planner in the GUI's **Planner** selector, or launch it directly:
+
+```bash
+python sparse_tetris_4d_optimized.py --policy hyperlayer --target 1 --weights models/trained-sigmoid.json
+```
+
+It protects unfinished cells on Z=1, prioritizes new target coverage, and uses the loaded sigmoid score only to break ties. Vertical I placements are explicitly generated for every unfinished target column. This is a depth-1 planner, not new network training; the Lookahead control is disabled while it is selected. The original `--policy network` remains the default.
+
+The GUI shows target coverage and buried gaps, pauses on the first clear, and distinguishes an unsafe/stalled planner from an actual top-out. Switch to `network` or Human mode to continue after clearing. Target changes preserve the current board; restarting returns to an empty board. An already buried target must be changed or abandoned; the planner never silently relaxes its protection rule.
+
+Run an empty-start demonstration and independently verify the replay:
+
+```bash
+python tools/first_hyperlayer.py --seed 7 --output first-clear.json
+python tools/first_hyperlayer.py --verify first-clear.json
+```
+
+The helper loads `models/trained-sigmoid.json` by default. The normal game still loads weights only when `--weights` is supplied. Both Python and NumPy backends are supported.
+
+All seven reference trajectories were reproduced by the integrated planner: first clears at 1,222–1,251 pieces, with no physics changes. These are finite first-clear tests, not guarantees of indefinite survival. See [planner details](docs/first-hyperlayer.md) and [integration results](validation/hyperlayer-integration.json).
+
 ## Controls
 
 Enable **Human** mode for manual placement.
