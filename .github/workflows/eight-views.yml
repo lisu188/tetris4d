@@ -29,6 +29,8 @@ jobs:
           python-version: '3.12'
       - run: python tests/test_frame_pacing.py
       - run: python -S tests/test_frame_pacing.py
+      - run: python tests/test_unlimited_speed.py
+      - run: python -S tests/test_unlimited_speed.py
 
   gui:
     runs-on: ubuntu-latest
@@ -56,4 +58,7 @@ jobs:
       - run: xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_eight_views.py
       - run: xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_frame_pacing_gui.py
       - run: xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_hyperlayer_gui.py
+      - run: xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_unlimited_speed_gui.py
       - run: python tests/test_launch_defaults.py
+      - if: matrix.backend == 'native'
+        run: python tests/test_unlimited_speed.py --trajectory-pieces 2600

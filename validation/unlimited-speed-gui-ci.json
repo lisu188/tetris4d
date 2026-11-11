@@ -1,0 +1,88 @@
+{
+  "passed": true,
+  "assertions": 103,
+  "backend": "native",
+  "runs": [
+    {
+      "size": [
+        1560,
+        960
+      ],
+      "identical_moves": 64,
+      "heartbeat_callbacks": 25,
+      "rendering": {
+        "adaptive_frameskip": true,
+        "requested_fps": 30.0,
+        "requests": 55,
+        "rendered_frames": 28,
+        "deferred_requests": 27,
+        "coalesced_requests": 127,
+        "interval_ms": 80.59497476692097,
+        "render_ema_ms": 40.297487383460485,
+        "playback_mode": "unlimited",
+        "animation_rate_per_second": null,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 129,
+        "unchanged_section_skips": 303
+      }
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "identical_moves": 64,
+      "heartbeat_callbacks": 25,
+      "rendering": {
+        "adaptive_frameskip": true,
+        "requested_fps": 30.0,
+        "requests": 52,
+        "rendered_frames": 27,
+        "deferred_requests": 25,
+        "coalesced_requests": 127,
+        "interval_ms": 80.0288862817611,
+        "render_ema_ms": 40.01444314088055,
+        "playback_mode": "unlimited",
+        "animation_rate_per_second": null,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 127,
+        "unchanged_section_skips": 289
+      }
+    }
+  ],
+  "environment": "Linux virtual display; not native WSLg throughput measurements"
+}

@@ -207,3 +207,21 @@ Summarize the latest default session, including retained rotation segments:
 ```bash
 .venv/bin/python tools/summarize_benchmark.py --output benchmark-summary.json
 ```
+
+
+## Playback speed
+
+The speed slider is replaced with a selector: **0.5/s, 1/s, 3/s, 6/s, 12/s, Unlimited**.
+The existing 3/s animated default is retained. Select **Unlimited** and press Start/Space
+(or change the selection while already running) to remove animation waits. No launch
+arguments are required. The /s presets are animation rates, not guaranteed throughput.
+
+Unlimited commits every selected move in order, with the same search and validation.
+It can complete multiple moves per logic callback and yields between bounded search
+batches using an 8 ms cooperative work budget and a 1 ms event-loop reschedule.
+An individual search batch or render can exceed that budget. Adaptive frame skipping
+paces only drawing; all 16 W-section cubes remain visible. Speed changes do not reset
+the board, discard the selected move, start paused play, or change the piece stream.
+Pause, single-step, Human mode and explicit --stop-after-clear remain available.
+Logs record playback_mode and animation_rate_per_second under rendering; Unlimited
+uses a null animation rate, not a non-finite number. See docs/playback-speed.md.
