@@ -1,29 +1,28 @@
-# Eight simultaneous 3D sections
+# All 16 sections and adaptive frame skipping
 
-The normal no-argument launch now shows eight 3D W-section boards in a 4-by-2 grid. This integrates the UI from the supplied benchmark-logging patch without replacing the newer logging implementation on main.
+Normal argument-free launch displays every W section, W=0 through W=15, simultaneously in a fixed 4-by-4 grid. There are no pages or page buttons. Clicking a section, the W slider, atlas and Follow active W select the activation heatmap and outline; they never hide a section. All 16 camera resets remain available via Home. Compact cameras fit each complete well within its canvas at the supported 1120-by-760 minimum window size. At that size individual voxels are small; enlarging the window improves legibility. These are W-section boards, not a projection of the tesseract's eight boundary cells. Ordinary opaque voxel rendering can still occlude interior cells.
 
-Use W 0–7 and W 8–15 to switch pages; all 16 sections of the unchanged 16-by-16-by-16-by-16 board remain accessible. Clicking a section selects its W coordinate for the activation heatmap. The W slider and atlas remain available, and Follow active W follows the active origin's page. The whole-piece preview still shows a piece spanning more than one W section. Each compact view supports orbiting; zoom is capped to keep the complete well visible. Home resets all eight cameras.
+## Rendering, not simulation
 
-Eight views means eight section boards, not eight cells per piece and not eight boundary cells of a projected tesseract. The 15 registered rigid shapes, collision rules, trained sigmoid network, default native-backend selection and continued play after clears are unchanged.
+Adaptive frame skipping is on by default with a nominal maximum scheduled redraw rate of 30 Hz. The event loop and search still execute their normal updates. Duplicate draw requests inside one logic tick are coalesced. Requests before the next redraw deadline share one pending callback; it renders the latest state, not a queue of obsolete frames. Render cost is smoothed and the interval is increased up to 200 ms when drawing is expensive. Explicit user selections and paused/manual completion can force an immediate redraw. Therefore 30 Hz is not a hard ceiling on every user-forced redraw, nor a guaranteed display FPS.
 
-## Benchmark logging
+No moves, collision checks, rewards or layers are skipped. The animation may omit intermediate positions. Closing the app cancels a pending redraw. Paused/manual state stays paused, and normal autoplay still continues after clears. Headless search, native C, trained parameters and piece enumeration are unchanged.
 
-The existing rotating JSONL recorder remains the only logger. It adds gui_eight_views_submission for the complete eight-view panel, while gui_well_submission times individual sections. These inclusive timings overlap with gui_draw_submission and must not be added together. They measure CPU/Tk submission, not displayed FPS.
-
-GUI metrics include view_page and visible_w_sections. Page transitions produce view_page events. Existing session rotation, failure handling, source/build metadata and --no-benchmark-log are retained.
+Only W sections whose voxel occupancy or piece ownership changes invalidate cached stack geometry. Camera changes, resizing and cutaways also invalidate affected views. Unchanged sections remain on the canvas. Activation display updates are coalesced with actual rendering instead of being cleared and repainted for every search transition.
 
 ```bash
 .venv/bin/python sparse_tetris_4d_optimized.py
+.venv/bin/python sparse_tetris_4d_optimized.py --ui-fps 60
+.venv/bin/python sparse_tetris_4d_optimized.py --no-frameskip
 .venv/bin/python tools/summarize_benchmark.py --output benchmark-summary.json
 ```
 
-The summary helper defaults to the most recently modified default session and includes its remaining rotated segments. Explicit paths are also accepted. The original tetris_benchmark_logging.py summary entry point remains available.
+## Telemetry
 
-## Regression checks
+Metrics contain a top-level `rendering` object, retained even after the Tk window closes: requested FPS, adaptive interval, smoothed render cost, rendered frames, deferred and coalesced requests, scene rebuilds, unchanged-section skips, and all 16 visible W indices. `gui_draw_submission` now measures actual `_draw_now` calls rather than deferred requests; `gui_all_views_submission` replaces the eight-view panel metric. Per-well times remain inclusive children of these measurements and must not be added together. Deferred/coalesced request counts are not dropped physics updates or a count of missing display refreshes.
 
-```bash
-xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_eight_views.py
-python tests/test_benchmark_logging.py --trajectory-pieces 2600
-```
+## Verification
 
-The GUI test checks all eight canvases at 1560-by-960 and 1120-by-760, all 16 W sections across both pages, complete projected well corners, activation heatmaps, rigid RING cells across a page boundary, post-clear continuation, and integration with the existing logger. Virtual-display tests do not establish WSLg performance or indefinite gameplay survival.
+The existing `tests/test_eight_views.py` entry point now checks all 16 sections, both window sizes, orbit bounds, rigid shapes spanning W=7 and W=8 at once, selective cache invalidation, first-clear continuation, deferred redraw delivery and telemetry. `tests/test_frame_pacing.py` uses deterministic clocks for pacing/CLI tests. `tests/test_frame_pacing_gui.py` compares 32 complete committed GUI moves with pacing enabled and disabled.
+
+A local fixed-workload test replayed seed-7 boards at pieces 401 through 450 in a 640-by-600 panel, without active animation, three times. Median CPU/Tk draw submission fell from 5493.997 ms for the prior eight-view panel to 1718.025 ms for the cached sixteen-view panel; scene rebuilds fell from 400 to 111. This is not an equal-view-count comparison or a WSLg/display-FPS result. It measures caching/layout changes, not a standalone frame-skip speedup. Raw local results are in `validation/all-sections-rendering.json`.
