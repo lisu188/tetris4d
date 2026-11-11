@@ -2624,11 +2624,12 @@ class TetrisApp:
         result.update(visible_w_sections=list(self.well.visible_w_sections),
                       scene_rebuilds=sum(view.scene_rebuilds for view in self.well.views),
                       unchanged_section_skips=sum(view.draw_skips for view in self.well.views))
-        result.update(atlas_scene_rebuilds=self.atlas.scene_rebuilds,
-                      atlas_cell_updates=self.atlas.cell_updates,
-                      atlas_cells_created=self.atlas.cells_created,
-                      ownership_appends=self.well.ownership_appends,
-                      ownership_full_scans=self.well.ownership_full_scans,
+        atlas = getattr(self, 'atlas', None)
+        result.update(atlas_scene_rebuilds=getattr(atlas, 'scene_rebuilds', 0),
+                      atlas_cell_updates=getattr(atlas, 'cell_updates', 0),
+                      atlas_cells_created=getattr(atlas, 'cells_created', 0),
+                      ownership_appends=getattr(self.well, 'ownership_appends', 0),
+                      ownership_full_scans=getattr(self.well, 'ownership_full_scans', 0),
                       static_mesh_batches=sum(getattr(view, 'mesh_batches', 0) for view in self.well.views))
         return result
 
