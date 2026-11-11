@@ -217,6 +217,9 @@ class BenchmarkLog:
                        'target': int(self.app.target.get()), 'w_slice': self.app.w_slice.get(),
                        'cutoff': self.app.cutoff.get(), 'pieces': self.app.game.pieces,
                        'hyperlayers': self.app.game.layers, 'game_over': self.app.game.game_over}
+                if hasattr(self.app.well, 'views'):
+                    gui.update(view_page=self.app.well.page,
+                               visible_w_sections=list(range(self.app.well.page * 8, self.app.well.page * 8 + 8)))
             self.emit('metrics', reason=reason, backend=self._backend(), gui=gui,
                       decisions=self.decisions, moves=self.moves, caches=caches,
                       write_and_serialization_ms=self.io_ns / 1_000_000,
@@ -359,6 +362,17 @@ class BenchmarkLog:
             owner = getattr(self.game, class_name, None)
             if owner is not None and hasattr(owner, method):
                 self._timed(owner, method, label)
+        if hasattr(self.game, 'EightWellView'):
+            self._timed(self.game.EightWellView, 'draw', 'gui_eight_views_submission')
+            original_panel = self.game.EightWellView.draw
+            @wraps(original_panel)
+            def panel(view, *args, **kwargs):
+                before = view.page
+                result = original_panel(view, *args, **kwargs)
+                if view.page != before:
+                    self.emit('view_page', page=view.page, first_w=view.page * 8, last_w=view.page * 8 + 7)
+                return result
+            self._patch(self.game.EightWellView, 'draw', panel)
         original_tick = self.game.TetrisApp.tick
         @wraps(original_tick)
         def tick(app, *args, **kwargs):
