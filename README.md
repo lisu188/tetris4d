@@ -235,3 +235,8 @@ Normal argument-free launch now selects Unlimited and the sustained target plann
 ## Optional learned GPU policy
 
 Implemented sigmoid Conv3d policy/value model (62,485 default parameters), demonstration collector, resumable imitation and A2C training, paired evaluation and actual learned-activation UI. Normal no-argument play stays Unlimited + sustained; a trained checkpoint is explicitly selected with `--neural-checkpoint models/neural-policy.pt --neural-device cuda`. No pretrained GPU policy or performance gain is claimed. See [the WSL training commands and limits](docs/neural-policy.md).
+
+
+## Overnight survival policy training
+
+Run `.venv/bin/python -u train_overnight.py --hours 8 --device cuda --record-games` to train for longer survival without extra rewards for clears. Re-run the same command to resume. See [docs/overnight-survival.md](docs/overnight-survival.md) for checkpoints, best-model selection, JSON replay verification, limits and WSL detachment.
