@@ -1453,6 +1453,24 @@ CUBE_EDGES = tuple((a, tuple(a[i] + (1 if i == axis else 0) for i in range(3)))
                    for axis in range(3) if a[axis] == 0)
 
 
+FACE_RENDER_GEOMETRY = tuple(
+    (normal, vertices, tuple(tuple(a[j] + vertices[(i + 1) % 4][j] - 1 if not normal[j] else 0
+                                  for j in range(3)) for i, a in enumerate(vertices)))
+    for normal, vertices in FACE_GEOMETRY)
+
+
+def canvas_batch(canvas, commands):
+    if not commands:
+        return ()
+    name = '::tetris4d::canvas_batch_v1'
+    if not canvas.tk.call('info', 'commands', name):
+        canvas.tk.eval('namespace eval ::tetris4d {}; '
+                       'proc ::tetris4d::canvas_batch_v1 {canvas commands} {'
+                       'set result {}; foreach command $commands {'
+                       'lappend result [$canvas {*}$command]}; return $result}')
+    return canvas.tk.splitlist(canvas.tk.call(name, canvas._w, tuple(commands)))
+
+
 class WellView:
     def __init__(self, canvas, compact: bool = False) -> None:
         self.canvas = canvas
@@ -1530,28 +1548,42 @@ class WellView:
         self.canvas.create_line(*self.project(*a), *self.project(*b), **options)
 
     def _faces(self, cubes, occupied):
-        visible = [(normal, vertices) for normal, vertices in FACE_GEOMETRY
-                   if sum(a * b for a, b in zip(normal, self.toward)) > 1e-9]
+        tx, ty, tz = self.toward
+        visible = [(normal, vertices, steps) for normal, vertices, steps in FACE_RENDER_GEOMETRY
+                   if normal[0] * tx + normal[1] * ty + normal[2] * tz > 1e-9]
         faces = []
         for x, y, z, color, owner in cubes:
-            for normal, vertices in visible:
-                adjacent = (x + normal[0], y + normal[1], round(z + normal[2], 9))
-                if adjacent in occupied:
+            for (nx, ny, nz), vertices, steps in visible:
+                if (x + nx, y + ny, round(z + nz, 9)) in occupied:
                     continue
                 points = [(x + dx, y + dy, z + dz) for dx, dy, dz in vertices]
-                depth = sum(self._raw(*point)[2] for point in points) / 4
-                shade = blend(color, '#FFFFFF', .18) if normal[2] else blend(color, '#000000', .18 if normal[0] else .35)
+                depth = sum(px * tx + py * ty + pz * tz for px, py, pz in points) / 4
+                shade = blend(color, '#FFFFFF', .18) if nz else blend(color, '#000000', .18 if nx else .35)
                 borders = []
-                for i, a in enumerate(vertices):
-                    b = vertices[(i + 1) % 4]
-                    step = tuple(a[j] + b[j] - 1 if not normal[j] else 0 for j in range(3))
-                    beside = (x + step[0], y + step[1], round(z + step[2], 9))
-                    beyond = (beside[0] + normal[0], beside[1] + normal[1], round(beside[2] + normal[2], 9))
+                for i, (sx, sy, sz) in enumerate(steps):
+                    beside = (x + sx, y + sy, round(z + sz, 9))
+                    beyond = (beside[0] + nx, beside[1] + ny, round(beside[2] + nz, 9))
                     if not owner or occupied.get(beside) != owner or beyond in occupied:
                         borders.append((points[i], points[(i + 1) % 4]))
                 faces.append((depth, points, shade, borders, owner))
         faces.sort(key=lambda face: face[0])
         return faces
+
+    def _static_mesh(self, faces):
+        commands, starts = [], []
+        project = self.project
+        for i, (_, points, color, borders, _) in enumerate(faces):
+            tag = f'static_face:{i}'
+            starts.append(len(commands))
+            commands.append(('create', 'polygon', *[v for point in points for v in project(*point)],
+                             '-fill', color, '-outline', blend(color, '#162536', .3), '-width', .5,
+                             '-tags', (tag, 'voxel_face', 'locked_piece', 'static_mesh')))
+            for a, b in borders:
+                commands.append(('create', 'line', *project(*a), *project(*b), '-fill', '#162536',
+                                 '-width', 1.8, '-tags', (tag, 'static_mesh')))
+        created = canvas_batch(self.canvas, commands)
+        self.mesh_batches = getattr(self, 'mesh_batches', 0) + bool(commands)
+        return [int(created[i]) for i in starts]
 
     def _face(self, face, tag):
         _, points, color, borders, owner = face
@@ -1634,10 +1666,8 @@ class WellView:
                 for y in (0, DEPTH):
                     self._line((x, y, 0), (x, y, HEIGHT), fill='#58738B', dash=(3, 5))
             static_faces = self._faces(self._stack, occupied)
-            self._static_depths, self._static_items = [], []
-            for i, face in enumerate(static_faces):
-                self._static_depths.append(face[0])
-                self._static_items.append(self._face(face, f'static_face:{i}'))
+            self._static_depths = [face[0] for face in static_faces]
+            self._static_items = self._static_mesh(static_faces)
         c.delete('active_dynamic')
         for i, face in enumerate(self._faces(moving, occupied)):
             tag = f'active_face:{i}'
@@ -1692,6 +1722,7 @@ class AllWellView:
         self.visible_w_sections = tuple(range(FOURTH))
         self.section_tokens = [None] * FOURTH
         self.section_revisions = [0] * FOURTH
+        self.ownership_appends = self.ownership_full_scans = 0
         self.selection_label = tk.StringVar(value='All 16 sections · selected W 00')
         ttk.Label(self.frame, textvariable=self.selection_label, style='Muted.Tetris.TLabel').grid(row=0, column=0, sticky='w')
         self.grid = ttk.Frame(self.frame, style='Tetris.TFrame')
@@ -1723,16 +1754,27 @@ class AllWellView:
         if self.selection_label.get() != label:
             self.selection_label.set(label)
         if game.locked_pieces is not self.piece_cache:
-            self.piece_cache = game.locked_pieces
-            self.owners = {}
+            previous, current = self.piece_cache, game.locked_pieces
+            append_only = (previous is not None and len(current) > len(previous)
+                           and all(current[i] is piece for i, piece in enumerate(previous)))
+            self.piece_cache = current
             tokens = [[] for _ in range(FOURTH)]
-            for piece in game.locked_pieces:
+            if append_only:
+                added = current[len(previous):]
+                self.ownership_appends += len(added)
+            else:
+                self.owners = {}
+                added = current
+                self.ownership_full_scans += 1
+            for piece in added:
+                identity = (piece.identifier, piece.piece)
                 for cell in piece.cells:
-                    identity = (piece.identifier, piece.piece)
                     self.owners[cell] = identity
                     tokens[cell[3]].append((cell, identity))
             for w, cells in enumerate(tokens):
-                token = tuple(cells)
+                if append_only and not cells:
+                    continue
+                token = (self.section_tokens[w] or ()) + tuple(cells) if append_only else tuple(cells)
                 if token != self.section_tokens[w]:
                     self.section_tokens[w] = token
                     self.section_revisions[w] += 1
@@ -1788,6 +1830,15 @@ class SliceAtlas:
         self.canvas, self.on_select = canvas, on_select
         self.boxes = []
         self.last_key = None
+        self.layout_key = None
+        self.board_cache = self.move_cache = None
+        self.cells = [None] * AREA
+        self.heights = [0] * AREA
+        self.borders, self.labels = [], []
+        self.selected = None
+        self.scene_rebuilds = self.cell_updates = self.cells_created = 0
+        self.colors = tuple(blend(PALETTE['panel'], '#A9B5F5', .2 + .8 * h / HEIGHT)
+                            for h in range(HEIGHT + 1))
         canvas.bind('<Button-1>', self.click)
 
     def click(self, event) -> None:
@@ -1799,37 +1850,81 @@ class SliceAtlas:
     def draw(self, game: Game, move: Move | None, selected: int) -> None:
         c = self.canvas
         width, height = max(140, c.winfo_width()), max(140, c.winfo_height())
-        key = (game.board, move, selected, width, height)
+        key = (id(game.board), id(move), selected, width, height)
         if key == self.last_key:
             return
         self.last_key = key
-        c.delete('all')
-        self.boxes.clear()
-        c.create_text(10, 14, anchor='w', text='ALL 16 W SECTIONS', fill=PALETTE['text'], font=('TkDefaultFont', 9, 'bold'))
-        c.create_text(10, 33, anchor='w', text='Top views · click a section', fill=PALETTE['muted'], font=('TkDefaultFont', 8))
-        size = max(8, min((width - 32) / 4, (height - 125) / 4))
-        gap_x = (width - size * 4) / 5
-        top_y = 57
-        heights, _ = board_features(game.board)
-        pending = () if move is None else placed_cells(move)
-        for w in range(FOURTH):
-            x0 = gap_x + (w % 4) * (size + gap_x)
-            y0 = top_y + (w // 4) * (size + 21)
-            self.boxes.append((w, x0, y0, size))
-            cell = size / 16
-            c.create_rectangle(x0 - 2, y0 - 2, x0 + size + 2, y0 + size + 2,
-                               fill=PALETTE['board'], outline=PALETTE['accent'] if w == selected else PALETTE['grid'], width=2 if w == selected else 1)
-            c.create_text(x0, y0 - 10, anchor='w', text=f'W {w:02}', fill=PALETTE['accent'] if w == selected else PALETTE['muted'], font=('TkFixedFont', 8))
-            for y in range(DEPTH):
-                for x in range(WIDTH):
-                    value = heights[column_index(x, y, w)]
-                    if value:
-                        c.create_rectangle(x0 + x * cell, y0 + (15 - y) * cell, x0 + (x + 1) * cell, y0 + (16 - y) * cell,
-                                           fill=blend(PALETTE['panel'], '#A9B5F5', .2 + .8 * value / HEIGHT), outline='')
-            for x, y, z, cw in pending:
-                if cw == w:
+        resized = self.layout_key != (width, height)
+        if resized:
+            self.layout_key = (width, height)
+            self.scene_rebuilds += 1
+            c.delete('all')
+            self.boxes.clear()
+            self.borders.clear()
+            self.labels.clear()
+            self.cells = [None] * AREA
+            self.heights = [0] * AREA
+            self.board_cache = None
+            self.selected = None
+            c.create_text(10, 14, anchor='w', text='ALL 16 W SECTIONS', fill=PALETTE['text'], font=('TkDefaultFont', 9, 'bold'))
+            c.create_text(10, 33, anchor='w', text='Top views · click a section', fill=PALETTE['muted'], font=('TkDefaultFont', 8))
+            size = max(8, min((width - 32) / 4, (height - 125) / 4))
+            gap_x = (width - size * 4) / 5
+            for w in range(FOURTH):
+                x0 = gap_x + (w % 4) * (size + gap_x)
+                y0 = 57 + (w // 4) * (size + 21)
+                self.boxes.append((w, x0, y0, size))
+                self.borders.append(c.create_rectangle(x0 - 2, y0 - 2, x0 + size + 2, y0 + size + 2,
+                                    fill=PALETTE['board'], outline=PALETTE['grid'], width=1))
+                self.labels.append(c.create_text(x0, y0 - 10, anchor='w', text=f'W {w:02}',
+                                   fill=PALETTE['muted'], font=('TkFixedFont', 8)))
+        commands, new_items = [], []
+        if self.board_cache is not game.board:
+            old_board = self.board_cache
+            self.board_cache = game.board
+            for i, mask in enumerate(game.board):
+                if old_board is not None and mask == old_board[i]:
+                    continue
+                value = mask.bit_length()
+                if value == self.heights[i]:
+                    continue
+                self.heights[i] = value
+                item = self.cells[i]
+                self.cell_updates += 1
+                if item is None:
+                    if not value:
+                        continue
+                    x, y, w = column_coordinates(i)
+                    _, x0, y0, size = self.boxes[w]
+                    cell = size / 16
+                    new_items.append((i, len(commands)))
+                    commands.append(('create', 'rectangle', x0 + x * cell, y0 + (15 - y) * cell,
+                                     x0 + (x + 1) * cell, y0 + (16 - y) * cell,
+                                     '-fill', self.colors[value], '-outline', '', '-tags', ('atlas_height',)))
+                else:
+                    commands.append(('itemconfigure', item, '-fill', self.colors[value],
+                                     '-state', 'normal' if value else 'hidden'))
+        result = canvas_batch(c, commands)
+        for i, position in new_items:
+            self.cells[i] = int(result[position])
+        self.cells_created += len(new_items)
+        if self.selected != selected:
+            for w in (self.selected, selected):
+                if w is not None:
+                    active = w == selected
+                    c.itemconfigure(self.borders[w], outline=PALETTE['accent'] if active else PALETTE['grid'], width=2 if active else 1)
+                    c.itemconfigure(self.labels[w], fill=PALETTE['accent'] if active else PALETTE['muted'])
+            self.selected = selected
+        if resized or move is not self.move_cache:
+            self.move_cache = move
+            c.delete('atlas_active')
+            if move is not None:
+                for x, y, z, w in placed_cells(move):
+                    _, x0, y0, size = self.boxes[w]
+                    cell = size / 16
                     c.create_rectangle(x0 + x * cell, y0 + (15 - y) * cell, x0 + (x + 1) * cell, y0 + (16 - y) * cell,
                                        fill=PIECE_COLORS[move.piece], outline='#FFFFFF', width=.4, tags=('atlas_active',))
+        c.tag_raise('atlas_active')
 
 
 class NetworkView:
@@ -2529,6 +2624,12 @@ class TetrisApp:
         result.update(visible_w_sections=list(self.well.visible_w_sections),
                       scene_rebuilds=sum(view.scene_rebuilds for view in self.well.views),
                       unchanged_section_skips=sum(view.draw_skips for view in self.well.views))
+        result.update(atlas_scene_rebuilds=self.atlas.scene_rebuilds,
+                      atlas_cell_updates=self.atlas.cell_updates,
+                      atlas_cells_created=self.atlas.cells_created,
+                      ownership_appends=self.well.ownership_appends,
+                      ownership_full_scans=self.well.ownership_full_scans,
+                      static_mesh_batches=sum(getattr(view, 'mesh_batches', 0) for view in self.well.views))
         return result
 
     def _draw_now(self) -> None:
