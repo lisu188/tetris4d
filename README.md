@@ -170,3 +170,29 @@ python tools/train_agent.py --resume models/trained-sigmoid.json --generations 2
 An optional strict-float C backend fuses candidate scoring and target rejection, with runtime-gated AVX2 landing and BMI2 compaction. Build with `python tools/build_native.py`; normal no-argument launch then selects it automatically. NumPy and Python remain fallbacks. See [build commands, WSL diagnostics, validation and measured performance](docs/native-backend.md).
 
 Run `python tests/test_native.py --trajectory-pieces 2600` and `python tools/benchmark_native.py --output native-benchmark.json` to validate and measure on your machine.
+
+
+## Automatic benchmark logging
+
+Normal launches also write a local JSONL log under `logs/` (the path is printed on stderr).
+No additional arguments are required. Logs record runtime/backend/ISA/build metadata,
+search active work versus UI scheduling latency, board evaluation, native batch scoring,
+commit/validation, activation tracing, GUI draw submission, tick intervals, cache statistics,
+and clear/progress events. Phase timings are inclusive and must not be added together.
+GUI draw/tick measurements are not compositor FPS. No logs are uploaded automatically.
+
+Each session rotates at approximately 4 MiB with three backups; sessions are kept separately.
+`--benchmark-log PATH` selects a new file and `--no-benchmark-log` disables instrumentation.
+Tests, catalog/network exports and imported training/benchmark helpers do not log by default.
+A file-system logging failure warns and disables logging without stopping gameplay.
+
+```bash
+.venv/bin/python sparse_tetris_4d_optimized.py
+.venv/bin/python tetris_benchmark_logging.py logs/benchmark-*.jsonl* --output benchmark-summary.json
+.venv/bin/python tools/benchmark_logging.py --pieces 1500 --repetitions 3 --output logging-overhead.json
+```
+
+The summary groups sessions; submit the summary and, for detailed investigation, the matching
+JSONL segments. Logging has overhead: the paired benchmark measures it rather than subtracting
+an assumed cost. Recent p50/p95/p99 values cover the last 2,048 observations per phase.
+See `docs/benchmark-logging.md` for fields, privacy and timing limitations.
