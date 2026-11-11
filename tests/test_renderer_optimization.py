@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+from dataclasses import asdict
 import random
 from pathlib import Path
 import sys
@@ -15,6 +16,12 @@ import sparse_tetris_4d_optimized as game
 from benchmark_rendering import load_baseline
 
 baseline, baseline_source = load_baseline()
+
+
+def reference_move(move):
+    if move is None:
+        return None
+    return baseline.Move(baseline.Candidate(**asdict(move.candidate)), move.before, move.board, move.heights, move.holes)
 
 
 def snapshot(canvas):
@@ -104,7 +111,7 @@ class RendererTests(unittest.TestCase):
         move = game.make_move(board.board, 'HYPER', 0, 8, 8, 7)
         for yaw, cutoff, progress in ((.68, 15, 0), (.68, 2, .5), (2.5, 15, .999), (-1, 15, 1), (-1, 15, 1)):
             old.yaw = new.yaw = yaw
-            old.draw(board, move, progress, 7, cutoff)
+            old.draw(board, reference_move(move), progress, 7, cutoff)
             new.draw(board, move, progress, 7, cutoff)
             self.assertEqual(snapshot(self.canvases[0]), snapshot(self.canvases[1]))
             self.assertEqual(old.rendered_cubes, new.rendered_cubes)
@@ -125,7 +132,7 @@ class RendererTests(unittest.TestCase):
             frame = SimpleNamespace(board=board)
             visible = move if step % 2 else None
             selected = step % 16
-            old.draw(frame, visible, selected)
+            old.draw(frame, reference_move(visible), selected)
             new.draw(frame, visible, selected)
             self.assertEqual(sorted(snapshot(self.canvases[0])), sorted(snapshot(self.canvases[1])))
             self.assertEqual(old.boxes, new.boxes)
