@@ -1355,6 +1355,118 @@ def choose_hyperlayer_move(*args, **kwargs) -> Decision | None:
             return result.value
 
 
+TARGET_POLICIES = ('hyperlayer', 'sustained')
+
+FUTURE_HOLE_PENALTY = 4
+
+
+def sustained_candidate_metrics(board: Board, candidate: Candidate, target: int) -> tuple[int, int, int]:
+    gain, buried = target_candidate_metrics(board, candidate, target)
+    base = column_index(candidate.x, candidate.y, candidate.w)
+    future_holes = 0
+    for offset, mask, _ in SHAPES[candidate.piece][candidate.rotation].columns:
+        old_height = board[base + offset].bit_length()
+        added = mask << candidate.z
+        new_height = added.bit_length()
+        future_holes += max(0, new_height - max(old_height, target + 1)) - (added >> (target + 1)).bit_count()
+    return gain, buried, future_holes
+
+
+@lru_cache(maxsize=16)
+def sustained_above_counts(piece: str):
+    return _NUMPY.asarray([[sum(count for level, count in shape.levels if level >= threshold)
+                            for threshold in range(HEIGHT + 2)] for shape in SHAPES[piece]], dtype=_NUMPY.int32)
+
+
+def sustained_batch_metrics(context: BoardEvaluation, piece: str, specs, z, target: int):
+    np = _NUMPY
+    raw = np.asarray(specs, dtype=np.int32)
+    rotations = raw[:, 0]
+    offsets, _, tops, present, _, _ = numpy_shape_data(piece)
+    present = present[rotations]
+    tops = tops[rotations]
+    indices = (raw[:, 1] + WIDTH * raw[:, 2] + SLICE_AREA * raw[:, 3])[:, None] + offsets[rotations]
+    heights = context.native_heights if context.native_heights is not None else np.asarray(context.heights, dtype=np.int16)
+    old = heights[indices]
+    relative = target - z
+    on_target = ((numpy_column_masks(piece)[rotations] >> np.clip(relative, 0, HEIGHT)[:, None]) & 1).astype(bool)
+    on_target &= (relative >= 0)[:, None] & (relative < HEIGHT)[:, None] & present
+    gaps = old <= target
+    gains = np.sum(gaps & on_target, axis=1)
+    blocked = np.any(gaps & (z[:, None] + tops > target) & ~on_target & present, axis=1)
+    new_spans = np.maximum(z[:, None] + tops - np.maximum(old, target + 1), 0)
+    added_above = sustained_above_counts(piece)[rotations, np.clip(target + 1 - z, 0, HEIGHT + 1)]
+    future_holes = np.sum(np.where(present, new_spans, 0), axis=1) - added_above
+    return gains, blocked, future_holes
+
+
+def sustained_decision_steps(board: Board, piece: str, target: int = 1,
+                             candidates: int = DEFAULT_CANDIDATES,
+                             salt: int = 0) -> Generator[int, None, Decision | None]:
+    if piece not in SHAPES or type(candidates) is not int or candidates < 0:
+        raise ValueError('Unknown piece or invalid candidate budget.')
+    status = target_layer_status(board, target)
+    if status.buried or status.filled == AREA:
+        return None
+    if BACKEND == 'auto':
+        configure_backend()
+    started = time.perf_counter()
+    context, evaluations, best, best_key, best_gain = evaluate_board(board), 0, None, None, 0
+    missing = (i for i, mask in enumerate(board) if not mask & (1 << target))
+    vertical = tuple(r for r, shape in enumerate(SHAPES[piece]) if len(shape.columns) == 1) if piece == 'I' else ()
+    anchored = ((r, *column_coordinates(i)) for i in missing for r in vertical)
+    initial = itertools.chain(specifications(piece, candidates, salt), anchored)
+    fallback = False
+    for iterator in (initial, specifications(piece, 0)):
+        if fallback and (best is not None or not candidates):
+            break
+        while specs := tuple(itertools.islice(iterator, BATCH_SIZE)):
+            batch = PlacementBatch(piece, specs)
+            if batch.data is not None:
+                np = _NUMPY
+                scores, z, clears = batch.scores(context)
+                gains, blocked, future_holes = sustained_batch_metrics(context, piece, specs, z, target)
+                valid = np.flatnonzero(np.isfinite(scores) & ~blocked)
+                if len(valid):
+                    utility = gains - FUTURE_HOLE_PENALTY * future_holes
+                    high = int(utility[valid].max())
+                    valid = valid[utility[valid] == high]
+                    index = int(valid[np.argmax(scores[valid])])
+                    key = (high, float(scores[index]))
+                    if best_key is None or key > best_key:
+                        best_key, best_gain = key, int(gains[index])
+                        best = clears.get(index) or Candidate(piece, *specs[index], int(z[index]), 0, key[1])
+            else:
+                for spec in specs:
+                    candidate = score_candidate(context, piece, *spec)
+                    if candidate is None:
+                        continue
+                    gain, buried, future_holes = sustained_candidate_metrics(board, candidate, target)
+                    key = (gain - FUTURE_HOLE_PENALTY * future_holes, candidate.score)
+                    if not buried and (best_key is None or key > best_key):
+                        best_key, best, best_gain = key, candidate, gain
+            evaluations += len(specs)
+            yield evaluations
+            if fallback and best is not None:
+                break
+        if best is not None:
+            move = materialize_move(board, best)
+            return Decision(move, move.score, evaluations, (time.perf_counter() - started) * 1000,
+                            1, 1, candidates, bool(candidates and candidates < placement_count(piece)),
+                            'sustained', target, best_gain, fallback)
+        fallback = True
+    return None
+
+
+def choose_sustained_move(*args, **kwargs) -> Decision | None:
+    steps = sustained_decision_steps(*args, **kwargs)
+    while True:
+        try:
+            next(steps)
+        except StopIteration as result:
+            return result.value
+
+
 class PieceStream:
     def __init__(self, seed: int = 7, piece_set: str = 'expanded') -> None:
         if piece_set not in PIECE_SETS:
@@ -2171,7 +2283,7 @@ PLAYBACK_SPEEDS = {'0.5/s': .5, '1/s': 1.0, '3/s': 3.0, '6/s': 6.0, '12/s': 12.0
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
                  candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
-                 policy: str = 'hyperlayer', target: int = 1, stop_after_clear: bool = False,
+                 policy: str = 'sustained', target: int = 1, stop_after_clear: bool = False,
                  ui_fps: float = 30.0, frameskip: bool = True) -> None:
         import tkinter as tk
         from tkinter import ttk
@@ -2180,7 +2292,7 @@ class TetrisApp:
         self._draw_id = None
         self._in_tick = False
         self._force_draw = False
-        if policy not in ('network', 'hyperlayer'):
+        if policy not in ('network', 'hyperlayer', 'sustained'):
             raise ValueError('Unknown planner policy.')
         target_layer_status(EMPTY_BOARD, target)
         self.game = Game(seed, piece_set)
@@ -2206,8 +2318,8 @@ class TetrisApp:
         self.follow = tk.BooleanVar(value=True)
         self.w_slice = tk.IntVar(value=0)
         self.cutoff = tk.IntVar(value=HEIGHT - 1)
-        self.speed = tk.DoubleVar(value=3.0)
-        self.speed_choice = tk.StringVar(value='3/s')
+        self.speed = tk.DoubleVar(value=0.0)
+        self.speed_choice = tk.StringVar(value='Unlimited')
         self.stats = tk.StringVar()
         self.status = tk.StringVar()
         self.features = tk.StringVar()
@@ -2310,7 +2422,7 @@ class TetrisApp:
         policy_row = ttk.Frame(outer, style='Tetris.TFrame')
         policy_row.grid(row=6, column=0, sticky='ew', pady=(0, 5))
         ttk.Label(policy_row, text='Planner:', style='Muted.Tetris.TLabel').pack(side='left')
-        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer'), state='readonly', width=12)
+        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer', 'sustained'), state='readonly', width=12)
         self.policy_box.pack(side='left', padx=6)
         self.policy_box.bind('<<ComboboxSelected>>', self.change_policy)
         ttk.Label(policy_row, text='Target Z:', style='Muted.Tetris.TLabel').pack(side='left')
@@ -2444,8 +2556,8 @@ class TetrisApp:
         self.progress = 0
         self.evaluations = 0
         self.planner_blocked = ''
-        self.lookahead_button.configure(state='disabled' if self.policy.get() == 'hyperlayer' else 'normal')
-        self.target_box.configure(state='readonly' if self.policy.get() == 'hyperlayer' else 'disabled')
+        self.lookahead_button.configure(state='disabled' if self.policy.get() in TARGET_POLICIES else 'normal')
+        self.target_box.configure(state='readonly' if self.policy.get() in TARGET_POLICIES else 'disabled')
         if self.goal_complete and not self.human.get():
             self.running = self.pending_step = False
             self.start_button.configure(text='Clear reached')
@@ -2466,8 +2578,8 @@ class TetrisApp:
                                      self.manual_x, self.manual_y, self.manual_w)
             self.finish_plan()
         else:
-            if self.policy.get() == 'hyperlayer':
-                self.search = hyperlayer_decision_steps(self.game.board, self.game.current, int(self.target.get()),
+            if self.policy.get() in TARGET_POLICIES:
+                self.search = (sustained_decision_steps if self.policy.get() == 'sustained' else hyperlayer_decision_steps)(self.game.board, self.game.current, int(self.target.get()),
                                                         self.candidates, self.game.pieces)
             else:
                 self.search = decision_steps(self.game.board, self.game.current, self.game.next_piece,
@@ -2522,7 +2634,7 @@ class TetrisApp:
             if self.stop_after_clear:
                 self.goal_complete = True
                 self.running = False
-            elif self.policy.get() == 'hyperlayer':
+            elif self.policy.get() in TARGET_POLICIES:
                 target = next_hyperlayer_target(self.game.board, int(self.target.get()))
                 if target is not None:
                     self.target.set(str(target))
@@ -2639,7 +2751,7 @@ class TetrisApp:
         if trace_move is None and self.speed.get() == 0 and not self.human.get():
             trace_move = self.game.last_move
         self.network.update(trace_move, w)
-        if self.policy.get() == 'hyperlayer':
+        if self.policy.get() in TARGET_POLICIES:
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
             self.target_progress.set(f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · {behavior}')
@@ -2665,7 +2777,7 @@ class TetrisApp:
         if self.search is not None:
             self.search_status.set(f'Searching: {self.evaluations:,} candidates')
         elif self.decision:
-            label = f'Target +{self.decision.coverage_gain}' if self.decision.policy == 'hyperlayer' else f'Depth {self.decision.depth}'
+            label = f'Target +{self.decision.coverage_gain}' if self.decision.policy in TARGET_POLICIES else f'Depth {self.decision.depth}'
             self.search_status.set(f'{label} · {self.decision.evaluations:,} evals · {self.decision.milliseconds:.0f} ms')
         else:
             self.search_status.set('Manual' if self.human.get() else '')
@@ -2678,7 +2790,7 @@ class TetrisApp:
         elif self.human.get():
             self.status.set('Human: arrows/WASD move X/Y · Q/E move W · 1–6 rotate XY/XZ/XW/YZ/YW/ZW · Shift reverses · Space/Enter drops · [ ] selects W view.')
         else:
-            mode = ('hyperlayer planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() == 'hyperlayer' else
+            mode = ('target planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() in TARGET_POLICIES else
                     f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}')
             pace = 'Unlimited · no animation delay' if self.speed.get() == 0 else f'{self.speed.get():g}/s animation'
             self.status.set(f'{"Running" if self.running else "Paused"} · {pace} · {mode} · Space start/pause · Enter step · [ ] W view · R restart. A clear needs 4,096 cells at one Z.')
@@ -3011,7 +3123,7 @@ def run_self_tests() -> dict:
 
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
              piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
-    if policy not in ('network', 'random', 'hyperlayer'):
+    if policy not in ('network', 'random', 'hyperlayer', 'sustained'):
         raise ValueError('Unknown policy.')
     target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
@@ -3023,9 +3135,9 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
     for _ in range(pieces):
         if game.game_over:
             break
-        if policy in ('network', 'hyperlayer'):
-            if policy == 'hyperlayer':
-                decision = choose_hyperlayer_move(game.board, game.current, active_target, candidates, game.pieces)
+        if policy in ('network', 'hyperlayer', 'sustained'):
+            if policy in TARGET_POLICIES:
+                decision = (choose_sustained_move if policy == 'sustained' else choose_hyperlayer_move)(game.board, game.current, active_target, candidates, game.pieces)
             else:
                 decision = choose_move(game.board, game.current, game.next_piece, depth, beam, candidates,
                                        seed * 8191 + game.pieces)
@@ -3059,11 +3171,11 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
             if first_clear is None:
                 first_clear = game.pieces
             clear_events.append({'piece': game.pieces, 'layers': move.layers,
-                                 'total_layers': game.layers, 'target': active_target if policy == 'hyperlayer' else None})
+                                 'total_layers': game.layers, 'target': active_target if policy in TARGET_POLICIES else None})
             if stop_after_clear:
                 stop_reason = 'first_clear'
                 break
-            if policy == 'hyperlayer':
+            if policy in TARGET_POLICIES:
                 following_target = next_hyperlayer_target(game.board, active_target)
                 if following_target is not None:
                     active_target = following_target
@@ -3071,9 +3183,9 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
         stop_reason = 'top_out'
     result = game.summary()
     result.update(backend=BACKEND, policy=policy, capped=not game.game_over and game.pieces == pieces,
-                  piece_limit=pieces, depth=depth if policy == 'network' else 1 if policy == 'hyperlayer' else None,
+                  piece_limit=pieces, depth=depth if policy == 'network' else 1 if policy in TARGET_POLICIES else None,
                   beam=beam if policy == 'network' else None, candidates=candidates if policy != 'random' else 512,
-                  target=target if policy == 'hyperlayer' else None, active_target=active_target if policy == 'hyperlayer' else None,
+                  target=target if policy in TARGET_POLICIES else None, active_target=active_target if policy in TARGET_POLICIES else None,
                   first_clear_piece=first_clear, clear_events=clear_events, stop_reason=stop_reason,
                   mean_decision_ms=round(statistics.fmean(timings), 3) if timings else None,
                   wall_seconds=round(time.perf_counter() - started, 3))
@@ -3138,8 +3250,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                          default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',
                          help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
     weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
-    parser.add_argument('--policy', choices=('network', 'hyperlayer'), default='hyperlayer',
-                        help='Default: continuous hyperlayer search with depth 1 and automatic retargeting after clears; network uses neural-only search.')
+    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained'), default='sustained',
+                        help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
     parser.add_argument('--stop-after-clear', action='store_true', help='Pause autoplay or stop benchmarks after the first clear; disabled by default.')
     parser.add_argument('--seed', type=int, default=7)

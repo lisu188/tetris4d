@@ -1,0 +1,908 @@
+{
+  "source_sha256": "1a5fc5ec25ca94ecf4ed403aca2ca3def21820f26643c0cc4a10bcc6d4d28bd4",
+  "python": "3.12.16",
+  "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+  "future_hole_penalty": 4,
+  "development_seeds": [
+    7,
+    30001
+  ],
+  "evaluation_seeds": [
+    40001,
+    40002,
+    40003,
+    40004
+  ],
+  "piece_limit": 16000,
+  "runs": [
+    {
+      "seed": 40001,
+      "piece_set": "expanded",
+      "pieces": 13257,
+      "cells_placed": 79539,
+      "piece_counts": {
+        "I": 884,
+        "O": 884,
+        "T": 884,
+        "L": 883,
+        "S": 884,
+        "B": 884,
+        "C": 884,
+        "NOVA": 884,
+        "STAIR": 884,
+        "FORK": 884,
+        "HOOK": 884,
+        "BRIDGE": 883,
+        "RING": 884,
+        "CROSS": 883,
+        "HYPER": 884
+      },
+      "hyperlayers": 10,
+      "score": 1000,
+      "game_over": true,
+      "max_height": 16,
+      "holes": 20745,
+      "occupied_cells": 38579,
+      "backend": "native",
+      "policy": "hyperlayer",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1241,
+      "clear_events": [
+        {
+          "piece": 1241,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2419,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3841,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 4
+        },
+        {
+          "piece": 4980,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 5
+        },
+        {
+          "piece": 6132,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 6
+        },
+        {
+          "piece": 7284,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 7
+        },
+        {
+          "piece": 8445,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 8
+        },
+        {
+          "piece": 9605,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 9
+        },
+        {
+          "piece": 10771,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 10
+        },
+        {
+          "piece": 12237,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 12
+        }
+      ],
+      "stop_reason": "top_out",
+      "mean_decision_ms": 6.477,
+      "wall_seconds": 94.335
+    },
+    {
+      "seed": 40001,
+      "piece_set": "expanded",
+      "pieces": 16000,
+      "cells_placed": 96006,
+      "piece_counts": {
+        "I": 1067,
+        "O": 1066,
+        "T": 1067,
+        "L": 1066,
+        "S": 1066,
+        "B": 1067,
+        "C": 1066,
+        "NOVA": 1067,
+        "STAIR": 1067,
+        "FORK": 1067,
+        "HOOK": 1067,
+        "BRIDGE": 1066,
+        "RING": 1067,
+        "CROSS": 1067,
+        "HYPER": 1067
+      },
+      "hyperlayers": 15,
+      "score": 1500,
+      "game_over": false,
+      "max_height": 13,
+      "holes": 10266,
+      "occupied_cells": 34566,
+      "backend": "native",
+      "policy": "sustained",
+      "capped": true,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 11,
+      "first_clear_piece": 1241,
+      "clear_events": [
+        {
+          "piece": 1241,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2463,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3615,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 3
+        },
+        {
+          "piece": 4779,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 4
+        },
+        {
+          "piece": 5949,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 5
+        },
+        {
+          "piece": 7136,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 6
+        },
+        {
+          "piece": 8066,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 6
+        },
+        {
+          "piece": 8812,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 6
+        },
+        {
+          "piece": 9856,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 7
+        },
+        {
+          "piece": 10800,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 7
+        },
+        {
+          "piece": 11848,
+          "layers": 1,
+          "total_layers": 11,
+          "target": 8
+        },
+        {
+          "piece": 12806,
+          "layers": 1,
+          "total_layers": 12,
+          "target": 8
+        },
+        {
+          "piece": 13902,
+          "layers": 1,
+          "total_layers": 13,
+          "target": 9
+        },
+        {
+          "piece": 15052,
+          "layers": 1,
+          "total_layers": 14,
+          "target": 10
+        },
+        {
+          "piece": 15951,
+          "layers": 1,
+          "total_layers": 15,
+          "target": 10
+        }
+      ],
+      "stop_reason": "piece_limit",
+      "mean_decision_ms": 8.829,
+      "wall_seconds": 151.721
+    },
+    {
+      "seed": 40002,
+      "piece_set": "expanded",
+      "pieces": 12290,
+      "cells_placed": 73735,
+      "piece_counts": {
+        "I": 820,
+        "O": 820,
+        "T": 819,
+        "L": 820,
+        "S": 819,
+        "B": 819,
+        "C": 819,
+        "NOVA": 819,
+        "STAIR": 820,
+        "FORK": 819,
+        "HOOK": 819,
+        "BRIDGE": 819,
+        "RING": 820,
+        "CROSS": 819,
+        "HYPER": 819
+      },
+      "hyperlayers": 9,
+      "score": 900,
+      "game_over": false,
+      "max_height": 16,
+      "holes": 21957,
+      "occupied_cells": 36871,
+      "backend": "native",
+      "policy": "hyperlayer",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1246,
+      "clear_events": [
+        {
+          "piece": 1246,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2457,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3589,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 3
+        },
+        {
+          "piece": 4754,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 4
+        },
+        {
+          "piece": 5948,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 5
+        },
+        {
+          "piece": 7321,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 7
+        },
+        {
+          "piece": 8519,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 8
+        },
+        {
+          "piece": 9691,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 9
+        },
+        {
+          "piece": 11073,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 11
+        }
+      ],
+      "stop_reason": "planner_blocked",
+      "mean_decision_ms": 6.4,
+      "wall_seconds": 86.287
+    },
+    {
+      "seed": 40002,
+      "piece_set": "expanded",
+      "pieces": 15203,
+      "cells_placed": 91208,
+      "piece_counts": {
+        "I": 1013,
+        "O": 1014,
+        "T": 1014,
+        "L": 1014,
+        "S": 1014,
+        "B": 1014,
+        "C": 1014,
+        "NOVA": 1013,
+        "STAIR": 1013,
+        "FORK": 1013,
+        "HOOK": 1014,
+        "BRIDGE": 1014,
+        "RING": 1013,
+        "CROSS": 1013,
+        "HYPER": 1013
+      },
+      "hyperlayers": 12,
+      "score": 1200,
+      "game_over": true,
+      "max_height": 16,
+      "holes": 17351,
+      "occupied_cells": 42056,
+      "backend": "native",
+      "policy": "sustained",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1250,
+      "clear_events": [
+        {
+          "piece": 1250,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2447,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3640,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 3
+        },
+        {
+          "piece": 5099,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 5
+        },
+        {
+          "piece": 6211,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 6
+        },
+        {
+          "piece": 7390,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 7
+        },
+        {
+          "piece": 8569,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 8
+        },
+        {
+          "piece": 9690,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 9
+        },
+        {
+          "piece": 10834,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 10
+        },
+        {
+          "piece": 11787,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 10
+        },
+        {
+          "piece": 13004,
+          "layers": 1,
+          "total_layers": 11,
+          "target": 11
+        },
+        {
+          "piece": 14116,
+          "layers": 1,
+          "total_layers": 12,
+          "target": 12
+        }
+      ],
+      "stop_reason": "top_out",
+      "mean_decision_ms": 8.961,
+      "wall_seconds": 146.069
+    },
+    {
+      "seed": 40003,
+      "piece_set": "expanded",
+      "pieces": 13220,
+      "cells_placed": 79313,
+      "piece_counts": {
+        "I": 882,
+        "O": 881,
+        "T": 882,
+        "L": 881,
+        "S": 881,
+        "B": 882,
+        "C": 881,
+        "NOVA": 881,
+        "STAIR": 881,
+        "FORK": 882,
+        "HOOK": 882,
+        "BRIDGE": 881,
+        "RING": 881,
+        "CROSS": 881,
+        "HYPER": 881
+      },
+      "hyperlayers": 10,
+      "score": 1000,
+      "game_over": true,
+      "max_height": 16,
+      "holes": 20997,
+      "occupied_cells": 38353,
+      "backend": "native",
+      "policy": "hyperlayer",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1259,
+      "clear_events": [
+        {
+          "piece": 1259,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2464,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3586,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 3
+        },
+        {
+          "piece": 4733,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 4
+        },
+        {
+          "piece": 5889,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 5
+        },
+        {
+          "piece": 7081,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 6
+        },
+        {
+          "piece": 8212,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 7
+        },
+        {
+          "piece": 9632,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 9
+        },
+        {
+          "piece": 10737,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 10
+        },
+        {
+          "piece": 12178,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 12
+        }
+      ],
+      "stop_reason": "top_out",
+      "mean_decision_ms": 6.425,
+      "wall_seconds": 93.116
+    },
+    {
+      "seed": 40003,
+      "piece_set": "expanded",
+      "pieces": 16000,
+      "cells_placed": 96005,
+      "piece_counts": {
+        "I": 1066,
+        "O": 1067,
+        "T": 1067,
+        "L": 1066,
+        "S": 1066,
+        "B": 1067,
+        "C": 1067,
+        "NOVA": 1067,
+        "STAIR": 1067,
+        "FORK": 1066,
+        "HOOK": 1067,
+        "BRIDGE": 1066,
+        "RING": 1067,
+        "CROSS": 1067,
+        "HYPER": 1067
+      },
+      "hyperlayers": 14,
+      "score": 1400,
+      "game_over": false,
+      "max_height": 16,
+      "holes": 13125,
+      "occupied_cells": 38661,
+      "backend": "native",
+      "policy": "sustained",
+      "capped": true,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1259,
+      "clear_events": [
+        {
+          "piece": 1259,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2481,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 2
+        },
+        {
+          "piece": 3644,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 3
+        },
+        {
+          "piece": 4845,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 4
+        },
+        {
+          "piece": 5980,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 5
+        },
+        {
+          "piece": 7164,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 6
+        },
+        {
+          "piece": 8084,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 6
+        },
+        {
+          "piece": 9225,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 7
+        },
+        {
+          "piece": 10088,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 7
+        },
+        {
+          "piece": 11197,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 8
+        },
+        {
+          "piece": 12318,
+          "layers": 1,
+          "total_layers": 11,
+          "target": 9
+        },
+        {
+          "piece": 13495,
+          "layers": 1,
+          "total_layers": 12,
+          "target": 10
+        },
+        {
+          "piece": 14635,
+          "layers": 1,
+          "total_layers": 13,
+          "target": 11
+        },
+        {
+          "piece": 15817,
+          "layers": 1,
+          "total_layers": 14,
+          "target": 12
+        }
+      ],
+      "stop_reason": "piece_limit",
+      "mean_decision_ms": 7.616,
+      "wall_seconds": 130.662
+    },
+    {
+      "seed": 40004,
+      "piece_set": "expanded",
+      "pieces": 10332,
+      "cells_placed": 61992,
+      "piece_counts": {
+        "I": 689,
+        "O": 689,
+        "T": 689,
+        "L": 688,
+        "S": 689,
+        "B": 689,
+        "C": 689,
+        "NOVA": 688,
+        "STAIR": 689,
+        "FORK": 689,
+        "HOOK": 689,
+        "BRIDGE": 689,
+        "RING": 689,
+        "CROSS": 688,
+        "HYPER": 689
+      },
+      "hyperlayers": 7,
+      "score": 700,
+      "game_over": true,
+      "max_height": 16,
+      "holes": 25236,
+      "occupied_cells": 33320,
+      "backend": "native",
+      "policy": "hyperlayer",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 14,
+      "first_clear_piece": 1227,
+      "clear_events": [
+        {
+          "piece": 1227,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2726,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 3
+        },
+        {
+          "piece": 4095,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 5
+        },
+        {
+          "piece": 5592,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 7
+        },
+        {
+          "piece": 6760,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 8
+        },
+        {
+          "piece": 8110,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 10
+        },
+        {
+          "piece": 9583,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 12
+        }
+      ],
+      "stop_reason": "top_out",
+      "mean_decision_ms": 6.377,
+      "wall_seconds": 72.245
+    },
+    {
+      "seed": 40004,
+      "piece_set": "expanded",
+      "pieces": 13345,
+      "cells_placed": 80061,
+      "piece_counts": {
+        "I": 889,
+        "O": 890,
+        "T": 890,
+        "L": 890,
+        "S": 890,
+        "B": 889,
+        "C": 890,
+        "NOVA": 890,
+        "STAIR": 890,
+        "FORK": 890,
+        "HOOK": 889,
+        "BRIDGE": 890,
+        "RING": 890,
+        "CROSS": 889,
+        "HYPER": 889
+      },
+      "hyperlayers": 10,
+      "score": 1000,
+      "game_over": true,
+      "max_height": 16,
+      "holes": 20275,
+      "occupied_cells": 39101,
+      "backend": "native",
+      "policy": "sustained",
+      "capped": false,
+      "piece_limit": 16000,
+      "depth": 1,
+      "beam": null,
+      "candidates": 2048,
+      "target": 1,
+      "active_target": 13,
+      "first_clear_piece": 1227,
+      "clear_events": [
+        {
+          "piece": 1227,
+          "layers": 1,
+          "total_layers": 1,
+          "target": 1
+        },
+        {
+          "piece": 2806,
+          "layers": 1,
+          "total_layers": 2,
+          "target": 3
+        },
+        {
+          "piece": 3881,
+          "layers": 1,
+          "total_layers": 3,
+          "target": 4
+        },
+        {
+          "piece": 5081,
+          "layers": 1,
+          "total_layers": 4,
+          "target": 5
+        },
+        {
+          "piece": 6196,
+          "layers": 1,
+          "total_layers": 5,
+          "target": 6
+        },
+        {
+          "piece": 7408,
+          "layers": 1,
+          "total_layers": 6,
+          "target": 7
+        },
+        {
+          "piece": 8541,
+          "layers": 1,
+          "total_layers": 7,
+          "target": 8
+        },
+        {
+          "piece": 9692,
+          "layers": 1,
+          "total_layers": 8,
+          "target": 9
+        },
+        {
+          "piece": 10869,
+          "layers": 1,
+          "total_layers": 9,
+          "target": 10
+        },
+        {
+          "piece": 12273,
+          "layers": 1,
+          "total_layers": 10,
+          "target": 12
+        }
+      ],
+      "stop_reason": "top_out",
+      "mean_decision_ms": 6.84,
+      "wall_seconds": 97.659
+    }
+  ],
+  "totals": {
+    "hyperlayer": {
+      "clears": 36,
+      "pieces": 49099,
+      "capped_games": 0,
+      "clears_per_1000_played_pieces": 0.7332124890527302
+    },
+    "sustained": {
+      "clears": 51,
+      "pieces": 60548,
+      "capped_games": 2,
+      "clears_per_1000_played_pieces": 0.8423069300389774
+    }
+  },
+  "note": "Paired playing-strength comparison, not a speed benchmark. Concurrent timing is not comparable to isolated runs. Finite capped games do not establish indefinite survival."
+}

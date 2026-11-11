@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "unit_tests": 6,
+  "trajectories": [
+    {
+      "backend": "numpy",
+      "moves": 2600,
+      "clears": [
+        1251,
+        2466
+      ],
+      "summary": {
+        "seed": 7,
+        "piece_set": "expanded",
+        "pieces": 2600,
+        "cells_placed": 15598,
+        "piece_counts": {
+          "I": 173,
+          "O": 174,
+          "T": 173,
+          "L": 174,
+          "S": 173,
+          "B": 173,
+          "C": 173,
+          "NOVA": 174,
+          "STAIR": 173,
+          "FORK": 173,
+          "HOOK": 174,
+          "BRIDGE": 173,
+          "RING": 173,
+          "CROSS": 174,
+          "HYPER": 173
+        },
+        "hyperlayers": 2,
+        "score": 200,
+        "game_over": false,
+        "max_height": 6,
+        "holes": 2551,
+        "occupied_cells": 7406
+      }
+    },
+    {
+      "backend": "native",
+      "moves": 2600,
+      "clears": [
+        1251,
+        2466
+      ],
+      "summary": {
+        "seed": 7,
+        "piece_set": "expanded",
+        "pieces": 2600,
+        "cells_placed": 15598,
+        "piece_counts": {
+          "I": 173,
+          "O": 174,
+          "T": 173,
+          "L": 174,
+          "S": 173,
+          "B": 173,
+          "C": 173,
+          "NOVA": 174,
+          "STAIR": 173,
+          "FORK": 173,
+          "HOOK": 174,
+          "BRIDGE": 173,
+          "RING": 173,
+          "CROSS": 174,
+          "HYPER": 173
+        },
+        "hyperlayers": 2,
+        "score": 200,
+        "game_over": false,
+        "max_height": 6,
+        "holes": 2551,
+        "occupied_cells": 7406
+      }
+    }
+  ]
+}
