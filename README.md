@@ -198,9 +198,9 @@ an assumed cost. Recent p50/p95/p99 values cover the last 2,048 observations per
 See `docs/benchmark-logging.md` for fields, privacy and timing limitations.
 
 
-## Eight simultaneous 3D sections
+## All 16 sections and adaptive frame skipping
 
-Normal launch shows eight W-section boards in a 4×2 grid. Use **W 0–7** or **W 8–15** for the other page; all sixteen sections and the whole-piece preview remain accessible. Sigmoid activations, native acceleration and continued play are unchanged. Existing benchmark logs now include aggregate eight-view drawing time and the visible sections. See [view controls and telemetry](docs/eight-views.md).
+Normal launch shows **all 16 W-section boards at once in a 4×4 grid**, without paging. Adaptive frame skipping coalesces redraws (30 Hz nominal maximum, automatically slower under load); it never skips simulation or search. Section-local caches avoid rebuilding unchanged cubes. Native acceleration, trained sigmoid activations and continued play are unchanged. Logs include actual rendering timings, all visible W indices and pacing/cache counters, including after shutdown. `--no-frameskip` disables pacing for comparison; `--ui-fps 60` changes the nominal cap. See [view controls and telemetry](docs/eight-views.md).
 
 Summarize the latest default session, including retained rotation segments:
 

@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "assertions": 15429,
+  "sizes": [
+    [
+      1560,
+      960
+    ],
+    [
+      1120,
+      760
+    ]
+  ],
+  "simultaneous_sections": 16,
+  "paging": false,
+  "rendering": [
+    {
+      "adaptive_frameskip": true,
+      "requested_fps": 30.0,
+      "requests": 54,
+      "rendered_frames": 21,
+      "deferred_requests": 33,
+      "coalesced_requests": 3,
+      "interval_ms": 43.74335977410879,
+      "render_ema_ms": 21.871679887054395,
+      "visible_w_sections": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "scene_rebuilds": 122,
+      "unchanged_section_skips": 342
+    },
+    {
+      "adaptive_frameskip": true,
+      "requested_fps": 30.0,
+      "requests": 53,
+      "rendered_frames": 20,
+      "deferred_requests": 33,
+      "coalesced_requests": 3,
+      "interval_ms": 48.9246568645278,
+      "render_ema_ms": 24.4623284322639,
+      "visible_w_sections": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "scene_rebuilds": 122,
+      "unchanged_section_skips": 326
+    }
+  ],
+  "backend": "native",
+  "logging_tested": true,
+  "environment": "Linux Xvfb; not WSLg"
+}

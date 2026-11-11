@@ -1,0 +1,33 @@
+{
+  "workload": "50 board commits, seed 7 pieces 401..450; fixed 640x600 panel, W selection 0, no active animation, three repetitions, NumPy-generated identical fixtures; previous panel exposes 8 sections and new panel all 16",
+  "environment": "Linux Xvfb; CPU/Tk submission only, not WSLg or display FPS",
+  "results": {
+    "previous_8_views": {
+      "draw_submission_ms": [
+        5493.997003,
+        5523.359108,
+        5344.22135
+      ],
+      "median_ms": 5493.997003,
+      "scene_rebuilds": [
+        400,
+        400,
+        400
+      ]
+    },
+    "cached_16_views": {
+      "draw_submission_ms": [
+        1877.224083,
+        1569.985161,
+        1718.024833
+      ],
+      "median_ms": 1718.024833,
+      "scene_rebuilds": [
+        111,
+        111,
+        111
+      ]
+    }
+  }
+}
+

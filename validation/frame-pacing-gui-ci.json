@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "identical_gui_moves": 32,
+  "runs": [
+    {
+      "frameskip": true,
+      "moves": 32,
+      "wall_seconds": 3.6478849430000047,
+      "rendering": {
+        "adaptive_frameskip": true,
+        "requested_fps": 30.0,
+        "requests": 253,
+        "rendered_frames": 96,
+        "deferred_requests": 157,
+        "coalesced_requests": 64,
+        "interval_ms": 41.63729920867924,
+        "render_ema_ms": 20.81864960433962,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 133,
+        "unchanged_section_skips": 1304
+      }
+    },
+    {
+      "frameskip": false,
+      "moves": 32,
+      "wall_seconds": 3.7376069510000036,
+      "rendering": {
+        "adaptive_frameskip": false,
+        "requested_fps": 30.0,
+        "requests": 236,
+        "rendered_frames": 236,
+        "deferred_requests": 0,
+        "coalesced_requests": 0,
+        "interval_ms": 33.333333333333336,
+        "render_ema_ms": 8.80858064640671,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 203,
+        "unchanged_section_skips": 3386
+      }
+    }
+  ]
+}

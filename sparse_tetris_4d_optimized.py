@@ -1457,6 +1457,9 @@ class WellView:
     def __init__(self, canvas, compact: bool = False) -> None:
         self.canvas = canvas
         self.compact = compact
+        self.section_revision = 0
+        self.scene_rebuilds = 0
+        self.draw_skips = 0
         self.yaw, self.elevation, self.zoom = 0.68, 0.57, 1.0
         self.drag_origin = None
         self.last_key = None
@@ -1508,11 +1511,11 @@ class WellView:
         corners = [self._raw(x, y, z) for x in (0, WIDTH) for y in (0, DEPTH) for z in (0, HEIGHT)]
         low_x, high_x = min(p[0] for p in corners), max(p[0] for p in corners)
         low_y, high_y = min(p[1] for p in corners), max(p[1] for p in corners)
-        margin_x, margin_y = (22, 80) if self.compact else (76, 86)
+        margin_x, margin_y = (12, 32) if self.compact else (76, 86)
         self.scale = self.zoom * min((w - margin_x) / (high_x - low_x), (h - margin_y) / (high_y - low_y))
         self.scale = max(.1 if self.compact else 1.0, self.scale)
         self.ox = w / 2 - (low_x + high_x) * self.scale / 2
-        self.oy = h / 2 + (-11 if self.compact else 5) - (low_y + high_y) * self.scale / 2
+        self.oy = h / 2 + (0 if self.compact else 5) - (low_y + high_y) * self.scale / 2
 
     def _raw(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         return (x * self.right[0] + y * self.right[1],
@@ -1565,18 +1568,25 @@ class WellView:
              w_slice: int = 0, cutoff: int = HEIGHT - 1) -> None:
         self.last_args = (game, move, progress, w_slice, cutoff)
         c = self.canvas
-        width, height = ((max(50, c.winfo_width()), max(80, c.winfo_height())) if self.compact else
+        width, height = ((max(1, c.winfo_width()), max(1, c.winfo_height())) if self.compact else
                          (max(280, c.winfo_width()), max(250, c.winfo_height())))
-        key = (game.board, move, round(progress, 3), w_slice, cutoff, width, height,
-               self.yaw, self.elevation, self.zoom, id(game.locked_pieces))
-        if key == self.last_key:
+        if width < 28 or height < 40:
+            self.last_key = None
             return
-        self.last_key = key
-        self._camera(width, height)
         if game.locked_pieces is not self.piece_cache:
             self.piece_cache = game.locked_pieces
             self.owners = {cell: (piece.identifier, piece.piece) for piece in game.locked_pieces for cell in piece.cells}
-        stack_key = (game.board, id(game.locked_pieces), w_slice, cutoff)
+            self.section_revision += 1
+        if game.board is not getattr(self, '_board_identity', None) or w_slice != getattr(self, '_board_slice', None):
+            self._board_identity, self._board_slice = game.board, w_slice
+            self._slice_masks = game.board[w_slice * SLICE_AREA:(w_slice + 1) * SLICE_AREA]
+        stack_key = (self._slice_masks, self.section_revision, w_slice, cutoff)
+        key = (stack_key, move, round(progress, 3), width, height, self.yaw, self.elevation, self.zoom)
+        if key == self.last_key:
+            self.draw_skips += 1
+            return
+        self.last_key = key
+        self._camera(width, height)
         if stack_key != getattr(self, '_stack_key', None):
             self._stack_key = stack_key
             stack = []
@@ -1601,18 +1611,20 @@ class WellView:
         scene_key = (stack_key, grid_contacts, width, height, self.yaw, self.elevation, self.zoom)
         if scene_key != getattr(self, '_scene_key', None):
             self._scene_key = scene_key
+            self.scene_rebuilds += 1
             self._overlay_key = None
             c.delete('all')
-            c.create_text(14, 16, anchor='w', text=f'W = {w_slice:02d}' if self.compact else f'3D SECTION  /  W = {w_slice:02d} of 00–15',
-                          fill=PALETTE['text'], font=('TkDefaultFont', 10, 'bold'))
+            c.create_text(6 if self.compact else 14, 10 if self.compact else 16, anchor='w',
+                          text=f'W {w_slice:02d}' if self.compact else f'3D SECTION  /  W = {w_slice:02d} of 00–15',
+                          fill=PALETTE['text'], font=('TkDefaultFont', 8 if self.compact else 10, 'bold'))
             if not self.compact:
                 c.create_text(14, 36, anchor='w', text='X/Y horizontal · Z gravity · W fixed' if width < 400 else 'X / Y horizontal · Z gravity · other W sections remain separate',
                               fill=PALETTE['muted'], font=('TkDefaultFont', 8))
             floor = [self.project(x, y, 0) for x, y in ((0, 0), (WIDTH, 0), (WIDTH, DEPTH), (0, DEPTH))]
             c.create_polygon(*[v for point in floor for v in point], fill='#142334', outline=PALETTE['grid'])
-            for x in range(WIDTH + 1):
+            for x in range(0, WIDTH + 1, 4 if self.compact else 1):
                 self._line((x, 0, 0), (x, DEPTH, 0), fill='#36526B')
-            for y in range(DEPTH + 1):
+            for y in range(0, DEPTH + 1, 4 if self.compact else 1):
                 self._line((0, y, 0), (WIDTH, y, 0), fill='#36526B')
             bx, by = (0 if self.toward[0] > 0 else WIDTH), (0 if self.toward[1] > 0 else DEPTH)
             for z in range(0, HEIGHT + 1, 4):
@@ -1649,17 +1661,23 @@ class WellView:
                 if not self.compact:
                     c.create_text(px, py + 10, text=label, fill=color, font=('TkFixedFont', 8, 'bold'), tags=('overlay',))
             if cutoff < HEIGHT - 1:
-                c.create_text(14, 55, anchor='w', text=f'Z≤{cutoff}' if self.compact else f'Stack cutaway Z ≤ {cutoff}; active section is not clipped',
+                c.create_text(width - 5 if self.compact else 14, 10 if self.compact else 55,
+                              anchor='e' if self.compact else 'w',
+                              text=f'Z≤{cutoff}' if self.compact else f'Stack cutaway Z ≤ {cutoff}; active section is not clipped',
                               fill='#E5C467', font=('TkDefaultFont', 8), tags=('overlay',))
             count, total = len(moving), 0 if move is None else PIECE_SIZES[move.piece]
-            c.create_text(14, height - 35, anchor='w', text=f'Active: {count}' if self.compact else f'Active section: {count}/{total} · whole piece below' if width < 400 else f'Active cells in this section: {count}/{total}  ·  full piece shown below',
-                          fill=PALETTE['accent'], font=('TkDefaultFont', 9), tags=('overlay',))
-            c.create_text(14, height - 16, anchor='w', text='Drag to orbit' if self.compact else 'Drag: orbit · wheel: zoom · dashed: landing' if width < 400 else 'Drag to orbit · wheel to zoom · dashed cells = landing',
-                          fill=PALETTE['muted'], font=('TkDefaultFont', 8), tags=('overlay',))
+            if self.compact:
+                c.create_text(6, height - 9, anchor='w', text=f'Active {count}',
+                              fill=PALETTE['accent'], font=('TkDefaultFont', 8), tags=('overlay',))
+            else:
+                c.create_text(14, height - 35, anchor='w', text=f'Active section: {count}/{total} · whole piece below' if width < 400 else f'Active cells in this section: {count}/{total}  ·  full piece shown below',
+                              fill=PALETTE['accent'], font=('TkDefaultFont', 9), tags=('overlay',))
+                c.create_text(14, height - 16, anchor='w', text='Drag: orbit · wheel: zoom · dashed: landing' if width < 400 else 'Drag to orbit · wheel to zoom · dashed cells = landing',
+                              fill=PALETTE['muted'], font=('TkDefaultFont', 8), tags=('overlay',))
         c.tag_raise('overlay')
 
 
-class EightWellView:
+class AllWellView:
     def __init__(self, parent, select_slice) -> None:
         import tkinter as tk
         from tkinter import ttk
@@ -1669,33 +1687,30 @@ class EightWellView:
         self.frame.columnconfigure(0, weight=1)
         self.select_slice = select_slice
         self.last_args = None
-        self.page = 0
         self.piece_cache = None
         self.owners = {}
-        self.page_label = tk.StringVar(value='W 00–07 / 16 sections')
-        bar = ttk.Frame(self.frame, style='Tetris.TFrame')
-        bar.grid(row=0, column=0, sticky='ew')
-        ttk.Button(bar, text='W 0–7', command=lambda: select_slice(0), width=7).pack(side='left')
-        ttk.Button(bar, text='W 8–15', command=lambda: select_slice(8), width=7).pack(side='left', padx=3)
-        ttk.Label(bar, textvariable=self.page_label, style='Muted.Tetris.TLabel').pack(side='left', padx=3)
+        self.visible_w_sections = tuple(range(FOURTH))
+        self.section_tokens = [None] * FOURTH
+        self.section_revisions = [0] * FOURTH
+        self.selection_label = tk.StringVar(value='All 16 sections · selected W 00')
+        ttk.Label(self.frame, textvariable=self.selection_label, style='Muted.Tetris.TLabel').grid(row=0, column=0, sticky='w')
         self.grid = ttk.Frame(self.frame, style='Tetris.TFrame')
         self.grid.grid(row=1, column=0, sticky='nsew')
         self.views = []
-        for i in range(8):
-            canvas = tk.Canvas(self.grid, width=130, height=170, bg=PALETTE['board'],
+        for w in self.visible_w_sections:
+            canvas = tk.Canvas(self.grid, width=100, height=80, bg=PALETTE['board'],
                                highlightthickness=2, highlightbackground=PALETTE['grid'])
             view = WellView(canvas, compact=True)
             self.views.append(view)
-            canvas.bind('<ButtonPress-1>', lambda event, index=i: self._select(index), add='+')
-        for row in range(2):
+            canvas.bind('<ButtonPress-1>', lambda event, index=w: self._select(index), add='+')
+            canvas.grid(row=w // 4, column=w % 4, sticky='nsew', padx=2, pady=2)
+        for row in range(4):
             self.grid.rowconfigure(row, weight=1, uniform='well_rows')
         for column in range(4):
             self.grid.columnconfigure(column, weight=1, uniform='well_columns')
-        for i, view in enumerate(self.views):
-            view.canvas.grid(row=i // 4, column=i % 4, sticky='nsew', padx=2, pady=2)
 
     def _select(self, index: int) -> None:
-        self.select_slice(self.page * 8 + index)
+        self.select_slice(index)
 
     def reset_camera(self) -> None:
         for view in self.views:
@@ -1704,25 +1719,34 @@ class EightWellView:
     def draw(self, game: Game, move: Move | None, progress: float = 0.0,
              w_slice: int = 0, cutoff: int = HEIGHT - 1) -> None:
         self.last_args = (game, move, progress, w_slice, cutoff)
-        page = w_slice // 8
-        if page != self.page:
-            self.page = page
-        label = f'W {page * 8:02d}–{page * 8 + 7:02d} / 16 sections'
-        if self.page_label.get() != label:
-            self.page_label.set(label)
+        label = f'All 16 sections · selected W {w_slice:02d}'
+        if self.selection_label.get() != label:
+            self.selection_label.set(label)
         if game.locked_pieces is not self.piece_cache:
             self.piece_cache = game.locked_pieces
-            self.owners = {cell: (piece.identifier, piece.piece) for piece in game.locked_pieces for cell in piece.cells}
+            self.owners = {}
+            tokens = [[] for _ in range(FOURTH)]
+            for piece in game.locked_pieces:
+                for cell in piece.cells:
+                    identity = (piece.identifier, piece.piece)
+                    self.owners[cell] = identity
+                    tokens[cell[3]].append((cell, identity))
+            for w, cells in enumerate(tokens):
+                token = tuple(cells)
+                if token != self.section_tokens[w]:
+                    self.section_tokens[w] = token
+                    self.section_revisions[w] += 1
         active_slices = set() if move is None else {cell[3] for cell in placed_cells(move)}
-        for i, view in enumerate(self.views):
-            w = page * 8 + i
+        for w, view in enumerate(self.views):
             selected = w == w_slice
             if selected != getattr(view, '_selected', None):
                 view._selected = selected
                 view.canvas.configure(highlightbackground=PALETTE['accent'] if selected else PALETTE['grid'])
             view.piece_cache, view.owners = self.piece_cache, self.owners
+            view.section_revision = self.section_revisions[w]
             visible_move = move if w in active_slices else None
             view.draw(game, visible_move, progress if visible_move else 0.0, w, cutoff)
+
 
 
 def draw_piece_sections(canvas, piece: str, rotation: int = 0, w_origin: int = 0, title: str = 'WHOLE ACTIVE PIECE') -> None:
@@ -2013,13 +2037,51 @@ class NetworkView:
         self.paint()
 
 
+class FramePacer:
+    def __init__(self, fps: float = 30.0, enabled: bool = True) -> None:
+        if not math.isfinite(fps) or not 1 <= fps <= 120:
+            raise ValueError('UI FPS must be between 1 and 120.')
+        self.enabled = enabled
+        self.fps = float(fps)
+        self.base_interval = 1.0 / fps
+        self.interval = self.base_interval
+        self.next_at = 0.0
+        self.ema_seconds = 0.0
+        self.requests = self.rendered = self.skipped = self.coalesced = 0
+
+    def allow(self, now: float, force: bool = False) -> bool:
+        self.requests += 1
+        if force or not self.enabled or now >= self.next_at:
+            return True
+        self.skipped += 1
+        return False
+
+    def complete(self, started: float, finished: float) -> None:
+        cost = max(0.0, finished - started)
+        self.rendered += 1
+        self.ema_seconds = cost if self.rendered == 1 else .8 * self.ema_seconds + .2 * cost
+        self.interval = max(self.base_interval, min(.2, 2 * self.ema_seconds))
+        self.next_at = max(started + self.interval, finished + .001)
+
+    def report(self) -> dict:
+        return {'adaptive_frameskip': self.enabled, 'requested_fps': self.fps,
+                'requests': self.requests, 'rendered_frames': self.rendered,
+                'deferred_requests': self.skipped, 'coalesced_requests': self.coalesced,
+                'interval_ms': self.interval * 1000, 'render_ema_ms': self.ema_seconds * 1000}
+
+
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
                  candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
-                 policy: str = 'hyperlayer', target: int = 1, stop_after_clear: bool = False) -> None:
+                 policy: str = 'hyperlayer', target: int = 1, stop_after_clear: bool = False,
+                 ui_fps: float = 30.0, frameskip: bool = True) -> None:
         import tkinter as tk
         from tkinter import ttk
         self.root, self.beam, self.candidates = root, beam, candidates
+        self.frame_pacer = FramePacer(ui_fps, frameskip)
+        self._draw_id = None
+        self._in_tick = False
+        self._force_draw = False
         if policy not in ('network', 'hyperlayer'):
             raise ValueError('Unknown planner policy.')
         target_layer_status(EMPTY_BOARD, target)
@@ -2085,7 +2147,7 @@ class TetrisApp:
         left.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
         left.rowconfigure(0, weight=1)
         left.columnconfigure(0, weight=1)
-        self.well = EightWellView(left, self.select_slice)
+        self.well = AllWellView(left, self.select_slice)
         self.piece_preview = tk.Canvas(left, bg=PALETTE['board'], height=124, highlightthickness=0)
         self.piece_preview.grid(row=1, column=0, sticky='ew', pady=(8, 0))
         center = ttk.Frame(self.content, style='Tetris.TFrame')
@@ -2245,6 +2307,9 @@ class TetrisApp:
         self.search = None
         if getattr(self, 'tick_id', None):
             self.root.after_cancel(self.tick_id)
+        if self._draw_id is not None:
+            self.root.after_cancel(self._draw_id)
+            self._draw_id = None
         self.root.destroy()
 
     def redraw_small(self) -> None:
@@ -2264,8 +2329,7 @@ class TetrisApp:
 
     def slice_changed(self, value=None) -> None:
         if hasattr(self, 'network'):
-            self.network.update(self.planned, self.w_slice.get())
-            self.draw()
+            self.draw(force=True)
 
     def refresh_plan(self) -> None:
         self.search = None
@@ -2278,14 +2342,12 @@ class TetrisApp:
         if self.goal_complete and not self.human.get():
             self.running = self.pending_step = False
             self.start_button.configure(text='Clear reached')
-            self.network.update(None, self.w_slice.get())
-            self.draw()
+            self.draw(force=True)
             return
         if self.game.game_over:
             self.running = False
             self.start_button.configure(text='Start')
-            self.network.update(None, self.w_slice.get())
-            self.draw()
+            self.draw(force=True)
             return
         if self.human.get():
             self.manual_rotation %= len(SHAPES[self.game.current])
@@ -2304,16 +2366,14 @@ class TetrisApp:
                 self.search = decision_steps(self.game.board, self.game.current, self.game.next_piece,
                                              2 if self.lookahead.get() else 1, self.beam, self.candidates,
                                              self.game.seed * 8191 + self.game.pieces)
-            self.network.update(None, self.w_slice.get())
             self.draw()
 
     def finish_plan(self) -> None:
         self.progress = 0
         if self.planned and self.follow.get():
             self.w_slice.set(self.planned.candidate.w)
-        self.network.update(self.planned, self.w_slice.get())
         self.last_small_view = None
-        self.draw()
+        self.draw(force=not self.running)
 
     def change_mode(self) -> None:
         self.running = self.pending_step = False
@@ -2331,7 +2391,7 @@ class TetrisApp:
         self.running = not self.running
         self.previous = time.perf_counter()
         self.start_button.configure(text='Pause' if self.running else 'Resume')
-        self.draw()
+        self.draw(force=True)
 
     def reset(self, new_seed: bool = False) -> None:
         self.search = None
@@ -2423,10 +2483,42 @@ class TetrisApp:
             return None
         return 'break'
 
-    def draw(self) -> None:
+    def draw(self, force: bool = False) -> None:
         if self.closed or not hasattr(self, 'well'):
             return
+        if self._in_tick and self.frame_pacer.enabled:
+            self.frame_pacer.coalesced += 1
+            self._force_draw = getattr(self, '_force_draw', False) or force
+            return
+        now = time.perf_counter()
+        if not self.frame_pacer.allow(now, force):
+            if self._draw_id is None:
+                delay = max(1, math.ceil((self.frame_pacer.next_at - now) * 1000))
+                self._draw_id = self.root.after(delay, self._flush_draw)
+            return
+        if self._draw_id is not None:
+            self.root.after_cancel(self._draw_id)
+            self._draw_id = None
+        started = time.perf_counter()
+        try:
+            self._draw_now()
+        finally:
+            self.frame_pacer.complete(started, time.perf_counter())
+
+    def _flush_draw(self) -> None:
+        self._draw_id = None
+        self.draw()
+
+    def render_metrics(self) -> dict:
+        result = self.frame_pacer.report()
+        result.update(visible_w_sections=list(self.well.visible_w_sections),
+                      scene_rebuilds=sum(view.scene_rebuilds for view in self.well.views),
+                      unchanged_section_skips=sum(view.draw_skips for view in self.well.views))
+        return result
+
+    def _draw_now(self) -> None:
         w = self.w_slice.get()
+        self.network.update(self.planned, w)
         if self.policy.get() == 'hyperlayer':
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
@@ -2475,33 +2567,38 @@ class TetrisApp:
         now = time.perf_counter()
         dt = min(.08, now - self.previous)
         self.previous = now
-        was_searching = self.search is not None
-        if self.search is not None:
-            deadline = time.perf_counter() + .008
-            while self.search is not None and time.perf_counter() < deadline:
-                try:
-                    self.evaluations = next(self.search)
-                except StopIteration as result:
-                    self.decision = result.value
-                    self.search = None
-                    self.planned = self.decision.move if self.decision else None
-                    if self.decision is None:
-                        self.running = self.pending_step = False
-                        self.game.game_over = not has_legal_move(self.game.board, self.game.current)
-                        if not self.game.game_over:
-                            layer = target_layer_status(self.game.board, int(self.target.get()))
-                            reason = f'{layer.buried} buried target gaps' if layer.buried else 'no target-preserving placement'
-                            self.planner_blocked = f'PLANNER PAUSED: {reason}. Choose another target, Human, network, or restart. Not game over.'
-                        self.start_button.configure(text='Paused')
-                    self.finish_plan()
-                    if self.pending_step:
-                        self.place()
-                    break
-        if self.running and not was_searching and self.search is None and self.planned:
-            self.progress += dt * self.speed.get()
-            if self.progress >= 1:
-                self.place()
-        self.draw()
+        self._in_tick = True
+        try:
+            was_searching = self.search is not None
+            if self.search is not None:
+                deadline = time.perf_counter() + .008
+                while self.search is not None and time.perf_counter() < deadline:
+                    try:
+                        self.evaluations = next(self.search)
+                    except StopIteration as result:
+                        self.decision = result.value
+                        self.search = None
+                        self.planned = self.decision.move if self.decision else None
+                        if self.decision is None:
+                            self.running = self.pending_step = False
+                            self.game.game_over = not has_legal_move(self.game.board, self.game.current)
+                            if not self.game.game_over:
+                                layer = target_layer_status(self.game.board, int(self.target.get()))
+                                reason = f'{layer.buried} buried target gaps' if layer.buried else 'no target-preserving placement'
+                                self.planner_blocked = f'PLANNER PAUSED: {reason}. Choose another target, Human, network, or restart. Not game over.'
+                            self.start_button.configure(text='Paused')
+                        self.finish_plan()
+                        if self.pending_step:
+                            self.place()
+                        break
+            if self.running and not was_searching and self.search is None and self.planned:
+                self.progress += dt * self.speed.get()
+                if self.progress >= 1:
+                    self.place()
+        finally:
+            self._in_tick = False
+        self.draw(force=self._force_draw)
+        self._force_draw = False
         elapsed = time.perf_counter() - now
         self.tick_id = self.root.after(max(1, 16 - int(elapsed * 1000)), self.tick)
 
@@ -2858,7 +2955,8 @@ def launch_demo(args) -> int:
     except Exception as error:
         print(f'A desktop display is required: {error}. Use --test or --benchmark.', file=sys.stderr)
         return 2
-    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target, args.stop_after_clear)
+    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target, args.stop_after_clear,
+                    args.ui_fps, not args.no_frameskip)
     if args.gui_smoke:
         def finish():
             result = {'passed': not app.errors, 'callback_errors': app.errors,
@@ -2881,6 +2979,7 @@ def start_benchmark_logging(args):
     settings = {key: getattr(args, key) for key in ('seed', 'piece_set', 'policy', 'target', 'depth',
                  'beam', 'candidates', 'stop_after_clear', 'backend')}
     settings['mode'] = 'benchmark' if args.benchmark else 'gui'
+    settings.update(ui_fps=args.ui_fps, frameskip=not args.no_frameskip)
     if args.benchmark:
         settings.update(pieces=args.pieces, games=args.games)
     recorder = BenchmarkLog(sys.modules[__name__], args.benchmark_log, settings).install()
@@ -2920,6 +3019,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--compare', action='store_true', help='Also test a random policy over sampled legal placements.')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--gui-smoke', action='store_true')
+    parser.add_argument('--ui-fps', type=int, choices=range(1, 121), default=30, metavar='1..120',
+                        help='Maximum scheduled UI redraw rate; default: 30. Does not change search or game rules.')
+    parser.add_argument('--no-frameskip', action='store_true',
+                        help='Disable adaptive UI pacing for rendering comparisons; default: enabled.')
     logs = parser.add_mutually_exclusive_group()
     logs.add_argument('--benchmark-log', type=Path, help='Write local benchmark JSONL here; default: a unique file under logs/. Existing files are not overwritten.')
     logs.add_argument('--no-benchmark-log', action='store_true', help='Disable all benchmark logging and instrumentation for clean timing comparisons.')
