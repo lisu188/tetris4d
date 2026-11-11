@@ -42,6 +42,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add sparse_tetris_4d_optimized.py README.md validation/unlimited-speed-ci.json validation/unlimited-speed-gui-ci.json
-          git commit -m 'feat: replace speed slider with presets and uncapped playback'
+          git add sparse_tetris_4d_optimized.py README.md tests/test_unlimited_speed_gui.py docs/playback-speed.md validation/unlimited-speed-ci.json validation/unlimited-speed-gui-ci.json
+          git commit -m 'fix: keep live activations visible between unlimited moves'
           git push origin HEAD:ui/unlimited-build-20261111
