@@ -230,3 +230,8 @@ uses a null animation rate, not a non-finite number. See docs/playback-speed.md.
 ## Sustained clearing and Unlimited defaults
 
 Normal argument-free launch now selects Unlimited and the sustained target planner. Start/Space begins playback. The planner retains target access but subtracts four times the newly created holes above the target from target-coverage gain, then uses the unchanged sigmoid score to break ties. It is a policy improvement, not newly trained neural weights. `--policy hyperlayer` reproduces the previous controller. All 16 views, frame skipping and logging remain enabled. Native source is unchanged. See `docs/sustained-policy.md` and `docs/gpu-neural-design.md`.
+
+
+## Optional learned GPU policy
+
+Implemented sigmoid Conv3d policy/value model (62,485 default parameters), demonstration collector, resumable imitation and A2C training, paired evaluation and actual learned-activation UI. Normal no-argument play stays Unlimited + sustained; a trained checkpoint is explicitly selected with `--neural-checkpoint models/neural-policy.pt --neural-device cuda`. No pretrained GPU policy or performance gain is claimed. See [the WSL training commands and limits](docs/neural-policy.md).

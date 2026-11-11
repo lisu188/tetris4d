@@ -18,3 +18,7 @@ venv/
 /native/*.dylib.json
 .venv/
 logs/
+
+/data/neural*/
+/models/*.pt
+/models/*.jsonl
