@@ -33,7 +33,7 @@ jobs:
       - run: python -S sparse_tetris_4d_optimized.py --test --backend auto
       - name: Native GUI smoke test
         run: |
-          sudo apt-get update && sudo apt-get install -y xvfb xauth python3-tk
+          bash .github/scripts/ensure-display.sh
           xvfb-run -a python sparse_tetris_4d_optimized.py --gui-smoke --backend native > native-gui.json
           python -c "import json; r=json.load(open('native-gui.json')); assert r['passed'] and r['selected_drop'] and r['visible_network_nodes'] > 0, r"
   sanitizer:
