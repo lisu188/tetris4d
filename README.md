@@ -4,7 +4,7 @@ A single-file Python/Tkinter falling-block game on a **16 × 16 × 16 × 16** bo
 
 ## Run
 
-No arguments are needed: the default is the hyperlayer planner, target Z=1, and the bundled trained sigmoid checkpoint. The checkpoint is resolved relative to the script, so launching from another working directory works. Use Start/Space to run; the planner pauses after its first clear.
+No arguments are needed: the default is the hyperlayer planner, target Z=1, and the bundled trained sigmoid checkpoint. The checkpoint is resolved relative to the script, so launching from another working directory works. Use Start/Space to run. Autoplay continues after clears and automatically selects an accessible target after compaction.
 
 Requires Python 3.10 or newer. The graphical interface requires Tkinter and a desktop display. Headless tests and the Python computation backend require only the standard library.
 
@@ -70,7 +70,7 @@ python sparse_tetris_4d_optimized.py
 
 It protects unfinished cells on Z=1, prioritizes new target coverage, and uses the loaded sigmoid score only to break ties. Vertical I placements are explicitly generated for every unfinished target column. This is a depth-1 planner, not new network training; the Lookahead control is disabled while it is selected. Use `--policy network` for neural-only search, or `--policy network --baseline` to restore the original untrained controller.
 
-The GUI shows target coverage and buried gaps, pauses on the first clear, and distinguishes an unsafe/stalled planner from an actual top-out. Switch to `network` or Human mode to continue after clearing. Target changes preserve the current board; restarting returns to an empty board. An already buried target must be changed or abandoned; the planner never silently relaxes its protection rule.
+The GUI shows target coverage and buried gaps and continues after each clear. It keeps the current target if accessible; otherwise it selects the nearest incomplete target with no buried gaps (lower Z breaks distance ties). The board, score, piece sequence, and running state are preserved. `--stop-after-clear` explicitly requests the old first-clear pause for the GUI or benchmark. The dedicated `tools/first_hyperlayer.py` helper remains a first-clear diagnostic. A genuinely blocked planner is still distinguished from a top-out. Target changes preserve the current board; restarting returns to an empty board. An already buried target must be changed or abandoned; the planner never silently relaxes its protection rule.
 
 Run an empty-start demonstration and independently verify the replay:
 

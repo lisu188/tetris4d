@@ -32,6 +32,11 @@ jobs:
       - run: python tests/test_hyperlayer.py --backend python
       - run: python tests/test_hyperlayer.py --backend numpy
       - run: python -S tests/test_hyperlayer.py --backend auto
+      - name: Continuous-play regression tests
+        run: |
+          python tests/test_continuous.py --backend python
+          python tests/test_continuous.py --backend numpy
+          python -S tests/test_continuous.py --backend auto
 
   first-clear:
     runs-on: ubuntu-latest
@@ -47,10 +52,12 @@ jobs:
       - run: python tools/first_hyperlayer.py --seed 7 --backend numpy --output first-clear.json
       - run: python tools/first_hyperlayer.py --verify first-clear.json
       - run: python -c "import json; r=json.load(open('first-clear.json', encoding='utf-8')); assert r['summary']['hyperlayers'] == 1 and r['summary']['pieces'] == 1251, r['summary']"
-      - name: Verify default CLI policy and checkpoint clear a hyperlayer
+      - name: Verify default CLI continues after two clears
         run: |
-          python sparse_tetris_4d_optimized.py --benchmark --pieces 2000 --games 1 --output default-first-clear.json
-          python -c "import json; r=json.load(open('default-first-clear.json', encoding='utf-8'))['runs'][0]; assert r['policy'] == 'hyperlayer' and r['target'] == 1 and r['hyperlayers'] == 1 and r['first_clear_piece'] == 1251, r"
+          python sparse_tetris_4d_optimized.py --benchmark --pieces 2600 --games 1 --output continuous.json
+          python -c "import json; r=json.load(open('continuous.json', encoding='utf-8'))['runs'][0]; assert r['policy'] == 'hyperlayer' and r['target'] == 1 and r['hyperlayers'] == 2 and r['pieces'] == 2600 and r['first_clear_piece'] == 1251 and r['stop_reason'] == 'piece_limit', r"
+      - name: Verify explicit stop and continuous integration modes
+        run: python tests/test_continuous.py --backend numpy --integration
 
   gui:
     runs-on: ubuntu-latest
