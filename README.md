@@ -4,6 +4,8 @@ A single-file Python/Tkinter falling-block game on a **16 × 16 × 16 × 16** bo
 
 ## Run
 
+No arguments are needed: the default is the hyperlayer planner, target Z=1, and the bundled trained sigmoid checkpoint. The checkpoint is resolved relative to the script, so launching from another working directory works. Use Start/Space to run; the planner pauses after its first clear.
+
 Requires Python 3.10 or newer. The graphical interface requires Tkinter and a desktop display. Headless tests and the Python computation backend require only the standard library.
 
 ```bash
@@ -60,13 +62,13 @@ python sparse_tetris_4d_optimized.py --catalog --output pieces.json
 
 ## Clear the first hyperlayer
 
-Enable the target planner in the GUI's **Planner** selector, or launch it directly:
+The target planner and trained checkpoint are selected automatically. A plain launch is sufficient:
 
 ```bash
-python sparse_tetris_4d_optimized.py --policy hyperlayer --target 1 --weights models/trained-sigmoid.json
+python sparse_tetris_4d_optimized.py
 ```
 
-It protects unfinished cells on Z=1, prioritizes new target coverage, and uses the loaded sigmoid score only to break ties. Vertical I placements are explicitly generated for every unfinished target column. This is a depth-1 planner, not new network training; the Lookahead control is disabled while it is selected. The original `--policy network` remains the default.
+It protects unfinished cells on Z=1, prioritizes new target coverage, and uses the loaded sigmoid score only to break ties. Vertical I placements are explicitly generated for every unfinished target column. This is a depth-1 planner, not new network training; the Lookahead control is disabled while it is selected. Use `--policy network` for neural-only search, or `--policy network --baseline` to restore the original untrained controller.
 
 The GUI shows target coverage and buried gaps, pauses on the first clear, and distinguishes an unsafe/stalled planner from an actual top-out. Switch to `network` or Human mode to continue after clearing. Target changes preserve the current board; restarting returns to an empty board. An already buried target must be changed or abandoned; the planner never silently relaxes its protection rule.
 
@@ -77,7 +79,7 @@ python tools/first_hyperlayer.py --seed 7 --output first-clear.json
 python tools/first_hyperlayer.py --verify first-clear.json
 ```
 
-The helper loads `models/trained-sigmoid.json` by default. The normal game still loads weights only when `--weights` is supplied. Both Python and NumPy backends are supported.
+The helper loads `models/trained-sigmoid.json` by default. The normal game also loads this checkpoint automatically; `--weights PATH` overrides it and `--baseline` disables checkpoint loading. Both Python and NumPy backends are supported.
 
 All seven reference trajectories were reproduced by the integrated planner: first clears at 1,222–1,251 pieces, with no physics changes. These are finite first-clear tests, not guarantees of indefinite survival. See [planner details](docs/first-hyperlayer.md) and [integration results](validation/hyperlayer-integration.json).
 
@@ -105,7 +107,7 @@ The network has **4,098 inputs → 23,040 sigmoid units → one linear output**,
 
 This is a **hand-designed evaluator, not a trained end-to-end agent**. The original scoring coefficients are inherited from [Yiyuan Lee's Tetris evaluator](https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/); their sigmoid/4D adaptation is not claimed optimal. Piece placement generation, collision handling, and lookahead are outside the network.
 
-Default search uses depth 2, beam width 4, and 2,048 deterministically sampled candidate placements per board. `--candidates 0` enumerates every origin/orientation and can be expensive; the beam setting still limits first-ply lookahead. Use `--help` for the complete command-line interface.
+Default hyperlayer search uses depth 1 and 2,048 sampled candidates plus targeted vertical-I finishing placements. Neural-only search (`--policy network`) uses depth 2, beam width 4, and 2,048 deterministically sampled candidate placements per board. `--candidates 0` enumerates every origin/orientation and can be expensive; the beam setting still limits first-ply lookahead. Use `--help` for the complete command-line interface.
 
 Optimizations include optional batched NumPy scoring, incremental feature updates, bounded caches, retained static rendering, and changed-cell heatmap updates. Both computation backends use the same rules, weights, sampling, and tie-breaking.
 
@@ -148,7 +150,7 @@ The evaluator now uses two shared sigmoid filters, exact histogram pooling and l
 
 ## Gameplay-trained checkpoint
 
-A reproducible cross-entropy policy search has trained three shared sigmoid parameters. The baseline remains the default; load the checkpoint explicitly:
+A reproducible cross-entropy policy search has trained three shared sigmoid parameters. The trained checkpoint is loaded automatically; this explicit form remains equivalent:
 
 ```bash
 python sparse_tetris_4d_optimized.py --weights models/trained-sigmoid.json

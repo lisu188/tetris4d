@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "base_commit": "f0553c015b27d49e089f845f491fba7fa430fe1c",
+  "source_blob": "1ecea0c50865663dae62c47e2b7e6a9b36eb0955",
+  "defaults": {"policy": "hyperlayer", "target": 1, "weights": "models/trained-sigmoid.json relative to script"},
+  "checkpoint_changed": false,
+  "physics_changed": false,
+  "search_changed": false,
+  "launch_unit_tests": {"cases": 10, "normal_python": "passed", "without_site_packages": "passed"},
+  "engine_suites": {"trained_numpy_assertions": 67034, "baseline_python_assertions": 67034},
+  "gui": {"assertions": 90, "sizes": [[1560, 960], [1120, 760]], "environment": "Linux virtual display; not native Windows or macOS"},
+  "default_cli_empty_start": {
+    "working_directory": "/tmp",
+    "explicit_policy_or_weights": false,
+    "seed": 7,
+    "cap": 2000,
+    "pieces": 1251,
+    "hyperlayers": 1,
+    "target": 1,
+    "cells_placed": 7512,
+    "occupied_cells": 3416,
+    "stop_reason": "first_clear"
+  }
+}

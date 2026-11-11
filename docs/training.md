@@ -8,7 +8,7 @@ The previous model was untrained. This is the first actual gameplay-based traini
 python sparse_tetris_4d_optimized.py --weights models/trained-sigmoid.json
 ```
 
-Without `--weights`, the original baseline remains available unchanged. Checkpoints are bounded, schema-checked JSON, not executable pickle files. Loading rebuilds sigmoid/output tables and invalidates model-dependent caches. The UI displays the loaded model's actual activations and threshold. The 16x16x16x16 board, 15 rigid pieces, sigmoid activation, and normal search defaults remain unchanged.
+The main application now loads the bundled trained checkpoint by default and selects the hyperlayer planner at Z=1. Use `--baseline` for the original untrained weights, or `--policy network --baseline` for the original neural-only controller. Explicit `--weights PATH` overrides the bundled checkpoint. Checkpoints are bounded, schema-checked JSON, not executable pickle files. Loading rebuilds sigmoid/output tables and invalidates model-dependent caches. The UI displays the loaded model's actual activations and threshold. The 16x16x16x16 board, 15 rigid pieces, sigmoid activation, and normal search defaults remain unchanged.
 
 ## Training
 
