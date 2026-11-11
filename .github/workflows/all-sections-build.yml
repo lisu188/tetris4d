@@ -42,10 +42,11 @@ jobs:
           python tests/test_native.py --trajectory-pieces 2600
           python tests/test_benchmark_logging.py --trajectory-pieces 2600
           python tests/test_launch_defaults.py
-      - name: Publish tested changes only
+      - name: Publish tested source and reports
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add sparse_tetris_4d_optimized.py tetris_benchmark_logging.py README.md docs/eight-views.md .github/workflows/eight-views.yml tests/test_eight_views.py tests/test_frame_pacing.py tests/test_frame_pacing_gui.py validation/all-sections-rendering.json validation/frame-pacing-local.json validation/all-sections-ci.json validation/frame-pacing-gui-ci.json
+          git restore .github/workflows/eight-views.yml
+          git add sparse_tetris_4d_optimized.py tetris_benchmark_logging.py README.md docs/eight-views.md tests/test_eight_views.py tests/test_frame_pacing.py tests/test_frame_pacing_gui.py validation/all-sections-rendering.json validation/frame-pacing-local.json validation/all-sections-ci.json validation/frame-pacing-gui-ci.json
           git commit -m 'feat: show all sections with adaptive render-only frame skipping'
           git push origin HEAD:perf/all-sections-frameskip-build
