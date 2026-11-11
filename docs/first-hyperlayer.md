@@ -1,6 +1,6 @@
 # Target-hyperlayer planner
 
-This integrates the previously tested first-clear prototype into the single-file engine, command-line benchmark, and Tkinter interface. The target policy is opt-in. The neural-only policy, trained checkpoint, sigmoid activation function, board dimensions, 15 piece types, rigid locking, and complete-hyperlayer compaction remain unchanged.
+This integrates the previously tested first-clear prototype into the single-file engine, command-line benchmark, and Tkinter interface. The target policy is the default when launching the application. The neural-only policy, trained checkpoint, sigmoid activation function, board dimensions, 15 piece types, rigid locking, and complete-hyperlayer compaction remain unchanged.
 
 ## Use
 
@@ -11,7 +11,7 @@ python tools/first_hyperlayer.py --seed 7 --output first-clear.json
 python tools/first_hyperlayer.py --verify first-clear.json
 ```
 
-The helper loads the existing trained checkpoint by default. The main application retains its prior baseline-weight default; pass `--weights` to reproduce the published trajectories. `--policy network` preserves the original controller. Both computation backends are supported. `python -S` with `--backend auto` works without NumPy.
+Both the helper and main application load the shipped trained checkpoint by default. Running `python sparse_tetris_4d_optimized.py` selects hyperlayer mode and Z=1 without arguments. The main application resolves its default checkpoint relative to the script, not the working directory. `--policy network` selects neural-only search with trained weights; `--policy network --baseline` restores the original untrained controller. Explicit `--weights PATH` overrides the bundled checkpoint and cannot be combined with `--baseline`. A missing or invalid checkpoint is reported as an error rather than silently changing the model. Both computation backends are supported. `python -S` with `--backend auto` works without NumPy.
 
 ## Objective and safety
 

@@ -1731,7 +1731,7 @@ class NetworkView:
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
                  candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
-                 policy: str = 'network', target: int = 1) -> None:
+                 policy: str = 'hyperlayer', target: int = 1) -> None:
         import tkinter as tk
         from tkinter import ttk
         self.root, self.beam, self.candidates = root, beam, candidates
@@ -2573,7 +2573,7 @@ def launch_demo(args) -> int:
     return 1 if app.errors else 0
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='Rigid 4D Tetris with a fixed sparse sigmoid evaluator and live activation slices.')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--test', action='store_true')
@@ -2583,9 +2583,13 @@ def main() -> int:
     mode.add_argument('--network-expanded', action='store_true', help='Expand every logical neuron and connection for inspection.')
     parser.add_argument('--backend', choices=('auto', 'python', 'numpy'), default='auto',
                         help='Auto uses NumPy when installed; python needs only the standard library.')
-    parser.add_argument('--weights', type=Path, help='Load a validated JSON checkpoint before evaluation or play.')
-    parser.add_argument('--policy', choices=('network', 'hyperlayer'), default='network',
-                        help='hyperlayer protects access and prioritizes target coverage; uses depth 1 and pauses after a clear.')
+    weights = parser.add_mutually_exclusive_group()
+    weights.add_argument('--weights', type=Path,
+                         default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',
+                         help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
+    weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
+    parser.add_argument('--policy', choices=('network', 'hyperlayer'), default='hyperlayer',
+                        help='Default: hyperlayer, protecting target access with depth 1 and pausing after a clear; network restores neural-only search.')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
     parser.add_argument('--stop-after-clear', action='store_true', help='Stop benchmark games after their first clear; always enabled for hyperlayer.')
     parser.add_argument('--seed', type=int, default=7)
@@ -2600,12 +2604,14 @@ def main() -> int:
     parser.add_argument('--compare', action='store_true', help='Also test a random policy over sampled legal placements.')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--gui-smoke', action='store_true')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.beam < 1 or args.candidates < 0 or args.pieces < 1 or args.games < 1:
         parser.error('beam, pieces and games must be positive; candidates must be nonnegative.')
     try:
         configure_backend(args.backend)
-        if args.weights:
+        if args.baseline:
+            configure_network(BASELINE_PARAMETERS, {'method': 'none', 'description': 'Untrained inherited heuristic coefficients.'})
+        else:
             load_checkpoint(args.weights)
         if args.test:
             result = run_self_tests()
