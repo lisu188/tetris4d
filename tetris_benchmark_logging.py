@@ -218,9 +218,9 @@ class BenchmarkLog:
                        'cutoff': self.app.cutoff.get(), 'pieces': self.app.game.pieces,
                        'hyperlayers': self.app.game.layers, 'game_over': self.app.game.game_over}
                 if hasattr(self.app.well, 'views'):
-                    gui.update(view_page=self.app.well.page,
-                               visible_w_sections=list(range(self.app.well.page * 8, self.app.well.page * 8 + 8)))
-            self.emit('metrics', reason=reason, backend=self._backend(), gui=gui,
+                    gui.update(visible_w_sections=list(self.app.well.visible_w_sections))
+            rendering = self.app.render_metrics() if self.app is not None and hasattr(self.app, 'render_metrics') else None
+            self.emit('metrics', reason=reason, backend=self._backend(), gui=gui, rendering=rendering,
                       decisions=self.decisions, moves=self.moves, caches=caches,
                       write_and_serialization_ms=self.io_ns / 1_000_000,
                       phases={key: value.report() for key, value in self.metrics.items()})
@@ -356,23 +356,14 @@ class BenchmarkLog:
             self.snapshot('game_end')
             return result
         self._patch(self.game, 'run_game', run)
-        self._timed(self.game.TetrisApp, 'draw', 'gui_draw_submission')
+        self._timed(self.game.TetrisApp, '_draw_now', 'gui_draw_submission')
         for class_name, method, label in (('WellView', 'draw', 'gui_well_submission'),
                 ('SliceAtlas', 'draw', 'gui_atlas_submission'), ('NetworkView', 'update', 'gui_network_update')):
             owner = getattr(self.game, class_name, None)
             if owner is not None and hasattr(owner, method):
                 self._timed(owner, method, label)
-        if hasattr(self.game, 'EightWellView'):
-            self._timed(self.game.EightWellView, 'draw', 'gui_eight_views_submission')
-            original_panel = self.game.EightWellView.draw
-            @wraps(original_panel)
-            def panel(view, *args, **kwargs):
-                before = view.page
-                result = original_panel(view, *args, **kwargs)
-                if view.page != before:
-                    self.emit('view_page', page=view.page, first_w=view.page * 8, last_w=view.page * 8 + 7)
-                return result
-            self._patch(self.game.EightWellView, 'draw', panel)
+        if hasattr(self.game, 'AllWellView'):
+            self._timed(self.game.AllWellView, 'draw', 'gui_all_views_submission')
         original_tick = self.game.TetrisApp.tick
         @wraps(original_tick)
         def tick(app, *args, **kwargs):

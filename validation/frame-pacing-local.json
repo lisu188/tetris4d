@@ -1,0 +1,171 @@
+{
+  "base_commit": "56c9e93a3963346ef7d095f7511f50d426d0b24a",
+  "source_sha256": "d37f37ad8d4750c17f20fc6bffe6e540aa08874ad0f8e795c227c94be59be5ec",
+  "local_gui": {
+    "passed": true,
+    "assertions": 15422,
+    "sizes": [
+      [
+        1560,
+        960
+      ],
+      [
+        1120,
+        760
+      ]
+    ],
+    "simultaneous_sections": 16,
+    "paging": false,
+    "rendering": [
+      {
+        "adaptive_frameskip": true,
+        "requested_fps": 30.0,
+        "requests": 55,
+        "rendered_frames": 20,
+        "deferred_requests": 35,
+        "coalesced_requests": 3,
+        "interval_ms": 43.68726167165137,
+        "render_ema_ms": 21.843630835825685,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 122,
+        "unchanged_section_skips": 326
+      },
+      {
+        "adaptive_frameskip": true,
+        "requested_fps": 30.0,
+        "requests": 52,
+        "rendered_frames": 19,
+        "deferred_requests": 33,
+        "coalesced_requests": 3,
+        "interval_ms": 43.29133525190518,
+        "render_ema_ms": 21.64566762595259,
+        "visible_w_sections": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "scene_rebuilds": 122,
+        "unchanged_section_skips": 310
+      }
+    ],
+    "backend": "numpy",
+    "logging_tested": false,
+    "environment": "Linux Xvfb; not WSLg"
+  },
+  "gui_equivalence": {
+    "passed": true,
+    "identical_gui_moves": 32,
+    "runs": [
+      {
+        "frameskip": true,
+        "moves": 32,
+        "wall_seconds": 4.701123721000158,
+        "rendering": {
+          "adaptive_frameskip": true,
+          "requested_fps": 30.0,
+          "requests": 182,
+          "rendered_frames": 36,
+          "deferred_requests": 146,
+          "coalesced_requests": 64,
+          "interval_ms": 163.3770007495959,
+          "render_ema_ms": 81.68850037479795,
+          "visible_w_sections": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "scene_rebuilds": 86,
+          "unchanged_section_skips": 423
+        }
+      },
+      {
+        "frameskip": false,
+        "moves": 32,
+        "wall_seconds": 4.237496200000123,
+        "rendering": {
+          "adaptive_frameskip": false,
+          "requested_fps": 30.0,
+          "requests": 196,
+          "rendered_frames": 196,
+          "deferred_requests": 0,
+          "coalesced_requests": 0,
+          "interval_ms": 33.333333333333336,
+          "render_ema_ms": 14.406487343879126,
+          "visible_w_sections": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "scene_rebuilds": 201,
+          "unchanged_section_skips": 2802
+        }
+      }
+    ]
+  },
+  "unit_cases": 12,
+  "engine_assertions_each": 67034,
+  "engine_backends": [
+    "numpy",
+    "auto without site packages"
+  ],
+  "native_source_changed": false,
+  "weights_changed": false,
+  "physics_definitions_changed": false,
+  "limitation": "Local GUI tests used Xvfb, not user WSLg. Logger/native integration must also pass CI before merge."
+}
