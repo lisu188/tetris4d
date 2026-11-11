@@ -2802,6 +2802,25 @@ def launch_demo(args) -> int:
     return 1 if app.errors else 0
 
 
+def start_benchmark_logging(args):
+    if args.no_benchmark_log:
+        return None
+    try:
+        from tetris_benchmark_logging import BenchmarkLog
+    except ImportError as error:
+        print(f'Benchmark logging unavailable: {error}', file=sys.stderr)
+        return None
+    settings = {key: getattr(args, key) for key in ('seed', 'piece_set', 'policy', 'target', 'depth',
+                 'beam', 'candidates', 'stop_after_clear', 'backend')}
+    settings['mode'] = 'benchmark' if args.benchmark else 'gui'
+    if args.benchmark:
+        settings.update(pieces=args.pieces, games=args.games)
+    recorder = BenchmarkLog(sys.modules[__name__], args.benchmark_log, settings).install()
+    if recorder.enabled:
+        print(f'Benchmark log: {recorder.path}', file=sys.stderr)
+    return recorder
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='Rigid 4D Tetris with a fixed sparse sigmoid evaluator and live activation slices.')
     mode = parser.add_mutually_exclusive_group()
@@ -2833,9 +2852,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--compare', action='store_true', help='Also test a random policy over sampled legal placements.')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--gui-smoke', action='store_true')
+    logs = parser.add_mutually_exclusive_group()
+    logs.add_argument('--benchmark-log', type=Path, help='Write local benchmark JSONL here; default: a unique file under logs/. Existing files are not overwritten.')
+    logs.add_argument('--no-benchmark-log', action='store_true', help='Disable all benchmark logging and instrumentation for clean timing comparisons.')
     args = parser.parse_args(argv)
     if args.beam < 1 or args.candidates < 0 or args.pieces < 1 or args.games < 1:
         parser.error('beam, pieces and games must be positive; candidates must be nonnegative.')
+    recorder = None
     try:
         configure_backend(args.backend)
         if args.baseline:
@@ -2849,6 +2872,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.network or args.network_expanded:
             result = network_metadata(args.network_expanded)
         elif args.benchmark:
+            recorder = start_benchmark_logging(args)
             runs = []
             for policy in ((args.policy, 'random') if args.compare else (args.policy,)):
                 for i in range(args.games):
@@ -2858,6 +2882,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             result = {'network': network_metadata(), 'runs': runs,
                       'note': 'Short capped runs do not establish long-term playing strength. A clear consumes 4096 cells; piece sizes vary from 4 to 16.'}
         else:
+            recorder = start_benchmark_logging(args)
             return launch_demo(args)
         text = json.dumps(result, indent=2, allow_nan=False)
         if args.output:
@@ -2865,8 +2890,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(text)
         return 0
     except (ValueError, AssertionError, OSError) as error:
+        if recorder is not None:
+            recorder.emit('error', phase='application', exception=type(error).__name__)
         print(f'Error: {error}', file=sys.stderr)
         return 1
+    finally:
+        if recorder is not None:
+            recorder.close()
 
 
 if __name__ == '__main__':
