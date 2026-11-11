@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": 102,
+  "sizes": [
+    [
+      1560,
+      960
+    ],
+    [
+      1120,
+      760
+    ]
+  ],
+  "environment": "CPU PyTorch on Linux virtual display; not a CUDA or WSLg benchmark"
+}

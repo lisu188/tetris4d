@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "torch": "2.10.0+cpu",
+  "cuda_runtime": null,
+  "device": "cpu",
+  "parameter_count": 62485,
+  "finite_gradients": true,
+  "weight_update": true,
+  "loss": 3.7299368381500244,
+  "seconds": 0.03621014700000558,
+  "note": "Forward/backward/optimizer smoke test, not a trained playing-strength result."
+}
