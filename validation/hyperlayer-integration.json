@@ -1,0 +1,899 @@
+{
+  "passed": true,
+  "base_commit": "dda012084e0a28498863ce82033a93ac4e02428f",
+  "source_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+  "publication": {
+    "pushed": false,
+    "merged": false,
+    "reason": "No write/merge tool available in this session."
+  },
+  "environment": {
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "preserved": {
+    "dimensions": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "piece_types": 15,
+    "rigid_physics": true,
+    "network_inputs": 4098,
+    "sigmoid_units": 23040,
+    "weighted_connections": 73218,
+    "checkpoint_retrained": false,
+    "default_policy": "network",
+    "checkpoint_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb"
+  },
+  "new_behavior": {
+    "policy": "hyperlayer",
+    "target": 1,
+    "depth": 1,
+    "base_candidates": 2048,
+    "extra_vertical_I_candidates_max": 4096,
+    "safe_exhaustive_fallback": true,
+    "pause_after_first_clear": true
+  },
+  "reference_comparison": {
+    "games": 7,
+    "first_clear_successes": 7,
+    "identical_moves": 8660,
+    "independent_replay_checks": 103962,
+    "first_clear_piece_range": [
+      1222,
+      1251
+    ],
+    "runs": [
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 7,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 7,
+          "piece_set": "expanded",
+          "pieces": 1251,
+          "cells_placed": 7512,
+          "piece_counts": {
+            "I": 84,
+            "O": 83,
+            "T": 83,
+            "L": 84,
+            "S": 83,
+            "B": 84,
+            "C": 83,
+            "NOVA": 84,
+            "STAIR": 83,
+            "FORK": 83,
+            "HOOK": 83,
+            "BRIDGE": 83,
+            "RING": 83,
+            "CROSS": 84,
+            "HYPER": 84
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 770,
+          "occupied_cells": 3416
+        },
+        "stop_reason": "first_clear",
+        "seconds": 10.1473,
+        "peak_height": 5,
+        "evaluations": 2700381,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 7,
+          "moves": 1251,
+          "checks": 15018,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1251,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7512,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3416,
+          "max_height_before_clear": 5,
+          "replay_sha256": "bdd7bd801cfd60ede607640f64f1d33be218c8e012d8a06118326d9dfe2fe7ca"
+        },
+        "identical_prototype_moves": 1251
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30001,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30001,
+          "piece_set": "expanded",
+          "pieces": 1238,
+          "cells_placed": 7435,
+          "piece_counts": {
+            "I": 83,
+            "O": 82,
+            "T": 83,
+            "L": 83,
+            "S": 82,
+            "B": 82,
+            "C": 83,
+            "NOVA": 82,
+            "STAIR": 82,
+            "FORK": 82,
+            "HOOK": 83,
+            "BRIDGE": 82,
+            "RING": 83,
+            "CROSS": 83,
+            "HYPER": 83
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 734,
+          "occupied_cells": 3339
+        },
+        "stop_reason": "first_clear",
+        "seconds": 14.5628,
+        "peak_height": 5,
+        "evaluations": 2672977,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30001,
+          "moves": 1238,
+          "checks": 14862,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1238,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7435,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3339,
+          "max_height_before_clear": 5,
+          "replay_sha256": "43c90f3735398e606444ce6408e4cc92a1301ad7cfb2a2027a09bb2b5224c9fc"
+        },
+        "identical_prototype_moves": 1238
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30002,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30002,
+          "piece_set": "expanded",
+          "pieces": 1237,
+          "cells_placed": 7430,
+          "piece_counts": {
+            "I": 83,
+            "O": 82,
+            "T": 82,
+            "L": 82,
+            "S": 83,
+            "B": 82,
+            "C": 82,
+            "NOVA": 83,
+            "STAIR": 83,
+            "FORK": 82,
+            "HOOK": 82,
+            "BRIDGE": 83,
+            "RING": 83,
+            "CROSS": 82,
+            "HYPER": 83
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 731,
+          "occupied_cells": 3334
+        },
+        "stop_reason": "first_clear",
+        "seconds": 10.9896,
+        "peak_height": 5,
+        "evaluations": 2670024,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30002,
+          "moves": 1237,
+          "checks": 14850,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1237,
+              "piece": "S",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7430,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3334,
+          "max_height_before_clear": 5,
+          "replay_sha256": "0080802a8f0bcf4b9a3a16f12d570e42b96ac5982ea2d4753dfaf27ec6a4946b"
+        },
+        "identical_prototype_moves": 1237
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30003,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30003,
+          "piece_set": "expanded",
+          "pieces": 1222,
+          "cells_placed": 7336,
+          "piece_counts": {
+            "I": 82,
+            "O": 82,
+            "T": 82,
+            "L": 82,
+            "S": 81,
+            "B": 81,
+            "C": 81,
+            "NOVA": 81,
+            "STAIR": 81,
+            "FORK": 82,
+            "HOOK": 81,
+            "BRIDGE": 81,
+            "RING": 81,
+            "CROSS": 82,
+            "HYPER": 82
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 679,
+          "occupied_cells": 3240
+        },
+        "stop_reason": "first_clear",
+        "seconds": 16.4327,
+        "peak_height": 5,
+        "evaluations": 2640893,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30003,
+          "moves": 1222,
+          "checks": 14670,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1222,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7336,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3240,
+          "max_height_before_clear": 5,
+          "replay_sha256": "b01254fe018c1ff52ffe6087d9e872806a049c2535a2784091c42526f9c9b9b5"
+        },
+        "identical_prototype_moves": 1222
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30004,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30004,
+          "piece_set": "expanded",
+          "pieces": 1241,
+          "cells_placed": 7451,
+          "piece_counts": {
+            "I": 83,
+            "O": 83,
+            "T": 83,
+            "L": 82,
+            "S": 83,
+            "B": 82,
+            "C": 83,
+            "NOVA": 82,
+            "STAIR": 83,
+            "FORK": 83,
+            "HOOK": 82,
+            "BRIDGE": 83,
+            "RING": 83,
+            "CROSS": 83,
+            "HYPER": 83
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 723,
+          "occupied_cells": 3355
+        },
+        "stop_reason": "first_clear",
+        "seconds": 13.6366,
+        "peak_height": 5,
+        "evaluations": 2679076,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30004,
+          "moves": 1241,
+          "checks": 14898,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1241,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7451,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3355,
+          "max_height_before_clear": 5,
+          "replay_sha256": "754d4c7b0ddd3fb35f364fd375e96224dc4411b89715598fce99223ecd026326"
+        },
+        "identical_prototype_moves": 1241
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30005,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30005,
+          "piece_set": "expanded",
+          "pieces": 1225,
+          "cells_placed": 7351,
+          "piece_counts": {
+            "I": 82,
+            "O": 82,
+            "T": 81,
+            "L": 82,
+            "S": 82,
+            "B": 81,
+            "C": 82,
+            "NOVA": 82,
+            "STAIR": 82,
+            "FORK": 81,
+            "HOOK": 82,
+            "BRIDGE": 81,
+            "RING": 81,
+            "CROSS": 82,
+            "HYPER": 82
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 641,
+          "occupied_cells": 3255
+        },
+        "stop_reason": "first_clear",
+        "seconds": 11.6014,
+        "peak_height": 5,
+        "evaluations": 2647016,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30005,
+          "moves": 1225,
+          "checks": 14706,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1225,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7351,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3255,
+          "max_height_before_clear": 5,
+          "replay_sha256": "14d1fc25aeaa5dd2f92a131bb709d9828377e38d2c97ffb567470991309ebb9a"
+        },
+        "identical_prototype_moves": 1225
+      },
+      {
+        "schema": "tetris4d-first-clear-v1",
+        "seed": 30006,
+        "mode": "target",
+        "target": 1,
+        "piece_set": "expanded",
+        "candidates": 2048,
+        "backend": "numpy",
+        "parameters": {
+          "height": -0.510066,
+          "holes": -0.7685650472003598,
+          "layers": 0.760666,
+          "roughness": -0.2629078098390759,
+          "threshold": 3.9612832250311807
+        },
+        "sampler_salt": "zero-based move index",
+        "summary": {
+          "seed": 30006,
+          "piece_set": "expanded",
+          "pieces": 1246,
+          "cells_placed": 7474,
+          "piece_counts": {
+            "I": 84,
+            "O": 83,
+            "T": 83,
+            "L": 83,
+            "S": 83,
+            "B": 83,
+            "C": 83,
+            "NOVA": 83,
+            "STAIR": 83,
+            "FORK": 83,
+            "HOOK": 83,
+            "BRIDGE": 83,
+            "RING": 83,
+            "CROSS": 83,
+            "HYPER": 83
+          },
+          "hyperlayers": 1,
+          "score": 100,
+          "game_over": false,
+          "max_height": 4,
+          "holes": 720,
+          "occupied_cells": 3378
+        },
+        "stop_reason": "first_clear",
+        "seconds": 10.0102,
+        "peak_height": 5,
+        "evaluations": 2688767,
+        "engine_sha256": "7fac8b269a2277b9b3682a9b7ad7dc1c59d54df66ee27d64a42e622f3642ba27",
+        "verification": {
+          "passed": true,
+          "seed": 30006,
+          "moves": 1246,
+          "checks": 14958,
+          "hyperlayers": 1,
+          "clear_events": [
+            {
+              "piece_number": 1246,
+              "piece": "I",
+              "cleared_z": [
+                1
+              ],
+              "cells_before": 7474,
+              "full_counts": [
+                4096
+              ]
+            }
+          ],
+          "final_mass": 3378,
+          "max_height_before_clear": 5,
+          "replay_sha256": "1ed447a603a44aecfb9301834c5e743987ce37168cff8a8fb298125d24cee7d1"
+        },
+        "identical_prototype_moves": 1246
+      }
+    ]
+  },
+  "full_python_numpy_parity": {
+    "seed": 7,
+    "identical_moves": 1251,
+    "identical_final_board": true,
+    "python_verifier": {
+      "passed": true,
+      "seed": 7,
+      "moves": 1251,
+      "checks": 15018,
+      "hyperlayers": 1,
+      "clear_events": [
+        {
+          "piece_number": 1251,
+          "piece": "I",
+          "cleared_z": [
+            1
+          ],
+          "cells_before": 7512,
+          "full_counts": [
+            4096
+          ]
+        }
+      ],
+      "final_mass": 3416,
+      "max_height_before_clear": 5,
+      "replay_sha256": "358051ee900b84925b6f16c5c40c9e4537e8bbef15891aab68b35ce8ca72dad7"
+    }
+  },
+  "engine_suites": {
+    "passed": true,
+    "runs": 6,
+    "assertions_per_run": 67034
+  },
+  "regression_suites": [
+    {
+      "name": "engine-python-False",
+      "command": [
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "python"
+      ],
+      "returncode": 0,
+      "seconds": 9.17163454300021,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 1.999
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 7.462
+      }
+    },
+    {
+      "name": "engine-numpy-False",
+      "command": [
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "numpy"
+      ],
+      "returncode": 0,
+      "seconds": 5.324633551999796,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 1.103
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 3.816
+      }
+    },
+    {
+      "name": "engine-auto-False",
+      "command": [
+        "-S",
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "auto"
+      ],
+      "returncode": 0,
+      "seconds": 7.894204779999882,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 2.049
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 7.49
+      }
+    },
+    {
+      "name": "engine-python-True",
+      "command": [
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "python",
+        "--weights",
+        "models/trained-sigmoid.json"
+      ],
+      "returncode": 0,
+      "seconds": 5.43136413000002,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 1.298
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 4.345
+      }
+    },
+    {
+      "name": "engine-numpy-True",
+      "command": [
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "numpy",
+        "--weights",
+        "models/trained-sigmoid.json"
+      ],
+      "returncode": 0,
+      "seconds": 8.288252635999925,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 2.052
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 6.664
+      }
+    },
+    {
+      "name": "engine-auto-True",
+      "command": [
+        "-S",
+        "sparse_tetris_4d_optimized.py",
+        "--test",
+        "--backend",
+        "auto",
+        "--weights",
+        "models/trained-sigmoid.json"
+      ],
+      "returncode": 0,
+      "seconds": 8.184154118999913,
+      "report": {
+        "passed": true,
+        "assertions": 67034,
+        "piece_tests": {
+          "passed": true,
+          "assertions": 3505,
+          "new_pieces": 8,
+          "catalog_has_no_rotation_duplicates": true,
+          "all_new_shapes_affine_dimension": 4,
+          "independent_new_piece_drop_cases": 96,
+          "new_piece_hyperlayer_clear_cases": 21,
+          "wall_seconds": 2.498
+        },
+        "rotation_checks": 5616,
+        "unique_orientations": 936,
+        "independent_drop_cases": 80,
+        "literal_network_cases": 30,
+        "wall_seconds": 7.845
+      }
+    },
+    {
+      "name": "test_network_structure-python",
+      "command": [
+        "tests/test_network_structure.py",
+        "--backend",
+        "python"
+      ],
+      "returncode": 0,
+      "seconds": 1.4384921529999701,
+      "log": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.394s\n\nOK\n"
+    },
+    {
+      "name": "test_network_structure-numpy",
+      "command": [
+        "tests/test_network_structure.py",
+        "--backend",
+        "numpy"
+      ],
+      "returncode": 0,
+      "seconds": 1.3277236869998887,
+      "log": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.351s\n\nOK\n"
+    },
+    {
+      "name": "test_training-python",
+      "command": [
+        "tests/test_training.py",
+        "--backend",
+        "python"
+      ],
+      "returncode": 0,
+      "seconds": 1.2318430180000632,
+      "log": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.210s\n\nOK\n"
+    },
+    {
+      "name": "test_training-numpy",
+      "command": [
+        "tests/test_training.py",
+        "--backend",
+        "numpy"
+      ],
+      "returncode": 0,
+      "seconds": 1.1954175960001976,
+      "log": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.195s\n\nOK\n"
+    },
+    {
+      "name": "test_hyperlayer-python",
+      "command": [
+        "tests/test_hyperlayer.py",
+        "--backend",
+        "python"
+      ],
+      "returncode": 0,
+      "seconds": 2.861401010999998,
+      "log": "...............\n----------------------------------------------------------------------\nRan 15 tests in 1.770s\n\nOK\n"
+    },
+    {
+      "name": "test_hyperlayer-numpy",
+      "command": [
+        "tests/test_hyperlayer.py",
+        "--backend",
+        "numpy"
+      ],
+      "returncode": 0,
+      "seconds": 2.784696452999924,
+      "log": "...............\n----------------------------------------------------------------------\nRan 15 tests in 1.333s\n\nOK\n"
+    },
+    {
+      "name": "hyperlayer-no-site-packages",
+      "command": [
+        "-S",
+        "tests/test_hyperlayer.py",
+        "--backend",
+        "auto"
+      ],
+      "returncode": 0,
+      "seconds": 1.1203975789999276,
+      "log": "s..............\n----------------------------------------------------------------------\nRan 15 tests in 0.787s\n\nOK (skipped=1)\n"
+    }
+  ],
+  "gui": {
+    "passed": true,
+    "assertions": 90,
+    "sizes": [
+      [
+        1560,
+        960
+      ],
+      [
+        1120,
+        760
+      ]
+    ],
+    "backend": "numpy",
+    "display": "Linux Xvfb; not native Windows/macOS"
+  },
+  "limitations": [
+    "Only seven reference seeds were reproduced; these are not new held-out evaluations.",
+    "This is a first-clear planner, not a newly trained network or a proof of indefinite survival.",
+    "Local GUI validation used Linux Xvfb, not native Windows/macOS.",
+    "A GitHub Actions workflow was added to the patch but has not run remotely."
+  ]
+}
