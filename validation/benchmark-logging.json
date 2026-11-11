@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "base_commit": "eab2a8302ba248a529c163b0b774c9815236506b",
+  "source_blob": "5c3ee2020f3757b2ab473f1d4eebace6a41eccc0",
+  "logger_blob": "6b8be9bf602cdbc3203ef5e17ac9258d4112f2f1",
+  "native_source_changed": false,
+  "weights_changed": false,
+  "physics_changed": false,
+  "visual_layout_changed": false,
+  "verification_workflow": 43008550274,
+  "verification_job": 130482044696,
+  "unit_tests": {"native": 14, "python_without_site_packages": 14, "result": "passed"},
+  "trajectory": {
+    "backend": "native",
+    "seed": 7,
+    "identical_moves": 2600,
+    "compared": ["selected move and score", "before and after boards", "candidate evaluation count", "current and next piece"],
+    "clear_events": [1251, 2478],
+    "final_hyperlayers": 2,
+    "final_cells_placed": 15598,
+    "final_occupied_cells": 7406,
+    "game_over": false
+  },
+  "gui": {"environment": "Linux virtual display", "passed": true, "pieces": 6, "tick_samples": 140, "native_backend": true},
+  "overhead": {
+    "environment": "GitHub Actions Ubuntu Linux, AMD EPYC 9V74, CPython 3.12.16, NumPy 2.5.4, GCC 15.2",
+    "backend": "native auto (AVX2 and BMI2 enabled)",
+    "pieces": 300,
+    "repetitions": 3,
+    "off_wall_seconds": [0.994562677, 0.994963425, 0.997343016],
+    "on_wall_seconds": [1.052112947, 1.056221789, 1.050900331],
+    "median_off_seconds": 0.994963425,
+    "median_on_seconds": 1.052112947,
+    "overhead_percent": 5.743881690927477,
+    "summary_matches": true,
+    "scope": "Paired alternating-order headless run_game. Includes in-run logging/flushes; excludes imports, warmup, recorder creation and final close. Not a measurement of the user's WSL machine or displayed GUI FPS."
+  },
+  "limits": ["Phase timings are inclusive and overlap", "Percentiles are last-2048-observation windows", "Only one seed used for long trajectory equivalence", "Approximate 4 MiB per segment, three backups per session, sessions retained separately", "No automatic upload", "Eight-cube layout remains pending clarification"]
+}
