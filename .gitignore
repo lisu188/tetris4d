@@ -11,3 +11,9 @@ venv/
 /network.json
 /pieces.json
 /gui-smoke.json
+
+/native/*.so
+/native/*.dylib
+/native/*.so.json
+/native/*.dylib.json
+.venv/
