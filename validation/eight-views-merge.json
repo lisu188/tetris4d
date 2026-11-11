@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "assertions": 7417,
+  "sizes": [
+    [
+      1560,
+      960
+    ],
+    [
+      1120,
+      760
+    ]
+  ],
+  "views_per_page": 8,
+  "accessible_w_sections": 16,
+  "backend": "native",
+  "environment": "Linux Xvfb; not native WSLg"
+}

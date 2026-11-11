@@ -1454,8 +1454,9 @@ CUBE_EDGES = tuple((a, tuple(a[i] + (1 if i == axis else 0) for i in range(3)))
 
 
 class WellView:
-    def __init__(self, canvas) -> None:
+    def __init__(self, canvas, compact: bool = False) -> None:
         self.canvas = canvas
+        self.compact = compact
         self.yaw, self.elevation, self.zoom = 0.68, 0.57, 1.0
         self.drag_origin = None
         self.last_key = None
@@ -1492,7 +1493,7 @@ class WellView:
         return "break"
 
     def _zoom(self, multiplier: float) -> None:
-        self.zoom = min(1.65, max(0.65, self.zoom * multiplier))
+        self.zoom = min(1.0 if self.compact else 1.65, max(0.65, self.zoom * multiplier))
         self.redraw()
 
     def redraw(self) -> None:
@@ -1507,10 +1508,11 @@ class WellView:
         corners = [self._raw(x, y, z) for x in (0, WIDTH) for y in (0, DEPTH) for z in (0, HEIGHT)]
         low_x, high_x = min(p[0] for p in corners), max(p[0] for p in corners)
         low_y, high_y = min(p[1] for p in corners), max(p[1] for p in corners)
-        self.scale = self.zoom * min((w - 76) / (high_x - low_x), (h - 86) / (high_y - low_y))
-        self.scale = max(1.0, self.scale)
+        margin_x, margin_y = (22, 80) if self.compact else (76, 86)
+        self.scale = self.zoom * min((w - margin_x) / (high_x - low_x), (h - margin_y) / (high_y - low_y))
+        self.scale = max(.1 if self.compact else 1.0, self.scale)
         self.ox = w / 2 - (low_x + high_x) * self.scale / 2
-        self.oy = h / 2 + 5 - (low_y + high_y) * self.scale / 2
+        self.oy = h / 2 + (-11 if self.compact else 5) - (low_y + high_y) * self.scale / 2
 
     def _raw(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         return (x * self.right[0] + y * self.right[1],
@@ -1563,7 +1565,8 @@ class WellView:
              w_slice: int = 0, cutoff: int = HEIGHT - 1) -> None:
         self.last_args = (game, move, progress, w_slice, cutoff)
         c = self.canvas
-        width, height = max(280, c.winfo_width()), max(250, c.winfo_height())
+        width, height = ((max(50, c.winfo_width()), max(80, c.winfo_height())) if self.compact else
+                         (max(280, c.winfo_width()), max(250, c.winfo_height())))
         key = (game.board, move, round(progress, 3), w_slice, cutoff, width, height,
                self.yaw, self.elevation, self.zoom, id(game.locked_pieces))
         if key == self.last_key:
@@ -1600,10 +1603,11 @@ class WellView:
             self._scene_key = scene_key
             self._overlay_key = None
             c.delete('all')
-            c.create_text(14, 16, anchor='w', text=f'3D SECTION  /  W = {w_slice:02d} of 00–15',
+            c.create_text(14, 16, anchor='w', text=f'W = {w_slice:02d}' if self.compact else f'3D SECTION  /  W = {w_slice:02d} of 00–15',
                           fill=PALETTE['text'], font=('TkDefaultFont', 10, 'bold'))
-            c.create_text(14, 36, anchor='w', text='X/Y horizontal · Z gravity · W fixed' if width < 400 else 'X / Y horizontal · Z gravity · other W sections remain separate',
-                          fill=PALETTE['muted'], font=('TkDefaultFont', 8))
+            if not self.compact:
+                c.create_text(14, 36, anchor='w', text='X/Y horizontal · Z gravity · W fixed' if width < 400 else 'X / Y horizontal · Z gravity · other W sections remain separate',
+                              fill=PALETTE['muted'], font=('TkDefaultFont', 8))
             floor = [self.project(x, y, 0) for x, y in ((0, 0), (WIDTH, 0), (WIDTH, DEPTH), (0, DEPTH))]
             c.create_polygon(*[v for point in floor for v in point], fill='#142334', outline=PALETTE['grid'])
             for x in range(WIDTH + 1):
@@ -1642,16 +1646,83 @@ class WellView:
             for endpoint, label, color in (((WIDTH + .5, 0, 0), '+X', '#E5AA70'), ((0, DEPTH + .5, 0), '+Y', '#7ACD9A')):
                 self._line((0, 0, 0), endpoint, fill=color, arrow='last', width=2, tags=('overlay',))
                 px, py = self.project(*endpoint)
-                c.create_text(px, py + 10, text=label, fill=color, font=('TkFixedFont', 8, 'bold'), tags=('overlay',))
+                if not self.compact:
+                    c.create_text(px, py + 10, text=label, fill=color, font=('TkFixedFont', 8, 'bold'), tags=('overlay',))
             if cutoff < HEIGHT - 1:
-                c.create_text(14, 55, anchor='w', text=f'Stack cutaway Z ≤ {cutoff}; active section is not clipped',
+                c.create_text(14, 55, anchor='w', text=f'Z≤{cutoff}' if self.compact else f'Stack cutaway Z ≤ {cutoff}; active section is not clipped',
                               fill='#E5C467', font=('TkDefaultFont', 8), tags=('overlay',))
             count, total = len(moving), 0 if move is None else PIECE_SIZES[move.piece]
-            c.create_text(14, height - 35, anchor='w', text=f'Active section: {count}/{total} · whole piece below' if width < 400 else f'Active cells in this section: {count}/{total}  ·  full piece shown below',
+            c.create_text(14, height - 35, anchor='w', text=f'Active: {count}' if self.compact else f'Active section: {count}/{total} · whole piece below' if width < 400 else f'Active cells in this section: {count}/{total}  ·  full piece shown below',
                           fill=PALETTE['accent'], font=('TkDefaultFont', 9), tags=('overlay',))
-            c.create_text(14, height - 16, anchor='w', text='Drag: orbit · wheel: zoom · dashed: landing' if width < 400 else 'Drag to orbit · wheel to zoom · dashed cells = landing',
+            c.create_text(14, height - 16, anchor='w', text='Drag to orbit' if self.compact else 'Drag: orbit · wheel: zoom · dashed: landing' if width < 400 else 'Drag to orbit · wheel to zoom · dashed cells = landing',
                           fill=PALETTE['muted'], font=('TkDefaultFont', 8), tags=('overlay',))
         c.tag_raise('overlay')
+
+
+class EightWellView:
+    def __init__(self, parent, select_slice) -> None:
+        import tkinter as tk
+        from tkinter import ttk
+        self.frame = ttk.Frame(parent, style='Tetris.TFrame')
+        self.frame.grid(row=0, column=0, sticky='nsew')
+        self.frame.rowconfigure(1, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+        self.select_slice = select_slice
+        self.last_args = None
+        self.page = 0
+        self.piece_cache = None
+        self.owners = {}
+        self.page_label = tk.StringVar(value='W 00–07 / 16 sections')
+        bar = ttk.Frame(self.frame, style='Tetris.TFrame')
+        bar.grid(row=0, column=0, sticky='ew')
+        ttk.Button(bar, text='W 0–7', command=lambda: select_slice(0), width=7).pack(side='left')
+        ttk.Button(bar, text='W 8–15', command=lambda: select_slice(8), width=7).pack(side='left', padx=3)
+        ttk.Label(bar, textvariable=self.page_label, style='Muted.Tetris.TLabel').pack(side='left', padx=3)
+        self.grid = ttk.Frame(self.frame, style='Tetris.TFrame')
+        self.grid.grid(row=1, column=0, sticky='nsew')
+        self.views = []
+        for i in range(8):
+            canvas = tk.Canvas(self.grid, width=130, height=170, bg=PALETTE['board'],
+                               highlightthickness=2, highlightbackground=PALETTE['grid'])
+            view = WellView(canvas, compact=True)
+            self.views.append(view)
+            canvas.bind('<ButtonPress-1>', lambda event, index=i: self._select(index), add='+')
+        for row in range(2):
+            self.grid.rowconfigure(row, weight=1, uniform='well_rows')
+        for column in range(4):
+            self.grid.columnconfigure(column, weight=1, uniform='well_columns')
+        for i, view in enumerate(self.views):
+            view.canvas.grid(row=i // 4, column=i % 4, sticky='nsew', padx=2, pady=2)
+
+    def _select(self, index: int) -> None:
+        self.select_slice(self.page * 8 + index)
+
+    def reset_camera(self) -> None:
+        for view in self.views:
+            view.reset_camera()
+
+    def draw(self, game: Game, move: Move | None, progress: float = 0.0,
+             w_slice: int = 0, cutoff: int = HEIGHT - 1) -> None:
+        self.last_args = (game, move, progress, w_slice, cutoff)
+        page = w_slice // 8
+        if page != self.page:
+            self.page = page
+        label = f'W {page * 8:02d}–{page * 8 + 7:02d} / 16 sections'
+        if self.page_label.get() != label:
+            self.page_label.set(label)
+        if game.locked_pieces is not self.piece_cache:
+            self.piece_cache = game.locked_pieces
+            self.owners = {cell: (piece.identifier, piece.piece) for piece in game.locked_pieces for cell in piece.cells}
+        active_slices = set() if move is None else {cell[3] for cell in placed_cells(move)}
+        for i, view in enumerate(self.views):
+            w = page * 8 + i
+            selected = w == w_slice
+            if selected != getattr(view, '_selected', None):
+                view._selected = selected
+                view.canvas.configure(highlightbackground=PALETTE['accent'] if selected else PALETTE['grid'])
+            view.piece_cache, view.owners = self.piece_cache, self.owners
+            visible_move = move if w in active_slices else None
+            view.draw(game, visible_move, progress if visible_move else 0.0, w, cutoff)
 
 
 def draw_piece_sections(canvas, piece: str, rotation: int = 0, w_origin: int = 0, title: str = 'WHOLE ACTIVE PIECE') -> None:
@@ -1785,7 +1856,7 @@ class NetworkView:
 
     def layout(self) -> None:
         c = self.canvas
-        width, height = max(480, c.winfo_width()), max(340, c.winfo_height())
+        width, height = max(360, c.winfo_width()), max(300, c.winfo_height())
         key = (width, height, self.w)
         if key == self.layout_key:
             return
@@ -1795,9 +1866,9 @@ class NetworkView:
         self.node_items.clear()
         self.paint_state.clear()
         self.detail.configure(wraplength=max(350, c.winfo_width() - 4))
-        c.create_text(12, 17, anchor='w', text=f'LIVE SIGMOID ACTIVATIONS  /  W PAGE {self.w:02d}',
+        c.create_text(12, 17, anchor='w', text=f'SIGMOID ACTIVATIONS / W {self.w:02d}' if width < 480 else f'LIVE SIGMOID ACTIVATIONS  /  W PAGE {self.w:02d}',
                       fill=PALETTE['text'], font=('TkDefaultFont', 10, 'bold'))
-        c.create_text(12, 37, anchor='w', text='Whole-board score; heatmaps show one W page of actual neuron values.',
+        c.create_text(12, 37, anchor='w', text='Whole-board score; one activation page.' if width < 480 else 'Whole-board score; heatmaps show one W page of actual neuron values.',
                       fill=PALETTE['muted'], font=('TkDefaultFont', 8))
         group_width = (width - 38) / 4
         cell = min((group_width - 7) / 16, (height - 153) / 32)
@@ -1805,7 +1876,7 @@ class NetworkView:
         origins = [12 + i * (group_width + 5) for i in range(4)]
         def grid(title: str, col: int, row: int, entries: list[tuple[int, int, int]]) -> None:
             left, top = origins[col], top_y[row]
-            c.create_text(left, top - 15, anchor='w', text=title, fill='#A9B5F5' if col == 0 else PALETTE['accent'], font=('TkDefaultFont', 8, 'bold'))
+            c.create_text(left, top - 15, anchor='w', text=title.split()[0] if width < 480 else title, fill='#A9B5F5' if col == 0 else PALETTE['accent'], font=('TkDefaultFont', 8, 'bold'))
             for gx, gy, index in entries:
                 x, y = left + (gx + .5) * cell, top + (gy + .5) * cell
                 item = c.create_rectangle(x - cell / 2 + .3, y - cell / 2 + .3, x + cell / 2 - .3, y + cell / 2 - .3,
@@ -2008,16 +2079,13 @@ class TetrisApp:
         self.content = ttk.Frame(outer, style='Tetris.TFrame')
         self.content.grid(row=2, column=0, sticky='nsew')
         self.content.rowconfigure(0, weight=1)
-        for col, weight, minimum in ((0, 4, 300), (1, 2, 205), (2, 5, 480)):
+        for col, weight, minimum in ((0, 6, 420), (1, 2, 160), (2, 4, 420)):
             self.content.columnconfigure(col, weight=weight, minsize=minimum)
         left = ttk.Frame(self.content, style='Tetris.TFrame')
         left.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
         left.rowconfigure(0, weight=1)
         left.columnconfigure(0, weight=1)
-        canvas = tk.Canvas(left, bg=PALETTE['board'], highlightthickness=1,
-                           highlightbackground=PALETTE['grid'], width=470, height=440)
-        canvas.grid(row=0, column=0, sticky='nsew')
-        self.well = WellView(canvas)
+        self.well = EightWellView(left, self.select_slice)
         self.piece_preview = tk.Canvas(left, bg=PALETTE['board'], height=124, highlightthickness=0)
         self.piece_preview.grid(row=1, column=0, sticky='ew', pady=(8, 0))
         center = ttk.Frame(self.content, style='Tetris.TFrame')

@@ -196,3 +196,14 @@ The summary groups sessions; submit the summary and, for detailed investigation,
 JSONL segments. Logging has overhead: the paired benchmark measures it rather than subtracting
 an assumed cost. Recent p50/p95/p99 values cover the last 2,048 observations per phase.
 See `docs/benchmark-logging.md` for fields, privacy and timing limitations.
+
+
+## Eight simultaneous 3D sections
+
+Normal launch shows eight W-section boards in a 4×2 grid. Use **W 0–7** or **W 8–15** for the other page; all sixteen sections and the whole-piece preview remain accessible. Sigmoid activations, native acceleration and continued play are unchanged. Existing benchmark logs now include aggregate eight-view drawing time and the visible sections. See [view controls and telemetry](docs/eight-views.md).
+
+Summarize the latest default session, including retained rotation segments:
+
+```bash
+.venv/bin/python tools/summarize_benchmark.py --output benchmark-summary.json
+```
