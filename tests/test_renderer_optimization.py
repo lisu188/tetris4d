@@ -62,13 +62,13 @@ class RendererTests(unittest.TestCase):
             return {node.name: node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.ClassDef))}
         old, new = named(before), named(after)
         for name, node in old.items():
-            if name in ('WellView', 'AllWellView', 'SliceAtlas'):
+            if name in ('WellView', 'AllWellView', 'SliceAtlas', 'main', 'run_game'):
                 continue
             if name == 'TetrisApp':
                 old_methods = {n.name: n for n in node.body if isinstance(n, ast.FunctionDef)}
                 new_methods = {n.name: n for n in new[name].body if isinstance(n, ast.FunctionDef)}
                 for method, fn in old_methods.items():
-                    if method != 'render_metrics':
+                    if method not in ('render_metrics', '__init__', 'refresh_plan', 'place', '_draw_now'):
                         self.assertEqual(ast.dump(fn), ast.dump(new_methods[method]), method)
             else:
                 self.assertEqual(ast.dump(node), ast.dump(new[name]), name)

@@ -1,6 +1,6 @@
 # Playback speed
 
-The speed slider has been replaced by a read-only selector with 0.5/s, 1/s, 3/s, 6/s, 12/s and Unlimited. The default remains the previous 3/s animation. Launch normally, select Unlimited, and press Start/Space. Selecting a speed during paused or Human play does not start autoplay. Selecting it during autoplay takes effect on the next logic callback without restarting or discarding a pending decision.
+The speed slider has been replaced by a read-only selector with 0.5/s, 1/s, 3/s, 6/s, 12/s and Unlimited. The default is Unlimited, with playback initially paused. Launch normally, select Unlimited, and press Start/Space. Selecting a speed during paused or Human play does not start autoplay. Selecting it during autoplay takes effect on the next logic callback without restarting or discarding a pending decision.
 
 The finite rates control animation progress, not guaranteed achieved moves per second. Unlimited removes the per-piece animation wait. It runs the same planner, candidate enumeration, scoring, commit validation, clear handling and retargeting, repeatedly committing completed decisions while the callback's work budget allows. It is not a larger numerical animation multiplier and is not limited to one move per rendered frame.
 
@@ -21,3 +21,8 @@ xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_unlimited_speed_gui.py
 The trajectory test exercises the actual GUI logic methods with a mock root/variables and no rendering, comparing every move and board to the headless reference. The GUI suite uses real Tk callbacks and tests visibility, selection, pause/step/manual controls, explicit and continuous clear handling, callback delivery and telemetry at two window sizes. Neither is a WSLg throughput benchmark.
 
 While Unlimited is between decisions, the activation panel retains the last committed move's actual trace and labels its features LAST COMMITTED. It does not draw that piece again on the board. Finite-rate and Human previews retain their previous behavior.
+
+
+## Sustained clearing and Unlimited defaults
+
+Normal argument-free launch now selects Unlimited and the sustained target planner. Start/Space begins playback. The planner retains target access but subtracts four times the newly created holes above the target from target-coverage gain, then uses the unchanged sigmoid score to break ties. It is a policy improvement, not newly trained neural weights. `--policy hyperlayer` reproduces the previous controller. All 16 views, frame skipping and logging remain enabled. Native source is unchanged. See `docs/sustained-policy.md` and `docs/gpu-neural-design.md`.

@@ -110,7 +110,7 @@ class FramePacingTests(unittest.TestCase):
                 self.assertEqual(game.main(argv), 0)
             args = launch.call_args.args[0]
             self.assertEqual((args.ui_fps, args.no_frameskip), (fps, disabled))
-            self.assertEqual((args.policy, args.target, args.stop_after_clear), ('hyperlayer', 1, False))
+            self.assertEqual((args.policy, args.target, args.stop_after_clear), ('sustained', 1, False))
 
     def test_cli_invalid_fps(self):
         for fps in ('0', '121'):

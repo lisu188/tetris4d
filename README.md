@@ -4,7 +4,7 @@ A single-file Python/Tkinter falling-block game on a **16 × 16 × 16 × 16** bo
 
 ## Run
 
-No arguments are needed: the default is the hyperlayer planner, target Z=1, and the bundled trained sigmoid checkpoint. The checkpoint is resolved relative to the script, so launching from another working directory works. Use Start/Space to run. Autoplay continues after clears and automatically selects an accessible target after compaction.
+No arguments are needed: the default is the sustained-clearing planner, target Z=1, and the bundled trained sigmoid checkpoint. The checkpoint is resolved relative to the script, so launching from another working directory works. Use Start/Space to run. Autoplay continues after clears and automatically selects an accessible target after compaction.
 
 Requires Python 3.10 or newer. The graphical interface requires Tkinter and a desktop display. Headless tests and the Python computation backend require only the standard library.
 
@@ -225,3 +225,8 @@ the board, discard the selected move, start paused play, or change the piece str
 Pause, single-step, Human mode and explicit --stop-after-clear remain available.
 Logs record playback_mode and animation_rate_per_second under rendering; Unlimited
 uses a null animation rate, not a non-finite number. See docs/playback-speed.md.
+
+
+## Sustained clearing and Unlimited defaults
+
+Normal argument-free launch now selects Unlimited and the sustained target planner. Start/Space begins playback. The planner retains target access but subtracts four times the newly created holes above the target from target-coverage gain, then uses the unchanged sigmoid score to break ties. It is a policy improvement, not newly trained neural weights. `--policy hyperlayer` reproduces the previous controller. All 16 views, frame skipping and logging remain enabled. Native source is unchanged. See `docs/sustained-policy.md` and `docs/gpu-neural-design.md`.
