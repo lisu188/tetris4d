@@ -1,0 +1,48 @@
+name: Prepare sustained policy and Unlimited defaults
+on:
+  push:
+    branches: [policy/sustained-build-20261111]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: policy/sustained-build-20261111
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python .ci/apply-sustained.py
+      - run: python -m pip install -r requirements-numpy.txt
+      - run: python tools/build_native.py
+      - name: Check new objective and unchanged physics
+        run: |
+          python tests/test_sustained_policy.py --trajectory-pieces 2600 > validation/sustained-correctness-ci.json
+          python -S tests/test_sustained_policy.py
+          python tests/test_launch_defaults.py
+          python tests/test_native.py
+          python tests/test_frame_pacing.py
+          python tests/test_unlimited_speed.py --trajectory-pieces 2600
+          python sparse_tetris_4d_optimized.py --test --backend native
+      - name: Reproduce long held-out games on current repository
+        run: python tools/evaluate_sustained.py --backend native --workers 4 --output validation/sustained-policy-ci.json
+      - name: Check real GUI defaults and rendering
+        run: |
+          bash .github/scripts/ensure-display.sh
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_unlimited_speed_gui.py
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_hyperlayer_gui.py
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_eight_views.py
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_renderer_optimization.py
+          python tools/gpu_probe.py --output /tmp/gpu-info.json
+      - name: Publish validated application files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sparse_tetris_4d_optimized.py tetris_benchmark_logging.py README.md docs/playback-speed.md tests/test_launch_defaults.py tests/test_native.py tests/test_frame_pacing.py tests/test_unlimited_speed_gui.py tests/test_renderer_optimization.py tests/test_hyperlayer_gui.py validation/sustained-correctness-ci.json validation/sustained-policy-ci.json
+          git commit -m 'feat: default to Unlimited and sustained repeated-clearing policy'
+          git push origin HEAD:policy/sustained-build-20261111
