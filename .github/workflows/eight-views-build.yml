@@ -1,0 +1,39 @@
+name: Prepare merged eight-view UI
+on:
+  push:
+    branches: [merge/eight-views-build-20261111]
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.repository == 'lisu188/tetris4d' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: merge/eight-views-build-20261111
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Apply reviewed rendering patch to current logging source
+        run: python .ci/apply-eight-views.py
+      - run: sudo apt-get update && sudo apt-get install -y xvfb xauth python3-tk
+      - run: python -m pip install -r requirements-numpy.txt
+      - run: python tools/build_native.py
+      - name: Validate integrated views and logging
+        run: |
+          python -m py_compile sparse_tetris_4d_optimized.py tetris_benchmark_logging.py tools/summarize_benchmark.py tests/test_eight_views.py
+          python tests/test_benchmark_logging.py --trajectory-pieces 2600
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_eight_views.py | tee /tmp/eight-views.json
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_benchmark_logging_gui.py
+          python sparse_tetris_4d_optimized.py --test --backend native
+          mkdir -p validation
+          cp /tmp/eight-views.json validation/eight-views-merge.json
+      - name: Commit verified integrated files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sparse_tetris_4d_optimized.py tetris_benchmark_logging.py README.md validation/eight-views-merge.json
+          git commit -m 'feat: integrate eight section views with existing benchmark logging'
+          git push origin HEAD:merge/eight-views-build-20261111
