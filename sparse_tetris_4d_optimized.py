@@ -33,6 +33,7 @@ DEFAULT_BEAM = 4
 DEFAULT_CANDIDATES = 2048
 BATCH_SIZE = 512
 BACKEND = "auto"
+NEURAL_AGENT = None
 _NUMPY = None
 _NUMPY_TRIED = False
 _NATIVE = None
@@ -1355,7 +1356,7 @@ def choose_hyperlayer_move(*args, **kwargs) -> Decision | None:
             return result.value
 
 
-TARGET_POLICIES = ('hyperlayer', 'sustained')
+TARGET_POLICIES = ('hyperlayer', 'sustained', 'neural')
 
 FUTURE_HOLE_PENALTY = 4
 
@@ -2292,8 +2293,10 @@ class TetrisApp:
         self._draw_id = None
         self._in_tick = False
         self._force_draw = False
-        if policy not in ('network', 'hyperlayer', 'sustained'):
+        if policy not in ('network', 'hyperlayer', 'sustained', 'neural'):
             raise ValueError('Unknown planner policy.')
+        if policy == 'neural' and NEURAL_AGENT is None:
+            raise ValueError('Neural policy requires a trained --neural-checkpoint.')
         target_layer_status(EMPTY_BOARD, target)
         self.game = Game(seed, piece_set)
         self.policy = tk.StringVar(value=policy)
@@ -2347,7 +2350,8 @@ class TetrisApp:
         header.grid(row=0, column=0, sticky='ew')
         ttk.Label(header, text='Sparse Tetris 4D', font=('TkDefaultFont', 22, 'bold'), style='Tetris.TLabel').pack(side='left')
         ttk.Label(header, textvariable=self.stats, style='Tetris.TLabel', font=('TkFixedFont', 10)).pack(side='right')
-        ttk.Label(outer, text='16⁴ = 65,536 cells  /  4,098 inputs → 23,040 sigmoid units → 1 linear score  /  73,218 connections',
+        ttk.Label(outer, text=(f'16⁴ = 65,536 cells / optional learned sigmoid policy: {NEURAL_AGENT.metadata["parameters"]:,} trainable parameters / {NEURAL_AGENT.device}'
+                        if NEURAL_AGENT is not None else '16⁴ = 65,536 cells  /  4,098 inputs → 23,040 sigmoid units → 1 linear score  /  73,218 connections'),
                   style='Muted.Tetris.TLabel').grid(row=1, column=0, sticky='w', pady=(4, 10))
         self.content = ttk.Frame(outer, style='Tetris.TFrame')
         self.content.grid(row=2, column=0, sticky='nsew')
@@ -2373,7 +2377,8 @@ class TetrisApp:
         ttk.Label(center, textvariable=self.features, style='Tetris.TLabel', font=('TkFixedFont', 9), justify='left').grid(row=2, column=0, sticky='w')
         right = ttk.Frame(self.content, style='Tetris.TFrame')
         right.grid(row=0, column=2, sticky='nsew')
-        self.network = NetworkView(right)
+        self.network = (NEURAL_AGENT.create_view(right, NetworkView, lambda: self.policy.get())
+                        if NEURAL_AGENT is not None else NetworkView(right))
         bars = ttk.Frame(outer, style='Tetris.TFrame')
         bars.grid(row=3, column=0, sticky='ew', pady=(9, 5))
         bars.columnconfigure(1, weight=1)
@@ -2422,7 +2427,7 @@ class TetrisApp:
         policy_row = ttk.Frame(outer, style='Tetris.TFrame')
         policy_row.grid(row=6, column=0, sticky='ew', pady=(0, 5))
         ttk.Label(policy_row, text='Planner:', style='Muted.Tetris.TLabel').pack(side='left')
-        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer', 'sustained'), state='readonly', width=12)
+        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer', 'sustained', 'neural') if NEURAL_AGENT is not None else ('network', 'hyperlayer', 'sustained'), state='readonly', width=12)
         self.policy_box.pack(side='left', padx=6)
         self.policy_box.bind('<<ComboboxSelected>>', self.change_policy)
         ttk.Label(policy_row, text='Target Z:', style='Muted.Tetris.TLabel').pack(side='left')
@@ -2578,7 +2583,9 @@ class TetrisApp:
                                      self.manual_x, self.manual_y, self.manual_w)
             self.finish_plan()
         else:
-            if self.policy.get() in TARGET_POLICIES:
+            if self.policy.get() == 'neural':
+                self.search = NEURAL_AGENT.steps(self.game, int(self.target.get()), self.candidates)
+            elif self.policy.get() in TARGET_POLICIES:
                 self.search = (sustained_decision_steps if self.policy.get() == 'sustained' else hyperlayer_decision_steps)(self.game.board, self.game.current, int(self.target.get()),
                                                         self.candidates, self.game.pieces)
             else:
@@ -2743,6 +2750,8 @@ class TetrisApp:
                       ownership_appends=getattr(self.well, 'ownership_appends', 0),
                       ownership_full_scans=getattr(self.well, 'ownership_full_scans', 0),
                       static_mesh_batches=sum(getattr(view, 'mesh_batches', 0) for view in self.well.views))
+        if NEURAL_AGENT is not None:
+            result['neural'] = dict(NEURAL_AGENT.last_metrics, active=self.policy.get() == 'neural')
         return result
 
     def _draw_now(self) -> None:
@@ -3123,7 +3132,7 @@ def run_self_tests() -> dict:
 
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
              piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
-    if policy not in ('network', 'random', 'hyperlayer', 'sustained'):
+    if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural'):
         raise ValueError('Unknown policy.')
     target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
@@ -3135,8 +3144,12 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
     for _ in range(pieces):
         if game.game_over:
             break
-        if policy in ('network', 'hyperlayer', 'sustained'):
-            if policy in TARGET_POLICIES:
+        if policy in ('network', 'hyperlayer', 'sustained', 'neural'):
+            if policy == 'neural':
+                if NEURAL_AGENT is None:
+                    raise ValueError('Neural policy requires a trained --neural-checkpoint.')
+                decision = NEURAL_AGENT.choose(game, active_target, candidates)
+            elif policy in TARGET_POLICIES:
                 decision = (choose_sustained_move if policy == 'sustained' else choose_hyperlayer_move)(game.board, game.current, active_target, candidates, game.pieces)
             else:
                 decision = choose_move(game.board, game.current, game.next_piece, depth, beam, candidates,
@@ -3236,6 +3249,8 @@ def start_benchmark_logging(args):
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    global NEURAL_AGENT
+    NEURAL_AGENT = None
     parser = argparse.ArgumentParser(description='Rigid 4D Tetris with a fixed sparse sigmoid evaluator and live activation slices.')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--test', action='store_true')
@@ -3250,8 +3265,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                          default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',
                          help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
     weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
-    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained'), default='sustained',
+    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural'), default='sustained',
                         help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
+    parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
+    parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
     parser.add_argument('--stop-after-clear', action='store_true', help='Pause autoplay or stop benchmarks after the first clear; disabled by default.')
     parser.add_argument('--seed', type=int, default=7)
@@ -3283,6 +3300,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             configure_network(BASELINE_PARAMETERS, {'method': 'none', 'description': 'Untrained inherited heuristic coefficients.'})
         else:
             load_checkpoint(args.weights)
+        if args.neural_checkpoint is not None:
+            try:
+                from tetris_neural import NeuralAgent
+            except ImportError as error:
+                raise ValueError('Optional PyTorch/NumPy dependency missing; install it in this environment before using --neural-checkpoint.') from error
+            NEURAL_AGENT = NeuralAgent(args.neural_checkpoint, args.neural_device, engine=sys.modules[__name__])
+            if args.candidates not in (DEFAULT_CANDIDATES, NEURAL_AGENT.model.config.candidates):
+                raise ValueError('Neural checkpoint requires its saved candidate budget.')
+            args.candidates = NEURAL_AGENT.model.config.candidates
+            args.policy = 'neural'
+            print(f'Experimental neural policy loaded on {NEURAL_AGENT.device}; not promoted over sustained.', file=sys.stderr)
+        elif args.policy == 'neural':
+            raise ValueError('--policy neural requires --neural-checkpoint.')
         if args.test:
             result = run_self_tests()
         elif args.catalog:
@@ -3297,7 +3327,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     run = run_game(args.seed + i, args.pieces, args.depth, args.beam, args.candidates, policy, args.piece_set, args.target, args.stop_after_clear)
                     runs.append(run)
                     print(f'{policy} seed={run["seed"]} pieces={run["pieces"]} hyperlayers={run["hyperlayers"]}', file=sys.stderr, flush=True)
-            result = {'network': network_metadata(), 'runs': runs,
+            result = {'network': network_metadata(), 'neural': NEURAL_AGENT.metadata if NEURAL_AGENT else None, 'runs': runs,
                       'note': 'Short capped runs do not establish long-term playing strength. A clear consumes 4096 cells; piece sizes vary from 4 to 16.'}
         else:
             recorder = start_benchmark_logging(args)
@@ -3307,7 +3337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.output.write_text(text + '\n', encoding='utf-8')
         print(text)
         return 0
-    except (ValueError, AssertionError, OSError) as error:
+    except (ValueError, AssertionError, OSError, RuntimeError) as error:
         if recorder is not None:
             recorder.emit('error', phase='application', exception=type(error).__name__)
         print(f'Error: {error}', file=sys.stderr)

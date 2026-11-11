@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "tests": 13,
+  "skipped": 1,
+  "torch": "2.10.0+cpu",
+  "cuda_available": false,
+  "engine_backend": "native",
+  "note": "Smoke training and correctness checks do not establish playing-strength improvement."
+}
