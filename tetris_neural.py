@@ -593,6 +593,13 @@ class Dataset:
     def __len__(self):
         return len(self.samples)
 
+    def sample_batch(self, size):
+        anchor = random.randrange(len(self.samples))
+        shard, row = self.samples[anchor]
+        offset = anchor - row
+        count = self.shards[shard]['samples']
+        return [self[offset + random.randrange(count)] for _ in range(size)]
+
     def __getitem__(self, index):
         shard, row = self.samples[index]
         if shard not in self.cache:
@@ -697,7 +704,7 @@ def train(args):
         optimizer.zero_grad(set_to_none=True)
         totals = {}
         for _ in range(args.accumulate):
-            rows = [data[random.randrange(len(data))] for _ in range(args.batch)]
+            rows = data.sample_batch(args.batch)
             batch = collate(rows, device)
             with precision_context(device, args.precision):
                 prediction = model(batch)
