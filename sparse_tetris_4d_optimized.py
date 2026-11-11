@@ -2070,6 +2070,9 @@ class FramePacer:
                 'interval_ms': self.interval * 1000, 'render_ema_ms': self.ema_seconds * 1000}
 
 
+PLAYBACK_SPEEDS = {'0.5/s': .5, '1/s': 1.0, '3/s': 3.0, '6/s': 6.0, '12/s': 12.0, 'Unlimited': 0.0}
+
+
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
                  candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
@@ -2109,6 +2112,7 @@ class TetrisApp:
         self.w_slice = tk.IntVar(value=0)
         self.cutoff = tk.IntVar(value=HEIGHT - 1)
         self.speed = tk.DoubleVar(value=3.0)
+        self.speed_choice = tk.StringVar(value='3/s')
         self.stats = tk.StringVar()
         self.status = tk.StringVar()
         self.features = tk.StringVar()
@@ -2188,7 +2192,10 @@ class TetrisApp:
         self.lookahead_button = ttk.Checkbutton(controls, text='Lookahead', variable=self.lookahead, command=self.refresh_plan, style='Tetris.TCheckbutton')
         self.lookahead_button.pack(side='left', padx=5)
         ttk.Label(controls, text='Speed', style='Muted.Tetris.TLabel').pack(side='left', padx=(12, 5))
-        ttk.Scale(controls, from_=.5, to=12, variable=self.speed, length=150).pack(side='left')
+        self.speed_box = ttk.Combobox(controls, textvariable=self.speed_choice,
+                                      values=tuple(PLAYBACK_SPEEDS), state='readonly', width=10)
+        self.speed_box.pack(side='left')
+        self.speed_box.bind('<<ComboboxSelected>>', self.change_speed)
         ttk.Label(controls, textvariable=self.search_status, style='Muted.Tetris.TLabel').pack(side='right')
         rotations_row = ttk.Frame(outer, style='Tetris.TFrame')
         rotations_row.grid(row=5, column=0, sticky='ew', pady=(0, 5))
@@ -2228,6 +2235,11 @@ class TetrisApp:
         root.bind('<Configure>', lambda event: self.redraw_small())
         self.refresh_plan()
         self.tick_id = root.after(16, self.tick)
+
+    def change_speed(self, event=None) -> None:
+        self.speed.set(PLAYBACK_SPEEDS[self.speed_choice.get()])
+        self.previous = time.perf_counter()
+        self.draw(force=True)
 
     def change_policy(self, event=None) -> None:
         self.running = self.pending_step = self.goal_complete = False
@@ -2440,7 +2452,7 @@ class TetrisApp:
         self.refresh_plan()
 
     def key_down(self, event) -> str | None:
-        if event.widget in (self.piece_set_box, self.policy_box, self.target_box):
+        if event.widget in (self.piece_set_box, self.policy_box, self.target_box, self.speed_box):
             return None
         key = event.keysym.lower()
         shifted_planes = {'exclam': 0, 'at': 1, 'numbersign': 2, 'dollar': 3, 'percent': 4, 'asciicircum': 5}
@@ -2511,6 +2523,9 @@ class TetrisApp:
 
     def render_metrics(self) -> dict:
         result = self.frame_pacer.report()
+        rate = self.speed.get()
+        result.update(playback_mode='unlimited' if rate == 0 else 'animated',
+                      animation_rate_per_second=None if rate == 0 else rate)
         result.update(visible_w_sections=list(self.well.visible_w_sections),
                       scene_rebuilds=sum(view.scene_rebuilds for view in self.well.views),
                       unchanged_section_skips=sum(view.draw_skips for view in self.well.views))
@@ -2518,7 +2533,10 @@ class TetrisApp:
 
     def _draw_now(self) -> None:
         w = self.w_slice.get()
-        self.network.update(self.planned, w)
+        trace_move = self.planned
+        if trace_move is None and self.speed.get() == 0 and not self.human.get():
+            trace_move = self.game.last_move
+        self.network.update(trace_move, w)
         if self.policy.get() == 'hyperlayer':
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
@@ -2528,9 +2546,10 @@ class TetrisApp:
         self.well.draw(self.game, self.planned, self.progress, w, self.cutoff.get())
         self.atlas.draw(self.game, self.planned, w)
         self.stats.set(f'Pieces {self.game.pieces:,} | Cells {self.game.cells_placed:,} | Clears {self.game.layers:,} | {self.game.piece_set}')
-        if self.planned:
-            m, p = self.planned, self.planned.candidate
-            self.features.set(f'{m.piece} · {PIECE_SIZES[m.piece]} CELLS\nHeight sum {sum(m.heights):>7}\nHoles      {m.holes:>7}\nClears     {m.layers:>7}\nScore      {m.score:>+9.3f}\nX {p.x:02}  Y {p.y:02}  W {p.w:02}')
+        if trace_move:
+            m, p = trace_move, trace_move.candidate
+            label = 'LAST COMMITTED\n' if self.planned is None else ''
+            self.features.set(label + f'{m.piece} · {PIECE_SIZES[m.piece]} CELLS\nHeight sum {sum(m.heights):>7}\nHoles      {m.holes:>7}\nClears     {m.layers:>7}\nScore      {m.score:>+9.3f}\nX {p.x:02}  Y {p.y:02}  W {p.w:02}')
         else:
             self.features.set('Planning a legal drop…' if self.search is not None else 'No legal drop selected.')
         key = (self.game.current, self.game.next_piece, self.planned,
@@ -2559,7 +2578,29 @@ class TetrisApp:
         else:
             mode = ('hyperlayer planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() == 'hyperlayer' else
                     f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}')
-            self.status.set(f'{"Running" if self.running else "Paused"} · {mode} · Space start/pause · Enter step · [ ] W view · R restart. A clear needs 4,096 cells at one Z.')
+            pace = 'Unlimited · no animation delay' if self.speed.get() == 0 else f'{self.speed.get():g}/s animation'
+            self.status.set(f'{"Running" if self.running else "Paused"} · {pace} · {mode} · Space start/pause · Enter step · [ ] W view · R restart. A clear needs 4,096 cells at one Z.')
+
+    def _advance_search(self, deadline: float) -> None:
+        while self.search is not None and time.perf_counter() < deadline:
+            try:
+                self.evaluations = next(self.search)
+            except StopIteration as result:
+                self.decision = result.value
+                self.search = None
+                self.planned = self.decision.move if self.decision else None
+                if self.decision is None:
+                    self.running = self.pending_step = False
+                    self.game.game_over = not has_legal_move(self.game.board, self.game.current)
+                    if not self.game.game_over:
+                        layer = target_layer_status(self.game.board, int(self.target.get()))
+                        reason = f'{layer.buried} buried target gaps' if layer.buried else 'no target-preserving placement'
+                        self.planner_blocked = f'PLANNER PAUSED: {reason}. Choose another target, Human, network, or restart. Not game over.'
+                    self.start_button.configure(text='Paused')
+                self.finish_plan()
+                if self.pending_step:
+                    self.place()
+                break
 
     def tick(self) -> None:
         if self.closed:
@@ -2569,38 +2610,30 @@ class TetrisApp:
         self.previous = now
         self._in_tick = True
         try:
-            was_searching = self.search is not None
-            if self.search is not None:
-                deadline = time.perf_counter() + .008
-                while self.search is not None and time.perf_counter() < deadline:
-                    try:
-                        self.evaluations = next(self.search)
-                    except StopIteration as result:
-                        self.decision = result.value
-                        self.search = None
-                        self.planned = self.decision.move if self.decision else None
-                        if self.decision is None:
-                            self.running = self.pending_step = False
-                            self.game.game_over = not has_legal_move(self.game.board, self.game.current)
-                            if not self.game.game_over:
-                                layer = target_layer_status(self.game.board, int(self.target.get()))
-                                reason = f'{layer.buried} buried target gaps' if layer.buried else 'no target-preserving placement'
-                                self.planner_blocked = f'PLANNER PAUSED: {reason}. Choose another target, Human, network, or restart. Not game over.'
-                            self.start_button.configure(text='Paused')
-                        self.finish_plan()
-                        if self.pending_step:
-                            self.place()
+            if self.running and not self.human.get() and self.speed.get() == 0:
+                deadline = now + .008
+                while (self.running and not self.closed and not self.game.game_over
+                       and time.perf_counter() < deadline):
+                    self._advance_search(deadline)
+                    if not self.running or self.search is not None or self.planned is None:
                         break
-            if self.running and not was_searching and self.search is None and self.planned:
-                self.progress += dt * self.speed.get()
-                if self.progress >= 1:
                     self.place()
+            else:
+                was_searching = self.search is not None
+                self._advance_search(time.perf_counter() + .008)
+                if self.running and not was_searching and self.search is None and self.planned:
+                    self.progress += dt * self.speed.get()
+                    if self.progress >= 1:
+                        self.place()
         finally:
             self._in_tick = False
+        if self.closed:
+            return
         self.draw(force=self._force_draw)
         self._force_draw = False
         elapsed = time.perf_counter() - now
-        self.tick_id = self.root.after(max(1, 16 - int(elapsed * 1000)), self.tick)
+        delay = 1 if self.running and not self.human.get() and self.speed.get() == 0 else max(1, 16 - int(elapsed * 1000))
+        self.tick_id = self.root.after(delay, self.tick)
 
 
 def reference_drop(board: Board, piece: str, rotation: int, x: int, y: int, w: int) -> tuple[Board, int, int] | None:

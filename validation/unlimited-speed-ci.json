@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "unit_tests": 12,
+  "trajectory": {
+    "identical_moves": 2600,
+    "clear_events": [
+      1251,
+      2478
+    ],
+    "active_target": 4,
+    "logic_ticks": 1380,
+    "backend": "native",
+    "game_over": false,
+    "scope": "Actual GUI logic methods with fake Tk variables/root and rendering mocked; not a UI speed benchmark."
+  }
+}
