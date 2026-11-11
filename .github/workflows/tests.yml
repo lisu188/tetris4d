@@ -70,7 +70,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install display tools
-        run: sudo apt-get update && sudo apt-get install -y xvfb xauth python3-tk
+        run: bash .github/scripts/ensure-display.sh
       - name: Install optional accelerator
         run: python -m pip install -r requirements-numpy.txt
       - name: Run baseline neural-only graphical smoke test

@@ -48,6 +48,6 @@ jobs:
       - run: python tools/benchmark_logging.py --pieces 300 --repetitions 3 --output logging-overhead.json
       - name: GUI telemetry and argument-free launch
         run: |
-          sudo apt-get update && sudo apt-get install -y xvfb xauth python3-tk
+          bash .github/scripts/ensure-display.sh
           xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_benchmark_logging_gui.py
           xvfb-run -a -s '-screen 0 1600x1000x24' python sparse_tetris_4d_optimized.py --gui-smoke
