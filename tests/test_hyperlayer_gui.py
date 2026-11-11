@@ -25,7 +25,7 @@ def run() -> dict:
     sizes = ((1560, 960), (1120, 760))
     for width, height in sizes:
         root = tk.Tk()
-        app = game.TetrisApp(root, policy='hyperlayer', target=1)
+        app = game.TetrisApp(root)
         root.geometry(f'{width}x{height}')
         def ready():
             deadline = time.perf_counter() + 10
