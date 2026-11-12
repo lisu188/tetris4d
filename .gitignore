@@ -20,6 +20,4 @@ venv/
 logs/
 
 /data/neural*/
-/models/*.pt
-/models/*.jsonl
 /runs/
