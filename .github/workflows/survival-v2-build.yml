@@ -4,6 +4,9 @@ on:
     branches: [implementation/survival-audit-v2]
 permissions:
   contents: write
+concurrency:
+  group: survival-v2-build
+  cancel-in-progress: true
 jobs:
   prepare:
     if: github.actor != 'github-actions[bot]'
@@ -13,6 +16,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: implementation/survival-audit-v2
+          fetch-depth: 0
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
@@ -26,22 +30,22 @@ jobs:
           s = s.replace('import ast\n', 'import ast\nimport copy\n', 1)
           old = '                        self.assertEqual(ast.dump(fn), ast.dump(new_methods[method]), method)'
           assert s.count(old) == 1
-          new = '''                        candidate = copy.deepcopy(new_methods[method])
-                                  if method == '_advance_search':
-                                      expected = ast.parse("if self.decision is not None and self.decision.policy == 'neural' and self.decision.target is not None:\\n    self.target.set(str(self.decision.target))").body[0]
-                                      removed = []
-                                      class StripRecovery(ast.NodeTransformer):
-                                          def visit_If(self, node):
-                                              if ast.dump(node) == ast.dump(expected):
-                                                  removed.append(node)
-                                                  return None
-                                              return self.generic_visit(node)
-                                      candidate = StripRecovery().visit(candidate)
-                                      self.assertEqual(len(removed), 1)
-                                  self.assertEqual(ast.dump(fn), ast.dump(candidate), method)'''
-          lines = new.splitlines()
-          new = lines[0] + '\n' + '\n'.join(line[10:] for line in lines[1:])
-          s = s.replace(old, new)
+          lines = [
+              'candidate = copy.deepcopy(new_methods[method])',
+              "if method == '_advance_search':",
+              '    expected = ast.parse("if self.decision is not None and self.decision.policy == \'neural\' and self.decision.target is not None:\\n    self.target.set(str(self.decision.target))").body[0]',
+              '    removed = []',
+              '    class StripRecovery(ast.NodeTransformer):',
+              '        def visit_If(self, node):',
+              '            if ast.dump(node) == ast.dump(expected):',
+              '                removed.append(node)',
+              '                return None',
+              '            return self.generic_visit(node)',
+              '    candidate = StripRecovery().visit(candidate)',
+              '    self.assertEqual(len(removed), 1)',
+              'self.assertEqual(ast.dump(fn), ast.dump(candidate), method)',
+          ]
+          s = s.replace(old, '\n'.join(' ' * 24 + line for line in lines))
           compile(s, str(p), 'exec')
           p.write_text(s)
           PY
