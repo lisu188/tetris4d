@@ -1,0 +1,32 @@
+{
+  "base_commit": "edfc03a414d1905ba321c1106c7ecd49afcdd1a8",
+  "workflow_run": 43171507361,
+  "passed": true,
+  "platform": "GitHub Actions Ubuntu x86_64",
+  "python": "3.12.16",
+  "torch": "2.10.0+cpu",
+  "cuda_tested": false,
+  "new_tests": {"run": 16, "passed": 15, "skipped_cuda": 1},
+  "overnight_tests": {"run": 21, "passed": 20, "skipped_cuda": 1},
+  "neural_tests": {"run": 13, "passed": 12, "skipped_cuda": 1},
+  "launch_default_tests_passed": 10,
+  "engine_assertions_passed": 67034,
+  "neural_gui_checks_passed": 102,
+  "gui_environment": "Linux virtual display, not WSLg",
+  "actual_committed_rl_checkpoint_smoke": {
+    "initial_sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5",
+    "model_parameters": 62485,
+    "original_updates": 11660,
+    "result_updates": 11664,
+    "runner_updates": 2,
+    "optimizer_steps": 4,
+    "successful_placements": 32,
+    "warmup_updates": 1,
+    "survival_rollouts": 1,
+    "final_exact_kl": 0.001359608861093875,
+    "original_model_files_byte_identical_after_run": true,
+    "recording_enabled": true
+  },
+  "guarantees_tested": ["exact CPU model/optimizer/environment resume", "PPO clipping for positive and negative advantages", "categorical KL with invalid-action padding", "equivalent primary-utility teacher actions", "survival critic output reset on transfer", "preserved actor weights before training", "checkpoint algorithm/settings rejection", "existing NeuralAgent compatibility", "JSON game replay verification"],
+  "limitation": "Correctness and short execution tests only. No new long-game strength, CUDA throughput, or indefinite-survival claim."
+}

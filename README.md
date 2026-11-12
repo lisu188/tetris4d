@@ -240,3 +240,14 @@ Implemented sigmoid Conv3d policy/value model (62,485 default parameters), demon
 ## Overnight survival policy training
 
 Run `.venv/bin/python -u train_overnight.py --hours 8 --device cuda --record-games` to train for longer survival without extra rewards for clears. Re-run the same command to resume. See [docs/overnight-survival.md](docs/overnight-survival.md) for checkpoints, best-model selection, JSON replay verification, limits and WSL detachment.
+
+
+## Survival-first PPO training
+
+The weight-audit follow-up is available as `train_survival.py`. It prefers the committed RL weights for initialization, resets the old clear-value output, uses clipped PPO with an exact categorical-KL early stop, and treats ties in the teacher primary objective as acceptable alternatives. It does not change the sigmoid architecture, native physics, stored models or no-argument GUI default.
+
+```bash
+.venv/bin/python -u train_survival.py --hours 8 --device cuda --record-games
+```
+
+Rerunning resumes `runs/survival-ppo/last.pt`. Old A2C run directories remain separate. Checkpoints, replayable JSON games, evaluation and rank diagnostics are saved locally. A better training algorithm is not evidence of better play: only completed survival evaluations select `best.pt`, and there is no automatic promotion over sustained. See [survival PPO documentation](docs/survival-ppo.md).
