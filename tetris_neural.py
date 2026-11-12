@@ -361,6 +361,10 @@ class NeuralAgent:
                          'device': str(self.device), 'config': asdict(self.model.config),
                          'parameters': sum(p.numel() for p in self.model.parameters()),
                          'updates': self.checkpoint['progress'].get('updates', 0), 'status': self.checkpoint['status']}
+        extra = self.checkpoint.get('extra', {})
+        survival = extra.get('kind') == 'tetris4d-overnight-survival-v1'
+        self.metadata['value_semantics'] = extra.get('value_semantics', 'expected_remaining_placements_times_0.001' if survival else 'discounted_hyperlayers')
+        self.metadata['completion_semantics'] = extra.get('completion_semantics', 'imitation_auxiliary_not_recalibrated' if survival or self.checkpoint['progress'].get('mode') == 'a2c' else 'imitation_auxiliary')
 
     def steps(self, state, target=1, candidates=None):
         started = time.perf_counter()
@@ -481,7 +485,9 @@ class NeuralView:
         grid(trace['hidden2'], 32, y + 24 + 4 * cell, 'rank-hidden-64')
         grid(trace['completion'], 16, y + 28 + 7 * cell, 'layer-completion')
         label = 'ACTIVE NEURAL POLICY' if self.policy() == 'neural' else 'Stored trace; neural policy not active'
-        self.detail.set(f"{label}\nLogit {trace['logit']:.5f} · value {trace['value']:.4f} · {trace['shortlist']} legal candidates\nEncoder input is the board BEFORE that decision. Hover for values.")
+        value_units = 'remaining placements / 1000' if self.agent.metadata['value_semantics'] == 'expected_remaining_placements_times_0.001' else 'discounted clears'
+        auxiliary = 'Completion: imitation auxiliary; not recalibrated.' if 'not_recalibrated' in self.agent.metadata['completion_semantics'] else 'Completion: imitation auxiliary.'
+        self.detail.set(f"{label}\nLogit {trace['logit']:.5f} · value {trace['value']:.4f} ({value_units}) · {trace['shortlist']} legal candidates\n{auxiliary}\nEncoder input is the board BEFORE that decision. Hover for values.")
 
 
 def _clear_mask(state, move):

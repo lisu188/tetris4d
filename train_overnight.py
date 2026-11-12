@@ -310,6 +310,12 @@ def preserve_rng():
 
 
 class Trainer:
+    def training_signature(self):
+        return {}
+
+    def checkpoint_metadata(self):
+        return {}
+
     def __init__(self, args, budget: Budget):
         self.args, self.budget = args, budget
         self.root = args.run_dir.resolve()
@@ -336,6 +342,7 @@ class Trainer:
         self.signature.update(objective='undiscounted_successful_placements', gamma=1.0,
                               reward_scale=REWARD_SCALE, neural_sha256=file_hash(Path(neural.__file__)),
                               engine_sha256=file_hash(Path(game.__file__)))
+        self.signature.update(self.training_signature())
         self.baseline = None
         self.best_record = None
         saved = None
@@ -535,6 +542,7 @@ class Trainer:
                  'initial_checkpoint': self.initial_checkpoint, 'last_evaluated_update': self.last_evaluated_update,
                  'elapsed_seconds': self.elapsed_before + time.monotonic() - self.budget.started,
                  'objective': 'maximize successful placements before loss; gamma=1; reward scaled by 0.001'}
+        extra.update(self.checkpoint_metadata())
         temporary = self.root / '.next-checkpoint.pt'
         neural.save_checkpoint(temporary, self.model, self.optimizer, self.progress, extra)
         with temporary.open('rb') as stream:
