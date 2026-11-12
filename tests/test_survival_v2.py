@@ -93,7 +93,10 @@ class RuntimeTests(unittest.TestCase):
             index = int(logits.argmax())
             self.assertEqual(index, prepared.teacher)
             teacher = game.choose_sustained_move(state.board, state.current, target, config.candidates, state.pieces)
-            self.assertEqual(prepared.options[index], teacher.move.candidate)
+            candidate = prepared.options[index]
+            self.assertEqual(replace(candidate, score=teacher.move.candidate.score), teacher.move.candidate)
+            self.assertAlmostEqual(candidate.score, teacher.move.candidate.score, places=11)
+            self.assertEqual(game.materialize_move(state.board, candidate).board, teacher.move.board)
             state.commit(teacher.move)
             if teacher.move.layers:
                 target = game.next_hyperlayer_target(state.board, target)

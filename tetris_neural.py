@@ -37,6 +37,11 @@ class Config:
     candidates: int = 2048
     chunk: int = 256
     protect_target: bool = True
+    recover_target: bool = False
+    policy_mode: str = 'neural'
+    residual_scale: float = 1.0
+    detach_critic: bool = False
+    centered_critic: bool = False
 
     def __post_init__(self):
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
@@ -46,8 +51,12 @@ class Config:
             raise ValueError('Unsupported encoder dimensions')
         if not 2 <= self.shortlist <= 2048 or not 1 <= self.candidates <= 65536 or not 1 <= self.chunk <= 2048:
             raise ValueError('Invalid candidate, shortlist or chunk size')
-        if type(self.protect_target) is not bool:
-            raise ValueError('protect_target must be boolean')
+        if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic')):
+            raise ValueError('Target and critic settings must be boolean')
+        if self.policy_mode not in ('neural', 'teacher-residual'):
+            raise ValueError('Unsupported policy mode')
+        if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
+            raise ValueError('residual_scale must be between 0 and 4')
 
 
 def device_for(name: str) -> torch.device:
@@ -143,7 +152,14 @@ class ColumnPolicy(nn.Module):
             spatial, activation = block(spatial)
         pooled = spatial.mean(dim=(2, 3, 4))
         joined = torch.cat((pooled, context), dim=1)
-        return spatial, pooled, self.value(joined).squeeze(-1), self.completion(joined), activation
+        value_input = joined.detach() if self.config.detach_critic else joined
+        return spatial, pooled, self.critic(value_input), self.completion(joined), activation
+
+    def critic(self, joined):
+        if self.config.centered_critic:
+            hidden = torch.sigmoid(self.value[0](joined)) - .5
+            return self.value[2](hidden).squeeze(-1)
+        return self.value(joined).squeeze(-1)
 
     def rank_chunk(self, spatial, pooled, context, features, indices, column_mask):
         flat = spatial.flatten(2).transpose(1, 2)
@@ -165,8 +181,14 @@ class ColumnPolicy(nn.Module):
             logits, _, _ = self.rank_chunk(spatial, pooled, batch['context'], batch['features'][:, start:stop],
                                            batch['indices'][:, start:stop], batch['column_mask'][:, start:stop])
             pieces.append(logits)
-        logits = torch.cat(pieces, dim=1).masked_fill(~batch['valid'].bool(), -torch.inf)
-        result = {'logits': logits, 'value': value, 'completion': completion}
+        logits = torch.cat(pieces, dim=1)
+        if self.config.policy_mode == 'teacher-residual':
+            if 'teacher_prior' not in batch:
+                raise ValueError('Residual policy requires exact teacher ranking features')
+            logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(logits.float()) - 1)
+        logits = logits.masked_fill(~batch['valid'].bool(), -torch.inf)
+        result = {'logits': logits, 'value': value, 'completion': completion,
+                  'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
         if capture:
             selected = logits.argmax(dim=1)
             rows = torch.arange(len(selected), device=selected.device)
@@ -202,7 +224,7 @@ def _option_features(board, candidate, target, context):
     return np.concatenate((np.asarray(fixed, dtype=np.float32), cells.ravel())), touched
 
 
-def prepare_steps(state, target: int, config: Config, candidates: int | None = None):
+def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
     budget = config.candidates if candidates is None else candidates
     if type(budget) is not int or budget < 0:
         raise ValueError('Invalid candidate budget')
@@ -267,6 +289,7 @@ def prepare_steps(state, target: int, config: Config, candidates: int | None = N
         keep = sorted(top)
     else:
         keep = list(range(len(options)))
+    kept_keys = [keys[i] for i in keep]
     options = tuple(options[i] for i in keep)
     teacher = keep.index(best)
     features = np.zeros((len(options), FEATURES), dtype=np.float32)
@@ -278,7 +301,30 @@ def prepare_steps(state, target: int, config: Config, candidates: int | None = N
     arrays = {'boards': np.asarray(state.board, dtype=np.int32), 'targets': np.asarray(target, dtype=np.int64),
               'context': state_context(state, target), 'features': features, 'indices': indices,
               'column_mask': mask, 'valid': np.ones(len(options), dtype=np.bool_)}
+    order = sorted(range(len(options)), key=lambda i: kept_keys[i], reverse=True)
+    rank = np.empty(len(options), dtype=np.float32)
+    rank[order] = np.arange(len(options), dtype=np.float32)
+    deficits = np.asarray([kept_keys[teacher][0] - k[0] for k in kept_keys], dtype=np.float32)
+    arrays['teacher_prior'] = -32 * deficits - rank / 8
     return Prepared(arrays, options, teacher, evaluations, fallback)
+
+
+def prepare_steps(state, target: int, config: Config, candidates: int | None = None):
+    prepared = yield from _prepare_steps(state, target, config, candidates)
+    if prepared is not None or not config.recover_target or not config.protect_target:
+        return prepared
+    if state.game_over or not game.has_legal_move(state.board, state.current):
+        return None
+    for alternative in sorted(range(game.HEIGHT), key=lambda z: (abs(z - target), z)):
+        if alternative == target:
+            continue
+        status = game.target_layer_status(state.board, alternative)
+        if status.buried or status.filled == game.AREA:
+            continue
+        prepared = yield from _prepare_steps(state, alternative, config, candidates)
+        if prepared is not None:
+            return prepared
+    return None
 
 
 def prepare(*args, **kwargs):
@@ -299,7 +345,7 @@ def collate(records: list[dict], device: torch.device) -> dict:
         values = []
         for row in records:
             value = np.asarray(row[name])
-            if name in ('features', 'indices', 'column_mask', 'valid'):
+            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior'):
                 value = np.pad(value, [(0, maximum - len(value))] + [(0, 0)] * (value.ndim - 1))
             values.append(value)
         result[name] = torch.from_numpy(np.stack(values)).to(device)
@@ -344,7 +390,7 @@ def load_checkpoint(path, device, restore_rng=False):
 
 
 class NeuralAgent:
-    def __init__(self, path, device='auto', engine=None, allow_untrained=False):
+    def __init__(self, path, device='auto', engine=None, allow_untrained=False, capture_traces=True):
         global game
         if engine is not None:
             game = engine
@@ -356,6 +402,8 @@ class NeuralAgent:
             raise ValueError('Heuristic parameters differ from the training candidate pipeline; use the matching JSON weights')
         self.model.eval()
         self.last_trace = None
+        self.pending_trace = None
+        self.capture_traces = capture_traces
         self.last_metrics = {}
         self.metadata = {'schema': SCHEMA, 'checkpoint_sha256': hashlib.sha256(Path(path).read_bytes()).hexdigest(),
                          'device': str(self.device), 'config': asdict(self.model.config),
@@ -372,20 +420,21 @@ class NeuralAgent:
         if prepared is None:
             return None
         before = time.perf_counter()
+        requested_target = target
+        target = int(prepared.arrays['targets'])
         batch = collate([prepared.arrays], self.device)
         with torch.inference_mode():
-            prediction = self.model(batch, capture=True)
+            prediction = self.model(batch, capture=self.capture_traces is True)
             index = int(prediction['logits'][0].argmax().item())
             if not bool(torch.isfinite(prediction['logits'][0][batch['valid'][0]]).all()):
                 raise ValueError('Neural inference produced non-finite logits')
             score = float(prediction['logits'][0, index].item())
-            self.last_trace = {'activation': prediction['activation'][0].float().cpu().numpy(),
-                               'hidden1': prediction['hidden1'][0].float().cpu().numpy(),
-                               'hidden2': prediction['hidden2'][0].float().cpu().numpy(),
-                               'completion': torch.sigmoid(prediction['completion'][0]).float().cpu().numpy(),
-                               'value': float(prediction['value'][0].item()), 'logit': score,
-                               'piece': state.current, 'piece_number': state.pieces + 1,
-                               'shortlist': len(prepared.options), 'selected': index}
+            trace_info = {'logit': score, 'piece': state.current, 'piece_number': state.pieces + 1,
+                          'shortlist': len(prepared.options), 'selected': index}
+            if self.capture_traces is True:
+                self.last_trace = self._trace(prediction, trace_info)
+            elif self.capture_traces == 'lazy':
+                self.pending_trace = (prepared.arrays, trace_info)
         inferred = time.perf_counter()
         candidate = prepared.options[index]
         move = game.materialize_move(state.board, candidate)
@@ -393,7 +442,10 @@ class NeuralAgent:
         self.last_metrics = {'prepare_ms': (before - started) * 1000,
                              'inference_and_trace_transfer_ms': (inferred - before) * 1000,
                              'evaluations': prepared.evaluations, 'shortlist': len(prepared.options),
-                             'teacher_agreement': index == prepared.teacher, **self.metadata}
+                             'teacher_agreement': index == prepared.teacher,
+                             'requested_target': requested_target, 'active_target': target,
+                             'target_recovered': target != requested_target,
+                             'trace_captured': self.capture_traces is True, **self.metadata}
         return game.Decision(move, score, prepared.evaluations, (time.perf_counter() - started) * 1000,
                              1, 1, candidates or self.model.config.candidates, True, 'neural', target, gain, prepared.fallback)
 
@@ -405,7 +457,24 @@ class NeuralAgent:
             except StopIteration as result:
                 return result.value
 
+    def _trace(self, prediction, info):
+        return {**info, 'activation': prediction['activation'][0].float().cpu().numpy(),
+                'hidden1': prediction['hidden1'][0].float().cpu().numpy(),
+                'hidden2': prediction['hidden2'][0].float().cpu().numpy(),
+                'completion': torch.sigmoid(prediction['completion'][0]).float().cpu().numpy(),
+                'value': float(prediction['value'][0].item())}
+
+    def get_trace(self):
+        if self.pending_trace is not None:
+            arrays, info = self.pending_trace
+            with torch.inference_mode():
+                prediction = self.model(collate([arrays], self.device), capture=True)
+            self.last_trace = self._trace(prediction, info)
+            self.pending_trace = None
+        return self.last_trace
+
     def create_view(self, parent, legacy_class, policy):
+        self.capture_traces = 'lazy'
         return NeuralView(parent, self, legacy_class, policy)
 
 
@@ -452,7 +521,7 @@ class NeuralView:
         if self.tabs.index(self.tabs.select()) == 1:
             self.legacy.update(move, w)
             return
-        trace = self.agent.last_trace
+        trace = self.agent.get_trace()
         width, height = max(360, self.canvas.winfo_width()), max(300, self.canvas.winfo_height())
         key = (id(trace), w, self.channel.get(), width, height, self.policy())
         if key == self.key and not force:
@@ -888,7 +957,7 @@ def finetune(args):
 
 
 def evaluate(args):
-    agent = NeuralAgent(args.checkpoint, args.device)
+    agent = NeuralAgent(args.checkpoint, args.device, capture_traces=False)
     runs = []
     for seed in args.seeds:
         for policy in ('sustained', 'neural'):
@@ -903,6 +972,7 @@ def evaluate(args):
                                                          agent.model.config.candidates, state.pieces)
                 if decision is None:
                     break
+                target = decision.target if decision.target is not None else target
                 state.commit(decision.move)
                 decisions += 1
                 if policy == 'neural':

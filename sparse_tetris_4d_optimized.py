@@ -2812,6 +2812,8 @@ class TetrisApp:
                 self.decision = result.value
                 self.search = None
                 self.planned = self.decision.move if self.decision else None
+                if self.decision is not None and self.decision.policy == 'neural' and self.decision.target is not None:
+                    self.target.set(str(self.decision.target))
                 if self.decision is None:
                     self.running = self.pending_step = False
                     self.game.game_over = not has_legal_move(self.game.board, self.game.current)

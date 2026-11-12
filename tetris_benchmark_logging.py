@@ -254,8 +254,9 @@ class BenchmarkLog:
                 self.observe(label, time.perf_counter_ns() - start, time.process_time_ns() - cpu)
         self._patch(owner, name, call)
 
-    def _search(self, name):
-        original = getattr(self.game, name)
+    def _search(self, name, owner=None):
+        owner = self.game if owner is None else owner
+        original = getattr(owner, name)
         @wraps(original)
         def steps(*args, **kwargs):
             iterator = original(*args, **kwargs)
@@ -276,8 +277,8 @@ class BenchmarkLog:
                         latency = time.perf_counter_ns() - latency_start
                         self.observe('search_elapsed_latency', latency)
                         self.emit('decision', index=self.decisions,
-                                  backend=self._backend(), policy=decision.policy if decision is not None else ('sustained' if name.startswith('sustained') else 'hyperlayer' if name.startswith('hyperlayer') else 'network'),
-                                  piece=args[1] if len(args) > 1 else kwargs.get('piece'),
+                                  backend=self._backend(), policy=decision.policy if decision is not None else ('neural' if owner is not self.game else 'sustained' if name.startswith('sustained') else 'hyperlayer' if name.startswith('hyperlayer') else 'network'),
+                                  piece=getattr(args[0], 'current', None) if owner is not self.game and args else (args[1] if len(args) > 1 else kwargs.get('piece')),
                                   work_wall_ns=wall_total, process_cpu_ns=cpu_total,
                                   elapsed_latency_ns=latency, slices=slices, found=decision is not None,
                                   evaluations=decision.evaluations if decision else None,
@@ -300,7 +301,7 @@ class BenchmarkLog:
                     yield value
             finally:
                 iterator.close()
-        self._patch(self.game, name, steps)
+        self._patch(owner, name, steps)
 
     def _game_state(self, agent):
         key = id(agent)
@@ -322,6 +323,9 @@ class BenchmarkLog:
         self._timed(self.game.PlacementBatch, '__init__', 'batch_preparation')
         for name in ('decision_steps', 'hyperlayer_decision_steps', 'sustained_decision_steps'):
             self._search(name)
+        agent = getattr(self.game, 'NEURAL_AGENT', None)
+        if agent is not None:
+            self._search('steps', agent)
         original_commit = self.game.Game.commit
         @wraps(original_commit)
         def commit(agent, move):
