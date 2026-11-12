@@ -35,7 +35,7 @@ class Clock:
 
 def decision():
     yield 1
-    return SimpleNamespace(move=object())
+    return SimpleNamespace(move=object(), policy='sustained', target=1)
 
 
 def stub():
@@ -127,6 +127,22 @@ class UnlimitedTests(unittest.TestCase):
         self.assertIsNotNone(app.planned)
         self.assertFalse(app.running)
         self.assertGreater(app.root.after.call_args.args[0], 1)
+
+    def test_neural_recovery_updates_target_without_placing_or_resuming(self):
+        app = stub()
+        app.running = False
+        board = app.game.board
+        def recovered():
+            yield 1
+            return SimpleNamespace(move=object(), policy='neural', target=5)
+        app.search = recovered()
+        with patch.object(game.time, 'perf_counter', side_effect=Clock()):
+            app.tick()
+        self.assertEqual(app.target.get(), '5')
+        self.assertIs(app.game.board, board)
+        self.assertEqual(app.game.pieces, 0)
+        self.assertFalse(app.running)
+        app.place.assert_not_called()
 
     def test_single_step_commits_exactly_once_in_unlimited(self):
         app = stub()
