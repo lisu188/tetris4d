@@ -1,0 +1,46 @@
+name: Prepare tested survival PPO integration
+on:
+  push:
+    branches: [training/survival-ppo-build]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: training/survival-ppo-build
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python .ci/apply-survival-ppo.py
+      - run: python -m pip install -r requirements-numpy.txt
+      - run: python -m pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: python tools/build_native.py
+      - name: Validate objectives, exact resume, and existing neural integration
+        run: |
+          python tests/test_survival_ppo.py
+          python tests/test_overnight.py
+          python tests/test_neural.py
+          python tests/test_launch_defaults.py
+          python sparse_tetris_4d_optimized.py --test --backend native
+      - name: Exercise real committed RL weights without overwriting them
+        run: |
+          sha256sum models/*.pt > /tmp/original-models.sha256
+          python train_survival.py --device cpu --run-dir /tmp/tetris-ppo-smoke --max-updates 2 --selection-pieces 8 --rollout 8 --envs 2 --batch 2 --warmup-updates 1 --record-games
+          sha256sum --check /tmp/original-models.sha256
+          python -c "import json; r=json.load(open('/tmp/tetris-ppo-smoke/summary.json')); assert r['placements']==32 and r['runner_updates']==2 and r['optimizer_steps']>=2, r; print(r)"
+      - name: Validate actual neural GUI
+        run: |
+          bash .github/scripts/ensure-display.sh
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tests/test_neural_gui.py
+      - name: Publish validated integration files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add train_overnight.py tetris_neural.py README.md
+          git commit -m 'feat: integrate survival PPO signatures and truthful value metadata'
+          git push origin HEAD:training/survival-ppo-build
