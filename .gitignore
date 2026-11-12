@@ -18,3 +18,8 @@ venv/
 /native/*.dylib.json
 .venv/
 
+/runs/survival-ppo-v2/
+/*.artifacts/
+/experiments/*.tar.gz
+/experiments/*.tar.gz.json
+/survival-comparison*.json
