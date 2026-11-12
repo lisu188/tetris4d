@@ -1,0 +1,27 @@
+{
+  "schema": "tetris4d-survival-v2-staging-validation-v1",
+  "base_commit": "11a4b222bc14e992ea61e890d9068b64f8f941cf",
+  "validated_integration_commit": "ff6b4142cd5c96dd8c87cee526c20f6057eaf9bf",
+  "workflow_run": 43208099677,
+  "workflow_job": 131148320878,
+  "result": "success",
+  "recovery_fixtures": 35,
+  "reconstructed_recording_placements": 260550,
+  "recording_validation": "rigid landings, collisions, piece order, actual clear masks, final board hashes and counters",
+  "test_suites": [
+    "tests/test_survival_v2.py",
+    "tests/test_survival_ppo.py",
+    "tests/test_overnight.py",
+    "tests/test_neural.py",
+    "tests/test_benchmark_logging.py",
+    "tests/test_neural_gui.py under Xvfb",
+    "tests/test_renderer_optimization.py under Xvfb"
+  ],
+  "new_v2_suite_tests": 34,
+  "new_v2_suite_passed": 33,
+  "new_v2_suite_cuda_skips": 1,
+  "models_and_historical_runs_unchanged": true,
+  "cuda_performance_measured": false,
+  "long_game_playing_strength_measured": false,
+  "note": "Staging correctness evidence. Final PR workflows re-run the checks. Synthetic calibration validation and optimizer smoke tests are not evidence of stronger Tetris play."
+}

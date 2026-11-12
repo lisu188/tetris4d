@@ -4,6 +4,7 @@ import argparse
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 import hashlib
+import gzip
 import json
 import math
 import os
@@ -148,9 +149,13 @@ class Episode:
     complete: bool = False
 
     def snapshot(self):
-        return {'number': self.number, 'seed': self.state.seed, 'piece_set': self.state.piece_set,
-                'target': self.target, 'moves': self.moves, 'phase': self.phase,
-                'board_sha256': board_hash(self.state.board), 'summary': self.state.summary()}
+        result = {'number': self.number, 'seed': self.state.seed, 'piece_set': self.state.piece_set,
+                  'target': self.target, 'moves': self.moves, 'phase': self.phase,
+                  'board_sha256': board_hash(self.state.board), 'summary': self.state.summary()}
+        pending = getattr(self, 'pending_retarget', None)
+        if pending is not None:
+            result['pending_retarget'] = pending
+        return result
 
 
 def apply_move(episode: Episode, candidate, update: int, behavior: str):
@@ -167,6 +172,10 @@ def apply_move(episode: Episode, candidate, update: int, behavior: str):
            'cleared_mask': cleared, 'clears': move.layers, 'target_before': before_target,
            'target_after': episode.target, 'update': update, 'behavior': behavior,
            'reward_pieces': 1, 'board_sha256': board_hash(state.board)}
+    pending = getattr(episode, 'pending_retarget', None)
+    if pending is not None:
+        row['retarget_from'] = pending
+        episode.pending_retarget = None
     episode.moves.append(row)
     return move
 
@@ -177,6 +186,13 @@ def restore_episode(snapshot) -> Episode:
     for row in snapshot['moves']:
         if row['piece_number'] != state.pieces + 1 or row['piece'] != state.current:
             raise ValueError('Replay piece order does not match the deterministic bag.')
+        if 'retarget_from' in row:
+            if row['retarget_from'] != episode.target:
+                raise ValueError('Replay recovery source does not match.')
+            status = game.target_layer_status(state.board, row['target_before'])
+            if status.buried or status.filled == game.AREA:
+                raise ValueError('Replay recovery target is inaccessible.')
+            episode.pending_retarget, episode.target = episode.target, row['target_before']
         if row['target_before'] != episode.target:
             raise ValueError('Replay target history does not match.')
         move = game.make_move(state.board, state.current, row['rotation'], row['x'], row['y'], row['w'])
@@ -187,6 +203,13 @@ def restore_episode(snapshot) -> Episode:
         for name in ('clears', 'cleared_mask', 'target_after', 'reward_pieces', 'board_sha256'):
             if actual[name] != row[name]:
                 raise ValueError(f'Replay mismatch at piece {state.pieces}: {name}')
+    if snapshot.get('pending_retarget') is not None:
+        if snapshot['pending_retarget'] != episode.target:
+            raise ValueError('Pending target recovery source does not match.')
+        status = game.target_layer_status(state.board, snapshot['target'])
+        if status.buried or status.filled == game.AREA:
+            raise ValueError('Pending recovery target is inaccessible.')
+        episode.pending_retarget, episode.target = episode.target, snapshot['target']
     if episode.target != snapshot['target'] or board_hash(state.board) != snapshot['board_sha256']:
         raise ValueError('Replay final state does not match.')
     if snapshot.get('summary') != state.summary():
@@ -259,7 +282,9 @@ class Recorder:
 
 
 def verify_game(path: Path):
-    data = json.loads(Path(path).read_text(encoding='utf-8'))
+    path = Path(path)
+    text = gzip.decompress(path.read_bytes()).decode('utf-8') if path.suffix == '.gz' else path.read_text(encoding='utf-8')
+    data = json.loads(text)
     if data.get('schema') != REPLAY_SCHEMA or data.get('pieces_sha256') != neural.fingerprint():
         raise ValueError('Unsupported recording schema or different piece catalog.')
     old = game.network_parameters()
@@ -315,6 +340,15 @@ class Trainer:
 
     def checkpoint_metadata(self):
         return {}
+
+    def configure_model(self, resuming):
+        pass
+
+    def create_optimizer(self):
+        return torch.optim.AdamW(self.model.parameters(), lr=self.args.lr, weight_decay=1e-4)
+
+    def restore_extra(self, saved):
+        pass
 
     def __init__(self, args, budget: Budget):
         self.args, self.budget = args, budget
@@ -381,15 +415,17 @@ class Trainer:
                              'finished_episodes': 0, 'mode': 'overnight-survival'}
             self.next_episode = 0
             self.environments = [self.new_episode() for _ in range(args.envs)]
+        self.configure_model(saved is not None)
         self.signature['model_config'] = asdict(self.model.config)
         self.recorder.context = {'training_session': self.session, 'model_config': asdict(self.model.config),
                                  'objective': self.signature['objective'],
                                  'neural_sha256': self.signature['neural_sha256']}
-        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=args.lr, weight_decay=1e-4)
+        self.optimizer = self.create_optimizer()
         self.scaler = torch.amp.GradScaler('cuda', enabled=self.device.type == 'cuda' and args.precision == 'fp16')
         if saved is not None:
             self.optimizer.load_state_dict(saved['optimizer'])
             self.scaler.load_state_dict(saved['extra']['scaler'])
+            self.restore_extra(saved)
         if args.max_updates:
             self.stop_at_update = self.progress['runner_updates'] + args.max_updates
         if self.device.type == 'cuda':

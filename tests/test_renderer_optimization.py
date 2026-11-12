@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import copy
 from dataclasses import asdict
 import random
 from pathlib import Path
@@ -69,7 +70,19 @@ class RendererTests(unittest.TestCase):
                 new_methods = {n.name: n for n in new[name].body if isinstance(n, ast.FunctionDef)}
                 for method, fn in old_methods.items():
                     if method not in ('render_metrics', '__init__', 'refresh_plan', 'place', '_draw_now'):
-                        self.assertEqual(ast.dump(fn), ast.dump(new_methods[method]), method)
+                        candidate = copy.deepcopy(new_methods[method])
+                        if method == '_advance_search':
+                            expected = ast.parse("if self.decision is not None and self.decision.policy == 'neural' and self.decision.target is not None:\n    self.target.set(str(self.decision.target))").body[0]
+                            removed = []
+                            class StripRecovery(ast.NodeTransformer):
+                                def visit_If(self, node):
+                                    if ast.dump(node) == ast.dump(expected):
+                                        removed.append(node)
+                                        return None
+                                    return self.generic_visit(node)
+                            candidate = StripRecovery().visit(candidate)
+                            self.assertEqual(len(removed), 1)
+                        self.assertEqual(ast.dump(fn), ast.dump(candidate), method)
             else:
                 self.assertEqual(ast.dump(node), ast.dump(new[name]), name)
         self.assertEqual(game.PIECE_CELLS, baseline.PIECE_CELLS)
