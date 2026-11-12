@@ -1,0 +1,10 @@
+{
+  "policy": "sustained",
+  "checkpoint": null,
+  "selection_seeds": [
+    910001,
+    910003
+  ],
+  "selection_piece_cap": 32000,
+  "note": "Selection evidence only; no automatic GUI-default change and no independent held-out claim."
+}

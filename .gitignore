@@ -17,7 +17,4 @@ venv/
 /native/*.so.json
 /native/*.dylib.json
 .venv/
-logs/
 
-/data/neural*/
-/runs/

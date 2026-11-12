@@ -1,0 +1,18 @@
+{
+  "algorithm": "survival-ppo-v1",
+  "runner_updates": 700,
+  "checkpoint_sha256": "b6cfd280c804f579334b4408398b608fdb34876d5b02bbe24d49706efc4e2a4d",
+  "ranking_spectra": {
+    "rank1": {
+      "top_direction_energy": 0.8472768068313599,
+      "participation_rank": 1.3924343585968018
+    },
+    "rank2": {
+      "top_direction_energy": 0.93235844373703,
+      "participation_rank": 1.1502174139022827
+    }
+  },
+  "value_semantics": "expected remaining placements / 1000",
+  "completion_semantics": "imitation auxiliary; not calibrated for the survival policy",
+  "note": "Spectra are diagnostics, not proof of stronger gameplay."
+}
