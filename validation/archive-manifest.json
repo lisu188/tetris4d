@@ -1,0 +1,2256 @@
+{
+  "schema": "tetris4d-archived-repository-artifacts-v1",
+  "source_revision": "4617ca4e181800735ba702f166f69661b88edaeb",
+  "purpose": "Remove historical bulk from the active PPO checkout while preserving its Git history and all existing local files. No history rewrite or local experiment deletion.",
+  "tracked_bytes_before": 519982251,
+  "removed_tracked_bytes": 517452130,
+  "retained_tracked_bytes_before_new_reports": 2530121,
+  "groups": {
+    "data/neural-demonstrations": 72167231,
+    "logs": 35950617,
+    "models/neural-policy.jsonl": 48217,
+    "models/neural-policy.pt": 807443,
+    "models/neural-rl.jsonl": 555808,
+    "runs/overnight-survival": 250818647,
+    "runs/survival-ppo": 148561649,
+    "survival-ppo-inspection-20261112T073229Z.pt": 4825851,
+    "survival-ppo-inspection-20261112T085350Z.pt": 3716667
+  },
+  "recovery": "Use git show SOURCE_REVISION:PATH to restore exact archived bytes from Git history. The original working copy and dirty or untracked experiments remain untouched.",
+  "files": [
+    {
+      "path": "data/neural-demonstrations/manifest.json",
+      "bytes": 40321,
+      "git_blob_sha1": "5b264b7e19ec9255784c4038fdcf2a99b5ec35fa",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000000.npz",
+      "bytes": 442427,
+      "git_blob_sha1": "1dbdb3c327bda03ff9b18a9677088e7d27c64727",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000001.npz",
+      "bytes": 502023,
+      "git_blob_sha1": "fda5a89f11a4054ae15aab7e96ff20ae47d044cc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000002.npz",
+      "bytes": 488782,
+      "git_blob_sha1": "fc56b474b17093e678dbd21e5214d3fb07a8686e",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000003.npz",
+      "bytes": 482265,
+      "git_blob_sha1": "6a7ae731cb011b8cf8a26dba3f8de364ad88477f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000004.npz",
+      "bytes": 477374,
+      "git_blob_sha1": "4b7f05f933c8bc780de14f1ec9a0a40189adf58b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000005.npz",
+      "bytes": 486049,
+      "git_blob_sha1": "c713fbb2e16775a683ca176b7a72f1753a835287",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000006.npz",
+      "bytes": 471844,
+      "git_blob_sha1": "91f84ace0c157e44a64a35fb861421b126b00f9c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000007.npz",
+      "bytes": 481729,
+      "git_blob_sha1": "fdba854c181c4275fd3fadf9251e462cb6f8c82a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000008.npz",
+      "bytes": 488466,
+      "git_blob_sha1": "81b3470330cf005a671677f292f15478cc949bc7",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000009.npz",
+      "bytes": 500784,
+      "git_blob_sha1": "2479b3642df69d9e995a2c3e7bcadde23a221243",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000010.npz",
+      "bytes": 485990,
+      "git_blob_sha1": "6faa81cb656ebdfa2459bdc8c2f9619b688cff8d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000011.npz",
+      "bytes": 494609,
+      "git_blob_sha1": "340cf96a1f7fb35ac6ef4592fd0ddcbf041737c1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000012.npz",
+      "bytes": 487970,
+      "git_blob_sha1": "76f48b99b9fd1ad1451e766f3e6060ea7d6783ba",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000013.npz",
+      "bytes": 485816,
+      "git_blob_sha1": "212dfe124e9a7c10a37a79cdb0d90f116d5f825c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000014.npz",
+      "bytes": 381632,
+      "git_blob_sha1": "99f62d69d8f48be63e892158fc9baf2c8226e327",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000015.npz",
+      "bytes": 435130,
+      "git_blob_sha1": "c73c5ce54475fe314a3ba3b9a6e713b477a985ca",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000016.npz",
+      "bytes": 497615,
+      "git_blob_sha1": "874805cf837184c124b07c110ed679b2e4dcbf4f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000017.npz",
+      "bytes": 500401,
+      "git_blob_sha1": "3bcdddda86960d70c6e221ce84c86eb736f72791",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000018.npz",
+      "bytes": 488796,
+      "git_blob_sha1": "414b511c4b76873134d0290fd7effb789428c8c2",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000019.npz",
+      "bytes": 497616,
+      "git_blob_sha1": "9434b32f827d7bb7e828cd4648f453870b0c89f8",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000020.npz",
+      "bytes": 500850,
+      "git_blob_sha1": "fd4ec5e0dd65731910edc8afb6714d2912ef58c4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000021.npz",
+      "bytes": 479102,
+      "git_blob_sha1": "13ef45fa18da5698d897008312b28f221309daf3",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000022.npz",
+      "bytes": 500161,
+      "git_blob_sha1": "08102042aed89464af109666b5e6a62dc161e62b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000023.npz",
+      "bytes": 503469,
+      "git_blob_sha1": "85e13ebb1f57152a373f1bad064ae87bba986f09",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000024.npz",
+      "bytes": 468128,
+      "git_blob_sha1": "993694ec3dddf7b3c9469c75d0693e8976a6134f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000025.npz",
+      "bytes": 487944,
+      "git_blob_sha1": "9e21e62354926180416ab41652e9ab1b51e7df12",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000026.npz",
+      "bytes": 489506,
+      "git_blob_sha1": "b7515ce863da32a08e417434b26193a1427289ad",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000027.npz",
+      "bytes": 492693,
+      "git_blob_sha1": "5609e4634e4b322cd8f9466e146eff9bfdcc5847",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000028.npz",
+      "bytes": 491463,
+      "git_blob_sha1": "b5fbab9ae618a28b5e203afeb2d7163c64ff02b8",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000029.npz",
+      "bytes": 486738,
+      "git_blob_sha1": "67802c63007c6aa9174013b28f2ed7e4390b6512",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000030.npz",
+      "bytes": 266338,
+      "git_blob_sha1": "4d40d7ec3f87122435019255306d354fed259f0d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000031.npz",
+      "bytes": 449650,
+      "git_blob_sha1": "e1c8309539fc5088772dde25191f2f8006eaba1b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000032.npz",
+      "bytes": 485412,
+      "git_blob_sha1": "a8a35b85ea5b79cdd2bb357108e5a4e76d9b028b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000033.npz",
+      "bytes": 501877,
+      "git_blob_sha1": "8764c8ec4a5f7b9645540fc78d5fd47799e764fe",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000034.npz",
+      "bytes": 496582,
+      "git_blob_sha1": "4c9c2949148d2758fabcb416c2e6a97528a28ef9",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000035.npz",
+      "bytes": 493839,
+      "git_blob_sha1": "3889b4241b0d7fe521494d5a4f1a4031c6656bc4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000036.npz",
+      "bytes": 476327,
+      "git_blob_sha1": "1382b9882db34ef60795751b6b25275328fdb0e3",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000037.npz",
+      "bytes": 487567,
+      "git_blob_sha1": "69eb44cbf78d61af90f468fd5e63819f8dbfc70c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000038.npz",
+      "bytes": 477223,
+      "git_blob_sha1": "15dc20efa31af28b221ea12d6926e06a789d0358",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000039.npz",
+      "bytes": 494287,
+      "git_blob_sha1": "337ac3d4b8463eac2d0526f631232f65aa8d660c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000040.npz",
+      "bytes": 487399,
+      "git_blob_sha1": "a9a3ddc03e1e183c091bc1f88a44150e21b48286",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000041.npz",
+      "bytes": 488844,
+      "git_blob_sha1": "6db7aef9652221fe72113691147803900b9087f4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000042.npz",
+      "bytes": 482602,
+      "git_blob_sha1": "54551515cbb6233a4c0bfcb8906fc236cc2bb151",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000043.npz",
+      "bytes": 485965,
+      "git_blob_sha1": "aebd0fae0f7e7039b996e44fea0ff24fd59593b6",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000044.npz",
+      "bytes": 491165,
+      "git_blob_sha1": "c82f2725b59d5dde52138abb4c2738c999bf49e9",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000045.npz",
+      "bytes": 497439,
+      "git_blob_sha1": "cfc33b2e6c82a3db15ff3bcc44bea2d4d85a3b51",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000046.npz",
+      "bytes": 306945,
+      "git_blob_sha1": "f80cd7c0c686711e4634aefe797d2d10ae04e760",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000047.npz",
+      "bytes": 442548,
+      "git_blob_sha1": "e06625197d09df9ea93e35e8f47937fe5179a95f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000048.npz",
+      "bytes": 494282,
+      "git_blob_sha1": "e442d8f51b2c69caf9a584b56c68c82bc71dfcc4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000049.npz",
+      "bytes": 477771,
+      "git_blob_sha1": "a15a06089124f2c354b15821488b867d64387c94",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000050.npz",
+      "bytes": 494107,
+      "git_blob_sha1": "5ee16743c05cd32cc713f46fc3515c9fa68b6a0d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000051.npz",
+      "bytes": 498403,
+      "git_blob_sha1": "228518bd6796ed28cce0ac1e9d7462de2b0308ea",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000052.npz",
+      "bytes": 476399,
+      "git_blob_sha1": "babe3c10a95efde2cf84942b0501293181f97c8f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000053.npz",
+      "bytes": 495300,
+      "git_blob_sha1": "f07b9a1f57284371a8a8a4dd980b9b96953bb155",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000054.npz",
+      "bytes": 483647,
+      "git_blob_sha1": "9c30eac101c5cfd65d7e8e03abcb1e15d5031e06",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000055.npz",
+      "bytes": 490519,
+      "git_blob_sha1": "53f57ba7659c4c112da918667bb62037210fc4fc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000056.npz",
+      "bytes": 491137,
+      "git_blob_sha1": "4b59ca8ed4d3b20d8e8c1ca4e81cda45a432c1e7",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000057.npz",
+      "bytes": 508906,
+      "git_blob_sha1": "99d469cc622264983a0e49f35e1a1c146fed1115",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000058.npz",
+      "bytes": 500224,
+      "git_blob_sha1": "95167fca7c5008597fb4f54027d6c56089bc2504",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000059.npz",
+      "bytes": 494637,
+      "git_blob_sha1": "945e083fc91f547fd7c7d81638455fde1a9f15df",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000060.npz",
+      "bytes": 487336,
+      "git_blob_sha1": "b6c9c6399c203feedcce9a0a8031eeeae30d6b6b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000061.npz",
+      "bytes": 222686,
+      "git_blob_sha1": "d2701416c82d3a31ebbfeea0bf29f65086437682",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000062.npz",
+      "bytes": 437076,
+      "git_blob_sha1": "02fc6c9230c9b8d14992748c89a4f756a5b3141d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000063.npz",
+      "bytes": 492499,
+      "git_blob_sha1": "9c155a3b30a04e2bb57e9eeec5c34cc5b6ea0be2",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000064.npz",
+      "bytes": 484244,
+      "git_blob_sha1": "4608a9cf7813673b80f6cdf2961c97b55ab8c8af",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000065.npz",
+      "bytes": 491400,
+      "git_blob_sha1": "9d55cbe268993f3cd661bdd71d95f07c7f4c6735",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000066.npz",
+      "bytes": 484129,
+      "git_blob_sha1": "c6584ced3ccb6cbc0ff3295c1608e68886c2e0bc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000067.npz",
+      "bytes": 491508,
+      "git_blob_sha1": "ad2786eae548dabf02d9c55be5c22ca30cbabb3a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000068.npz",
+      "bytes": 481139,
+      "git_blob_sha1": "3dbef0828f423fe7ae4df5045e8704dd8004e642",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000069.npz",
+      "bytes": 483034,
+      "git_blob_sha1": "ee3ef34ff2afea274fdab12093fd358844d0a92b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000070.npz",
+      "bytes": 499180,
+      "git_blob_sha1": "c674da92c0741fb2bfd6b07e5081aa65726476dc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000071.npz",
+      "bytes": 499675,
+      "git_blob_sha1": "6a320a1ff2b877282288004f86b050f3d538bb7e",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000072.npz",
+      "bytes": 488789,
+      "git_blob_sha1": "bb9fcb098a48d25169eeb65db731ac6b35e11220",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000073.npz",
+      "bytes": 496318,
+      "git_blob_sha1": "ea6eb67a87641d84d52a7ad8c49a09429056fe8f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000074.npz",
+      "bytes": 492000,
+      "git_blob_sha1": "38f7186466d395f883dce5cb41e654369a257731",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000075.npz",
+      "bytes": 455591,
+      "git_blob_sha1": "78e38b541d8bc7a5c65c365a2b8ca5f73cdad779",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000076.npz",
+      "bytes": 451532,
+      "git_blob_sha1": "f0158430e6af3c048d2b3b2dd3d838ab9b78e27a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000077.npz",
+      "bytes": 470085,
+      "git_blob_sha1": "8f15d85c783bf7b8bade2b878f2014ae96847bc1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000078.npz",
+      "bytes": 492021,
+      "git_blob_sha1": "f6b4e7aacbe5bd5f16cea37d3da4c776330445b4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000079.npz",
+      "bytes": 490846,
+      "git_blob_sha1": "f193e3716d0a44a8ef8f4bec8a6a785a60709aee",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000080.npz",
+      "bytes": 490010,
+      "git_blob_sha1": "19b34bfff50993afdcfb53e27d9c85a89d69be85",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000081.npz",
+      "bytes": 488374,
+      "git_blob_sha1": "a3d4c834c1dbea4fc22b10b948195931ac47266c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000082.npz",
+      "bytes": 484987,
+      "git_blob_sha1": "576bad54d12ade464b83272724522e05259e4c99",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000083.npz",
+      "bytes": 486700,
+      "git_blob_sha1": "086d4b3fc753f5d00a2390b7122797cfe65e9e65",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000084.npz",
+      "bytes": 478819,
+      "git_blob_sha1": "cba165376f3dff43d62384db5eff402679d0be89",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000085.npz",
+      "bytes": 471569,
+      "git_blob_sha1": "f5db7b55b6659e043396e2dd427313e16d69bb92",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000086.npz",
+      "bytes": 489230,
+      "git_blob_sha1": "e67b0ee38ae4d86d8308c6a91c253374d94e2a08",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000087.npz",
+      "bytes": 498487,
+      "git_blob_sha1": "102f48eff8a702dc9d0537d35b64c78db812e98a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000088.npz",
+      "bytes": 506151,
+      "git_blob_sha1": "c39d62a3bef0a3bb3dffb025fda28b4f78d80fef",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000089.npz",
+      "bytes": 478348,
+      "git_blob_sha1": "777de68c9ce7968e1b1e1da464638b643b9a62b2",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000090.npz",
+      "bytes": 480503,
+      "git_blob_sha1": "0e5252737a2dcf223ea6c9864a10cdcc4925c95a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000091.npz",
+      "bytes": 309661,
+      "git_blob_sha1": "6b8837b0eed2d921c3449053be805e925ec79658",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000092.npz",
+      "bytes": 476689,
+      "git_blob_sha1": "53fa0f83943986f9f4420fff3431b9e35df37dd7",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000093.npz",
+      "bytes": 485050,
+      "git_blob_sha1": "0df3d312fd6bb0af3b80258fdfb54e571abf0b15",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000094.npz",
+      "bytes": 513687,
+      "git_blob_sha1": "47401b9f0cc09c9fd6dbb25260e40ca3c31278db",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000095.npz",
+      "bytes": 490055,
+      "git_blob_sha1": "1efcf50841f738686e286736e6bdd6bdb84528f8",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000096.npz",
+      "bytes": 491366,
+      "git_blob_sha1": "db67aee5c70f28f7c7cbfa65fe5926339642b847",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000097.npz",
+      "bytes": 487793,
+      "git_blob_sha1": "3c64cf811816620c903d52484b623355fcd3a946",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000098.npz",
+      "bytes": 492706,
+      "git_blob_sha1": "7043ee1b7b4999829eaa272a7c1ca0132b5d6012",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000099.npz",
+      "bytes": 488376,
+      "git_blob_sha1": "1cc813a98079df6e0cf4987c85c21366504f6343",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000100.npz",
+      "bytes": 492694,
+      "git_blob_sha1": "2fd30ecee05f97e609ed8fd4d3297cf6f0bae964",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000101.npz",
+      "bytes": 495759,
+      "git_blob_sha1": "9bd65394a99d433ef7eec7de19d17dde4af0baa4",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000102.npz",
+      "bytes": 500138,
+      "git_blob_sha1": "410d99d9f2764010c4ba1bd2e4ff8e0764f4e62b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000103.npz",
+      "bytes": 490312,
+      "git_blob_sha1": "39e231d6a570f9c9876a0f17db272b5ddfec39cc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000104.npz",
+      "bytes": 487076,
+      "git_blob_sha1": "d7bc1ee65fb0ed81e36e38ffb997d1fb7e6756c7",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000105.npz",
+      "bytes": 426021,
+      "git_blob_sha1": "ea6d78f9e2a5fe345a28dbbce9cd45aa0b5afa7f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000106.npz",
+      "bytes": 446528,
+      "git_blob_sha1": "c09e84700be14aa3c1c1302a618f0fb332257e77",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000107.npz",
+      "bytes": 486205,
+      "git_blob_sha1": "982d187f8118ef8257194f77262620d0fc654768",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000108.npz",
+      "bytes": 481010,
+      "git_blob_sha1": "fd556d2db0059712ee7bec0baf25aa7356eb2ba9",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000109.npz",
+      "bytes": 483435,
+      "git_blob_sha1": "32228d7a11ba3c8f56493a89290912243bcc9453",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000110.npz",
+      "bytes": 495493,
+      "git_blob_sha1": "4232d0b133556f301e4a692c1a2bc7bc600d6674",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000111.npz",
+      "bytes": 491868,
+      "git_blob_sha1": "592ee0f172fc8736b48b94f2944b07ae14a27053",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000112.npz",
+      "bytes": 480239,
+      "git_blob_sha1": "04ca5bbd09785490aad445258df1f494e2a888a1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000113.npz",
+      "bytes": 486374,
+      "git_blob_sha1": "c1c6c7112ac47d51f273230f62934cd32f61cd06",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000114.npz",
+      "bytes": 489545,
+      "git_blob_sha1": "10ad11eb3167ade99160a0fc8b5e1c0c989e56d1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000115.npz",
+      "bytes": 492469,
+      "git_blob_sha1": "cf16b69bbe3e5d6fe1d8c586e9260958b58c8565",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000116.npz",
+      "bytes": 473825,
+      "git_blob_sha1": "47c658bc567158a470300411c3a09db87873276f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000117.npz",
+      "bytes": 488485,
+      "git_blob_sha1": "61f85f93d5f04ae6dfc289b5a3e449d9e3316631",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000118.npz",
+      "bytes": 493300,
+      "git_blob_sha1": "28f26a1e287072219a876efbc34f12e7a6806ae3",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000119.npz",
+      "bytes": 495843,
+      "git_blob_sha1": "279c015c7b672810da0a8bd19605827824c69f57",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000120.npz",
+      "bytes": 478596,
+      "git_blob_sha1": "70477c4a1d9483b2ba800730b794ff204ce3c4b1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/train-000121.npz",
+      "bytes": 312499,
+      "git_blob_sha1": "804bee552da1369507dafb76c868136ab21a75f8",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000122.npz",
+      "bytes": 448538,
+      "git_blob_sha1": "b9858b3a2f7bb8033b2f5af758aab5e1dc2c8acd",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000123.npz",
+      "bytes": 488334,
+      "git_blob_sha1": "e129a3e47e684dba5476f297504993d788e49458",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000124.npz",
+      "bytes": 502863,
+      "git_blob_sha1": "3fef645f20aeed76ddf78bbb0df28ae36d721c33",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000125.npz",
+      "bytes": 493048,
+      "git_blob_sha1": "1235a233dba430bb814fd03fd48c65648c2684ed",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000126.npz",
+      "bytes": 483819,
+      "git_blob_sha1": "ab0e148337bc6cec68e1498e87e9bc306332eea3",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000127.npz",
+      "bytes": 491679,
+      "git_blob_sha1": "8564da1c4cd308d55188a1b6e8191e8c3d553f84",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000128.npz",
+      "bytes": 487835,
+      "git_blob_sha1": "c128158a7898f850a120f57d4ccb80012c096405",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000129.npz",
+      "bytes": 498783,
+      "git_blob_sha1": "8f837ac3c2532e6b80277041f95c5a9d1f138dee",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000130.npz",
+      "bytes": 506405,
+      "git_blob_sha1": "0585b15d6bd5f81cd0940400dd105a23386f4d42",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000131.npz",
+      "bytes": 505218,
+      "git_blob_sha1": "7a3056d2cdaa3936e2c2cbc4bd767fbe672045fc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000132.npz",
+      "bytes": 495204,
+      "git_blob_sha1": "b05190ebcdfb3288e203c7c040370b635c1fae1b",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000133.npz",
+      "bytes": 477057,
+      "git_blob_sha1": "281b878d474cff8549fa74d2c69014a7abfae1ad",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000134.npz",
+      "bytes": 492984,
+      "git_blob_sha1": "650f4efdfeef055f81369dec17ef7b5b2197893c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000135.npz",
+      "bytes": 65310,
+      "git_blob_sha1": "85bb11792ff0c411804523c5c99dbc86adbcc405",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000136.npz",
+      "bytes": 433915,
+      "git_blob_sha1": "5f1f47f1d3323d420bbf74c5d32592fadfd284a7",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000137.npz",
+      "bytes": 492051,
+      "git_blob_sha1": "47d2bbe3b106db5b0d7fba548b335ddecb6b661a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000138.npz",
+      "bytes": 479171,
+      "git_blob_sha1": "787ba57a2eb08ad3e60247ffbb90919c2f61f86a",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000139.npz",
+      "bytes": 500478,
+      "git_blob_sha1": "8d423143131de9f4017a7bdd3a7b0c1fab54241f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000140.npz",
+      "bytes": 488676,
+      "git_blob_sha1": "63e0b8a7a539e36235eedffe0a5d5f3e65a2e133",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000141.npz",
+      "bytes": 500766,
+      "git_blob_sha1": "673f5aa230399eb1857faf48ccce4fe692fbcc0d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000142.npz",
+      "bytes": 489985,
+      "git_blob_sha1": "6f168f17ba5f84d41dc85308a69a9e585e51e142",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000143.npz",
+      "bytes": 481818,
+      "git_blob_sha1": "bdbe6b14c86a1957a1c0c1fd9aff005c86ac1f88",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000144.npz",
+      "bytes": 475457,
+      "git_blob_sha1": "584d25505f546d59dfd280125b3ab8c7085ffb4f",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000145.npz",
+      "bytes": 489088,
+      "git_blob_sha1": "c1f3b9f024f1be96c925d4124e7b807ddc2b2ea5",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000146.npz",
+      "bytes": 484771,
+      "git_blob_sha1": "ad582fb9816f1cff94fd6bd395b501534dd5315d",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000147.npz",
+      "bytes": 490684,
+      "git_blob_sha1": "32cbb2745c0248df39cbab2aff0851b5abb97ddc",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000148.npz",
+      "bytes": 479818,
+      "git_blob_sha1": "3f123bca63d7ffcd866a52ee033814e9591ef60c",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000149.npz",
+      "bytes": 486589,
+      "git_blob_sha1": "6872e3ce08f2ad1c4bbdf424d7c36d9ab6384e99",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000150.npz",
+      "bytes": 472313,
+      "git_blob_sha1": "056906fd9c4ef3332ef55ed5618d47b458ae0ad1",
+      "mode": "100644"
+    },
+    {
+      "path": "data/neural-demonstrations/validation-000151.npz",
+      "bytes": 302177,
+      "git_blob_sha1": "d93fd39c862e33e2cf34c24bc92a92254e4a676e",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T131613-3078-d5adaad4.jsonl",
+      "bytes": 238918,
+      "git_blob_sha1": "4de8f1ea6e5939cf4219e9cb8ff190b98a05513d",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T131703-3081-1db62c68.jsonl",
+      "bytes": 64154,
+      "git_blob_sha1": "34855e8a9802bd86e45fd77f7835676219902e64",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T132940-3145-e17622cd.jsonl",
+      "bytes": 334506,
+      "git_blob_sha1": "e7721458b31c4ac4d9ad102589f57e84c12d904e",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T140807-3616-bdb8a0a7.jsonl",
+      "bytes": 762793,
+      "git_blob_sha1": "8a2c812ec6d38d72d92d651b14b04af50c97957e",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T140807-3616-bdb8a0a7.jsonl.1",
+      "bytes": 4194159,
+      "git_blob_sha1": "96ef6d058d39defd2cb10a29a7a095c9292cbe44",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T142723-4176-9227630c.jsonl",
+      "bytes": 3516755,
+      "git_blob_sha1": "7f726ed26b326df2ab64912e3f0ea7395304aeb4",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T142723-4176-9227630c.jsonl.1",
+      "bytes": 4193639,
+      "git_blob_sha1": "67c65f0ca826fe0420d2416249c99b8b085f9249",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T142723-4176-9227630c.jsonl.2",
+      "bytes": 4189961,
+      "git_blob_sha1": "689547cc7df7c2e7ad9fe256e9dab48f451f4cf6",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T142723-4176-9227630c.jsonl.3",
+      "bytes": 4194274,
+      "git_blob_sha1": "03b0ad441a3e6bd0d665bd3153cf0fa18550067a",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T173056-5558-135b2ef6.jsonl",
+      "bytes": 1385296,
+      "git_blob_sha1": "f430bebfa1dca0ca010fadd7d69ad613a9ab2ac2",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T173056-5558-135b2ef6.jsonl.1",
+      "bytes": 4191848,
+      "git_blob_sha1": "71107aecbe1eb77f678ae539ce2232cc084d8a61",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T173056-5558-135b2ef6.jsonl.2",
+      "bytes": 4194215,
+      "git_blob_sha1": "e27b57ef0ef438ac08b3ef6aa987d57fa5e37960",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T173056-5558-135b2ef6.jsonl.3",
+      "bytes": 4190995,
+      "git_blob_sha1": "92ab792fa86f23f09307a64d50d87ddeb4ae086c",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261111T203130-7086-9e15534e.jsonl",
+      "bytes": 166366,
+      "git_blob_sha1": "2fa1123c897c563cce71d6cbd77a6069ec9c329c",
+      "mode": "100644"
+    },
+    {
+      "path": "logs/benchmark-20261112T061353-12076-8e2e5501.jsonl",
+      "bytes": 132738,
+      "git_blob_sha1": "15703d87058cb0f9b5c6b32ea72dcdc7c3e48737",
+      "mode": "100644"
+    },
+    {
+      "path": "models/neural-policy.jsonl",
+      "bytes": 48217,
+      "git_blob_sha1": "3d6b348c35ca0399a31b0180464af2feb7a73439",
+      "mode": "100644"
+    },
+    {
+      "path": "models/neural-policy.pt",
+      "bytes": 807443,
+      "git_blob_sha1": "99755b4dcec557ba02ace1bc9429acaa3dbb5a4f",
+      "mode": "100644"
+    },
+    {
+      "path": "models/neural-rl.jsonl",
+      "bytes": 555808,
+      "git_blob_sha1": "f9c93900db5c6e8b7e5f09d6f202d6e7ce7c58ac",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/.runner.lock",
+      "bytes": 0,
+      "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/best.json",
+      "bytes": 2707,
+      "git_blob_sha1": "a70f87e03a40a4e48e56286109a0344189fdb76b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/best.pt",
+      "bytes": 5565115,
+      "git_blob_sha1": "d3fd98d4359e4e62414289182cd014ded2bd81b3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/console.log",
+      "bytes": 1889607,
+      "git_blob_sha1": "c718529bd02e11aca6df9c1cf23b9185494affcb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00000000-seed-910001.json",
+      "bytes": 2052318,
+      "git_blob_sha1": "2cf72d4625828b02c548ef7d0ea811baf70ac5ec",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00000001-seed-910003.json",
+      "bytes": 2020703,
+      "git_blob_sha1": "b7b2e032cb4421ecace842721b74a9cf059805b2",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00002336-seed-910001.json",
+      "bytes": 2637579,
+      "git_blob_sha1": "9d84de53f9b0c4b4c72a7cc4dbf0df1d1eeb9e77",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00002337-seed-910003.json",
+      "bytes": 2630167,
+      "git_blob_sha1": "76418d2af916e1ea372d391efc66ac7938512c54",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00004516-seed-910001.json",
+      "bytes": 2082489,
+      "git_blob_sha1": "fd06e948f5d56bd8889a553a7c09024cb20b32ae",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-neural-00004517-seed-910003.json",
+      "bytes": 2334714,
+      "git_blob_sha1": "1642e55fd7d39435d1a34e7d08347ee1bf398a5c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-sustained-00000000-seed-910001.json",
+      "bytes": 4528723,
+      "git_blob_sha1": "6316cf8f0e2d18ba2b41802775a68879c61a1672",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/selection-sustained-00000001-seed-910003.json",
+      "bytes": 4038496,
+      "git_blob_sha1": "550faf452124a7912707ff21de7d49a7773a383f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000000-seed-300000.json",
+      "bytes": 3488558,
+      "git_blob_sha1": "967e2f4ebbb5e7cb3fe92ac4d94f2697bcc8bcb4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000001-seed-300002.json",
+      "bytes": 3211221,
+      "git_blob_sha1": "94fc2e1158bc05fccc141bc651d5001cf3890097",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000002-seed-300004.json",
+      "bytes": 3437989,
+      "git_blob_sha1": "81c27c786552c1c783b334577e2ee89e411f138f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000003-seed-300006.json",
+      "bytes": 3704570,
+      "git_blob_sha1": "8e3fb53ff99d9c7fa8a17c0c2dbaa62ae7321826",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000004-seed-300008.json",
+      "bytes": 2027063,
+      "git_blob_sha1": "308726ccfa09d40ea08038be017690829f02c325",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000005-seed-300010.json",
+      "bytes": 2010810,
+      "git_blob_sha1": "b51327a6ac6f660a0fe09c58a6b027c2f05befe4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000006-seed-300012.json",
+      "bytes": 1898386,
+      "git_blob_sha1": "8904ab5ffe5a1549e42c3dcd5bbae541ce7d5a67",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000007-seed-300014.json",
+      "bytes": 1872578,
+      "git_blob_sha1": "b64f55a77b208293063b3396705369a07eea98e5",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000008-seed-300016.json",
+      "bytes": 2024104,
+      "git_blob_sha1": "81a475e90f94eb3f80775800dcd5d4296f37de41",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000009-seed-300018.json",
+      "bytes": 1842833,
+      "git_blob_sha1": "29138717981c81bd3c98e71eebcbc995964d1851",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000010-seed-300020.json",
+      "bytes": 1912437,
+      "git_blob_sha1": "cbf4c28656bfb2d0bc19dda1fee9bc33db4de6b4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000011-seed-300022.json",
+      "bytes": 1870570,
+      "git_blob_sha1": "9cd66ef250550cf668406f79d65accfa706b0180",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000012-seed-300024.json",
+      "bytes": 1884083,
+      "git_blob_sha1": "94abe425b676230896271a2e805543bd99ab5ee7",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000013-seed-300026.json",
+      "bytes": 2112022,
+      "git_blob_sha1": "0836e901f500089a08b88d7f435c8c00d60f4444",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000014-seed-300028.json",
+      "bytes": 1907358,
+      "git_blob_sha1": "8b7fbc1a19082c781dcb816fee1cb0462146cf52",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000015-seed-300030.json",
+      "bytes": 1943830,
+      "git_blob_sha1": "3e2a65745e5395f8246a3e1c61145fd8f804e7fa",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000016-seed-300032.json",
+      "bytes": 1926963,
+      "git_blob_sha1": "ab1380983e13ea66a9a7e89bf4be7d759a013727",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000017-seed-300034.json",
+      "bytes": 2040038,
+      "git_blob_sha1": "dc389d11f9eb0825efe8c5247b803471f0c222f2",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000018-seed-300036.json",
+      "bytes": 1891811,
+      "git_blob_sha1": "e1df7a68244b5ba78cd9fd0222e062d99b5a1930",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000019-seed-300038.json",
+      "bytes": 2076408,
+      "git_blob_sha1": "3ea9818d74cd997cf422758330c21846209520c8",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000020-seed-300040.json",
+      "bytes": 2047051,
+      "git_blob_sha1": "deaadfdba4691450d925a03c3bea0b6c646749f5",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000021-seed-300042.json",
+      "bytes": 1830213,
+      "git_blob_sha1": "677602a33162a98c1636ea08e4106ab7dd7753d1",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000022-seed-300044.json",
+      "bytes": 1803912,
+      "git_blob_sha1": "880d7c2e8339d390a8a1fe517094a99a9dbf4475",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000023-seed-300046.json",
+      "bytes": 2009586,
+      "git_blob_sha1": "73887ce1acbde3a985b33c275bdbd46c584e0f9a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000024-seed-300048.json",
+      "bytes": 2088540,
+      "git_blob_sha1": "270236d9e294f353f02e3967a751d1aa4fa6411a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000025-seed-300050.json",
+      "bytes": 2020088,
+      "git_blob_sha1": "a28a7cc7385c75f185eb00033e7806859cb6b871",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000026-seed-300052.json",
+      "bytes": 2030779,
+      "git_blob_sha1": "81887473b19a0d9c93fac12278ba207a66a2bbc2",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000027-seed-300054.json",
+      "bytes": 1849068,
+      "git_blob_sha1": "12b30cb08958b36bbfbc44473b6563bcc76d6cbc",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000028-seed-300056.json",
+      "bytes": 2030243,
+      "git_blob_sha1": "e9f31e9223e222a6f27c12c5070a6c430a9403cb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000029-seed-300058.json",
+      "bytes": 2133383,
+      "git_blob_sha1": "379b78b231c404c9c82935800616a310133bc774",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000030-seed-300060.json",
+      "bytes": 2155088,
+      "git_blob_sha1": "e04e9a3664b8cbc4fd13b060c40eae5a1868da80",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000031-seed-300062.json",
+      "bytes": 2181493,
+      "git_blob_sha1": "3b37a2129dd31df58acab2846d23ae7d0581b6c6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000032-seed-300064.json",
+      "bytes": 2091341,
+      "git_blob_sha1": "83ce79271b1797c083b37ac9952039a2c1de7885",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000033-seed-300066.json",
+      "bytes": 2104540,
+      "git_blob_sha1": "28d499049610d473954ab904a1b2476f10ebb9d6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000034-seed-300068.json",
+      "bytes": 1995541,
+      "git_blob_sha1": "0d6929a3c9145d0088bea765886155ddc4aa54dc",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000035-seed-300070.json",
+      "bytes": 1898717,
+      "git_blob_sha1": "f24ec2f5d46948b0905f8e983928afb861c414ba",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000036-seed-300072.json",
+      "bytes": 2027994,
+      "git_blob_sha1": "cd7f394ff89d119689fd697ac579b20fea6ec2fa",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000037-seed-300074.json",
+      "bytes": 1922918,
+      "git_blob_sha1": "ee665d1c82d9bd7dab7b842e37dcbacc525003cf",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000038-seed-300076.json",
+      "bytes": 2184104,
+      "git_blob_sha1": "20a5bfcd8e60c39c8c732ad827ddb2ff133b091e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000039-seed-300078.json",
+      "bytes": 2005845,
+      "git_blob_sha1": "b08b4a940d5919133936c20ad3eee2c662e02731",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000040-seed-300080.json",
+      "bytes": 2090557,
+      "git_blob_sha1": "10ab3c985b771dc19db39297aed65088e45cd7b7",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000041-seed-300082.json",
+      "bytes": 2030309,
+      "git_blob_sha1": "4c4f44a71967e531e78651fcf531ad6b569f1e5d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000042-seed-300084.json",
+      "bytes": 2144523,
+      "git_blob_sha1": "647d8d74b4f8de08447eb1214036c293e35b9d78",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000043-seed-300086.json",
+      "bytes": 2138480,
+      "git_blob_sha1": "0d055e75f6fdab18b52ba2c3127d096630759d25",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000044-seed-300088.json",
+      "bytes": 2283125,
+      "git_blob_sha1": "c3cc29b726ceb30898ae35bc08192c970e79b3b9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000045-seed-300090.json",
+      "bytes": 2080906,
+      "git_blob_sha1": "7bcce5f96a936a3af19bf05973a00f680b441abe",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000046-seed-300092.json",
+      "bytes": 2135485,
+      "git_blob_sha1": "af373c64f148867517b77d4e1cbf57d688bb8ffe",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000047-seed-300094.json",
+      "bytes": 2126594,
+      "git_blob_sha1": "21555df4a87d35f74ea15ba45079a4c781bcdcf6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000048-seed-300096.json",
+      "bytes": 2440622,
+      "git_blob_sha1": "85f8f76df12510381f68ca3fe97abb4c295067dd",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000049-seed-300098.json",
+      "bytes": 1893579,
+      "git_blob_sha1": "8906fea4718834597357a42fd015b4eabb96e9c9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000050-seed-300100.json",
+      "bytes": 2121611,
+      "git_blob_sha1": "7c45f5ce1a8973ae90694afe8c4a24f4a6c6a7f4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000051-seed-300102.json",
+      "bytes": 2194344,
+      "git_blob_sha1": "c43997c56567158b895c299e7a0d20d6d66f5124",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000052-seed-300104.json",
+      "bytes": 1987638,
+      "git_blob_sha1": "94cac040c7cd133a6e0069e27817b3d8983b6a06",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000053-seed-300106.json",
+      "bytes": 2105501,
+      "git_blob_sha1": "021cec9c0965983367d74533fd8621502c425ac3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000054-seed-300108.json",
+      "bytes": 2081090,
+      "git_blob_sha1": "acca4c90ae4c6bb24380ae8b8c8270ba9a0b3798",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000055-seed-300110.json",
+      "bytes": 2425225,
+      "git_blob_sha1": "b01a2cdc387996d346187ddf847bdc62c0081906",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000056-seed-300112.json",
+      "bytes": 1992189,
+      "git_blob_sha1": "40e716326ed80e4e99c232314c7ee991ab24f6ee",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000057-seed-300114.json",
+      "bytes": 2075774,
+      "git_blob_sha1": "34f917c3656afa2f50f8328b0f53f25d67a3e68e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000058-seed-300116.json",
+      "bytes": 2123405,
+      "git_blob_sha1": "b72507e2b164c32d16b8bdd03b627fe0eb034103",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000059-seed-300118.json",
+      "bytes": 2120591,
+      "git_blob_sha1": "e4b1a635d97d4b00812f897bb964b17530ceb76c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000060-seed-300120.json",
+      "bytes": 2083081,
+      "git_blob_sha1": "86b5162b4dfa6effd1f80e699784a02f8f568edd",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000061-seed-300122.json",
+      "bytes": 2112314,
+      "git_blob_sha1": "2da6093a22ce06eb593dd47b1cff6c27072266ca",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000062-seed-300124.json",
+      "bytes": 2103999,
+      "git_blob_sha1": "ca201df9b4be98bc4b91edc8320849d65e8ed810",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000063-seed-300126.json",
+      "bytes": 2106351,
+      "git_blob_sha1": "cd32ceaa721baa8fb2fa7d30ba83340563db151d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000064-seed-300128.json",
+      "bytes": 2103590,
+      "git_blob_sha1": "56e1fa866036025a7acdab37992a0cd89019cf13",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000065-seed-300130.json",
+      "bytes": 2300110,
+      "git_blob_sha1": "52d66b668fec9d5f9bc87043717ea99b45255314",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000066-seed-300132.json",
+      "bytes": 2405635,
+      "git_blob_sha1": "cd2470600b88c3b0888649ee3e6f08b8f719270e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000067-seed-300134.json",
+      "bytes": 2103489,
+      "git_blob_sha1": "45f1bf6d3b863611c53c23e78c6358ab12e1c0e7",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000068-seed-300136.json",
+      "bytes": 1996339,
+      "git_blob_sha1": "6245fde2ca66d8e217fa0884ecd4a63de24e9aeb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000069-seed-300138.json",
+      "bytes": 2003776,
+      "git_blob_sha1": "526e830832c9342f5d0c76810dedda4880ffab88",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000070-seed-300140.json",
+      "bytes": 2097305,
+      "git_blob_sha1": "5632c3386a994dac4c057905d553f16b6e464ef6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000071-seed-300142.json",
+      "bytes": 2110853,
+      "git_blob_sha1": "ed0ad8d1d40150cc20aa3769285d78b3aae858a6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000072-seed-300144.json",
+      "bytes": 2083889,
+      "git_blob_sha1": "ce4f9bee291db5e57c87d129c07a3afb61a913ac",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000073-seed-300146.json",
+      "bytes": 2197805,
+      "git_blob_sha1": "51461638dd06d1287a3e4c0f0aa259130a48c489",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000074-seed-300148.json",
+      "bytes": 2014765,
+      "git_blob_sha1": "9e8fb62db17077bf476307d2776daa62447dd2cb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000075-seed-300150.json",
+      "bytes": 2168714,
+      "git_blob_sha1": "de4c2eaacc9035a0a0bae9c1995f0b8e75146339",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000076-seed-300152.json",
+      "bytes": 2155484,
+      "git_blob_sha1": "1289620c74d78684c8e85d1acb0b259d38477f45",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000077-seed-300154.json",
+      "bytes": 2143539,
+      "git_blob_sha1": "3bd749f1b712f4109f21d9f5cb982b3226ee73ac",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000078-seed-300156.json",
+      "bytes": 2189585,
+      "git_blob_sha1": "5b629d0059335d240779ea66a67b784342186411",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000079-seed-300158.json",
+      "bytes": 2080184,
+      "git_blob_sha1": "970ba69a2c4bbd9c0334fd9a39936f6702258258",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000080-seed-300160.json",
+      "bytes": 2287486,
+      "git_blob_sha1": "62e1b7952ef94eb7f079b53acfbdb8ccdb355b94",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000081-seed-300162.json",
+      "bytes": 2114112,
+      "git_blob_sha1": "50fe3a5740e6151be871f5927104bcb97de5d10c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000082-seed-300164.json",
+      "bytes": 1975480,
+      "git_blob_sha1": "8702f2a434c6d2492dd9f07de82bd4f20cc581a9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000083-seed-300166.json",
+      "bytes": 1986307,
+      "git_blob_sha1": "9831d91a4ab9c5939da3fdd0d22b5e00e4bcb021",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000084-seed-300168.json",
+      "bytes": 2117640,
+      "git_blob_sha1": "f2f75053427d334b1bcedaba45f7e4a3d08e9072",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000085-seed-300170.json",
+      "bytes": 2093596,
+      "git_blob_sha1": "99b17e8740c4a1b70acab599ef059a01fc23a270",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000086-seed-300172.json",
+      "bytes": 1996622,
+      "git_blob_sha1": "585d4abf582efce62fd40c24b111df718ae3665f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000087-seed-300174.json",
+      "bytes": 1961056,
+      "git_blob_sha1": "e676074abe4fd04e9c98dbb1a90acc0d2893b087",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000088-seed-300176.json",
+      "bytes": 2083168,
+      "git_blob_sha1": "ed80f0428b23ddbf3ddd92d98de8c52361ddda78",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000089-seed-300178.json",
+      "bytes": 2141719,
+      "git_blob_sha1": "84912759e3cb56e626cb52390da4d5379e21b436",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000090-seed-300180.json",
+      "bytes": 2059855,
+      "git_blob_sha1": "6645f4a2b45929f51607f844def652ec8f7c35d4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000091-seed-300182.json",
+      "bytes": 2151028,
+      "git_blob_sha1": "c73e8436c6f120c7c2602899775d813b9c20eb0a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000092-seed-300184.json",
+      "bytes": 2087815,
+      "git_blob_sha1": "4037e86fdf341f6ee9202a88aca37371cefffe18",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000093-seed-300186.json",
+      "bytes": 2094439,
+      "git_blob_sha1": "6c6906ee1ad4dcb5bb20117f20a0b6e37bd61d97",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000094-seed-300188.json",
+      "bytes": 2068557,
+      "git_blob_sha1": "41dd7a5a588d8b39e49c49695ff2866eab8bf540",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000095-seed-300190.json",
+      "bytes": 1992686,
+      "git_blob_sha1": "0501e38b2f9ceee8518acf8c80e77bc1f6883ea2",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000096-seed-300192.json",
+      "bytes": 1756726,
+      "git_blob_sha1": "68dbddc0098142dccca4462c16e1157673f7e1b5",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000097-seed-300194.json",
+      "bytes": 1650365,
+      "git_blob_sha1": "b512712d66f37c132bb9f0a854eceea6c2dbd8e6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000098-seed-300196.json",
+      "bytes": 1631277,
+      "git_blob_sha1": "af926199bb2e0f7d6e5a839312b6dd63b6f6790e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000099-seed-300198.json",
+      "bytes": 1498605,
+      "git_blob_sha1": "2e02534c5232d0f729e06228974371f3ad465645",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/games/acec65866e3b/training-00000100-seed-300200.json",
+      "bytes": 522743,
+      "git_blob_sha1": "ef29fb837b9cade30d9d11ef1df4aab030bf5554",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/last.pt",
+      "bytes": 4354363,
+      "git_blob_sha1": "0b435c4a8cb69b4cb0b2e7b056141d6e622bf9c9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/metrics.jsonl",
+      "bytes": 1889607,
+      "git_blob_sha1": "c718529bd02e11aca6df9c1cf23b9185494affcb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/previous.pt",
+      "bytes": 3860283,
+      "git_blob_sha1": "171c47f9f730c7fc6c058362dd4bd18e6fa0f8f2",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/recommended-policy.json",
+      "bytes": 238,
+      "git_blob_sha1": "9fd845768f017ccbdd8b5e9ffb57c64079da39af",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/selection-00000000.json",
+      "bytes": 2661,
+      "git_blob_sha1": "756937033bb01e3746dd3e0a120b18bf54587b58",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/selection-00001168.json",
+      "bytes": 2666,
+      "git_blob_sha1": "952e11b538a08f3f7dfb04275759e93c9b2e4684",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/selection-00002258.json",
+      "bytes": 2666,
+      "git_blob_sha1": "24ebfa0f81f834d5ceda9a4771b45a269f9fb84a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/summary.json",
+      "bytes": 3299,
+      "git_blob_sha1": "148fd35dc0feffce502a265d9865329e0c4622c0",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/overnight-survival/sustained-baseline.json",
+      "bytes": 2533,
+      "git_blob_sha1": "16d7f84ff098ce2ae73eeca119c8914c2b0a63b0",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/.runner.lock",
+      "bytes": 0,
+      "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/best.json",
+      "bytes": 3015,
+      "git_blob_sha1": "76b84c06d7c36574ff4dfea54d645b2ea47aed69",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/best.pt",
+      "bytes": 4189563,
+      "git_blob_sha1": "c66c0b0eee218e3df21cafd19097c01899f37c92",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/console.log",
+      "bytes": 929458,
+      "git_blob_sha1": "37d55e9138b565a649feb06cc86860413f17fdbd",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/diagnostics.json",
+      "bytes": 637,
+      "git_blob_sha1": "572360e8bf6c2c1bb2a8e1b7c2d7fddee5c2f852",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/803359c37369/selection-sustained-00000000-seed-910001.json",
+      "bytes": 337452,
+      "git_blob_sha1": "ddc482e3c4525958a04753632430dc787870ac57",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/803359c37369/training-00000000-seed-300000.json",
+      "bytes": 1340,
+      "git_blob_sha1": "41f3cb9b406275d4f0cdf0a35d9c827a75a0d3b4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/803359c37369/training-00000001-seed-300002.json",
+      "bytes": 1340,
+      "git_blob_sha1": "b1f00ee5fe3b6d021f8c7256fc6bdd0511bf986d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/803359c37369/training-00000002-seed-300004.json",
+      "bytes": 1340,
+      "git_blob_sha1": "0e0680babaecfc7c16cadf8ca2db43dd7dc0da7c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/803359c37369/training-00000003-seed-300006.json",
+      "bytes": 1340,
+      "git_blob_sha1": "5f4d9d83db93d039fa56d59665cc5dae8f770832",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-neural-00000000-seed-910001.json",
+      "bytes": 2281197,
+      "git_blob_sha1": "082e9a77d957b442405c86034d0d5baf343bfaa5",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-neural-00000001-seed-910003.json",
+      "bytes": 2210096,
+      "git_blob_sha1": "7d670cbf37a5ac13d54f34e0dbda2336f0d180cc",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-neural-00000890-seed-910001.json",
+      "bytes": 2236197,
+      "git_blob_sha1": "18c32771fe577953d64aaa95fe20a3737150131b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-neural-00000891-seed-910003.json",
+      "bytes": 2796051,
+      "git_blob_sha1": "7f70cb0e9d6e6b22e95e94db72c735565814190f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-sustained-00000000-seed-910001.json",
+      "bytes": 4544727,
+      "git_blob_sha1": "924dfb9773a7bac0bad5c8d1204b87324f8f7ed4",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/selection-sustained-00000001-seed-910003.json",
+      "bytes": 4052774,
+      "git_blob_sha1": "05e24e2ae901f797d7160968f3be3a4fcbe78b4c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000000-seed-300000.json",
+      "bytes": 3485555,
+      "git_blob_sha1": "e48bfaa834f382ac6c433cb89aa8e415b167e240",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000001-seed-300002.json",
+      "bytes": 3210661,
+      "git_blob_sha1": "8c594ef656737b288654111fbae75c6d4246c96b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000002-seed-300004.json",
+      "bytes": 3733157,
+      "git_blob_sha1": "a68a4ce82135a24544acd16cfb3bdb07dae1aaae",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000003-seed-300006.json",
+      "bytes": 3610164,
+      "git_blob_sha1": "70cbc2e3c3c010dedb5314414dd83629510ff9e3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000004-seed-300008.json",
+      "bytes": 2333818,
+      "git_blob_sha1": "7bf16ccbd49f35d89568581ca4c0789ced4ec41b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000005-seed-300010.json",
+      "bytes": 2309622,
+      "git_blob_sha1": "dc68c6e2ef99735c39c3ffb21713887f27907c90",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000006-seed-300012.json",
+      "bytes": 2299048,
+      "git_blob_sha1": "7c51ab2fda4ac8e889513546f6c3184fe3fb940f",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000007-seed-300014.json",
+      "bytes": 2549765,
+      "git_blob_sha1": "5f04fc0671ba6098cb64bc85f79d70be030f93ee",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000008-seed-300016.json",
+      "bytes": 2329983,
+      "git_blob_sha1": "74b25dc4c369a3c67b29d2d662c8203c2e101ed1",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000009-seed-300018.json",
+      "bytes": 2511374,
+      "git_blob_sha1": "160251dac7e444c55732f4c04344b77f84988b71",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000010-seed-300020.json",
+      "bytes": 2562167,
+      "git_blob_sha1": "0bcf0ec0ac1293cd2d41625b82ad8ac242e1fc9e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000011-seed-300022.json",
+      "bytes": 2168750,
+      "git_blob_sha1": "7744158585fe89a73486ca6077f15e8a2cb300a9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000012-seed-300024.json",
+      "bytes": 2336557,
+      "git_blob_sha1": "9099c5ef0bff17ba9c40346b2b7f7dc667ff9f76",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000013-seed-300026.json",
+      "bytes": 2340498,
+      "git_blob_sha1": "8df2abb50d8e0b7d8806f6afa30e8ac65f68f514",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000014-seed-300028.json",
+      "bytes": 2236288,
+      "git_blob_sha1": "fb3da12c1c0d32c2cf1f55e6b50ddbe4d96109fd",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000015-seed-300030.json",
+      "bytes": 2284968,
+      "git_blob_sha1": "126e709c6fc2826aad3ad9124bea7a1503297aaf",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000016-seed-300032.json",
+      "bytes": 2271586,
+      "git_blob_sha1": "9fa2f71687d8b179279659db829e05c7ffb7fca3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000017-seed-300034.json",
+      "bytes": 1910555,
+      "git_blob_sha1": "c3a69b0ab73b4abf61c1538b9b765cc4c6d63cb5",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000018-seed-300036.json",
+      "bytes": 2292045,
+      "git_blob_sha1": "feaaac309312875e53f9f096f49269737290128b",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000019-seed-300038.json",
+      "bytes": 1776373,
+      "git_blob_sha1": "39facd922a9e619cc5d7b776c1e51bc730d94939",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000020-seed-300040.json",
+      "bytes": 2403254,
+      "git_blob_sha1": "0481fb7af4ad3ee74fdf35f7278beebfe8358eef",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000021-seed-300042.json",
+      "bytes": 2066430,
+      "git_blob_sha1": "2fc4d509837f89fc843f29bed31f0241dd7ef705",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000022-seed-300044.json",
+      "bytes": 2405098,
+      "git_blob_sha1": "90ba398acb7496960be1e6e33f58a1df1f95283e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000023-seed-300046.json",
+      "bytes": 1983424,
+      "git_blob_sha1": "cdef3e24ab2ee587da92909def643331ed67c36e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000024-seed-300048.json",
+      "bytes": 2121922,
+      "git_blob_sha1": "fb8375cf9ceda2eb4af02164fa84282e400d3906",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000025-seed-300050.json",
+      "bytes": 2285164,
+      "git_blob_sha1": "d43981f95f3c83066ef4c765f48f4db48c52df6e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000026-seed-300052.json",
+      "bytes": 2118023,
+      "git_blob_sha1": "b38a871971d41cb4091275183d7bda6d7b1e4be9",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000027-seed-300054.json",
+      "bytes": 2271354,
+      "git_blob_sha1": "51a3c126dbfd52311a2a9031cf0341d7764cebe3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000028-seed-300056.json",
+      "bytes": 2367129,
+      "git_blob_sha1": "2996999a91e780fd3a4ce6750429c77de1c789c3",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000029-seed-300058.json",
+      "bytes": 2300120,
+      "git_blob_sha1": "6ee7552ac7ec10dd5d3b3414a661efc9e457d075",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000030-seed-300060.json",
+      "bytes": 2273251,
+      "git_blob_sha1": "a73093284a388a02f5184ee2a5c05f03ddefdbbe",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000031-seed-300062.json",
+      "bytes": 2266556,
+      "git_blob_sha1": "875e1cac40de0d347e169a10d2bf55fa521765a1",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000032-seed-300064.json",
+      "bytes": 2038892,
+      "git_blob_sha1": "d5e2e6bd5d829b284fb427f39b1530954535707d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000033-seed-300066.json",
+      "bytes": 2264855,
+      "git_blob_sha1": "b8d16865d5e92bec3eb57a6592ddcdc8b59a036d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000034-seed-300068.json",
+      "bytes": 1998980,
+      "git_blob_sha1": "3a8919272b2de139c263c1d4788ab96188be8e13",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000035-seed-300070.json",
+      "bytes": 1986706,
+      "git_blob_sha1": "9e474fbf6766ec31911a0f850890a1a7083ffacb",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000036-seed-300072.json",
+      "bytes": 2313615,
+      "git_blob_sha1": "26ea4c05ce9338d08ed9a33c751373f7b1bc89ff",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000037-seed-300074.json",
+      "bytes": 2070088,
+      "git_blob_sha1": "cb0b36abcfa0638e771c351fe3d0077fdced6c67",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000038-seed-300076.json",
+      "bytes": 2257094,
+      "git_blob_sha1": "54f4c3886db92dec7a1c6bcc21d8439272377bd0",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000039-seed-300078.json",
+      "bytes": 2008687,
+      "git_blob_sha1": "1b3e9d1437bcb6e23962b99038379def6f84bf2a",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000040-seed-300080.json",
+      "bytes": 2143508,
+      "git_blob_sha1": "5549254d9c8d2ac3278bfd78d4197a9c2caef762",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000041-seed-300082.json",
+      "bytes": 1916689,
+      "git_blob_sha1": "18d060dc0209e033a74d58f7b1bc52e7686dd982",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000042-seed-300084.json",
+      "bytes": 1993239,
+      "git_blob_sha1": "1571418bde376af20067d9dcf6167d6294ae733e",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000043-seed-300086.json",
+      "bytes": 1699061,
+      "git_blob_sha1": "d8ec2f3c2ef2d77bd0e01081d1002df20c9ac696",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000044-seed-300088.json",
+      "bytes": 1912273,
+      "git_blob_sha1": "b98fb31a090dc06cd6b7a485051974ff4324e0e8",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000045-seed-300090.json",
+      "bytes": 1653297,
+      "git_blob_sha1": "441b8fe7aa11dd171042c49c240f2adc4c6eb474",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000046-seed-300092.json",
+      "bytes": 1525616,
+      "git_blob_sha1": "d47810c9dd5a78d38c7c3891fb36a6ef2b7d8153",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000047-seed-300094.json",
+      "bytes": 1593149,
+      "git_blob_sha1": "cf87b13510fb9afed034ea10cd43c83f4b1d6998",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000048-seed-300096.json",
+      "bytes": 1584618,
+      "git_blob_sha1": "169b70b393121e84da55a78cd3f73d17cae6c149",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000049-seed-300098.json",
+      "bytes": 1580764,
+      "git_blob_sha1": "7cd5ba93876e57e15a902ff3777b6f6a2a2b1e19",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000050-seed-300100.json",
+      "bytes": 1446627,
+      "git_blob_sha1": "c8526eda3d0eee0dcf88f711c776348773d437c8",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/games/bca65a067d6f/training-00000051-seed-300102.json",
+      "bytes": 1345328,
+      "git_blob_sha1": "35772eb390ef318916a126f863952dbf59368508",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/last.pt",
+      "bytes": 4787067,
+      "git_blob_sha1": "9a0fe6b3df07488b4a06483566cf63f6d0959a30",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/metrics.jsonl",
+      "bytes": 935318,
+      "git_blob_sha1": "1a84bcda7e5fbb42cdbd90a62e799c6ce9a04b53",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/previous.pt",
+      "bytes": 4490619,
+      "git_blob_sha1": "b5eb6ff040aa5c2e8af5ffc96906ea5d1fb270f6",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/recommended-policy.json",
+      "bytes": 238,
+      "git_blob_sha1": "9fd845768f017ccbdd8b5e9ffb57c64079da39af",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/selection-00000000.json",
+      "bytes": 2972,
+      "git_blob_sha1": "860806b8ec8ef9b859b9570839c32337a384792d",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/selection-00000445.json",
+      "bytes": 2974,
+      "git_blob_sha1": "a3b1392b813b50bdf6f680ce81f1a33fa1b701c7",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/selection-interrupted.json",
+      "bytes": 2012,
+      "git_blob_sha1": "ff2929e8e8e47732bee66660ece07b48fb648a8c",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/summary.json",
+      "bytes": 3338,
+      "git_blob_sha1": "a9ff1a59336fbfb04c9db5e847e8c1176b62d4ae",
+      "mode": "100644"
+    },
+    {
+      "path": "runs/survival-ppo/sustained-baseline.json",
+      "bytes": 2839,
+      "git_blob_sha1": "a50145cc7bf725a41559f52507e2abc41c89eb27",
+      "mode": "100644"
+    },
+    {
+      "path": "survival-ppo-inspection-20261112T073229Z.pt",
+      "bytes": 4825851,
+      "git_blob_sha1": "3c5ad99c96cacbb1d7baf6a35cfd13f4b3b405ac",
+      "mode": "100644"
+    },
+    {
+      "path": "survival-ppo-inspection-20261112T085350Z.pt",
+      "bytes": 3716667,
+      "git_blob_sha1": "68d6153c85f2bdcade69eded24efaf0e6a053ffb",
+      "mode": "100644"
+    }
+  ],
+  "measured_revision": "d0defda238a9a1d9f1724e96eaa85feeb1e597cc",
+  "recovery_revision_note": "Existing origin/main ancestor; every archived blob verified identical to the measured task revision. Normal branch rebases do not remove this history."
+}

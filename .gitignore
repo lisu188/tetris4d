@@ -18,9 +18,12 @@ venv/
 /native/*.dylib.json
 .venv/
 
-/runs/survival-ppo-v2/
-/runs/survival-longevity/
-/runs/survival-longevity-preflight/
+/runs/
+/data/
+/logs/
+/models/*.jsonl
+/models/neural-policy.pt
+/survival-ppo-inspection-*.pt
 /*.artifacts/
 /experiments/*.tar.gz
 /experiments/*.tar.gz.json
