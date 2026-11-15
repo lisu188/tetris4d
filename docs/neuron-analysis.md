@@ -28,7 +28,8 @@ parameters. A convolution channel applies shared weights at 4,096 spatial sites;
 the report summarizes those activations and does not treat them as one spatial
 neuron. The candidate ranker receives 242 inputs: 32 local features, 32 pooled
 features, 82 context values and 96 candidate features. All input coordinate
-definitions are included in JSON.
+definitions are included in JSON and in coordinate tables in the Markdown report.
+These coordinates are defined inputs, rather than learned neurons.
 
 Each entry reports activation range, mean, standard deviation, sigmoid saturation
 and its three strongest sampled contexts. Contexts are ranked by mean activation,
@@ -45,8 +46,9 @@ neutral activity or a natural missing-neuron state.
 
 For every intervention the report measures candidate score changes, ranking
 changes, whether the highest-scoring move changed, probability total variation,
-and value/auxiliary prediction changes. Final scores include the checkpoint's
-configured teacher prior. A common shift to all scores can change their values
+and value/auxiliary prediction changes. The report states the actual policy mode,
+numeric score formula, teacher prior (`-32 * deficit - rank / 8`) and greedy or
+sampled selection rule. A common shift to all scores can change their values
 without changing probabilities or ordering. Effects are averaged equally across
 sampled states. The critic and auxiliary heads do not choose moves, so their own
 unit interventions cannot directly change candidate scores.
@@ -71,7 +73,8 @@ Sampling is deterministic and equally spaced over the supplied recordings in CLI
 order. The default is 16 states, with a hard maximum of 64 and eight recordings.
 The utility verifies every recorded move, final board/counters, termination flags,
 piece catalog and immutable input hashes; it also checks all sampled candidate
-drops and exact traced-forward agreement within floating-point tolerance. Each
+drops and traced-forward agreement within relative tolerance 1e-6 and absolute
+tolerance 1e-7. Each
 recording is limited to 32 MiB compressed and decompressed, checkpoints to 64 MiB,
 and combined reports to 8 MiB. Only one recording and one state's activation maps
 are processed at a time; selected prepared states are retained without full

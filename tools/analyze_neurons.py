@@ -211,6 +211,24 @@ def policy_logits(model, batch, score):
     return score.masked_fill(~batch['valid'].bool(), -torch.inf)
 
 
+def policy_description(config):
+    residual, prior = float(config.residual_scale), float(config.teacher_prior_scale)
+    formulas = {
+        'neural': 'final_score = raw_actor_score',
+        'teacher-residual': f'final_score = teacher_prior + {residual!r} * (2 * sigmoid(raw_actor_score) - 1)',
+        'teacher-prior': f'final_score = {prior!r} * teacher_prior + {residual!r} * raw_actor_score',
+    }
+    return {'policy_mode': config.policy_mode, 'final_score_formula': formulas[config.policy_mode],
+            'residual_scale': residual, 'teacher_prior_scale': prior,
+            'teacher_prior_used': config.policy_mode != 'neural',
+            'teacher_prior_formula': 'teacher_prior = -32 * deficit - rank / 8',
+            'deficit_definition': 'deficit = highest candidate primary utility - this candidate primary utility',
+            'primary_utility_formula': f'primary_utility = target_gain - {game.FUTURE_HOLE_PENALTY} * future_holes',
+            'rank_definition': 'rank is zero-based descending (primary utility, teacher score), with generation order breaking exact ties',
+            'selection_rule': 'Greedy choice is the first valid candidate with maximum final_score. Sampled execution draws from softmax(final_score) over valid candidates. These probabilities are move-choice probabilities, not survival probabilities.',
+            'invalid_candidates': 'Invalid candidates receive negative infinity and cannot be selected.'}
+
+
 def ablate(model, batch, baseline, name, index):
     """Reuse unaffected branches; never retain a stack of intervention tensors."""
     if name.startswith(('stem', 'block')):
@@ -408,11 +426,28 @@ def markdown(report):
              'Completion output interventions set one probability to 0.5. Effects concern the listed states and candidates, '
              'and do not establish survival effects. These are structural baselines, not claims about typical neutral activity. '
              'Contexts are ordered by mean activation.', '',
+             '## Policy and move selection', '',
+             f"Policy mode: `{report['policy']['policy_mode']}`", '',
+             f"Final score: `{report['policy']['final_score_formula']}`", '',
+             f"Teacher prior: `{report['policy']['teacher_prior_formula']}`", '',
+             f"{report['policy']['deficit_definition']}. `{report['policy']['primary_utility_formula']}`. "
+             f"{report['policy']['rank_definition']}.", '',
+             f"{report['policy']['selection_rule']} {report['policy']['invalid_candidates']}", '',
              f"Value: {report['semantics']['value']}", '', f"Completion: {report['semantics']['completion']}", '',
-             'Scores include the configured teacher prior. Rank 1 is best; ties follow candidate index. '
+             'Reported score effects use this final-score formula. Rank 1 is best; ties follow candidate index. '
              'Constant score shifts can have zero effect on ranking and choice. Δ value uses the checkpoint value units.', '',
-             '| Unit | Activation mean ± std | Saturated | Mean absolute score change | Top choice changes | Mean rank change | Probability TV | Absolute value change | Completion change | Strongest sampled contexts |',
-             '|---|---:|---:|---:|---:|---:|---:|---:|---:|---|']
+             '## Input coordinates', '',
+             'These are defined observations and candidate features, not learned neurons. Board channels apply at each '
+             'of 4,096 columns. Context is shared by all candidates. Each candidate has its own 96 features; '
+             'unused piece-cell slots are zero-padded and have present = 0.', '']
+    for key, title in (('board_channels', 'Board channels'), ('context', 'Context'), ('candidate_features', 'Candidate features')):
+        coordinates = report['input_schema'][key]
+        lines += [f'### {title} ({len(coordinates)})', '', '| Coordinate | Meaning |', '|---:|---|']
+        lines += [f'| {index} | {meaning} |' for index, meaning in enumerate(coordinates)]
+        lines.append('')
+    lines += ['## Learned units', '',
+              '| Unit | Activation mean ± std | Saturated | Mean absolute score change | Top choice changes | Mean rank change | Probability TV | Absolute value change | Completion change | Strongest sampled contexts |',
+              '|---|---:|---:|---:|---:|---:|---:|---:|---:|---|']
     for row in report['units']:
         a, e = row['activation'], row['intervention']
         saturated = f"{a['saturated_fraction']:.1%}" if 'saturated_fraction' in a else '—'
@@ -501,6 +536,7 @@ def analyze(args):
                               'torch': str(torch.__version__), 'numpy': str(np.__version__)},
               'sources': sources,
               'recordings': files, 'groups': groups, 'input_schema': input_schema(),
+              'policy': policy_description(model.config),
               'sampling': {'method': 'equally spaced pre-decision indices over recordings in CLI order',
                            'requested_states': args.limit, 'maximum_states': 64,
                            'activation_weighting': 'every spatial site/candidate; scalar heads once per state',

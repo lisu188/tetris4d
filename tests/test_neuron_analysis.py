@@ -48,11 +48,18 @@ class NeuronAuditTests(unittest.TestCase):
                 self.assertTrue(all(row.split('[')[0] in keys for row in description['checkpoint_tensor_rows']))
 
     def test_all_policy_modes_and_centering_match_runtime(self):
+        formulas = {'neural': 'final_score = raw_actor_score',
+                    'teacher-residual': 'final_score = teacher_prior + 0.75 * (2 * sigmoid(raw_actor_score) - 1)',
+                    'teacher-prior': 'final_score = 0.125 * teacher_prior + 0.75 * raw_actor_score'}
         with torch.inference_mode():
             for mode in ('neural', 'teacher-residual', 'teacher-prior'):
                 for centered in (False, True):
                     self.model.config = replace(self.config, policy_mode=mode,
-                                                teacher_prior_scale=.125, centered_critic=centered)
+                                                teacher_prior_scale=.125, residual_scale=.75, centered_critic=centered)
+                    description = audit.policy_description(self.model.config)
+                    self.assertEqual(description['policy_mode'], mode)
+                    self.assertEqual(description['final_score_formula'], formulas[mode])
+                    self.assertEqual(description['teacher_prior_formula'], 'teacher_prior = -32 * deficit - rank / 8')
                     parts = audit.forward_parts(self.model, self.batch)
                     prediction = self.model(self.batch)
                     torch.testing.assert_close(audit.policy_logits(self.model, self.batch, parts['score']), prediction['logits'])
@@ -135,7 +142,13 @@ class NeuronAuditTests(unittest.TestCase):
             self.assertTrue(all(row['explanation'] for row in result['units']))
             self.assertTrue(all(len(row['strongest_contexts']) == 2 for row in result['units']))
             self.assertTrue(all('absolute_value_change_in_placements' in row['intervention'] for row in result['units']))
-            self.assertIn('## Per-unit explanations', (args.output_dir / 'neurons.md').read_text())
+            text = (args.output_dir / 'neurons.md').read_text()
+            self.assertIn('## Per-unit explanations', text)
+            self.assertIn(result['policy']['final_score_formula'], text)
+            self.assertIn(f"Policy mode: `{result['policy']['policy_mode']}`", text)
+            for coordinates in result['input_schema'].values():
+                for index, meaning in enumerate(coordinates):
+                    self.assertIn(f'| {index} | {meaning} |', text)
             self.assertLess(sum(path.stat().st_size for path in args.output_dir.iterdir()), audit.MAX_REPORT_BYTES)
             self.assertEqual(audit.sha256(args.checkpoint), checkpoint_hash)
             self.assertEqual(audit.sha256(args.games[0]), game_hash)
