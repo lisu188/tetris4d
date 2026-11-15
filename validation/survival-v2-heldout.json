@@ -1,0 +1,2929 @@
+{
+  "schema": "tetris4d-survival-v2-heldout-v1",
+  "complete": true,
+  "generated_utc": "2026-11-15T18:12:53.770307+00:00",
+  "raw_report": {
+    "path": "survival-comparison-v2-full.json",
+    "sha256": "5db5b7538ea090bdefc8c159649b33c5cf70a0e9131335afb0c60613999396a4",
+    "schema": "tetris4d-checkpoint-comparison-v2"
+  },
+  "summarizer_sha256": "08d57c3c1f5c742126e0abffb1d0273fe7870df3188504992189ff250c736f99",
+  "provenance": {
+    "available": true,
+    "path": "survival-comparison-v2-full.provenance.json",
+    "sha256": "27fa2dd7fefd45c43c88e853f1d2381c6e1bf2c83b90c35f51726d48cabe5d9f",
+    "data": {
+      "schema": "tetris4d-full-comparison-provenance-v1",
+      "created_utc": "2026-11-15T15:18:15.092688+00:00",
+      "git_commit": "4617ca4e181800735ba702f166f69661b88edaeb",
+      "git_branch": "eval/full-policy-comparison",
+      "command": [
+        ".venv/bin/python",
+        "-u",
+        "tools/survival_experiments.py",
+        "compare",
+        "--device",
+        "cuda",
+        "--backend",
+        "native",
+        "--threads",
+        "4",
+        "--checkpoints",
+        "models/neural-rl.pt",
+        "runs/overnight-survival/best.pt",
+        "runs/survival-ppo/best.pt",
+        "runs/survival-ppo-v2/best.pt",
+        "--seeds",
+        "94001",
+        "94003",
+        "94005",
+        "94007",
+        "--action-seeds",
+        "101",
+        "102",
+        "103",
+        "--modes",
+        "greedy",
+        "sampled",
+        "--pieces",
+        "32000",
+        "--piece-set",
+        "expanded",
+        "--record-games",
+        "--record-max-mib",
+        "256",
+        "--output",
+        "survival-comparison-v2-full.json"
+      ],
+      "working_directory": "/home/andrz/git/tetris4d",
+      "python": "3.12.3",
+      "packages": {
+        "torch": "2.14.1+cu130",
+        "numpy": "2.5.4"
+      },
+      "inputs": {
+        "tools/survival_experiments.py": {
+          "bytes": 15011,
+          "sha256": "495c47337d37b39a040794084b6ad924b3792d12a19bb5a45feff80b64d367f2"
+        },
+        "tetris_neural.py": {
+          "bytes": 60386,
+          "sha256": "2542a8feac9dff6bb7653057f5c0e42255d1a78137c6ea9f4bbb2bb4802b2226"
+        },
+        "sparse_tetris_4d_optimized.py": {
+          "bytes": 175430,
+          "sha256": "a1ac811523c67662ee2b306796963f2e1c04457c2687b67a8b4ad10519494f12"
+        },
+        "train_survival_v2.py": {
+          "bytes": 42550,
+          "sha256": "d8651d5bd2e71cd943537b0de7c5a52863baafb9623bf4ae9afad849070f4416"
+        },
+        "train_survival.py": {
+          "bytes": 13807,
+          "sha256": "fe0e91cd35ab76d1d2d2a644edf4436e6e3c7cec0207c44f976fb2c67d0eef85"
+        },
+        "train_overnight.py": {
+          "bytes": 41245,
+          "sha256": "c9dfdf961a3eca6adb037a2d2b1960804989e801a3674fedac184f505af1b8fa"
+        },
+        "models/trained-sigmoid.json": {
+          "bytes": 30690,
+          "sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb"
+        },
+        "native/libtetris4d_native.so": {
+          "bytes": 28312,
+          "sha256": "6baa1ee16039800698e44c0fb4ad0079b2af64da2ea2bd1129ccefc062463b60"
+        },
+        "native/libtetris4d_native.so.json": {
+          "bytes": 764,
+          "sha256": "f52090ac5868b070f933879e4d9ba6a00cb752d86c91aba4845bb1252d77ac20"
+        },
+        "native/tetris_native.c": {
+          "bytes": 8493,
+          "sha256": "91a417d63200afda5a0a0ed6ea679b2831788ddd347af526d5fc7be0f236e09d"
+        },
+        "requirements-neural.txt": {
+          "bytes": 27,
+          "sha256": "fabc768825780009642ff3f2138b42a64e754a390547939a969c35e277e4d049"
+        },
+        "requirements-numpy.txt": {
+          "bytes": 13,
+          "sha256": "92f40443cdb6b95663df532a6907c778d6508d813a86a68a9589820f1bd94fe1"
+        },
+        "models/neural-rl.pt": {
+          "bytes": 1029179,
+          "sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5"
+        },
+        "runs/overnight-survival/best.pt": {
+          "bytes": 5565115,
+          "sha256": "f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892"
+        },
+        "runs/survival-ppo/best.pt": {
+          "bytes": 2103931,
+          "sha256": "1491054f0f69212bd00e6241188cbcd8697e1ff7177aeee348d907ec479e5f35"
+        },
+        "runs/survival-ppo-v2/best.pt": {
+          "bytes": 9025659,
+          "sha256": "38baa04277dac3c1da871dff68046b94a53a9e86670c1ff2d59cd7ce23c12ca9"
+        }
+      },
+      "artifact_policy": {
+        "record_max_mib": 256,
+        "snapshots_expected_bytes": 17723884,
+        "retain": [
+          "raw_report",
+          "provenance",
+          "checkpoint_snapshots",
+          "compressed_replays",
+          "console_log"
+        ],
+        "existing_runs_preserved": true
+      },
+      "runtime_note": "Existing installed training environment reused; installed torch may predate the current declared minimum. Evaluation records the actual environment and makes no dependency-compatibility claim.",
+      "preexisting_user_work_manifest": {
+        "files": 380,
+        "total_bytes": 708295090,
+        "sha256": "1522429f02303cbeded2a358d8578b87afd6df93e301202d24184cdb425cc69c",
+        "hash_format": "UTF-8 JSON; sorted keys; separators comma/colon",
+        "note": "Full protected-work manifest remains in the hashed local provenance file."
+      }
+    }
+  },
+  "settings": {
+    "seeds": [
+      94001,
+      94003,
+      94005,
+      94007
+    ],
+    "action_seeds": [
+      101,
+      102,
+      103
+    ],
+    "modes": [
+      "greedy",
+      "sampled"
+    ],
+    "piece_limit": 32000,
+    "piece_set": "expanded",
+    "python": "3.12.3",
+    "torch": "2.14.1+cu130",
+    "device": "cuda"
+  },
+  "sources": {
+    "tetris_neural.py": "2542a8feac9dff6bb7653057f5c0e42255d1a78137c6ea9f4bbb2bb4802b2226",
+    "sparse_tetris_4d_optimized.py": "a1ac811523c67662ee2b306796963f2e1c04457c2687b67a8b4ad10519494f12",
+    "train_survival_v2.py": "d8651d5bd2e71cd943537b0de7c5a52863baafb9623bf4ae9afad849070f4416",
+    "train_overnight.py": "c9dfdf961a3eca6adb037a2d2b1960804989e801a3674fedac184f505af1b8fa"
+  },
+  "resource_snapshot": {
+    "nvidia_smi": "GPU-478fba92-6dbe-9514-3c48-14bb71bfbae3, NVIDIA GeForce RTX 4060 Ti, 1, 1728, 8188",
+    "returncode": 0,
+    "note": "Snapshot, not a time-averaged utilization measurement."
+  },
+  "competing_trainers": [],
+  "checkpoints": [
+    {
+      "label": "neural-rl",
+      "sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5",
+      "source": "models/neural-rl.pt",
+      "snapshot": "survival-comparison-v2-full.artifacts/checkpoints/e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5.pt",
+      "config": {
+        "width": 32,
+        "blocks": 3,
+        "shortlist": 128,
+        "candidates": 2048,
+        "chunk": 256,
+        "protect_target": true,
+        "recover_target": false,
+        "policy_mode": "neural",
+        "residual_scale": 1.0,
+        "detach_critic": false,
+        "centered_critic": false
+      },
+      "progress": {
+        "updates": 11660,
+        "rl_updates": 10660,
+        "env_steps": 2728960,
+        "clears": 1140,
+        "mode": "a2c"
+      }
+    },
+    {
+      "label": "overnight-survival",
+      "sha256": "f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892",
+      "source": "runs/overnight-survival/best.pt",
+      "snapshot": "survival-comparison-v2-full.artifacts/checkpoints/f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892.pt",
+      "config": {
+        "width": 32,
+        "blocks": 3,
+        "shortlist": 128,
+        "candidates": 2048,
+        "chunk": 256,
+        "protect_target": true,
+        "recover_target": false,
+        "policy_mode": "neural",
+        "residual_scale": 1.0,
+        "detach_critic": false,
+        "centered_critic": false
+      },
+      "progress": {
+        "updates": 2168,
+        "runner_updates": 1168,
+        "warmup_updates": 128,
+        "survival_updates": 1040,
+        "placements": 299008,
+        "clears": 110,
+        "finished_episodes": 36,
+        "mode": "overnight-survival"
+      }
+    },
+    {
+      "label": "survival-ppo",
+      "sha256": "1491054f0f69212bd00e6241188cbcd8697e1ff7177aeee348d907ec479e5f35",
+      "source": "runs/survival-ppo/best.pt",
+      "snapshot": "survival-comparison-v2-full.artifacts/checkpoints/1491054f0f69212bd00e6241188cbcd8697e1ff7177aeee348d907ec479e5f35.pt",
+      "config": {
+        "width": 32,
+        "blocks": 3,
+        "shortlist": 128,
+        "candidates": 2048,
+        "chunk": 256,
+        "protect_target": true,
+        "recover_target": false,
+        "policy_mode": "neural",
+        "residual_scale": 1.0,
+        "detach_critic": false,
+        "centered_critic": false
+      },
+      "progress": {
+        "updates": 16620,
+        "runner_updates": 1696,
+        "warmup_updates": 64,
+        "survival_updates": 1632,
+        "placements": 868352,
+        "clears": 375,
+        "finished_episodes": 118,
+        "mode": "overnight-survival",
+        "optimizer_steps": 4960,
+        "kl_stopped_updates": 0
+      }
+    },
+    {
+      "label": "survival-ppo-v2",
+      "sha256": "38baa04277dac3c1da871dff68046b94a53a9e86670c1ff2d59cd7ce23c12ca9",
+      "source": "runs/survival-ppo-v2/best.pt",
+      "snapshot": "survival-comparison-v2-full.artifacts/checkpoints/38baa04277dac3c1da871dff68046b94a53a9e86670c1ff2d59cd7ce23c12ca9.pt",
+      "config": {
+        "width": 32,
+        "blocks": 3,
+        "shortlist": 128,
+        "candidates": 2048,
+        "chunk": 256,
+        "protect_target": true,
+        "recover_target": true,
+        "policy_mode": "teacher-residual",
+        "residual_scale": 1.0,
+        "detach_critic": true,
+        "centered_critic": true
+      },
+      "progress": {
+        "updates": 21812,
+        "runner_updates": 846,
+        "warmup_updates": 0,
+        "survival_updates": 846,
+        "placements": 433152,
+        "clears": 305,
+        "finished_episodes": 28,
+        "mode": "overnight-survival",
+        "optimizer_steps": 10152,
+        "kl_stopped_updates": 0,
+        "target_recoveries": 22,
+        "calibration_updates": 300
+      }
+    }
+  ],
+  "validation": {
+    "exact_game_matrix": true,
+    "expected_games": 72,
+    "completed_games": 72,
+    "duplicate_games": 0,
+    "checkpoint_snapshot_hashes_verified": true,
+    "replay_metadata_and_counts_verified": 72,
+    "clear_counts": "Sum of per-move clears equals hyperlayers; clear_steps count events, not layers.",
+    "representative_physics": {
+      "physics_replayed": true,
+      "representative_games": 10,
+      "result_sha256": "6b516dbcebe58abe9b0ebb59fb333c0c9bc1277fffbba2120e355214e23747f3",
+      "results": [
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000054-seed-94007.json.gz",
+          "pieces": 20888,
+          "hyperlayers": 19,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000055-seed-94007.json.gz",
+          "pieces": 20888,
+          "hyperlayers": 19,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000038-seed-94005.json.gz",
+          "pieces": 9740,
+          "hyperlayers": 6,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000022-seed-94003.json.gz",
+          "pieces": 8505,
+          "hyperlayers": 4,
+          "complete": true,
+          "stop_reason": "planner_blocked",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000024-seed-94003.json.gz",
+          "pieces": 8624,
+          "hyperlayers": 4,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000043-seed-94005.json.gz",
+          "pieces": 7434,
+          "hyperlayers": 2,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000010-seed-94001.json.gz",
+          "pieces": 11026,
+          "hyperlayers": 7,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000049-seed-94005.json.gz",
+          "pieces": 8988,
+          "hyperlayers": 5,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000032-seed-94003.json.gz",
+          "pieces": 16054,
+          "hyperlayers": 13,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        },
+        {
+          "passed": true,
+          "path": "/home/andrz/git/tetris4d/survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000034-seed-94003.json.gz",
+          "pieces": 15070,
+          "hyperlayers": 11,
+          "complete": true,
+          "stop_reason": "top_out",
+          "engine_source_matches": true
+        }
+      ]
+    },
+    "additional_evidence": [
+      {
+        "path": "survival-training.artifacts/validation/survival-v2-tests.log",
+        "sha256": "9c79bb8c6c785f64920347438b5131382719ae7ddc85dcb13edef0cf818185aa",
+        "bytes": 4316,
+        "last_lines": [
+          "test_headless_and_captured_actions_match (__main__.TrainerTests.test_headless_and_captured_actions_match) ... ok",
+          "test_immutable_checkpoint_snapshot_and_archive (__main__.TrainerTests.test_immutable_checkpoint_snapshot_and_archive) ... ok",
+          "test_incompatible_resume_is_rejected (__main__.TrainerTests.test_incompatible_resume_is_rejected) ... ok",
+          "test_invalid_calibration_override_fails (__main__.TrainerTests.test_invalid_calibration_override_fails) ... ok",
+          "test_lazy_trace_only_captures_requested_frame (__main__.TrainerTests.test_lazy_trace_only_captures_requested_frame) ... ok",
+          "test_legacy_checkpoint_tensor_count_and_sigmoid_only (__main__.TrainerTests.test_legacy_checkpoint_tensor_count_and_sigmoid_only) ... ok",
+          "test_logger_counts_neural_decisions (__main__.TrainerTests.test_logger_counts_neural_decisions) ... ok",
+          "test_new_checkpoint_loads_in_old_cli_agent (__main__.TrainerTests.test_new_checkpoint_loads_in_old_cli_agent) ... ok",
+          "test_real_optimizer_minibatches_and_diagnostics (__main__.TrainerTests.test_real_optimizer_minibatches_and_diagnostics) ... ok",
+          "test_retargeted_move_and_pending_target_replay (__main__.TrainerTests.test_retargeted_move_and_pending_target_replay) ... ok",
+          "test_rollout_reuses_adjacent_values (__main__.TrainerTests.test_rollout_reuses_adjacent_values) ... ok",
+          "test_secondary_supervision_distinguishes_primary_ties (__main__.TrainerTests.test_secondary_supervision_distinguishes_primary_ties) ... ok",
+          "test_terminal_values_do_not_bootstrap (__main__.TrainerTests.test_terminal_values_do_not_bootstrap) ... ok",
+          "test_truncation_bootstraps_without_crossing_reset (__main__.TrainerTests.test_truncation_bootstraps_without_crossing_reset) ... ok",
+          "test_zero_residual_reproduces_teacher (__main__.TrainerTests.test_zero_residual_reproduces_teacher) ... ok",
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 34 tests in 9.238s",
+          "",
+          "OK (skipped=1)"
+        ],
+        "note": "Bounded log excerpt; pass status is not inferred from arbitrary text."
+      },
+      {
+        "path": "survival-training.artifacts/validation/survival-ppo-tests.log",
+        "sha256": "1ebdd25d29fe8f54cf9ad9bfcd59b22db8fa4ecf19e16858a36dc33f23871ecd",
+        "bytes": 2161,
+        "last_lines": [
+          "test_cuda_update (__main__.IntegrationTests.test_cuda_update) ... skipped 'CUDA is unavailable on this runner'",
+          "test_exact_resume_preserves_all_model_and_optimizer_state (__main__.IntegrationTests.test_exact_resume_preserves_all_model_and_optimizer_state) ... ok",
+          "test_kl_guard_stops_later_epochs (__main__.IntegrationTests.test_kl_guard_stops_later_epochs) ... ok",
+          "test_new_checkpoint_loads_in_existing_neural_agent (__main__.IntegrationTests.test_new_checkpoint_loads_in_existing_neural_agent) ... ok",
+          "test_new_settings_cannot_silently_resume (__main__.IntegrationTests.test_new_settings_cannot_silently_resume) ... ok",
+          "test_optimizer_changes_weights_and_records_objective (__main__.IntegrationTests.test_optimizer_changes_weights_and_records_objective) ... ok",
+          "test_transfer_resets_value_but_keeps_actor_weights (__main__.IntegrationTests.test_transfer_resets_value_but_keeps_actor_weights) ... ok",
+          "test_warmup_is_not_off_policy_ppo (__main__.IntegrationTests.test_warmup_is_not_off_policy_ppo) ... ok",
+          "test_bad_candidates_have_nonzero_regret (__main__.ObjectiveTests.test_bad_candidates_have_nonzero_regret) ... ok",
+          "test_clipping_handles_both_advantage_signs (__main__.ObjectiveTests.test_clipping_handles_both_advantage_signs) ... ok",
+          "test_default_initialization_prefers_rl_without_claiming_it_wins (__main__.ObjectiveTests.test_default_initialization_prefers_rl_without_claiming_it_wins) ... ok",
+          "test_exact_kl_ignores_padding_and_keeps_gradients_finite (__main__.ObjectiveTests.test_exact_kl_ignores_padding_and_keeps_gradients_finite) ... ok",
+          "test_invalid_settings_and_empty_masks_fail (__main__.ObjectiveTests.test_invalid_settings_and_empty_masks_fail) ... ok",
+          "test_tied_teacher_placements_are_all_accepted (__main__.ObjectiveTests.test_tied_teacher_placements_are_all_accepted) ... ok",
+          "test_upper_holes_use_the_real_policy_penalty (__main__.ObjectiveTests.test_upper_holes_use_the_real_policy_penalty) ... ok",
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 16 tests in 3.020s",
+          "",
+          "OK (skipped=1)"
+        ],
+        "note": "Bounded log excerpt; pass status is not inferred from arbitrary text."
+      },
+      {
+        "path": "survival-training.artifacts/validation/survival-v2-native-validation.json",
+        "sha256": "423fab302aa5b78c8f82bbdfedad2772a76298f208119e4a33d5398807f0b542",
+        "bytes": 1212,
+        "data": {
+          "passed": true,
+          "backend": "native",
+          "device": "cpu",
+          "torch": "2.14.1+cu130",
+          "parameters": 62485,
+          "initial_checkpoint_sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5",
+          "source_checkpoint_unchanged": true,
+          "identical_teacher_choices": 2600,
+          "clear_events": [
+            1251,
+            2466
+          ],
+          "final_summary": {
+            "seed": 7,
+            "piece_set": "expanded",
+            "pieces": 2600,
+            "cells_placed": 15598,
+            "piece_counts": {
+              "I": 173,
+              "O": 174,
+              "T": 173,
+              "L": 174,
+              "S": 173,
+              "B": 173,
+              "C": 173,
+              "NOVA": 174,
+              "STAIR": 173,
+              "FORK": 173,
+              "HOOK": 174,
+              "BRIDGE": 173,
+              "RING": 173,
+              "CROSS": 174,
+              "HYPER": 173
+            },
+            "hyperlayers": 2,
+            "score": 200,
+            "game_over": false,
+            "max_height": 6,
+            "holes": 2551,
+            "occupied_cells": 7406
+          },
+          "action_digest": "df47b9bfcec90f8d8571825efa817805d9cbddbe0c13f6b4727c0de49ce68eff",
+          "full_model_optimizer_steps": 6,
+          "elapsed_validation_seconds": 43.968385208001564,
+          "note": "Correctness and short optimizer smoke only. Zero residual reproduces teacher behavior; no learned playing-strength gain or CUDA speedup is claimed."
+        }
+      },
+      {
+        "path": "survival-training.artifacts/validation/longevity-existing-v2-tests.log",
+        "sha256": "19ec0e925c707586b090b8c33b57e0347a88a867050d91f7843423371acbe911",
+        "bytes": 4316,
+        "last_lines": [
+          "test_headless_and_captured_actions_match (__main__.TrainerTests.test_headless_and_captured_actions_match) ... ok",
+          "test_immutable_checkpoint_snapshot_and_archive (__main__.TrainerTests.test_immutable_checkpoint_snapshot_and_archive) ... ok",
+          "test_incompatible_resume_is_rejected (__main__.TrainerTests.test_incompatible_resume_is_rejected) ... ok",
+          "test_invalid_calibration_override_fails (__main__.TrainerTests.test_invalid_calibration_override_fails) ... ok",
+          "test_lazy_trace_only_captures_requested_frame (__main__.TrainerTests.test_lazy_trace_only_captures_requested_frame) ... ok",
+          "test_legacy_checkpoint_tensor_count_and_sigmoid_only (__main__.TrainerTests.test_legacy_checkpoint_tensor_count_and_sigmoid_only) ... ok",
+          "test_logger_counts_neural_decisions (__main__.TrainerTests.test_logger_counts_neural_decisions) ... ok",
+          "test_new_checkpoint_loads_in_old_cli_agent (__main__.TrainerTests.test_new_checkpoint_loads_in_old_cli_agent) ... ok",
+          "test_real_optimizer_minibatches_and_diagnostics (__main__.TrainerTests.test_real_optimizer_minibatches_and_diagnostics) ... ok",
+          "test_retargeted_move_and_pending_target_replay (__main__.TrainerTests.test_retargeted_move_and_pending_target_replay) ... ok",
+          "test_rollout_reuses_adjacent_values (__main__.TrainerTests.test_rollout_reuses_adjacent_values) ... ok",
+          "test_secondary_supervision_distinguishes_primary_ties (__main__.TrainerTests.test_secondary_supervision_distinguishes_primary_ties) ... ok",
+          "test_terminal_values_do_not_bootstrap (__main__.TrainerTests.test_terminal_values_do_not_bootstrap) ... ok",
+          "test_truncation_bootstraps_without_crossing_reset (__main__.TrainerTests.test_truncation_bootstraps_without_crossing_reset) ... ok",
+          "test_zero_residual_reproduces_teacher (__main__.TrainerTests.test_zero_residual_reproduces_teacher) ... ok",
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 34 tests in 8.106s",
+          "",
+          "OK (skipped=1)"
+        ],
+        "note": "Bounded log excerpt; pass status is not inferred from arbitrary text."
+      },
+      {
+        "path": "survival-training.artifacts/validation/longevity-existing-ppo-tests.log",
+        "sha256": "8c7b825f2fa814dbe307f8f9549149b9d0276716e64aa03337f821c60982c3dd",
+        "bytes": 2161,
+        "last_lines": [
+          "test_cuda_update (__main__.IntegrationTests.test_cuda_update) ... skipped 'CUDA is unavailable on this runner'",
+          "test_exact_resume_preserves_all_model_and_optimizer_state (__main__.IntegrationTests.test_exact_resume_preserves_all_model_and_optimizer_state) ... ok",
+          "test_kl_guard_stops_later_epochs (__main__.IntegrationTests.test_kl_guard_stops_later_epochs) ... ok",
+          "test_new_checkpoint_loads_in_existing_neural_agent (__main__.IntegrationTests.test_new_checkpoint_loads_in_existing_neural_agent) ... ok",
+          "test_new_settings_cannot_silently_resume (__main__.IntegrationTests.test_new_settings_cannot_silently_resume) ... ok",
+          "test_optimizer_changes_weights_and_records_objective (__main__.IntegrationTests.test_optimizer_changes_weights_and_records_objective) ... ok",
+          "test_transfer_resets_value_but_keeps_actor_weights (__main__.IntegrationTests.test_transfer_resets_value_but_keeps_actor_weights) ... ok",
+          "test_warmup_is_not_off_policy_ppo (__main__.IntegrationTests.test_warmup_is_not_off_policy_ppo) ... ok",
+          "test_bad_candidates_have_nonzero_regret (__main__.ObjectiveTests.test_bad_candidates_have_nonzero_regret) ... ok",
+          "test_clipping_handles_both_advantage_signs (__main__.ObjectiveTests.test_clipping_handles_both_advantage_signs) ... ok",
+          "test_default_initialization_prefers_rl_without_claiming_it_wins (__main__.ObjectiveTests.test_default_initialization_prefers_rl_without_claiming_it_wins) ... ok",
+          "test_exact_kl_ignores_padding_and_keeps_gradients_finite (__main__.ObjectiveTests.test_exact_kl_ignores_padding_and_keeps_gradients_finite) ... ok",
+          "test_invalid_settings_and_empty_masks_fail (__main__.ObjectiveTests.test_invalid_settings_and_empty_masks_fail) ... ok",
+          "test_tied_teacher_placements_are_all_accepted (__main__.ObjectiveTests.test_tied_teacher_placements_are_all_accepted) ... ok",
+          "test_upper_holes_use_the_real_policy_penalty (__main__.ObjectiveTests.test_upper_holes_use_the_real_policy_penalty) ... ok",
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 16 tests in 3.093s",
+          "",
+          "OK (skipped=1)"
+        ],
+        "note": "Bounded log excerpt; pass status is not inferred from arbitrary text."
+      },
+      {
+        "path": "survival-training.artifacts/validation/longevity-targeted-tests.log",
+        "sha256": "27fe950afa3bd7072b66208372b4335047fb0b40bf149e9ba4603f1dba07f164",
+        "bytes": 110,
+        "last_lines": [
+          "...........",
+          "----------------------------------------------------------------------",
+          "Ran 11 tests in 2.789s",
+          "",
+          "OK"
+        ],
+        "note": "Bounded log excerpt; pass status is not inferred from arbitrary text."
+      }
+    ]
+  },
+  "metrics": {
+    "sustained:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 17753.25,
+      "minimum_seed_mean_pieces": 15338.0,
+      "median_seed_mean_pieces": 17393.5,
+      "minimum_game_pieces": 15338,
+      "mean_hyperlayers": 15.0,
+      "total_hyperlayers": 60,
+      "total_clear_events": 60,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": null,
+      "primary_utility_agreement_piece_weighted": null,
+      "timing": {
+        "wall_seconds": 269.68150629299635,
+        "pieces_per_second": 263.3217270851628,
+        "phase_seconds": {
+          "commit": 17.382578722583276,
+          "inference_transfer": 0.0,
+          "prepare": 251.60897343980832
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 18685.0,
+          "mean_hyperlayers": 16.0,
+          "mean_clear_events": 16.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 16102.0,
+          "mean_hyperlayers": 13.0,
+          "mean_clear_events": 13.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 15338.0,
+          "mean_hyperlayers": 12.0,
+          "mean_clear_events": 12.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 20888.0,
+          "mean_hyperlayers": 19.0,
+          "mean_clear_events": 19.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "sustained-recovery:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 17753.25,
+      "minimum_seed_mean_pieces": 15338.0,
+      "median_seed_mean_pieces": 17393.5,
+      "minimum_game_pieces": 15338,
+      "mean_hyperlayers": 15.0,
+      "total_hyperlayers": 60,
+      "total_clear_events": 60,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 1.0,
+      "primary_utility_agreement_piece_weighted": null,
+      "timing": {
+        "wall_seconds": 578.873547326999,
+        "pieces_per_second": 122.67446029950575,
+        "phase_seconds": {
+          "commit": 81.28133223826808,
+          "inference_transfer": 0.03795417100627674,
+          "prepare": 496.72280277559184
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 18685.0,
+          "mean_hyperlayers": 16.0,
+          "mean_clear_events": 16.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 16102.0,
+          "mean_hyperlayers": 13.0,
+          "mean_clear_events": 13.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 15338.0,
+          "mean_hyperlayers": 12.0,
+          "mean_clear_events": 12.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 20888.0,
+          "mean_hyperlayers": 19.0,
+          "mean_clear_events": 19.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "neural-rl:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 7291.25,
+      "minimum_seed_mean_pieces": 6221.0,
+      "median_seed_mean_pieces": 6602.0,
+      "minimum_game_pieces": 6221,
+      "mean_hyperlayers": 3.25,
+      "total_hyperlayers": 13,
+      "total_clear_events": 13,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.4117606720384022,
+      "primary_utility_agreement_piece_weighted": 0.7281673238470769,
+      "timing": {
+        "wall_seconds": 446.27601944500566,
+        "pieces_per_second": 65.35193182970026,
+        "phase_seconds": {
+          "commit": 34.856369977824215,
+          "inference_transfer": 192.8186758077245,
+          "prepare": 218.1960685300437
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 6244.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 6960.0,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 9740.0,
+          "mean_hyperlayers": 6.0,
+          "mean_clear_events": 6.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 6221.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "neural-rl:sampled": {
+      "games": 12,
+      "game_seeds": 4,
+      "repeats_per_seed": 3,
+      "mean_pieces": 7816.0,
+      "minimum_seed_mean_pieces": 7667.333333333333,
+      "median_seed_mean_pieces": 7840.833333333334,
+      "minimum_game_pieces": 7016,
+      "mean_hyperlayers": 3.583333333333333,
+      "total_hyperlayers": 43,
+      "total_clear_events": 43,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 10,
+        "planner_blocked": 2
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.26228249744114635,
+      "primary_utility_agreement_piece_weighted": 0.7016056806550666,
+      "timing": {
+        "wall_seconds": 1463.221420845999,
+        "pieces_per_second": 64.09966302008601,
+        "phase_seconds": {
+          "commit": 113.24109924261211,
+          "inference_transfer": 663.7172536796315,
+          "prepare": 684.9472947486647
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 3,
+          "mean_pieces": 7915.0,
+          "mean_hyperlayers": 3.6666666666666665,
+          "mean_clear_events": 3.6666666666666665,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 3,
+          "mean_pieces": 7667.333333333333,
+          "mean_hyperlayers": 3.3333333333333335,
+          "mean_clear_events": 3.3333333333333335,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 2,
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 3,
+          "mean_pieces": 7818.666666666667,
+          "mean_hyperlayers": 3.6666666666666665,
+          "mean_clear_events": 3.6666666666666665,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 2,
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 3,
+          "mean_pieces": 7863.0,
+          "mean_hyperlayers": 3.6666666666666665,
+          "mean_clear_events": 3.6666666666666665,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 3
+          }
+        }
+      ]
+    },
+    "overnight-survival:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 7887.5,
+      "minimum_seed_mean_pieces": 7521.0,
+      "median_seed_mean_pieces": 7702.5,
+      "minimum_game_pieces": 7521,
+      "mean_hyperlayers": 3.25,
+      "total_hyperlayers": 13,
+      "total_clear_events": 13,
+      "capped_games": 0,
+      "stop_causes": {
+        "planner_blocked": 3,
+        "top_out": 1
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.23664025356576862,
+      "primary_utility_agreement_piece_weighted": 0.47372424722662443,
+      "timing": {
+        "wall_seconds": 536.4744811120036,
+        "pieces_per_second": 58.809880266071936,
+        "phase_seconds": {
+          "commit": 41.90483522801878,
+          "inference_transfer": 229.81111869665983,
+          "prepare": 264.27392390896057
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 7719.0,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 8624.0,
+          "mean_hyperlayers": 4.0,
+          "mean_clear_events": 4.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 7521.0,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 7686.0,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 1
+          }
+        }
+      ]
+    },
+    "overnight-survival:sampled": {
+      "games": 12,
+      "game_seeds": 4,
+      "repeats_per_seed": 3,
+      "mean_pieces": 6964.0,
+      "minimum_seed_mean_pieces": 6777.0,
+      "median_seed_mean_pieces": 6994.0,
+      "minimum_game_pieces": 6591,
+      "mean_hyperlayers": 2.0,
+      "total_hyperlayers": 24,
+      "total_clear_events": 24,
+      "capped_games": 0,
+      "stop_causes": {
+        "planner_blocked": 8,
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.11920830940072755,
+      "primary_utility_agreement_piece_weighted": 0.4151589125023933,
+      "timing": {
+        "wall_seconds": 1321.3317075890045,
+        "pieces_per_second": 63.24528467759553,
+        "phase_seconds": {
+          "commit": 103.66437695295826,
+          "inference_transfer": 606.5736812727009,
+          "prepare": 609.8928781610266
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 3,
+          "mean_pieces": 7006.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 2,
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 3,
+          "mean_pieces": 6777.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 3
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 3,
+          "mean_pieces": 7091.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 2,
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 3,
+          "mean_pieces": 6982.0,
+          "mean_hyperlayers": 2.0,
+          "mean_clear_events": 2.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "planner_blocked": 2,
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "survival-ppo:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 9614.25,
+      "minimum_seed_mean_pieces": 6825.0,
+      "median_seed_mean_pieces": 10303.0,
+      "minimum_game_pieces": 6825,
+      "mean_hyperlayers": 5.75,
+      "total_hyperlayers": 23,
+      "total_clear_events": 23,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.3475050055906597,
+      "primary_utility_agreement_piece_weighted": 0.9460436331487115,
+      "timing": {
+        "wall_seconds": 603.9057177839968,
+        "pieces_per_second": 63.68047009244444,
+        "phase_seconds": {
+          "commit": 47.85531857029491,
+          "inference_transfer": 275.4820855670914,
+          "prepare": 279.9693327779423
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 11026.0,
+          "mean_hyperlayers": 7.0,
+          "mean_clear_events": 7.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 6825.0,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 10654.0,
+          "mean_hyperlayers": 7.0,
+          "mean_clear_events": 7.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 9952.0,
+          "mean_hyperlayers": 6.0,
+          "mean_clear_events": 6.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "survival-ppo:sampled": {
+      "games": 12,
+      "game_seeds": 4,
+      "repeats_per_seed": 3,
+      "mean_pieces": 7584.333333333333,
+      "minimum_seed_mean_pieces": 6896.333333333333,
+      "median_seed_mean_pieces": 7705.833333333334,
+      "minimum_game_pieces": 6443,
+      "mean_hyperlayers": 3.4166666666666665,
+      "total_hyperlayers": 41,
+      "total_clear_events": 41,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 10,
+        "planner_blocked": 2
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.25292269151320707,
+      "primary_utility_agreement_piece_weighted": 0.8266382455060871,
+      "timing": {
+        "wall_seconds": 1396.2919465539962,
+        "pieces_per_second": 65.18121101007185,
+        "phase_seconds": {
+          "commit": 108.80203661287669,
+          "inference_transfer": 649.0962181683062,
+          "prepare": 637.1124748058937
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 3,
+          "mean_pieces": 6896.333333333333,
+          "mean_hyperlayers": 3.0,
+          "mean_clear_events": 3.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 2,
+            "planner_blocked": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 3,
+          "mean_pieces": 7691.0,
+          "mean_hyperlayers": 3.6666666666666665,
+          "mean_clear_events": 3.6666666666666665,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 3,
+          "mean_pieces": 7720.666666666667,
+          "mean_hyperlayers": 3.3333333333333335,
+          "mean_clear_events": 3.3333333333333335,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 3,
+          "mean_pieces": 8029.333333333333,
+          "mean_hyperlayers": 3.6666666666666665,
+          "mean_clear_events": 3.6666666666666665,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 2,
+            "planner_blocked": 1
+          }
+        }
+      ]
+    },
+    "survival-ppo-v2:greedy": {
+      "games": 4,
+      "game_seeds": 4,
+      "repeats_per_seed": 1,
+      "mean_pieces": 14740.75,
+      "minimum_seed_mean_pieces": 13458.0,
+      "median_seed_mean_pieces": 14725.5,
+      "minimum_game_pieces": 13458,
+      "mean_hyperlayers": 11.5,
+      "total_hyperlayers": 46,
+      "total_clear_events": 46,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 4
+      },
+      "target_recoveries": 0,
+      "teacher_agreement_piece_weighted": 0.9580414836422841,
+      "primary_utility_agreement_piece_weighted": 1.0,
+      "timing": {
+        "wall_seconds": 884.1805110839996,
+        "pieces_per_second": 66.68660896824308,
+        "phase_seconds": {
+          "commit": 70.54198466794696,
+          "inference_transfer": 399.10850772392223,
+          "prepare": 413.7374788107336
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 1,
+          "mean_pieces": 14303.0,
+          "mean_hyperlayers": 11.0,
+          "mean_clear_events": 11.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 1,
+          "mean_pieces": 16054.0,
+          "mean_hyperlayers": 13.0,
+          "mean_clear_events": 13.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 1,
+          "mean_pieces": 15148.0,
+          "mean_hyperlayers": 12.0,
+          "mean_clear_events": 12.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 1,
+          "mean_pieces": 13458.0,
+          "mean_hyperlayers": 10.0,
+          "mean_clear_events": 10.0,
+          "capped_games": 0,
+          "target_recoveries": 0,
+          "stop_causes": {
+            "top_out": 1
+          }
+        }
+      ]
+    },
+    "survival-ppo-v2:sampled": {
+      "games": 12,
+      "game_seeds": 4,
+      "repeats_per_seed": 3,
+      "mean_pieces": 14105.25,
+      "minimum_seed_mean_pieces": 13738.666666666666,
+      "median_seed_mean_pieces": 14072.0,
+      "minimum_game_pieces": 13079,
+      "mean_hyperlayers": 10.0,
+      "total_hyperlayers": 120,
+      "total_clear_events": 120,
+      "capped_games": 0,
+      "stop_causes": {
+        "top_out": 12
+      },
+      "target_recoveries": 10,
+      "teacher_agreement_piece_weighted": 0.2912804334083645,
+      "primary_utility_agreement_piece_weighted": 1.0,
+      "timing": {
+        "wall_seconds": 2517.320075967993,
+        "pieces_per_second": 67.23936364544853,
+        "phase_seconds": {
+          "commit": 203.8380030748085,
+          "inference_transfer": 1150.8418325448802,
+          "prepare": 1160.3882417495988
+        }
+      },
+      "per_seed": [
+        {
+          "seed": 94001,
+          "games": 3,
+          "mean_pieces": 13738.666666666666,
+          "mean_hyperlayers": 9.666666666666666,
+          "mean_clear_events": 9.666666666666666,
+          "capped_games": 0,
+          "target_recoveries": 1,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94003,
+          "games": 3,
+          "mean_pieces": 14538.333333333334,
+          "mean_hyperlayers": 10.333333333333334,
+          "mean_clear_events": 10.333333333333334,
+          "capped_games": 0,
+          "target_recoveries": 3,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94005,
+          "games": 3,
+          "mean_pieces": 14063.333333333334,
+          "mean_hyperlayers": 10.0,
+          "mean_clear_events": 10.0,
+          "capped_games": 0,
+          "target_recoveries": 3,
+          "stop_causes": {
+            "top_out": 3
+          }
+        },
+        {
+          "seed": 94007,
+          "games": 3,
+          "mean_pieces": 14080.666666666666,
+          "mean_hyperlayers": 10.0,
+          "mean_clear_events": 10.0,
+          "capped_games": 0,
+          "target_recoveries": 3,
+          "stop_causes": {
+            "top_out": 3
+          }
+        }
+      ]
+    }
+  },
+  "paired_vs_baselines": {
+    "neural-rl:greedy": {
+      "sustained": {
+        "mean_delta_pieces": -10462.0,
+        "relative_mean_survival_difference": -0.5893005506034106,
+        "minimum_delta_pieces": -14667.0,
+        "maximum_delta_pieces": -5598.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.75,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -12441.0,
+            "delta_hyperlayers": -14.0,
+            "delta_clear_events": -14.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9142.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -5598.0,
+            "delta_hyperlayers": -6.0,
+            "delta_clear_events": -6.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -14667.0,
+            "delta_hyperlayers": -17.0,
+            "delta_clear_events": -17.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -10462.0,
+        "relative_mean_survival_difference": -0.5893005506034106,
+        "minimum_delta_pieces": -14667.0,
+        "maximum_delta_pieces": -5598.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.75,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -12441.0,
+            "delta_hyperlayers": -14.0,
+            "delta_clear_events": -14.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9142.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -5598.0,
+            "delta_hyperlayers": -6.0,
+            "delta_clear_events": -6.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -14667.0,
+            "delta_hyperlayers": -17.0,
+            "delta_clear_events": -17.0
+          }
+        ]
+      }
+    },
+    "neural-rl:sampled": {
+      "sustained": {
+        "mean_delta_pieces": -9937.25,
+        "relative_mean_survival_difference": -0.5597425823440778,
+        "minimum_delta_pieces": -13025.0,
+        "maximum_delta_pieces": -7519.333333333333,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.416666666666668,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -10770.0,
+            "delta_hyperlayers": -12.333333333333334,
+            "delta_clear_events": -12.333333333333334
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -8434.666666666668,
+            "delta_hyperlayers": -9.666666666666666,
+            "delta_clear_events": -9.666666666666666
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7519.333333333333,
+            "delta_hyperlayers": -8.333333333333334,
+            "delta_clear_events": -8.333333333333334
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13025.0,
+            "delta_hyperlayers": -15.333333333333334,
+            "delta_clear_events": -15.333333333333334
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -9937.25,
+        "relative_mean_survival_difference": -0.5597425823440778,
+        "minimum_delta_pieces": -13025.0,
+        "maximum_delta_pieces": -7519.333333333333,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.416666666666668,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -10770.0,
+            "delta_hyperlayers": -12.333333333333334,
+            "delta_clear_events": -12.333333333333334
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -8434.666666666668,
+            "delta_hyperlayers": -9.666666666666666,
+            "delta_clear_events": -9.666666666666666
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7519.333333333333,
+            "delta_hyperlayers": -8.333333333333334,
+            "delta_clear_events": -8.333333333333334
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13025.0,
+            "delta_hyperlayers": -15.333333333333334,
+            "delta_clear_events": -15.333333333333334
+          }
+        ]
+      }
+    },
+    "overnight-survival:greedy": {
+      "sustained": {
+        "mean_delta_pieces": -9865.75,
+        "relative_mean_survival_difference": -0.5557151507470464,
+        "minimum_delta_pieces": -13202.0,
+        "maximum_delta_pieces": -7478.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.75,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -10966.0,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -7478.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7817.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13202.0,
+            "delta_hyperlayers": -16.0,
+            "delta_clear_events": -16.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -9865.75,
+        "relative_mean_survival_difference": -0.5557151507470464,
+        "minimum_delta_pieces": -13202.0,
+        "maximum_delta_pieces": -7478.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.75,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -10966.0,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -7478.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7817.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13202.0,
+            "delta_hyperlayers": -16.0,
+            "delta_clear_events": -16.0
+          }
+        ]
+      }
+    },
+    "overnight-survival:sampled": {
+      "sustained": {
+        "mean_delta_pieces": -10789.25,
+        "relative_mean_survival_difference": -0.6077337952205935,
+        "minimum_delta_pieces": -13906.0,
+        "maximum_delta_pieces": -8247.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -13.0,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -11679.0,
+            "delta_hyperlayers": -14.0,
+            "delta_clear_events": -14.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9325.0,
+            "delta_hyperlayers": -11.0,
+            "delta_clear_events": -11.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -8247.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13906.0,
+            "delta_hyperlayers": -17.0,
+            "delta_clear_events": -17.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -10789.25,
+        "relative_mean_survival_difference": -0.6077337952205935,
+        "minimum_delta_pieces": -13906.0,
+        "maximum_delta_pieces": -8247.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -13.0,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -11679.0,
+            "delta_hyperlayers": -14.0,
+            "delta_clear_events": -14.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9325.0,
+            "delta_hyperlayers": -11.0,
+            "delta_clear_events": -11.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -8247.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -13906.0,
+            "delta_hyperlayers": -17.0,
+            "delta_clear_events": -17.0
+          }
+        ]
+      }
+    },
+    "survival-ppo:greedy": {
+      "sustained": {
+        "mean_delta_pieces": -8139.0,
+        "relative_mean_survival_difference": -0.4584512694858688,
+        "minimum_delta_pieces": -10936.0,
+        "maximum_delta_pieces": -4684.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -9.25,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -7659.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9277.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -4684.0,
+            "delta_hyperlayers": -5.0,
+            "delta_clear_events": -5.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -10936.0,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -8139.0,
+        "relative_mean_survival_difference": -0.4584512694858688,
+        "minimum_delta_pieces": -10936.0,
+        "maximum_delta_pieces": -4684.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -9.25,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -7659.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -9277.0,
+            "delta_hyperlayers": -10.0,
+            "delta_clear_events": -10.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -4684.0,
+            "delta_hyperlayers": -5.0,
+            "delta_clear_events": -5.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -10936.0,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          }
+        ]
+      }
+    },
+    "survival-ppo:sampled": {
+      "sustained": {
+        "mean_delta_pieces": -10168.916666666668,
+        "relative_mean_survival_difference": -0.5727918362365576,
+        "minimum_delta_pieces": -12858.666666666668,
+        "maximum_delta_pieces": -7617.333333333333,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.583333333333334,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -11788.666666666668,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -8411.0,
+            "delta_hyperlayers": -9.333333333333334,
+            "delta_clear_events": -9.333333333333334
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7617.333333333333,
+            "delta_hyperlayers": -8.666666666666666,
+            "delta_clear_events": -8.666666666666666
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -12858.666666666668,
+            "delta_hyperlayers": -15.333333333333334,
+            "delta_clear_events": -15.333333333333334
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -10168.916666666668,
+        "relative_mean_survival_difference": -0.5727918362365576,
+        "minimum_delta_pieces": -12858.666666666668,
+        "maximum_delta_pieces": -7617.333333333333,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -11.583333333333334,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -11788.666666666668,
+            "delta_hyperlayers": -13.0,
+            "delta_clear_events": -13.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -8411.0,
+            "delta_hyperlayers": -9.333333333333334,
+            "delta_clear_events": -9.333333333333334
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -7617.333333333333,
+            "delta_hyperlayers": -8.666666666666666,
+            "delta_clear_events": -8.666666666666666
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -12858.666666666668,
+            "delta_hyperlayers": -15.333333333333334,
+            "delta_clear_events": -15.333333333333334
+          }
+        ]
+      }
+    },
+    "survival-ppo-v2:greedy": {
+      "sustained": {
+        "mean_delta_pieces": -3012.5,
+        "relative_mean_survival_difference": -0.16968724036444027,
+        "minimum_delta_pieces": -7430.0,
+        "maximum_delta_pieces": -48.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -3.5,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -4382.0,
+            "delta_hyperlayers": -5.0,
+            "delta_clear_events": -5.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -48.0,
+            "delta_hyperlayers": 0.0,
+            "delta_clear_events": 0.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -190.0,
+            "delta_hyperlayers": 0.0,
+            "delta_clear_events": 0.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -7430.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -3012.5,
+        "relative_mean_survival_difference": -0.16968724036444027,
+        "minimum_delta_pieces": -7430.0,
+        "maximum_delta_pieces": -48.0,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -3.5,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -4382.0,
+            "delta_hyperlayers": -5.0,
+            "delta_clear_events": -5.0
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -48.0,
+            "delta_hyperlayers": 0.0,
+            "delta_clear_events": 0.0
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -190.0,
+            "delta_hyperlayers": 0.0,
+            "delta_clear_events": 0.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -7430.0,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          }
+        ]
+      }
+    },
+    "survival-ppo-v2:sampled": {
+      "sustained": {
+        "mean_delta_pieces": -3648.0,
+        "relative_mean_survival_difference": -0.20548350302057372,
+        "minimum_delta_pieces": -6807.333333333334,
+        "maximum_delta_pieces": -1274.666666666666,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -5.0,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -4946.333333333334,
+            "delta_hyperlayers": -6.333333333333334,
+            "delta_clear_events": -6.333333333333334
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -1563.666666666666,
+            "delta_hyperlayers": -2.666666666666666,
+            "delta_clear_events": -2.666666666666666
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -1274.666666666666,
+            "delta_hyperlayers": -2.0,
+            "delta_clear_events": -2.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -6807.333333333334,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          }
+        ]
+      },
+      "sustained-recovery": {
+        "mean_delta_pieces": -3648.0,
+        "relative_mean_survival_difference": -0.20548350302057372,
+        "minimum_delta_pieces": -6807.333333333334,
+        "maximum_delta_pieces": -1274.666666666666,
+        "seed_wins_ties_losses": {
+          "wins": 0,
+          "ties": 0,
+          "losses": 4
+        },
+        "mean_delta_hyperlayers": -5.0,
+        "per_seed": [
+          {
+            "seed": 94001,
+            "delta_pieces": -4946.333333333334,
+            "delta_hyperlayers": -6.333333333333334,
+            "delta_clear_events": -6.333333333333334
+          },
+          {
+            "seed": 94003,
+            "delta_pieces": -1563.666666666666,
+            "delta_hyperlayers": -2.666666666666666,
+            "delta_clear_events": -2.666666666666666
+          },
+          {
+            "seed": 94005,
+            "delta_pieces": -1274.666666666666,
+            "delta_hyperlayers": -2.0,
+            "delta_clear_events": -2.0
+          },
+          {
+            "seed": 94007,
+            "delta_pieces": -6807.333333333334,
+            "delta_hyperlayers": -9.0,
+            "delta_clear_events": -9.0
+          }
+        ]
+      }
+    }
+  },
+  "baseline_recovery_comparison": {
+    "mean_delta_pieces": 0.0,
+    "relative_mean_survival_difference": 0.0,
+    "minimum_delta_pieces": 0.0,
+    "maximum_delta_pieces": 0.0,
+    "seed_wins_ties_losses": {
+      "wins": 0,
+      "ties": 4,
+      "losses": 0
+    },
+    "mean_delta_hyperlayers": 0.0,
+    "per_seed": [
+      {
+        "seed": 94001,
+        "delta_pieces": 0.0,
+        "delta_hyperlayers": 0.0,
+        "delta_clear_events": 0.0
+      },
+      {
+        "seed": 94003,
+        "delta_pieces": 0.0,
+        "delta_hyperlayers": 0.0,
+        "delta_clear_events": 0.0
+      },
+      {
+        "seed": 94005,
+        "delta_pieces": 0.0,
+        "delta_hyperlayers": 0.0,
+        "delta_clear_events": 0.0
+      },
+      {
+        "seed": 94007,
+        "delta_pieces": 0.0,
+        "delta_hyperlayers": 0.0,
+        "delta_clear_events": 0.0
+      }
+    ]
+  },
+  "recordings": {
+    "files": [
+      {
+        "run_index": 0,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000000-seed-94001.json.gz",
+        "sha256": "e62f79a27a592a5105c700968987b83967de8cd96cda235606b9842cca50c8ef",
+        "bytes": 963962,
+        "placements": 18685,
+        "cleared_hyperlayers": 16,
+        "clear_events": 16,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 1,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000001-seed-94001.json.gz",
+        "sha256": "472379cdf8b237560ec2a047f356e81b960252aa1fe717485e35876496d07c25",
+        "bytes": 965396,
+        "placements": 18685,
+        "cleared_hyperlayers": 16,
+        "clear_events": 16,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 2,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000002-seed-94001.json.gz",
+        "sha256": "36bf44524b11ae9ae6fd896b966f619b988174dee777f58c03eba83de4835934",
+        "bytes": 323587,
+        "placements": 6244,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 3,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000003-seed-94001.json.gz",
+        "sha256": "a4dbff7900cec28c2fc9432f43695637184333e957623862a057fc1cc05219bb",
+        "bytes": 418548,
+        "placements": 8075,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 4,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000004-seed-94001.json.gz",
+        "sha256": "4dbebcd1dbff4faf0b9177a1249295a855b3dac7f481f6d46b15cbc0c2eed613",
+        "bytes": 397920,
+        "placements": 7672,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 5,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000005-seed-94001.json.gz",
+        "sha256": "94fd3a15b2c1aa9e55a5ff77c2f24b7b7fe5cafd4657e38e1a5053cfe3db7fd9",
+        "bytes": 414661,
+        "placements": 7998,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 6,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000006-seed-94001.json.gz",
+        "sha256": "cdafc1ba4307795904db4db80024bb35507d56c12fbbb56938629f121a9b8c2c",
+        "bytes": 399460,
+        "placements": 7719,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 7,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000007-seed-94001.json.gz",
+        "sha256": "0506dfb3051c6e03076611b1a84108a37141ea1388b53d11da397aedda824ebf",
+        "bytes": 367127,
+        "placements": 7062,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 8,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000008-seed-94001.json.gz",
+        "sha256": "f11f8118b8a9a9f6e0bd6158944d2cf9a0c636cf31b368abfc4cd18d9f65b059",
+        "bytes": 344573,
+        "placements": 6623,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 9,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000009-seed-94001.json.gz",
+        "sha256": "77dabe8012080893d0e2a0b819b38993290860220e6e5c08ec1a492e55b25be7",
+        "bytes": 381100,
+        "placements": 7333,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 10,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000010-seed-94001.json.gz",
+        "sha256": "53a539b38627112afa72c09e3070f9e92717fba3cc5f5aa71cb8daa38ddef3de",
+        "bytes": 569143,
+        "placements": 11026,
+        "cleared_hyperlayers": 7,
+        "clear_events": 7,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 11,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000011-seed-94001.json.gz",
+        "sha256": "b65e89c7595d42a81b6f0cb068f35a0ece5e838f03d04923fc476f9ddbb45e0f",
+        "bytes": 353992,
+        "placements": 6823,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 12,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000012-seed-94001.json.gz",
+        "sha256": "f84102408494fcc80e69d55d302b30d880bbd76723bdf2ebfe6fdf2a14813270",
+        "bytes": 363586,
+        "placements": 7006,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 13,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000013-seed-94001.json.gz",
+        "sha256": "301b07c53cfd59a42c504785f08d885b8ec91c9dab2c00fc6eec90e439c22fd7",
+        "bytes": 356159,
+        "placements": 6860,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 14,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000014-seed-94001.json.gz",
+        "sha256": "2b7650e8fb081079f803c497b1350feb3edbaf87234c2c307f8402c26de9f11c",
+        "bytes": 738507,
+        "placements": 14303,
+        "cleared_hyperlayers": 11,
+        "clear_events": 11,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 15,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000015-seed-94001.json.gz",
+        "sha256": "22f2e31dc32cc9f23a06c2cb6b946f557d17aebc13ebc887f83e72423061c21d",
+        "bytes": 775924,
+        "placements": 15023,
+        "cleared_hyperlayers": 11,
+        "clear_events": 11,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 16,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000016-seed-94001.json.gz",
+        "sha256": "d35a3c5113db8ba57ccad199a68c6ba00391a0db1dce81956e7af9e495529453",
+        "bytes": 675860,
+        "placements": 13079,
+        "cleared_hyperlayers": 9,
+        "clear_events": 9,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 17,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000017-seed-94001.json.gz",
+        "sha256": "e95dca598cb8fe734f89ec4e291c39394519aac622ac848723c9541a3c0df2ec",
+        "bytes": 677404,
+        "placements": 13114,
+        "cleared_hyperlayers": 9,
+        "clear_events": 9,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 18,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000018-seed-94003.json.gz",
+        "sha256": "e8911230b60e0141b86281d50856de215f2b7e91de8e49012f5bfe635a856451",
+        "bytes": 831170,
+        "placements": 16102,
+        "cleared_hyperlayers": 13,
+        "clear_events": 13,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 19,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000019-seed-94003.json.gz",
+        "sha256": "750d7536fbb3641eede91d245c69db438586a03bc35e2ae874db040a4e4a5f43",
+        "bytes": 832418,
+        "placements": 16102,
+        "cleared_hyperlayers": 13,
+        "clear_events": 13,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 20,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000020-seed-94003.json.gz",
+        "sha256": "1ea2e1c2f20de767afb664bffc03dd4a7a11f827b5e3dab198b4bbb0189fdf4e",
+        "bytes": 360172,
+        "placements": 6960,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 21,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000021-seed-94003.json.gz",
+        "sha256": "f75ad24b809424288d66ac7b8bf416e744af7c425d31a9b61319ef836f9a0c08",
+        "bytes": 388273,
+        "placements": 7481,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 22,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000022-seed-94003.json.gz",
+        "sha256": "30420c01da6609c6a73e12743610ec4c3888a88c1a9289f6f4fa51ec98dc74ba",
+        "bytes": 440821,
+        "placements": 8505,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 23,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000023-seed-94003.json.gz",
+        "sha256": "d830f9da33062c599ac60e7aee2c9bcee10ec4068d290ec146a3198fa45746f8",
+        "bytes": 364176,
+        "placements": 7016,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 24,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000024-seed-94003.json.gz",
+        "sha256": "456a35e1aac6168f7aaf5c0ecde53b8cbb8cb06aca9f71c3abbb1edd2f6de0c4",
+        "bytes": 445661,
+        "placements": 8624,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 25,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000025-seed-94003.json.gz",
+        "sha256": "d4ba2a0e6341b76040dfeeaff7017a36e2d0b4b291c2350063601cc0b1e212e6",
+        "bytes": 366324,
+        "placements": 7044,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 26,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000026-seed-94003.json.gz",
+        "sha256": "7af2c1a89fb5a2e47a75dbdb5f88ae66e6f183a4976786a4366065e9fbdeff78",
+        "bytes": 348233,
+        "placements": 6696,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 27,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000027-seed-94003.json.gz",
+        "sha256": "aba07fdd1689d4a12272fcaa71025299d293a0a5a0c99ef5271a4b6f0bc55af7",
+        "bytes": 342950,
+        "placements": 6591,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 28,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000028-seed-94003.json.gz",
+        "sha256": "4f4c28aa95b58a04631b1c32102b327d644e7cd6ac3eb4c371afdff606f0ce2d",
+        "bytes": 353066,
+        "placements": 6825,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 29,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000029-seed-94003.json.gz",
+        "sha256": "1b5d05c081c7738449cc0ad957e3e5c48c27c5de8f9a124e7d4482641eefcc70",
+        "bytes": 417209,
+        "placements": 8047,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 30,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000030-seed-94003.json.gz",
+        "sha256": "3063ad55967f455527163d133fd47c03edeaa1d744ee8b343bbbbebf4208d200",
+        "bytes": 368713,
+        "placements": 7102,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 31,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000031-seed-94003.json.gz",
+        "sha256": "5c2568d7229683a24723aa736eb0bd2c6a0ee47b03059a873a18d3db2d324fbe",
+        "bytes": 410813,
+        "placements": 7924,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 32,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000032-seed-94003.json.gz",
+        "sha256": "2d4eb015b236a33866424ab32dedbeedc45aab1151bd8834fdd4d6da9d41a71b",
+        "bytes": 828647,
+        "placements": 16054,
+        "cleared_hyperlayers": 13,
+        "clear_events": 13,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 33,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000033-seed-94003.json.gz",
+        "sha256": "d6b5c0bb13888595e3085ce4c280bd2f5fcd5929a3ed79bb890e61ee735c7332",
+        "bytes": 727261,
+        "placements": 14077,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 34,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000034-seed-94003.json.gz",
+        "sha256": "3867d170eb851c6c71ee9912f99efa9a35375d87a4037298cdcd364f529ff7f5",
+        "bytes": 778254,
+        "placements": 15070,
+        "cleared_hyperlayers": 11,
+        "clear_events": 11,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 35,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000035-seed-94003.json.gz",
+        "sha256": "9343d7143e52191b4efd00bd3412173865c314841eeb3e6fd082c87139ae1036",
+        "bytes": 747496,
+        "placements": 14468,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 36,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000036-seed-94005.json.gz",
+        "sha256": "cfd48066f7168353b40d407e87ef6836122804eebff6d11fea8f44561029bdb0",
+        "bytes": 791801,
+        "placements": 15338,
+        "cleared_hyperlayers": 12,
+        "clear_events": 12,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 37,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000037-seed-94005.json.gz",
+        "sha256": "58cd16956198c47d929834dd0d32d3638861da46d90ea29dad629bd0cc425c07",
+        "bytes": 793049,
+        "placements": 15338,
+        "cleared_hyperlayers": 12,
+        "clear_events": 12,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 38,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000038-seed-94005.json.gz",
+        "sha256": "bd82a15ce5cc19c5f18573148a54df6ff3136a42be1bdcae33e3e328a593aaa5",
+        "bytes": 502668,
+        "placements": 9740,
+        "cleared_hyperlayers": 6,
+        "clear_events": 6,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 39,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000039-seed-94005.json.gz",
+        "sha256": "67d4dcfc7c671c4c394b234ac319046aeb67c34366c8c915efb8a057a532b119",
+        "bytes": 413769,
+        "placements": 7984,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 40,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000040-seed-94005.json.gz",
+        "sha256": "66d45f2bff0728f09e1520cf6f4bc3b54ea1d333144eba97809ec6e0645dc564",
+        "bytes": 418260,
+        "placements": 8070,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 41,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000041-seed-94005.json.gz",
+        "sha256": "8fb09e0b1dc5f6371e7ae10a058ded5c1b7db70fe89bb73149eb764ab0020fb5",
+        "bytes": 383880,
+        "placements": 7402,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 42,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000042-seed-94005.json.gz",
+        "sha256": "f5ed02f54771ee9e734bd3e82e27da9915ae7f1dfc12a5ee67038d7037500935",
+        "bytes": 389246,
+        "placements": 7521,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 43,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000043-seed-94005.json.gz",
+        "sha256": "c3c126cb690e4d1f3ec76eac6ce1fb85c2597a02d8a7302300e505434807c343",
+        "bytes": 386151,
+        "placements": 7434,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 44,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000044-seed-94005.json.gz",
+        "sha256": "aed72ab5fbf49481ad8ced19fe1de8eae55f8733742bb28dc633dc8985228f4a",
+        "bytes": 350289,
+        "placements": 6731,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 45,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000045-seed-94005.json.gz",
+        "sha256": "af7efc13a65c6ddd4163b7ebd6266d420e54555e64c5773d408e87e6f804abb8",
+        "bytes": 369405,
+        "placements": 7108,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 46,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000046-seed-94005.json.gz",
+        "sha256": "3a4662741c98995d37df1f47ae8718610cf5319e337cc1b7fca037f5906a6869",
+        "bytes": 549736,
+        "placements": 10654,
+        "cleared_hyperlayers": 7,
+        "clear_events": 7,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 47,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000047-seed-94005.json.gz",
+        "sha256": "634e3768840ab4dc3e14707b1fbda43e6c84c99d03a144a480d33f0ae6b6da3b",
+        "bytes": 400957,
+        "placements": 7731,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 48,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000048-seed-94005.json.gz",
+        "sha256": "a5d1828922f95e5b4e61bf6d745a074480b8749d4c693f21fc9b24a0154f87fd",
+        "bytes": 334842,
+        "placements": 6443,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 49,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000049-seed-94005.json.gz",
+        "sha256": "0c07308bc842ee29f9cf48b74e2d10d0c9f4bc941868936b87a02ea13a5b631b",
+        "bytes": 465600,
+        "placements": 8988,
+        "cleared_hyperlayers": 5,
+        "clear_events": 5,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 50,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000050-seed-94005.json.gz",
+        "sha256": "eaa213dd4003bf190a5df249041e9e36d9464c42ed59a65d329401c30591d44a",
+        "bytes": 781826,
+        "placements": 15148,
+        "cleared_hyperlayers": 12,
+        "clear_events": 12,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 51,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000051-seed-94005.json.gz",
+        "sha256": "1c90ebf38b2707e57679a8d6613e9dd4a4c7401b1f662090f38dd623be8cd800",
+        "bytes": 726530,
+        "placements": 14062,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 52,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000052-seed-94005.json.gz",
+        "sha256": "43d28da0970f06ea85d0ac3a6c3be5a2127d1abf23fdd5767cac11879ef7900a",
+        "bytes": 727759,
+        "placements": 14087,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 53,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000053-seed-94005.json.gz",
+        "sha256": "196b218f0d214c8e909e03d2eb8cd46c33e8c14aad58d81a3040bf56d5bf474e",
+        "bytes": 725425,
+        "placements": 14041,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 54,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000054-seed-94007.json.gz",
+        "sha256": "7b50b080904e768ba5f3d057a802bad3226ae034f89376aaa2af434dedf14ce3",
+        "bytes": 1077058,
+        "placements": 20888,
+        "cleared_hyperlayers": 19,
+        "clear_events": 19,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 55,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000055-seed-94007.json.gz",
+        "sha256": "0c2f119652d006cd66f646c689859312656a96bb134e9a897358422d25893063",
+        "bytes": 1078636,
+        "placements": 20888,
+        "cleared_hyperlayers": 19,
+        "clear_events": 19,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 56,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000056-seed-94007.json.gz",
+        "sha256": "4a1021e1501b96134186ddd8cd84f70cc8825e6eb0b58ef3d8114e9e426f60ff",
+        "bytes": 322312,
+        "placements": 6221,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 57,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000057-seed-94007.json.gz",
+        "sha256": "0ec5c99c295bdc03905cefad4bd262041abd2830173b1bce3c86d3a448fe18a5",
+        "bytes": 428183,
+        "placements": 8264,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 58,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000058-seed-94007.json.gz",
+        "sha256": "fbe4b4c73b38ec6ee2a334ce4a2bc8d527271654bb0dfd1ced24370195a3715b",
+        "bytes": 423631,
+        "placements": 8175,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 59,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000059-seed-94007.json.gz",
+        "sha256": "e3057da112e911d90cffc4fd72d0bc01e76343325712a5f9f0a107ce9e3680b4",
+        "bytes": 370966,
+        "placements": 7150,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 60,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000060-seed-94007.json.gz",
+        "sha256": "ee79dca0e1672d80fe9aad862a6bae12924a67dec1236b087e99c18aefd1d926",
+        "bytes": 397654,
+        "placements": 7686,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 61,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000061-seed-94007.json.gz",
+        "sha256": "e1337b48d66b881b55359f5bdcd4f3c4ceb48d32ce349b24cd5c8047ea49a54d",
+        "bytes": 365960,
+        "placements": 7043,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 62,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000062-seed-94007.json.gz",
+        "sha256": "0e4e2b4d410de7dbf4acd74a90018dd2557d8004235107aa9f0b40ecf9bbe224",
+        "bytes": 343035,
+        "placements": 6597,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 63,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000063-seed-94007.json.gz",
+        "sha256": "9136a261846790468514d7655f8d13e261f595742f7a1b3dd7123c40a63e2460",
+        "bytes": 379544,
+        "placements": 7306,
+        "cleared_hyperlayers": 2,
+        "clear_events": 2,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 64,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000064-seed-94007.json.gz",
+        "sha256": "1c3ab1875d217fcaa84333ddb58dfdbdc23ca92a5fd58be0e605b29172f2cbd4",
+        "bytes": 513620,
+        "placements": 9952,
+        "cleared_hyperlayers": 6,
+        "clear_events": 6,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 65,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000065-seed-94007.json.gz",
+        "sha256": "3dcf9bcae3983849cad7c7ba50eaca44caf04dbbb033c7e65da940ddfaafa84a",
+        "bytes": 423404,
+        "placements": 8170,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 66,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000066-seed-94007.json.gz",
+        "sha256": "8c4952f125655ddf20455c7692f5d3e787d8f7d7be85b9ed66ae956a1bb08024",
+        "bytes": 427277,
+        "placements": 8247,
+        "cleared_hyperlayers": 4,
+        "clear_events": 4,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 67,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000067-seed-94007.json.gz",
+        "sha256": "f713952a2eca809ab2b14c94b31c96b0f06e7ee171ef3208f678f17dea381ca7",
+        "bytes": 398059,
+        "placements": 7671,
+        "cleared_hyperlayers": 3,
+        "clear_events": 3,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 68,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000068-seed-94007.json.gz",
+        "sha256": "95ac7eebe2160d9a12e496f5d4282d16b1bc423b76b687fe4c02457892a0f8ea",
+        "bytes": 694473,
+        "placements": 13458,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 0
+      },
+      {
+        "run_index": 69,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000069-seed-94007.json.gz",
+        "sha256": "fb19a17f4e9ca7b0259123dd45f7fa63fbbfd3600064ec8a421d76339c94a491",
+        "bytes": 778149,
+        "placements": 15070,
+        "cleared_hyperlayers": 11,
+        "clear_events": 11,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 70,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000070-seed-94007.json.gz",
+        "sha256": "577846632f08801776a04cb6880900fc7ca8da8f104e2cbe54e6baed6c10fdd9",
+        "bytes": 723951,
+        "placements": 14014,
+        "cleared_hyperlayers": 10,
+        "clear_events": 10,
+        "target_recoveries": 1
+      },
+      {
+        "run_index": 71,
+        "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000071-seed-94007.json.gz",
+        "sha256": "1837f631818a99f7a9e771bc68f47dd2fdc0a6dfa341c4aabc6bf9535eb8cb33",
+        "bytes": 680043,
+        "placements": 13158,
+        "cleared_hyperlayers": 9,
+        "clear_events": 9,
+        "target_recoveries": 1
+      }
+    ],
+    "file_count": 72,
+    "total_bytes": 38175714,
+    "manifest_sha256": "930666ac16fb9e2308bdd2f60d2da84f47287d5fd0abca60aa555e55c140b1e7",
+    "manifest_hash_format": "UTF-8 JSON; sorted keys; separators comma/colon"
+  },
+  "representative_replays": [
+    {
+      "group": "sustained:greedy",
+      "seed": 94007,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 54,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-greedy-00000054-seed-94007.json.gz",
+      "sha256": "7b50b080904e768ba5f3d057a802bad3226ae034f89376aaa2af434dedf14ce3",
+      "bytes": 1077058,
+      "placements": 20888,
+      "cleared_hyperlayers": 19,
+      "clear_events": 19,
+      "target_recoveries": 0
+    },
+    {
+      "group": "sustained-recovery:greedy",
+      "seed": 94007,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 55,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-sustained-recovery-greedy-00000055-seed-94007.json.gz",
+      "sha256": "0c2f119652d006cd66f646c689859312656a96bb134e9a897358422d25893063",
+      "bytes": 1078636,
+      "placements": 20888,
+      "cleared_hyperlayers": 19,
+      "clear_events": 19,
+      "target_recoveries": 0
+    },
+    {
+      "group": "neural-rl:greedy",
+      "seed": 94005,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 38,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000038-seed-94005.json.gz",
+      "sha256": "bd82a15ce5cc19c5f18573148a54df6ff3136a42be1bdcae33e3e328a593aaa5",
+      "bytes": 502668,
+      "placements": 9740,
+      "cleared_hyperlayers": 6,
+      "clear_events": 6,
+      "target_recoveries": 0
+    },
+    {
+      "group": "neural-rl:sampled",
+      "seed": 94003,
+      "action_seed": 102,
+      "stop_cause": "planner_blocked",
+      "run_index": 22,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000022-seed-94003.json.gz",
+      "sha256": "30420c01da6609c6a73e12743610ec4c3888a88c1a9289f6f4fa51ec98dc74ba",
+      "bytes": 440821,
+      "placements": 8505,
+      "cleared_hyperlayers": 4,
+      "clear_events": 4,
+      "target_recoveries": 0
+    },
+    {
+      "group": "overnight-survival:greedy",
+      "seed": 94003,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 24,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000024-seed-94003.json.gz",
+      "sha256": "456a35e1aac6168f7aaf5c0ecde53b8cbb8cb06aca9f71c3abbb1edd2f6de0c4",
+      "bytes": 445661,
+      "placements": 8624,
+      "cleared_hyperlayers": 4,
+      "clear_events": 4,
+      "target_recoveries": 0
+    },
+    {
+      "group": "overnight-survival:sampled",
+      "seed": 94005,
+      "action_seed": 101,
+      "stop_cause": "top_out",
+      "run_index": 43,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000043-seed-94005.json.gz",
+      "sha256": "c3c126cb690e4d1f3ec76eac6ce1fb85c2597a02d8a7302300e505434807c343",
+      "bytes": 386151,
+      "placements": 7434,
+      "cleared_hyperlayers": 2,
+      "clear_events": 2,
+      "target_recoveries": 0
+    },
+    {
+      "group": "survival-ppo:greedy",
+      "seed": 94001,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 10,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000010-seed-94001.json.gz",
+      "sha256": "53a539b38627112afa72c09e3070f9e92717fba3cc5f5aa71cb8daa38ddef3de",
+      "bytes": 569143,
+      "placements": 11026,
+      "cleared_hyperlayers": 7,
+      "clear_events": 7,
+      "target_recoveries": 0
+    },
+    {
+      "group": "survival-ppo:sampled",
+      "seed": 94005,
+      "action_seed": 103,
+      "stop_cause": "top_out",
+      "run_index": 49,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000049-seed-94005.json.gz",
+      "sha256": "0c07308bc842ee29f9cf48b74e2d10d0c9f4bc941868936b87a02ea13a5b631b",
+      "bytes": 465600,
+      "placements": 8988,
+      "cleared_hyperlayers": 5,
+      "clear_events": 5,
+      "target_recoveries": 0
+    },
+    {
+      "group": "survival-ppo-v2:greedy",
+      "seed": 94003,
+      "action_seed": 0,
+      "stop_cause": "top_out",
+      "run_index": 32,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-greedy-00000032-seed-94003.json.gz",
+      "sha256": "2d4eb015b236a33866424ab32dedbeedc45aab1151bd8834fdd4d6da9d41a71b",
+      "bytes": 828647,
+      "placements": 16054,
+      "cleared_hyperlayers": 13,
+      "clear_events": 13,
+      "target_recoveries": 0
+    },
+    {
+      "group": "survival-ppo-v2:sampled",
+      "seed": 94003,
+      "action_seed": 102,
+      "stop_cause": "top_out",
+      "run_index": 34,
+      "path": "survival-comparison-v2-full.artifacts/games/ce76f08e6372/evaluation-neural-sampled-00000034-seed-94003.json.gz",
+      "sha256": "3867d170eb851c6c71ee9912f99efa9a35375d87a4037298cdcd364f529ff7f5",
+      "bytes": 778254,
+      "placements": 15070,
+      "cleared_hyperlayers": 11,
+      "clear_events": 11,
+      "target_recoveries": 1
+    }
+  ],
+  "representative_selection": "Each baseline and checkpoint/mode group: most recoveries, then most pieces, then lowest seed/action seed.",
+  "limitations": [
+    "Four distinct game seeds provide bounded evidence; sampled action repeats are averaged within seed, not 12 independent game seeds.",
+    "Game histories and sampled choices differ across policies despite common seed values.",
+    "Generation comparison includes target recovery and residual-policy differences; it does not isolate the training algorithm.",
+    "Piece-cap survivors are censored at 32000 placements and do not prove indefinite survival.",
+    "Throughput is sequential game wall time including recording; loading and warm-up are excluded.",
+    "Replay count/hash/mask validation is distinct from physics reconstruction; see representative_physics status.",
+    "No automatic model promotion or GUI default change; later tuning on these seeds needs a separate untouched final test."
+  ]
+}

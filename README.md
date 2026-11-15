@@ -54,6 +54,9 @@ and bounded recording settings, use [the PPO workflow](docs/ppo-workflow.md) and
 [experiment details](docs/survival-longevity.md). The model has 62,485 parameters;
 training does not change placement physics.
 
+Use the [live training dashboard](docs/training-dashboard.md) for local charts,
+calibration and PPO progress, and timestamped CSV/JSONL exports for later graphs.
+
 ## Play a checkpoint
 
 ```bash

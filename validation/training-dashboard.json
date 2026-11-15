@@ -1,0 +1,73 @@
+{
+  "schema": "tetris4d-live-dashboard-validation-v1",
+  "utc": "2026-11-15T18:50:12.325243+00:00",
+  "tests": {
+    "command": "python3 -B -m unittest discover -s tests -p test_training_dashboard.py -q",
+    "passed": 10
+  },
+  "javascript_syntax": {
+    "command": "node --check tools/training_dashboard/app.js",
+    "passed": true
+  },
+  "live_http": {
+    "base_url": "http://localhost:8765",
+    "status_200": [
+      "/",
+      "/app.js",
+      "/style.css",
+      "/api/status",
+      "/api/history.csv",
+      "/api/history.jsonl"
+    ],
+    "phase_observed": "training",
+    "actor_change_recovered_on_restart": true,
+    "history_preserved_on_restart": true,
+    "errors": []
+  },
+  "browser": {
+    "engine": "Installed Windows Chrome, headless, GPU disabled",
+    "desktop_rendered": true,
+    "desktop_size": [
+      1440,
+      1100
+    ],
+    "loaded_live_data": true,
+    "evidence": {
+      "desktop.png": {
+        "sha256": "33896f2c9cc68c9a269921a0336a03a7ef222788de92381d9af19d2b7d1c02dc",
+        "bytes": 230524
+      },
+      "desktop.html": {
+        "sha256": "0ff3ad01145012f765fa0c32145b7314429f7ee002e260185376b83576dbbe1e",
+        "bytes": 34681
+      },
+      "mobile.png": {
+        "sha256": "895bf5815ffe075db4c835b08d1b722d10576bae4bd6160ea1ce0a924159ee91",
+        "bytes": 69812
+      },
+      "mobile.html": {
+        "sha256": "cb95627919459f4687564d8cb0c1c800dc3b9ecd74ab852243ef95479e5b6733",
+        "bytes": 34659
+      },
+      "browser.log": {
+        "sha256": "cc8a13958688bd48a891f949855c26241c31d48fd5ab89c530c0358b2d167106",
+        "bytes": 4921
+      }
+    },
+    "limits": [
+      "Narrow screenshot output was390px wide; effective CSS viewport was not measured. Narrow wrapping also received static review.",
+      "The isolated UNC browser profile reported database locking errors; the page and live data rendered. Its disposable profile was removed after process checks."
+    ]
+  },
+  "retained_history": "survival-training.artifacts/dashboard/history.jsonl",
+  "original_metrics": "survival-training.artifacts/run/metrics.jsonl",
+  "history_limit_bytes": 8388608,
+  "training_runtime_unchanged": true,
+  "sources": {
+    "tools/training_dashboard.py": "d39a3a38a2a13c0c53dfd88e9e97d5e91b0b5515dbf0ff68b866fc6400461c7d",
+    "tools/training_dashboard/index.html": "3cb6d7e2f35edd181ed65646d678db400bd0cd819bc36afe424803df6da0dba1",
+    "tools/training_dashboard/app.js": "1d1df03f22126b9bc2276a8f7b86764f28e46e79219907eac20aa602d082add7",
+    "tools/training_dashboard/style.css": "9d3c3e63a13f89b10e50dd18b4afe82f20ce66d05a7ac263169142dbdfc6e7e4",
+    "tests/test_training_dashboard.py": "ccc9e1c62578ab8e568e3da4774a69ba2236dab7f4a111f9fe2a5ab116b4253e"
+  }
+}
