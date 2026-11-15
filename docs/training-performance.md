@@ -43,6 +43,12 @@ were faster but changed that trajectory beyond the comparison tolerance, so the
 continuation retains batch 16 and optimizer batch 128. This small benchmark does
 not establish full-run throughput or playing strength.
 
+The full 16-environment preflight completed one 8,192-placement rollout and 192
+optimizer steps with caching enabled. Its input cache used 700,252,160 bytes;
+peak Torch allocation was 871 MiB (952 MiB reserved). All model/optimizer tensors
+were finite and all sixteen saved game states replayed exactly. See
+[`validation/ppo-performance.json`](../validation/ppo-performance.json).
+
 The small benchmark reports and source hashes are retained locally under
 `survival-training.artifacts/validation/`. No original training checkpoints or
 telemetry are replaced during performance experiments.
