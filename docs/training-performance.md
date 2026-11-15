@@ -57,5 +57,73 @@ The experimental GPU physics benchmark matched integer landing/clear/commit
 results and non-clearing FP64 scores. Clearing candidates still require CPU
 rescoring. For sixteen groups of 2,048 candidates, native scoring took 3.27 ms;
 GPU scoring plus transfers took 0.99 ms. That saves about 2.28 ms within roughly
-100 ms of full preparation, before integration overhead. The production backend
-therefore remains native CPU; the GPU prototype is retained locally for research.
+100 ms of full preparation, before integration overhead. This physics-only
+measurement motivated the broader optional preparation backend below. The
+production experiment still uses its frozen native CPU runtime.
+
+## Optional GPU preparation
+
+New runs can add `--gpu-prepare --fused-encoding --coalesce-transfers` to the
+[PPO recipe](ppo-workflow.md). These flags are recorded in the run signature;
+changing them requires a separate run directory. The running 24-hour experiment
+keeps its frozen runtime and continues on the native CPU preparation path.
+
+`--gpu-prepare` requires CUDA, Triton and the native reference backend. It uploads
+the sixteen column boards together, then computes board statistics, candidate
+landings, strict FP64 non-clearing scores, stable shortlists, teacher priors and
+model inputs on the GPU. The policy consumes those tensors directly, and only
+selected move metadata returns to the CPU. Exact Python RNG draws and a small
+count-summary transfer preserve the original candidate order and exploration.
+
+Selected moves still commit on the CPU, including replay hashes and piece-stream
+updates. Clears, buried/full targets and exhaustive/recovery cases use the native
+preparer for the affected environment. Candidate budgets above 4,096, shortlists
+above 256 or catalog shapes touching more than eight columns use the reference
+path. This is a GPU preparation backend; complete GPU game progression remains
+follow-up work.
+
+Rollout records own their storage through the PPO update. The trainer estimates
+retained inputs and the optional input cache before collection, releases retired
+records before the next rollout, and falls back to CPU preparation when memory
+is insufficient. Allocation fallback does not retry policy draws or optimizer
+steps. Telemetry reports the enabled path and fallback reasons.
+
+`--fused-encoding` builds the existing 34 integer-board feature channels in one
+CUDA kernel. CPU and other input layouts keep the original implementation.
+`--coalesce-transfers` batches scalar diagnostics, KL reads and inference output
+transfers while retaining Python accumulation order and the original sampling
+draws. The flags are independent and disabled by default. Triton is imported only
+when a CUDA opt-in path needs it; CPU-only PyTorch remains supported.
+
+Exact local checks cover forty frozen preparation cases, all 65,536 column masks,
+target boundaries, mixed CPU/device records, record lifetime, optional protection,
+odd shortlists and fallbacks. Encoder model outputs/gradients and PPO actions,
+gradients, Adam state, metrics and RNG matched the reference. Development probes
+used one thread, low CPU priority and a 512 MiB Torch allocator cap alongside the
+same live trainer. CUDA context memory and shared-device contention remain
+outside that allocator cap. These checks establish bounded parity, not learned
+survival gains or total training throughput.
+
+Four alternating warmed pairs compared full preparation on four frozen real
+boards with sixteen distinct piece/counter contexts:
+
+| Workload | Native prepare, collate and H2D | GPU prepare and selected moves D2H | Ratio |
+| --- | ---: | ---: | ---: |
+| Sixteen environments, median wall time | 76.89 ms | 22.51 ms | 3.42x |
+
+Outputs matched exactly. These measurements include shared-device contention
+while training continued, constructed counter contexts, and no CPU-fallback
+cases. They do not measure complete PPO rollouts or training throughput. A
+separate repeated-context workload is recorded in
+[`validation/gpu-preparation.json`](../validation/gpu-preparation.json).
+
+A second comparison timed the complete short rollout and PPO update together:
+sixteen environments, four steps (64 transitions), the full 32-channel/three-block
+model, FP32, batch 16, optimizer batch 128 and three PPO epochs. After one warmup,
+three alternating paired runs measured median wall time of **1.233 s to 0.784 s
+(1.57x)**. Timing includes preparation, transfers, cache construction and KL checks;
+it excludes checkpoint loading and setup. Model parameters, gradients, Adam state
+and CPU/CUDA RNG matched exactly for every pair. This is a concurrent
+64-transition microbenchmark; a full 8,192-transition GPU rollout and sustained
+training throughput remain unmeasured. The active training process was unchanged
+and continued advancing during every successful probe.

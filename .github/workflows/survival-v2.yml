@@ -27,6 +27,7 @@ jobs:
       - run: python tests/test_survival_v2.py
       - run: python tests/test_survival_longevity.py
       - run: python tests/test_rollout_cache.py
+      - run: python -B -m unittest discover -s tests -p 'test_gpu*.py'
       - run: python tests/test_neuron_analysis.py
       - run: python -B -m unittest discover -s tests -p test_training_dashboard.py
       - run: python tools/validate_survival_v2.py --backend native --output survival-v2-validation.json

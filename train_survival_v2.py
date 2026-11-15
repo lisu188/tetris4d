@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import weakref
 
 import numpy as np
 import torch
@@ -55,8 +56,9 @@ def regression_metrics(predicted, target, constant=None):
             'predictions_pieces': tensor_summary(p, 1000), 'targets_pieces': tensor_summary(y, 1000)}
 
 
-def secondary_teacher_loss(logp, batch):
-    winners, _ = legacy.utility_targets(batch['features'], batch['valid'])
+def secondary_teacher_loss(logp, batch, winners=None):
+    if winners is None:
+        winners, _ = legacy.utility_targets(batch['features'], batch['valid'])
     prior = batch.get('teacher_prior', batch['features'][..., 13].float() * 64)
     targets = torch.softmax(prior.float().masked_fill(~winners, -torch.inf), -1)
     conditional = logp - torch.logsumexp(logp.masked_fill(~winners, -torch.inf), -1, keepdim=True)
@@ -78,7 +80,50 @@ def actor_digest(model):
     return h.hexdigest()
 
 
-def clip_gradient_groups(optimizer, scope, maximum=1.):
+def scalar_values(values):
+    """Read exact scalar values together; callers retain Python summation order."""
+    return torch.stack([value.detach() for value in values]).cpu().tolist() if values else []
+
+
+def rollout_to_host(logp, values, teachers=None, coalesce=False, keep_logp_device=False):
+    """Keep the original draw; pack its exactly representable index with float32 outputs."""
+    drawn = (teachers if isinstance(teachers, torch.Tensor) else
+             None if teachers is not None else torch.multinomial(logp.exp(), 1).squeeze(1))
+    if coalesce and logp.dtype == torch.float32 and logp.shape[1] <= 2**24:
+        width = 0 if keep_logp_device else logp.shape[1]
+        columns = ([] if keep_logp_device else [logp.detach()]) + [values.detach().float()[:, None]]
+        if drawn is not None:
+            columns.append(drawn[:, None].float())
+        packed = torch.cat(columns, dim=1).cpu()
+        selected = list(teachers) if drawn is None else packed[:, -1].long().tolist()
+        # Own these few values, rather than retaining the whole probability buffer per step.
+        return selected, packed[:, width].numpy().copy(), logp.detach() if keep_logp_device else packed[:, :width]
+    selected = list(teachers) if drawn is None else drawn.cpu().tolist()
+    return selected, values.float().cpu().numpy(), logp.detach() if keep_logp_device else logp.detach().cpu()
+
+
+def label_tensor(labels, device):
+    if any(isinstance(value, torch.Tensor) for value in labels):
+        return torch.stack([torch.as_tensor(value, device=device, dtype=torch.long) for value in labels])
+    return torch.tensor(labels, device=device)
+
+
+def device_rollout_to_host(logp, values, prepared, warmup=False):
+    """Copy actions, value and exact candidate metadata once; keep behaviour logp on CUDA."""
+    actions = prepared.teachers if warmup else torch.multinomial(logp.exp(), 1).squeeze(1)
+    metadata = prepared.selected_metadata(actions)
+    packed = torch.cat((metadata, values.detach().float().double()[:, None], actions.double()[:, None]), 1).cpu()
+    candidates = prepared.candidates_from_metadata(packed[:, :7].tolist())
+    return (packed[:, 8].long().tolist(), packed[:, 7].numpy().astype(np.float32),
+            logp.detach(), candidates)
+
+
+def cuda_available_bytes(device):
+    free, _ = torch.cuda.mem_get_info(device)
+    return free + max(0, torch.cuda.memory_reserved(device) - torch.cuda.memory_allocated(device))
+
+
+def clip_gradient_groups(optimizer, scope, maximum=1., coalesce=False):
     """Keep critic gradient magnitude from setting the actor's clipping scale."""
     if scope not in ('joint', 'separate') or not math.isfinite(maximum) or maximum <= 0:
         raise ValueError('Invalid gradient clipping setting')
@@ -95,6 +140,9 @@ def clip_gradient_groups(optimizer, scope, maximum=1.):
         torch.nn.utils.clip_grad_norm_(actor, maximum, error_if_nonfinite=True)
         torch.nn.utils.clip_grad_norm_(critic, maximum, error_if_nonfinite=True)
         total = torch.linalg.vector_norm(torch.stack(tuple(norms.values())))
+    if coalesce:
+        return dict(zip(('actor_gradient_norm', 'critic_gradient_norm', 'gradient_norm'),
+                        scalar_values([norms['actor'], norms['critic'], total])))
     return {'actor_gradient_norm': float(norms['actor']), 'critic_gradient_norm': float(norms['critic']),
             'gradient_norm': float(total)}
 
@@ -185,6 +233,7 @@ class Rollout:
     terminals: np.ndarray
     truncations: np.ndarray
     timings: dict
+    gpu_prepare: dict | None = None
 
 
 class RolloutCache:
@@ -197,10 +246,18 @@ class RolloutCache:
         count, maximum = len(records), max(len(row['features']) for row in records)
         total = 0
         for name in records[0]:
-            value = np.asarray(records[0][name])
+            value = records[0][name]
+            if any(isinstance(row[name], torch.Tensor) for row in records):
+                value = torch.as_tensor(value)
+                dtype = value.dtype
+                for row in records[1:]:
+                    dtype = torch.promote_types(dtype, torch.as_tensor(row[name]).dtype)
+                itemsize = torch.empty((), dtype=dtype).element_size()
+            else:
+                value = np.asarray(value)
+                itemsize = np.result_type(*(np.asarray(row[name]).dtype for row in records)).itemsize
             shape = (maximum, *value.shape[1:]) if name in RolloutCache.CANDIDATE_KEYS else value.shape
-            dtype = np.result_type(*(np.asarray(row[name]).dtype for row in records))
-            total += count * math.prod(shape) * dtype.itemsize
+            total += count * math.prod(shape) * itemsize
         # Padded float32 behaviour distribution, integer actions/labels, original target dtypes.
         return total + count * (maximum * 4 + 16 + rollout.advantages.dtype.itemsize + rollout.returns.dtype.itemsize)
 
@@ -210,13 +267,18 @@ class RolloutCache:
         self.lengths = [len(row['features']) for row in rollout.records]
         self.inputs = neural.collate(rollout.records, device)
         maximum = self.inputs['valid'].shape[1]
-        old = torch.full((len(self.lengths), maximum), -torch.inf)
-        for index, row in enumerate(rollout.old_logp):
-            old[index, :len(row)] = row
+        if any(row.device.type != 'cpu' for row in rollout.old_logp):
+            old = torch.nn.utils.rnn.pad_sequence([row.to(device=device, dtype=torch.get_default_dtype())
+                                                 for row in rollout.old_logp],
+                                                batch_first=True, padding_value=-torch.inf)
+        else:
+            old = torch.full((len(self.lengths), maximum), -torch.inf)
+            for index, row in enumerate(rollout.old_logp):
+                old[index, :len(row)] = row
         self.targets = {
             'old': old.to(device),
             'actions': torch.tensor(rollout.choices, device=device),
-            'labels': torch.tensor(rollout.labels, device=device),
+            'labels': label_tensor(rollout.labels, device),
             'advantage': torch.as_tensor(rollout.advantages, device=device),
             'returns': torch.as_tensor(rollout.returns, device=device),
         }
@@ -245,9 +307,27 @@ class SurvivalTrainer(base.Trainer):
                 'runner_sha256': base.file_hash(Path(base.__file__)),
                 **{name: getattr(self.args, name) for name in names},
                 'cache_rollout': getattr(self.args, 'cache_rollout', False),
-                'rollout_cache_mib': getattr(self.args, 'rollout_cache_mib', 1024)}
+                'rollout_cache_mib': getattr(self.args, 'rollout_cache_mib', 1024),
+                'coalesce_transfers': getattr(self.args, 'coalesce_transfers', False),
+                'fused_encoding': getattr(self.args, 'fused_encoding', False),
+                'gpu_prepare': getattr(self.args, 'gpu_prepare', False),
+                'gpu_preparer_sha256': (base.file_hash(Path(__file__).with_name('tetris_gpu_simulation.py'))
+                                        if getattr(self.args, 'gpu_prepare', False) else None),
+                'gpu_encoding_sha256': (base.file_hash(Path(__file__).with_name('tetris_gpu_encoding.py'))
+                                        if getattr(self.args, 'fused_encoding', False) else None)}
+
+    def policy_logp(self, logits, valid):
+        if not getattr(self.args, 'coalesce_transfers', False):
+            return legacy.categorical_logp(logits, valid)
+        valid = valid.bool()
+        # Ignore padding just as logits[valid] does, without dynamic Boolean indexing.
+        checks = valid.any(-1).all() & torch.isfinite(torch.where(valid, logits, 0.)).all()
+        if not bool(checks):
+            raise ValueError('Invalid candidate mask or non-finite action logits.')
+        return F.log_softmax(logits.float().masked_fill(~valid, -torch.inf), dim=-1)
 
     def configure_model(self, resuming):
+        self.model.fused_encoding = getattr(self.args, 'fused_encoding', False)
         if not resuming:
             self.model.config = replace(self.model.config, recover_target=self.args.recover_target,
                                         policy_mode=self.args.policy_mode, residual_scale=self.args.residual_scale,
@@ -292,6 +372,8 @@ class SurvivalTrainer(base.Trainer):
                             'completed_games': 0, 'censored_games': 0, 'fit_updates': 0, 'done': False,
                             'episode': None, 'fit_optimizer': None, 'best': None, 'best_weights': None}
         self.calibration_episode = None
+        self._gpu_preparer = self._prepared_gpu_batch = None
+        self._gpu_prepare_active = False
         super().__init__(args, budget)
         if not hasattr(self, 'initial_digest'):
             self.initial_digest = base.file_hash(Path(self.initial_checkpoint)) if self.initial_checkpoint else None
@@ -312,17 +394,74 @@ class SurvivalTrainer(base.Trainer):
         old = episode.target
         prepared = neural.prepare(episode.state, old, self.model.config)
         if prepared is not None:
-            new = int(prepared.arrays['targets'])
-            if new != old:
-                if getattr(episode, 'pending_retarget', None) is None:
-                    episode.pending_retarget = old
-                episode.target = new
-                self.progress['target_recoveries'] += 1
-                self.emit('target_recovered', episode=episode.number, phase=episode.phase, pieces=episode.state.pieces,
-                          from_target=old, to_target=new, reward_pieces=0, board_sha256=base.board_hash(episode.state.board))
+            self.note_target(episode, int(prepared.arrays['targets']))
         return prepared
 
+    def note_target(self, episode, new):
+        old = episode.target
+        if new != old:
+            if getattr(episode, 'pending_retarget', None) is None:
+                episode.pending_retarget = old
+            episode.target = new
+            self.progress['target_recoveries'] += 1
+            self.emit('target_recovered', episode=episode.number, phase=episode.phase, pieces=episode.state.pieces,
+                      from_target=old, to_target=new, reward_pieces=0, board_sha256=base.board_hash(episode.state.board))
+
+    def gpu_prepare_plan(self):
+        requested = getattr(self.args, 'gpu_prepare', False)
+        plan = {'requested': requested, 'enabled': False}
+        if not requested:
+            return plan
+        if self.device.type != 'cuda' or game.BACKEND != 'native':
+            raise ValueError('--gpu-prepare requires CUDA and the native reference backend')
+        # Retain owned input records for the whole rollout, plus their optional update cache.
+        shortlist = self.model.config.shortlist
+        per_record = 4096 * 4 + 8 + neural.CONTEXT * 4 + shortlist * (
+            neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
+        retained = per_record * self.args.envs * self.args.rollout
+        free = cuda_available_bytes(self.device)
+        limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
+        needed = retained * (2 if getattr(self.args, 'cache_rollout', False) else 1) + 128 * 2**20
+        if retained > limit or needed > free // 2:
+            return {**plan, 'reason': 'memory_bound', 'estimated_retained_bytes': retained,
+                    'estimated_with_cache_bytes': needed, 'free_bytes': free, 'limit_bytes': limit}
+        return {**plan, 'enabled': True, 'estimated_retained_bytes': retained}
+
     def _prepare_all(self):
+        if getattr(self, '_gpu_prepare_active', False):
+            if self._prepared_gpu_batch is None:
+                try:
+                    if self._gpu_preparer is None:
+                        from tetris_gpu_simulation import GpuPreparer
+                        self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+                    result = self._gpu_preparer.prepare_batch([e.state for e in self.environments],
+                                                              [e.target for e in self.environments])
+                except torch.OutOfMemoryError:
+                    # Preparation consumes no policy RNG and commits no move: continue from
+                    # the same states on CPU, retaining any already collected device records.
+                    self._gpu_prepare_active = False
+                    self._prepared_gpu_batch = None
+                    plan = getattr(self, '_gpu_prepare_status', None)
+                    if plan is not None:
+                        plan.update(enabled=bool(self._gpu_prepare_stats['batch_calls']),
+                                    runtime_fallback='allocation_failed')
+                    if self.device.type == 'cuda':
+                        torch.cuda.empty_cache()
+                    self.prepared = [self.prepare_episode(e) for e in self.environments]
+                    return
+                stats = getattr(self, '_gpu_prepare_stats', None)
+                if stats is not None:
+                    stats['batch_calls'] += 1
+                    stats['environment_calls'] += len(self.environments)
+                    for reason in result.cpu_fallbacks:
+                        if reason:
+                            stats['cpu_fallbacks'][reason] = stats['cpu_fallbacks'].get(reason, 0) + 1
+                self.prepared = list(result.prepared)
+                self._prepared_gpu_batch = result
+                for episode, prepared, target in zip(self.environments, self.prepared, result.targets):
+                    if prepared is not None:
+                        self.note_target(episode, target)
+            return
         if self.prepared is None:
             self.prepared = [self.prepare_episode(e) for e in self.environments]
 
@@ -338,6 +477,7 @@ class SurvivalTrainer(base.Trainer):
                   **episode.state.summary())
         self.environments[index] = self.new_episode()
         self.prepared[index] = self.prepare_episode(self.environments[index])
+        self._prepared_gpu_batch = None
         if self.prepared[index] is None:
             raise ValueError('No legal candidate on an empty board')
 
@@ -378,7 +518,7 @@ class SurvivalTrainer(base.Trainer):
             while prepared is not None and episode.state.pieces < self.args.pieces and not self.budget.expired():
                 with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
                     output = self.model(neural.collate([prepared.arrays], self.device))
-                    logp = legacy.categorical_logp(output['logits'], torch.ones_like(output['logits'], dtype=torch.bool))
+                    logp = self.policy_logp(output['logits'], torch.ones_like(output['logits'], dtype=torch.bool))
                     action = int(torch.multinomial(logp.exp(), 1).item())
                 if episode.state.pieces % self.args.calibration_stride == 0:
                     c['pending'].append({'x': output['critic_input'][0].detach().float().cpu(), 'piece': episode.state.pieces})
@@ -484,6 +624,16 @@ class SurvivalTrainer(base.Trainer):
 
     def rollout(self, warmup):
         timings = {'prepare_seconds': 0., 'inference_transfer_seconds': 0., 'commit_seconds': 0., 'bootstrap_seconds': 0.}
+        self.release_previous_device_rollout()
+        gpu_plan = self.gpu_prepare_plan()
+        if getattr(self, '_gpu_prepare_active', False) or gpu_plan['enabled']:
+            self.prepared = None
+        self._gpu_prepare_active = gpu_plan['enabled']
+        self._prepared_gpu_batch = None
+        self._gpu_prepare_stats = {'batch_calls': 0, 'environment_calls': 0, 'cpu_fallbacks': {}}
+        self._gpu_prepare_status = gpu_plan
+        if self._gpu_prepare_active:
+            gpu_plan['preparations'] = self._gpu_prepare_stats
         started = time.perf_counter()
         self._prepare_all()
         timings['prepare_seconds'] += time.perf_counter() - started
@@ -496,14 +646,27 @@ class SurvivalTrainer(base.Trainer):
             for i, prepared in enumerate(self.prepared):
                 if prepared is None:
                     self.finish_episode(i, base.stopped_reason(self.environments[i].state))
+            if self._gpu_prepare_active:
+                self._prepare_all()
             started = time.perf_counter()
-            batch = neural.collate([p.arrays for p in self.prepared], self.device)
+            device_prepared = self._prepared_gpu_batch
+            if device_prepared is not None and device_prepared.environment_indices != tuple(range(self.args.envs)):
+                raise ValueError('Incomplete GPU environment mapping after episode reset')
+            batch = (device_prepared.batch if device_prepared is not None else
+                     neural.collate([p.arrays for p in self.prepared], self.device))
             with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
                 prediction = self.model(batch)
-                logp = legacy.categorical_logp(prediction['logits'], batch['valid'])
-                selected = [p.teacher for p in self.prepared] if warmup else torch.multinomial(logp.exp(), 1).squeeze(1).cpu().tolist()
-                current_values = prediction['value'].float().cpu().numpy()
-                probabilities = logp.detach().cpu()
+                logp = self.policy_logp(prediction['logits'], batch['valid'])
+                teachers = (device_prepared.teachers if device_prepared is not None else
+                            [p.teacher for p in self.prepared]) if warmup else None
+                if device_prepared is not None and getattr(self.args, 'coalesce_transfers', False):
+                    selected, current_values, probabilities, candidates = device_rollout_to_host(
+                        logp, prediction['value'], device_prepared, warmup)
+                else:
+                    selected, current_values, probabilities = rollout_to_host(
+                        logp, prediction['value'], teachers, getattr(self.args, 'coalesce_transfers', False),
+                        keep_logp_device=device_prepared is not None)
+                    candidates = device_prepared.selected_candidates(selected) if device_prepared is not None else None
             timings['inference_transfer_seconds'] += time.perf_counter() - started
             if values:
                 continuing = ~(terminals[-1] | truncations[-1])
@@ -517,18 +680,29 @@ class SurvivalTrainer(base.Trainer):
                 records.append(prepared.arrays)
                 choices.append(index)
                 labels.append(prepared.teacher)
-                old.append(probabilities[i, :len(prepared.options)].clone())
+                old_row = probabilities[i, :len(prepared.options)]
+                old.append(old_row if device_prepared is not None else old_row.clone())
                 started = time.perf_counter()
-                move = base.apply_move(episode, prepared.options[index], self.progress['updates'],
+                candidate = candidates[i] if candidates is not None else prepared.options[index]
+                move = base.apply_move(episode, candidate, self.progress['updates'],
                                        'teacher' if warmup else 'stochastic_neural')
                 timings['commit_seconds'] += time.perf_counter() - started
                 self.progress['placements'] += 1
                 self.progress['clears'] += move.layers
+                if not self._gpu_prepare_active:
+                    started = time.perf_counter()
+                    self.prepared[i] = self.prepare_episode(episode)
+                    timings['prepare_seconds'] += time.perf_counter() - started
+                    terminal[i] = self.prepared[i] is None
+                    truncated[i] = episode.state.pieces >= self.args.pieces and not terminal[i]
+            if self._gpu_prepare_active:
                 started = time.perf_counter()
-                self.prepared[i] = self.prepare_episode(episode)
+                self._prepared_gpu_batch = None
+                self._prepare_all()
                 timings['prepare_seconds'] += time.perf_counter() - started
-                terminal[i] = self.prepared[i] is None
-                truncated[i] = episode.state.pieces >= self.args.pieces and not terminal[i]
+                terminal = np.asarray([p is None for p in self.prepared], dtype=np.bool_)
+                truncated = np.asarray([e.state.pieces >= self.args.pieces and not terminal[i]
+                                        for i, e in enumerate(self.environments)], dtype=np.bool_)
             capped = np.flatnonzero(truncated).tolist()
             if capped:
                 started = time.perf_counter()
@@ -553,7 +727,8 @@ class SurvivalTrainer(base.Trainer):
         raw = advantage.ravel().copy()
         normalized = (raw - raw.mean()) / max(1e-6, float(raw.std()))
         return Rollout(records, choices, labels, normalized, returns.ravel(), old, np.asarray(values).ravel(),
-                       raw, np.asarray(terminals).ravel(), np.asarray(truncations).ravel(), timings)
+                       raw, np.asarray(terminals).ravel(), np.asarray(truncations).ravel(), timings,
+                       gpu_prepare=gpu_plan if gpu_plan['requested'] else None)
 
     def policy_batch(self, rollout, indices):
         cache = getattr(self, '_rollout_cache', None)
@@ -561,23 +736,36 @@ class SurvivalTrainer(base.Trainer):
             batch, values = cache.select(indices, targets=False)
             return batch, values['old']
         batch = neural.collate([rollout.records[i] for i in indices], self.device)
-        return batch, legacy.SurvivalTrainer.old_batch(self, rollout, indices, batch['valid'].shape[1])
+        return batch, self.old_batch(rollout, indices, batch['valid'].shape[1])
 
     def old_batch(self, rollout, indices, size):
         cache = getattr(self, '_rollout_cache', None)
         if cache is not None and cache.rollout is rollout and size <= cache.targets['old'].shape[1]:
             selected = torch.tensor(indices, dtype=torch.long, device=self.device)
             return cache.targets['old'][:, :size].index_select(0, selected)
+        rows = [rollout.old_logp[i] for i in indices]
+        if any(row.device.type != 'cpu' for row in rows):
+            old = torch.nn.utils.rnn.pad_sequence([row.to(device=self.device, dtype=torch.get_default_dtype())
+                                                 for row in rows], batch_first=True, padding_value=-torch.inf)
+            return F.pad(old, (0, size - old.shape[1]), value=-torch.inf)
         return legacy.SurvivalTrainer.old_batch(self, rollout, indices, size)
 
     def rollout_kl(self, rollout):
         total = 0.
+        pending = []
+        coalesce = getattr(self.args, 'coalesce_transfers', False)
         with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
             for start in range(0, len(rollout.records), self.args.batch):
                 indices = list(range(start, min(start + self.args.batch, len(rollout.records))))
                 batch, old = self.policy_batch(rollout, indices)
-                current = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
-                total += float(legacy.exact_kl(old, current, batch['valid']).sum().item())
+                current = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                value = legacy.exact_kl(old, current, batch['valid']).sum()
+                if coalesce:
+                    pending.append(value)
+                else:
+                    total += float(value.item())
+        for value in scalar_values(pending):
+            total += value
         return total / len(rollout.records)
 
     def update_inputs(self, rollout, indices):
@@ -586,7 +774,7 @@ class SurvivalTrainer(base.Trainer):
             return cache.select(indices)
         batch, old = self.policy_batch(rollout, indices)
         return batch, {'old': old, 'actions': torch.tensor([rollout.choices[i] for i in indices], device=self.device),
-                       'labels': torch.tensor([rollout.labels[i] for i in indices], device=self.device),
+                       'labels': label_tensor([rollout.labels[i] for i in indices], self.device),
                        'advantage': torch.as_tensor(rollout.advantages[indices], device=self.device),
                        'returns': torch.as_tensor(rollout.returns[indices], device=self.device)}
 
@@ -625,7 +813,7 @@ class SurvivalTrainer(base.Trainer):
             batch = neural.collate(rollout.records[:count], self.device)
             actions = torch.tensor(rollout.choices[:count], device=self.device)
         diagnostics = self.model.ranking_diagnostics(batch)
-        logp = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
+        logp = self.policy_logp(self.model(batch)['logits'], batch['valid'])
         winners, deficit = legacy.utility_targets(batch['features'], batch['valid'])
         probability = logp.exp()
         rows = torch.arange(count, device=self.device)
@@ -642,9 +830,22 @@ class SurvivalTrainer(base.Trainer):
         started = time.perf_counter()
         try:
             telemetry = self.create_rollout_cache(rollout)
-            return self._update(rollout, warmup, started, telemetry)
+            result = self._update(rollout, warmup, started, telemetry)
+            if rollout.gpu_prepare is not None and rollout.gpu_prepare['enabled']:
+                self._previous_device_rollout = weakref.ref(rollout)
+            return result
         finally:
             self._rollout_cache = None
+
+    def release_previous_device_rollout(self):
+        """Retire inputs after their optimizer update, before base.run collects its RHS."""
+        reference = getattr(self, '_previous_device_rollout', None)
+        previous = reference() if reference is not None else None
+        if previous is not None:
+            previous.records.clear()
+            previous.old_logp.clear()
+            previous.labels.clear()
+        self._previous_device_rollout = None
 
     def _update(self, rollout, warmup, start_time, cache_telemetry):
         self.model.train()
@@ -654,6 +855,7 @@ class SurvivalTrainer(base.Trainer):
         totals, per_loss_norms = {}, {}
         parameters = tuple(p for n, p in self.model.named_parameters() if not n.startswith('completion.'))
         measure_actor = self.progress['runner_updates'] % self.args.gradient_every == 0
+        coalesce = getattr(self.args, 'coalesce_transfers', False)
         for epoch in range(epoch_count):
             full_kl = self.rollout_kl(rollout)
             if not warmup and full_kl > self.args.target_kl:
@@ -664,15 +866,16 @@ class SurvivalTrainer(base.Trainer):
                 subset = order[block:block + self.args.optimizer_batch]
                 self.optimizer.zero_grad(set_to_none=True)
                 block_metrics = {}
+                pending_metrics = []
                 for start in range(0, len(subset), self.args.batch):
                     indices = subset[start:start + self.args.batch]
                     batch, inputs = self.update_inputs(rollout, indices)
                     actions, advantage, returns, old = (inputs[key] for key in ('actions', 'advantage', 'returns', 'old'))
                     with neural.precision_context(self.device, self.args.precision):
                         prediction = self.model(batch)
-                        logp = legacy.categorical_logp(prediction['logits'], batch['valid'])
+                        logp = self.policy_logp(prediction['logits'], batch['valid'])
                         imitation, regret, winners = legacy.teacher_losses(logp, batch['features'], batch['valid'])
-                        secondary = secondary_teacher_loss(logp, batch)
+                        secondary = secondary_teacher_loss(logp, batch, winners if coalesce else None)
                         entropy = -(logp.exp() * torch.where(batch['valid'], logp, 0.)).sum(-1).mean()
                         critic = (F.mse_loss(prediction['value'].float(), returns) if self.args.value_loss == 'mse'
                                   else F.smooth_l1_loss(prediction['value'].float(), returns, beta=self.args.value_beta))
@@ -695,10 +898,18 @@ class SurvivalTrainer(base.Trainer):
                                'secondary_teacher_loss': secondary, 'expected_utility_regret': regret, 'entropy': entropy,
                                'clip_fraction': clipped, 'utility_match': winners[rows, picked].float().mean(),
                                'teacher_agreement': (picked == inputs['labels']).float().mean()}
-                    for name, value in metrics.items():
-                        block_metrics[name] = block_metrics.get(name, 0.) + float(value.detach().item()) * len(indices)
+                    if coalesce:
+                        pending_metrics.append((len(indices), {name: value.detach() for name, value in metrics.items()}))
+                    else:
+                        for name, value in metrics.items():
+                            block_metrics[name] = block_metrics.get(name, 0.) + float(value.detach().item()) * len(indices)
+                if pending_metrics:
+                    measured = iter(scalar_values([value for _, metrics in pending_metrics for value in metrics.values()]))
+                    for count, metrics in pending_metrics:
+                        for name in metrics:
+                            block_metrics[name] = block_metrics.get(name, 0.) + next(measured) * count
                 self.scaler.unscale_(self.optimizer)
-                gradient_norms = clip_gradient_groups(self.optimizer, self.args.gradient_clip_scope)
+                gradient_norms = clip_gradient_groups(self.optimizer, self.args.gradient_clip_scope, coalesce=coalesce)
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
                 self.progress['updates'] += 1
@@ -711,11 +922,18 @@ class SurvivalTrainer(base.Trainer):
                     totals[name] = totals.get(name, 0.) + value
                 with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
                     local_kl = 0.
+                    pending_kl = []
                     for start in range(0, len(subset), self.args.batch):
                         indices = subset[start:start + self.args.batch]
                         batch, old = self.policy_batch(rollout, indices)
-                        logp = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
-                        local_kl += float(legacy.exact_kl(old, logp, batch['valid']).sum())
+                        logp = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                        value = legacy.exact_kl(old, logp, batch['valid']).sum()
+                        if coalesce:
+                            pending_kl.append(value)
+                        else:
+                            local_kl += float(value)
+                    for value in scalar_values(pending_kl):
+                        local_kl += value
                 if not warmup and local_kl / len(subset) > self.args.target_kl:
                     stop = True
                     break
@@ -735,6 +953,7 @@ class SurvivalTrainer(base.Trainer):
                   **{k: v / total_weight for k, v in totals.items()}, per_loss_gradient_norms=per_loss_norms,
                   gradient_clip_scope=self.args.gradient_clip_scope, actor_diagnostics=actor_diagnostics,
                   rollout_cache=cache_telemetry,
+                  **({'gpu_prepare': rollout.gpu_prepare} if rollout.gpu_prepare is not None else {}),
                   optimizer_steps_this_rollout=steps, completed_epochs=finished_epochs,
                   final_exact_kl=final_kl, kl_early_stop=stop, kl_check_scope='minibatch after each step; full rollout each epoch and at end',
                   rollout_placements=size, terminal_transitions=int(rollout.terminals.sum()),
@@ -767,7 +986,7 @@ class SurvivalTrainer(base.Trainer):
                         if prepared is not None:
                             batch = neural.collate([prepared.arrays], self.device)
                             logits = self.model(batch)['logits']
-                            legacy.categorical_logp(logits, batch['valid'])
+                            self.policy_logp(logits, batch['valid'])
                             candidate = prepared.options[int(logits[0].argmax().item())]
                     if candidate is None:
                         reason = base.stopped_reason(episode.state)
@@ -840,6 +1059,12 @@ def arguments(argv=None):
     extra.add_argument('--gradient-every', type=int, default=10)
     extra.add_argument('--cache-rollout', action='store_true', help='Cache immutable PPO rollout inputs on device for each update')
     extra.add_argument('--rollout-cache-mib', type=int, default=1024, help='Maximum rollout input cache MiB; allocation safely falls back before optimization')
+    extra.add_argument('--coalesce-transfers', action='store_true',
+                       help='Batch scalar telemetry and rollout host transfers; retain PPO reduction and sampling order')
+    extra.add_argument('--fused-encoding', action='store_true',
+                       help='Use equivalent device column-feature operations without one-hot intermediates')
+    extra.add_argument('--gpu-prepare', action='store_true',
+                       help='Prepare rollout candidates/features on CUDA, with exact native fallbacks and bounded retained inputs')
     options, remaining = extra.parse_known_args(supplied)
     if '-h' in supplied or '--help' in supplied:
         extra.print_help()
