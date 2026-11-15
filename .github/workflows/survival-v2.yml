@@ -22,8 +22,11 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-numpy.txt 'torch==2.10.0+cpu' --extra-index-url https://download.pytorch.org/whl/cpu
       - run: python tools/build_native.py
+      - run: python tests/test_native_sustained_metrics.py
+      - run: python tests/test_neural_preparation.py
       - run: python tests/test_survival_v2.py
       - run: python tests/test_survival_longevity.py
+      - run: python tests/test_rollout_cache.py
       - run: python tests/test_neuron_analysis.py
       - run: python -B -m unittest discover -s tests -p test_training_dashboard.py
       - run: python tools/validate_survival_v2.py --backend native --output survival-v2-validation.json

@@ -187,6 +187,53 @@ class Rollout:
     timings: dict
 
 
+class RolloutCache:
+    """Immutable inputs on the update device; minibatches retain original padding."""
+    CANDIDATE_KEYS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior'))
+
+    @staticmethod
+    def required_bytes(rollout):
+        records = rollout.records
+        count, maximum = len(records), max(len(row['features']) for row in records)
+        total = 0
+        for name in records[0]:
+            value = np.asarray(records[0][name])
+            shape = (maximum, *value.shape[1:]) if name in RolloutCache.CANDIDATE_KEYS else value.shape
+            dtype = np.result_type(*(np.asarray(row[name]).dtype for row in records))
+            total += count * math.prod(shape) * dtype.itemsize
+        # Padded float32 behaviour distribution, integer actions/labels, original target dtypes.
+        return total + count * (maximum * 4 + 16 + rollout.advantages.dtype.itemsize + rollout.returns.dtype.itemsize)
+
+    def __init__(self, rollout, device):
+        self.rollout = rollout
+        self.device = device
+        self.lengths = [len(row['features']) for row in rollout.records]
+        self.inputs = neural.collate(rollout.records, device)
+        maximum = self.inputs['valid'].shape[1]
+        old = torch.full((len(self.lengths), maximum), -torch.inf)
+        for index, row in enumerate(rollout.old_logp):
+            old[index, :len(row)] = row
+        self.targets = {
+            'old': old.to(device),
+            'actions': torch.tensor(rollout.choices, device=device),
+            'labels': torch.tensor(rollout.labels, device=device),
+            'advantage': torch.as_tensor(rollout.advantages, device=device),
+            'returns': torch.as_tensor(rollout.returns, device=device),
+        }
+        self.bytes = sum(value.numel() * value.element_size() for value in (*self.inputs.values(), *self.targets.values()))
+
+    def select(self, indices, targets=True):
+        maximum = max(self.lengths[index] for index in indices)
+        selected = torch.tensor(indices, dtype=torch.long, device=self.device)
+        # Slice before gathering: identical shape and contiguous strides to fresh collation.
+        batch = {name: (value[:, :maximum] if name in self.CANDIDATE_KEYS else value).index_select(0, selected)
+                 for name, value in self.inputs.items()}
+        names = self.targets if targets else ('old',)
+        values = {name: (self.targets[name][:, :maximum] if name == 'old' else self.targets[name]).index_select(0, selected)
+                  for name in names}
+        return batch, values
+
+
 class SurvivalTrainer(base.Trainer):
     def training_signature(self):
         names = ('optimizer_batch', 'critic_lr', 'secondary_weight', 'ppo_epochs', 'clip_ratio', 'target_kl',
@@ -196,7 +243,9 @@ class SurvivalTrainer(base.Trainer):
                  'calibration_seed', 'allow_uncalibrated', 'calibration_ratio', 'gradient_every')
         return {'algorithm': ALGORITHM, 'trainer_sha256': base.file_hash(Path(__file__)),
                 'runner_sha256': base.file_hash(Path(base.__file__)),
-                **{name: getattr(self.args, name) for name in names}}
+                **{name: getattr(self.args, name) for name in names},
+                'cache_rollout': getattr(self.args, 'cache_rollout', False),
+                'rollout_cache_mib': getattr(self.args, 'rollout_cache_mib', 1024)}
 
     def configure_model(self, resuming):
         if not resuming:
@@ -506,19 +555,80 @@ class SurvivalTrainer(base.Trainer):
         return Rollout(records, choices, labels, normalized, returns.ravel(), old, np.asarray(values).ravel(),
                        raw, np.asarray(terminals).ravel(), np.asarray(truncations).ravel(), timings)
 
-    old_batch = legacy.SurvivalTrainer.old_batch
-    rollout_kl = legacy.SurvivalTrainer.rollout_kl
+    def policy_batch(self, rollout, indices):
+        cache = getattr(self, '_rollout_cache', None)
+        if cache is not None and cache.rollout is rollout:
+            batch, values = cache.select(indices, targets=False)
+            return batch, values['old']
+        batch = neural.collate([rollout.records[i] for i in indices], self.device)
+        return batch, legacy.SurvivalTrainer.old_batch(self, rollout, indices, batch['valid'].shape[1])
+
+    def old_batch(self, rollout, indices, size):
+        cache = getattr(self, '_rollout_cache', None)
+        if cache is not None and cache.rollout is rollout and size <= cache.targets['old'].shape[1]:
+            selected = torch.tensor(indices, dtype=torch.long, device=self.device)
+            return cache.targets['old'][:, :size].index_select(0, selected)
+        return legacy.SurvivalTrainer.old_batch(self, rollout, indices, size)
+
+    def rollout_kl(self, rollout):
+        total = 0.
+        with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
+            for start in range(0, len(rollout.records), self.args.batch):
+                indices = list(range(start, min(start + self.args.batch, len(rollout.records))))
+                batch, old = self.policy_batch(rollout, indices)
+                current = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
+                total += float(legacy.exact_kl(old, current, batch['valid']).sum().item())
+        return total / len(rollout.records)
+
+    def update_inputs(self, rollout, indices):
+        cache = getattr(self, '_rollout_cache', None)
+        if cache is not None and cache.rollout is rollout:
+            return cache.select(indices)
+        batch, old = self.policy_batch(rollout, indices)
+        return batch, {'old': old, 'actions': torch.tensor([rollout.choices[i] for i in indices], device=self.device),
+                       'labels': torch.tensor([rollout.labels[i] for i in indices], device=self.device),
+                       'advantage': torch.as_tensor(rollout.advantages[indices], device=self.device),
+                       'returns': torch.as_tensor(rollout.returns[indices], device=self.device)}
+
+    def create_rollout_cache(self, rollout):
+        self._rollout_cache = None
+        requested = getattr(self.args, 'cache_rollout', False)
+        telemetry = {'requested': requested, 'enabled': False, 'bytes': 0}
+        if not requested:
+            return telemetry
+        required = RolloutCache.required_bytes(rollout)
+        limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
+        if self.device.type == 'cuda':
+            free, _ = torch.cuda.mem_get_info(self.device)
+            # Leave at least three quarters of currently free device memory for model work.
+            limit = min(limit, free // 4)
+        if required > limit:
+            return {**telemetry, 'estimated_bytes': required, 'reason': 'memory_bound', 'limit_bytes': limit}
+        try:
+            self._rollout_cache = RolloutCache(rollout, self.device)
+        except (MemoryError, torch.OutOfMemoryError):
+            # Allocation precedes every optimizer step; fallback cannot replay a partial update.
+            self._rollout_cache = None
+            if self.device.type == 'cuda':
+                torch.cuda.empty_cache()
+            return {**telemetry, 'estimated_bytes': required, 'reason': 'allocation_failed'}
+        return {**telemetry, 'enabled': True, 'bytes': self._rollout_cache.bytes}
 
     @torch.no_grad()
     def actor_diagnostics(self, rollout):
         count = min(len(rollout.records), self.args.batch, 16)
-        batch = neural.collate(rollout.records[:count], self.device)
+        cache = getattr(self, '_rollout_cache', None)
+        if cache is not None and cache.rollout is rollout:
+            batch, inputs = cache.select(list(range(count)))
+            actions = inputs['actions']
+        else:
+            batch = neural.collate(rollout.records[:count], self.device)
+            actions = torch.tensor(rollout.choices[:count], device=self.device)
         diagnostics = self.model.ranking_diagnostics(batch)
         logp = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
         winners, deficit = legacy.utility_targets(batch['features'], batch['valid'])
         probability = logp.exp()
         rows = torch.arange(count, device=self.device)
-        actions = torch.tensor(rollout.choices[:count], device=self.device)
         digest = actor_digest(self.model)
         diagnostics.update(lower_primary_probability=float(probability.masked_fill(winners, 0.).sum(-1).mean()),
                            expected_primary_deficit=float((probability * deficit * 16).sum(-1).mean()),
@@ -529,6 +639,14 @@ class SurvivalTrainer(base.Trainer):
         return diagnostics
 
     def update(self, rollout, warmup):
+        started = time.perf_counter()
+        try:
+            telemetry = self.create_rollout_cache(rollout)
+            return self._update(rollout, warmup, started, telemetry)
+        finally:
+            self._rollout_cache = None
+
+    def _update(self, rollout, warmup, start_time, cache_telemetry):
         self.model.train()
         size = len(rollout.records)
         epoch_count = 1 if warmup else self.args.ppo_epochs
@@ -536,7 +654,6 @@ class SurvivalTrainer(base.Trainer):
         totals, per_loss_norms = {}, {}
         parameters = tuple(p for n, p in self.model.named_parameters() if not n.startswith('completion.'))
         measure_actor = self.progress['runner_updates'] % self.args.gradient_every == 0
-        start_time = time.perf_counter()
         for epoch in range(epoch_count):
             full_kl = self.rollout_kl(rollout)
             if not warmup and full_kl > self.args.target_kl:
@@ -549,11 +666,8 @@ class SurvivalTrainer(base.Trainer):
                 block_metrics = {}
                 for start in range(0, len(subset), self.args.batch):
                     indices = subset[start:start + self.args.batch]
-                    batch = neural.collate([rollout.records[i] for i in indices], self.device)
-                    actions = torch.tensor([rollout.choices[i] for i in indices], device=self.device)
-                    advantage = torch.as_tensor(rollout.advantages[indices], device=self.device)
-                    returns = torch.as_tensor(rollout.returns[indices], device=self.device)
-                    old = self.old_batch(rollout, indices, batch['valid'].shape[1])
+                    batch, inputs = self.update_inputs(rollout, indices)
+                    actions, advantage, returns, old = (inputs[key] for key in ('actions', 'advantage', 'returns', 'old'))
                     with neural.precision_context(self.device, self.args.precision):
                         prediction = self.model(batch)
                         logp = legacy.categorical_logp(prediction['logits'], batch['valid'])
@@ -580,7 +694,7 @@ class SurvivalTrainer(base.Trainer):
                     metrics = {'loss': loss, 'policy_loss': actor, 'value_loss': critic, 'tie_imitation_loss': imitation,
                                'secondary_teacher_loss': secondary, 'expected_utility_regret': regret, 'entropy': entropy,
                                'clip_fraction': clipped, 'utility_match': winners[rows, picked].float().mean(),
-                               'teacher_agreement': (picked == torch.tensor([rollout.labels[i] for i in indices], device=self.device)).float().mean()}
+                               'teacher_agreement': (picked == inputs['labels']).float().mean()}
                     for name, value in metrics.items():
                         block_metrics[name] = block_metrics.get(name, 0.) + float(value.detach().item()) * len(indices)
                 self.scaler.unscale_(self.optimizer)
@@ -599,9 +713,9 @@ class SurvivalTrainer(base.Trainer):
                     local_kl = 0.
                     for start in range(0, len(subset), self.args.batch):
                         indices = subset[start:start + self.args.batch]
-                        batch = neural.collate([rollout.records[i] for i in indices], self.device)
+                        batch, old = self.policy_batch(rollout, indices)
                         logp = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
-                        local_kl += float(legacy.exact_kl(self.old_batch(rollout, indices, logp.shape[1]), logp, batch['valid']).sum())
+                        local_kl += float(legacy.exact_kl(old, logp, batch['valid']).sum())
                 if not warmup and local_kl / len(subset) > self.args.target_kl:
                     stop = True
                     break
@@ -620,6 +734,7 @@ class SurvivalTrainer(base.Trainer):
         self.emit('update', **self.progress, stage='warmup' if warmup else 'survival-ppo-v2',
                   **{k: v / total_weight for k, v in totals.items()}, per_loss_gradient_norms=per_loss_norms,
                   gradient_clip_scope=self.args.gradient_clip_scope, actor_diagnostics=actor_diagnostics,
+                  rollout_cache=cache_telemetry,
                   optimizer_steps_this_rollout=steps, completed_epochs=finished_epochs,
                   final_exact_kl=final_kl, kl_early_stop=stop, kl_check_scope='minibatch after each step; full rollout each epoch and at end',
                   rollout_placements=size, terminal_transitions=int(rollout.terminals.sum()),
@@ -696,7 +811,7 @@ class SurvivalTrainer(base.Trainer):
 
 def arguments(argv=None):
     supplied = list(sys.argv[1:] if argv is None else argv)
-    extra = argparse.ArgumentParser(add_help=False)
+    extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--optimizer-batch', type=int, default=128)
     extra.add_argument('--critic-lr', type=float, default=3e-4)
     extra.add_argument('--secondary-weight', type=float, default=.02)
@@ -723,6 +838,8 @@ def arguments(argv=None):
     extra.add_argument('--allow-uncalibrated', action='store_true')
     extra.add_argument('--allow-concurrent', action='store_true')
     extra.add_argument('--gradient-every', type=int, default=10)
+    extra.add_argument('--cache-rollout', action='store_true', help='Cache immutable PPO rollout inputs on device for each update')
+    extra.add_argument('--rollout-cache-mib', type=int, default=1024, help='Maximum rollout input cache MiB; allocation safely falls back before optimization')
     options, remaining = extra.parse_known_args(supplied)
     if '-h' in supplied or '--help' in supplied:
         extra.print_help()
@@ -730,7 +847,7 @@ def arguments(argv=None):
     args = base.arguments(['--run-dir', str(base.ROOT / 'runs/survival-ppo-v2'), '--rollout', '128', '--warmup-updates', '0'] + remaining)
     for key, value in vars(options).items():
         setattr(args, key, value)
-    for key in ('optimizer_batch', 'critic_lr', 'value_beta', 'calibration_validation_games', 'calibration_stride', 'gradient_every'):
+    for key in ('optimizer_batch', 'critic_lr', 'value_beta', 'calibration_validation_games', 'calibration_stride', 'gradient_every', 'rollout_cache_mib'):
         if not math.isfinite(getattr(args, key)) or getattr(args, key) <= 0:
             extra.error(f'{key} must be finite and positive')
     if not 1 <= args.ppo_epochs <= 16 or not 0 < args.clip_ratio < 1 or not 0 < args.target_kl < 1:

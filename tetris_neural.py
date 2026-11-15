@@ -4,6 +4,7 @@ import argparse
 from collections import OrderedDict
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 import hashlib
 import heapq
 import itertools
@@ -90,8 +91,9 @@ def fingerprint() -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
-def state_context(state, target: int) -> np.ndarray:
-    context = game.evaluate_board(state.board)
+def state_context(state, target: int, context=None) -> np.ndarray:
+    if context is None:
+        context = game.evaluate_board(state.board)
     names = game.PIECE_SETS[state.piece_set]
     completed = state.pieces // len(names)
     current = [float(name == state.current) for name in NAMES]
@@ -242,21 +244,34 @@ class Prepared:
     fallback: bool
 
 
-def _option_features(board, candidate, target, context):
+@lru_cache(maxsize=1024)
+def _shape_features(shape_cells):
+    cells = np.zeros((16, 5), dtype=np.float32)
+    cells[:len(shape_cells), :4] = np.asarray(shape_cells, dtype=np.float32) / 15
+    cells[:len(shape_cells), 4] = 1
+    result = cells.ravel()
+    result.flags.writeable = False
+    return result
+
+
+def _option_features(board, candidate, target, context, metrics=None):
     shape = game.SHAPES[candidate.piece][candidate.rotation]
     base = game.column_index(candidate.x, candidate.y, candidate.w)
     touched = [base + offset for offset, _, _ in shape.columns]
     delta = sum(candidate.z + mask.bit_length() - context.heights[base + offset] for offset, mask, _ in shape.columns)
-    gain, _, future = game.sustained_candidate_metrics(board, candidate, target)
-    cells = np.zeros((16, 5), dtype=np.float32)
-    cells[:len(shape.cells), :4] = np.asarray(shape.cells, dtype=np.float32) / 15
-    cells[:len(shape.cells), 4] = 1
+    if metrics is None:
+        gain, _, future = game.sustained_candidate_metrics(board, candidate, target)
+    else:
+        gain, future = metrics
     fixed = [candidate.x / 15, candidate.y / 15, candidate.z / 15, candidate.w / 15]
     fixed += [v / 16 for v in shape.extents]
     size = game.PIECE_SIZES[candidate.piece]
     fixed += [gain / 16, future / 64, candidate.layers / 16, delta / 64, (delta - size) / 64,
               (candidate.score - context.score) / 64, size / 16, target / 15]
-    return np.concatenate((np.asarray(fixed, dtype=np.float32), cells.ravel())), touched
+    result = np.empty(FEATURES, dtype=np.float32)
+    result[:16] = fixed
+    result[16:] = _shape_features(shape.cells)
+    return result, touched
 
 
 def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
@@ -330,11 +345,19 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     features = np.zeros((len(options), FEATURES), dtype=np.float32)
     indices = np.zeros((len(options), COLUMNS), dtype=np.int64)
     mask = np.zeros((len(options), COLUMNS), dtype=np.bool_)
+    metrics = [None] * len(options)
+    # The batch gain uses column heights. On buried targets the scalar
+    # feature contract also counts gaps below that height.
+    if not status.buried and game.BACKEND in ('numpy', 'native'):
+        specs = [(c.rotation, c.x, c.y, c.w) for c in options]
+        landings = np.asarray([c.z for c in options], dtype=np.int32)
+        gains, _, future = game.sustained_batch_metrics(context, piece, specs, landings, target)
+        metrics = list(zip(gains, future))
     for i, candidate in enumerate(options):
-        features[i], columns = _option_features(state.board, candidate, target, context)
+        features[i], columns = _option_features(state.board, candidate, target, context, metrics[i])
         indices[i, :len(columns)], mask[i, :len(columns)] = columns, True
     arrays = {'boards': np.asarray(state.board, dtype=np.int32), 'targets': np.asarray(target, dtype=np.int64),
-              'context': state_context(state, target), 'features': features, 'indices': indices,
+              'context': state_context(state, target, context), 'features': features, 'indices': indices,
               'column_mask': mask, 'valid': np.ones(len(options), dtype=np.bool_)}
     order = sorted(range(len(options)), key=lambda i: kept_keys[i], reverse=True)
     rank = np.empty(len(options), dtype=np.float32)
@@ -375,17 +398,17 @@ def collate(records: list[dict], device: torch.device) -> dict:
     if not records:
         raise ValueError('Empty batch')
     maximum = max(len(row['features']) for row in records)
+    if not all(np.asarray(row['valid']).any() for row in records):
+        raise ValueError('Every state must have at least one valid candidate')
     result = {}
     for name in records[0]:
         values = []
         for row in records:
             value = np.asarray(row[name])
-            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior'):
+            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
                 value = np.pad(value, [(0, maximum - len(value))] + [(0, 0)] * (value.ndim - 1))
             values.append(value)
         result[name] = torch.from_numpy(np.stack(values)).to(device)
-    if not bool(result['valid'].any(dim=1).all()):
-        raise ValueError('Every state must have at least one valid candidate')
     return result
 
 

@@ -16,17 +16,19 @@
     calibration:["CALIBRATION","Calibrating the critic","The actor is frozen while completed games teach the value head. These games are separate from PPO training.",1],
     training:["PPO TRAINING","Learning through play","Parallel environments collect placements. PPO updates the policy from these rollouts.",2],
     selection:["SELECTION","Evaluating a checkpoint","Greedy selection games measure survival and choose the best checkpoint observed during this run.",2],
+    optimizing:["OPTIMIZATION PAUSE","Paused for requested optimization","Training stopped gracefully for the requested performance work and sixteen-environment migration. The total budget clock continues.",2],
     complete:["PRODUCTION COMPLETE","Production budget finished","The production phase is complete. Final comparison and neuron analysis are separate steps.",3],
     failed:["ATTENTION","Run needs attention","The controller or calibration reported a failure. Retained telemetry remains available below.",-1],
     unknown:["AWAITING DATA","Waiting for telemetry","No current training phase can be established from the available source events.",-1]
   };
 
-  function chart(rows,key,{label,percent=false,line=true,xkey=null,rolling=false,calibration=false}={}) {
+  function chart(rows,key,{label,percent=false,line=true,xkey=null,rolling=false,calibration=false,step=false,holdTo=null}={}) {
     const points=rows.map(r=>({r,x:xkey? r[xkey]:stamp(r.timestamp_utc),y:finite(r[key])?r[key]*(percent?100:1):null}));
     const valid=points.filter(p=>finite(p.x)&&finite(p.y));
     if(!valid.length)return `<div class="chart-empty"><span>No ${esc(label.toLowerCase())} in this window</span><small>Only recorded measurements appear here. Try All history for earlier observations.</small></div>`;
     const w=700,h=230,pad={l:51,r:15,t:15,b:32},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
     let xmin=Math.min(...valid.map(p=>p.x)),xmax=Math.max(...valid.map(p=>p.x));
+    if(step&&finite(holdTo))xmax=Math.max(xmax,holdTo);
     if(xmin===xmax){xmin-=xkey?1:30000;xmax+=xkey?1:30000;}
     const ymax=percent?100:Math.max(1,...valid.map(p=>p.y))*1.12;
     const px=x=>pad.l+(x-xmin)/(xmax-xmin)*pw,py=y=>pad.t+ph-y/ymax*ph;
@@ -37,13 +39,13 @@
     for(let i=0;i<3;i++){const x=xmin+(xmax-xmin)*i/2;svg+=`<text class="plot-axis" text-anchor="${i===0?"start":i===2?"end":"middle"}" x="${px(x)}" y="${h-8}">${esc(xf(x))}</text>`;}
     const gaps=valid.slice(1).map((p,i)=>stamp(p.r.timestamp_utc)-stamp(valid[i].r.timestamp_utc)).filter(x=>x>0).sort((a,b)=>a-b);
     const gapLimit=Math.max(300000,(gaps[Math.floor(gaps.length/2)]||60000)*5);
-    const splits=(a,b)=>!a||!finite(a.y)||!finite(a.x)||(stamp(b.r.timestamp_utc)-stamp(a.r.timestamp_utc)>gapLimit)||(calibration&&(a.r.calibration_game_index!==b.r.calibration_game_index||a.r.seed!==b.r.seed||b.y<a.y));
-    const pathFor=arr=>{let prev=null,path="";for(const p of arr){if(!finite(p.x)||!finite(p.y)){prev=null;continue;}path+=`${splits(prev,p)?"M":"L"}${px(p.x).toFixed(2)},${py(p.y).toFixed(2)} `;prev=p;}return path;};
-    if(line)svg+=`<path class="plot-line" stroke="var(--warm)" d="${pathFor(points)}"/>`;
+    const splits=(a,b)=>!a||!finite(a.y)||!finite(a.x)||(!step&&stamp(b.r.timestamp_utc)-stamp(a.r.timestamp_utc)>gapLimit)||(calibration&&(a.r.calibration_game_index!==b.r.calibration_game_index||a.r.seed!==b.r.seed||b.y<a.y));
+    const pathFor=arr=>{let prev=null,path="";for(const p of arr){if(!finite(p.x)||!finite(p.y)){prev=null;continue;}path+=splits(prev,p)?`M${px(p.x).toFixed(2)},${py(p.y).toFixed(2)} `:step?`H${px(p.x).toFixed(2)} V${py(p.y).toFixed(2)} `:`L${px(p.x).toFixed(2)},${py(p.y).toFixed(2)} `;prev=p;}if(step&&prev&&finite(holdTo)&&holdTo>=prev.x)path+=`H${px(holdTo).toFixed(2)}`;return path;};
+    if(line)svg+=`<path class="plot-line" stroke="var(--warm)" d="${pathFor(points.filter(p=>!p.r.active_only))}"/>`;
     if(rolling&&valid.length>=5){let streak=[];const means=[];let prev=null;for(const p of points){if(!finite(p.y)||!finite(p.x)||splits(prev,p))streak=[];if(finite(p.y)&&finite(p.x)){streak.push(p.y);if(streak.length>5)streak.shift();means.push({...p,y:streak.length===5?streak.reduce((a,b)=>a+b,0)/5:null});}else means.push({...p,y:null});prev=p;}svg+=`<path class="plot-line" stroke="var(--teal)" d="${pathFor(means)}"/>`;}
     // Keep all line vertices; limit redundant circles in dense telemetry.
     const stride=Math.max(1,Math.ceil(valid.length/400));
-    valid.forEach((p,i)=>{if(i%stride&&i!==valid.length-1)return;svg+=`<circle class="plot-dot" fill="var(--warm)" cx="${px(p.x)}" cy="${py(p.y)}" r="${line?2.3:3}"><title>${esc(new Date(p.r.timestamp_utc).toLocaleString())}: ${esc(num(p.y,4))}${percent?"%":""}${p.r.seed!=null?` · seed ${esc(p.r.seed)}`:""}</title></circle>`;});
+    valid.forEach((p,i)=>{if(p.r.record_hold||(i%stride&&i!==valid.length-1&&!p.r.active_only))return;svg+=`<circle class="plot-dot${p.r.active_only?" active-marker":""}" fill="${p.r.active_only?"var(--panel)":"var(--warm)"}" cx="${px(p.x)}" cy="${py(p.y)}" r="${p.r.active_only?5:line?2.3:3}"><title>${p.r.active_only?"Latest active game · ":""}${esc(new Date(p.r.timestamp_utc).toLocaleString())}: ${esc(num(p.y,4))}${percent?"%":""}${p.r.seed!=null?` · seed ${esc(p.r.seed)}`:""}</title></circle>`;});
     return svg+"</svg>";
   }
 
@@ -52,6 +54,16 @@
     const rows=(Array.isArray(data.series)?data.series:[]).filter(r=>stamp(r.timestamp_utc)!==null&&stamp(r.timestamp_utc)>=cut).sort((a,b)=>stamp(a.timestamp_utc)-stamp(b.timestamp_utc));
     const episodes=rows.filter(r=>r.event==="episode_end");
     const updates=rows.filter(r=>r.event==="update");
+    const maximum=data.maximum_survival||{};
+    const records=(Array.isArray(maximum.records)?maximum.records:[]).filter(r=>stamp(r.timestamp_utc)!==null).sort((a,b)=>stamp(a.timestamp_utc)-stamp(b.timestamp_utc));
+    let recordRows=records.filter(r=>stamp(r.timestamp_utc)>=cut).map(r=>({...r,record_pieces:r.pieces}));
+    const before=records.filter(r=>stamp(r.timestamp_utc)<cut).at(-1);
+    if(before)recordRows.unshift({...before,timestamp_utc:new Date(cut).toISOString(),record_pieces:before.pieces,record_hold:true});
+    if(finite(maximum.active_max_pieces)&&stamp(maximum.active_observed_utc)!==null&&stamp(maximum.active_observed_utc)>=cut)recordRows.push({timestamp_utc:maximum.active_observed_utc,record_pieces:maximum.active_max_pieces,active_only:true});
+    const observed=stamp(data.latest?.timestamp_utc);
+    $("maximum-chart").innerHTML=chart(recordRows,"record_pieces",{label:"PPO maximum survived pieces",step:true,holdTo:observed!==null&&observed>=cut?observed:null});
+    put("maximum-value",num(maximum.current_max_pieces));
+    put("maximum-detail",`Completed record ${num(maximum.completed_record_pieces)} · active ${num(maximum.active_max_pieces)} · ${num(maximum.completed_episodes)} completed PPO episodes`);
     $("survival-chart").innerHTML=chart(episodes,"episode_pieces",{label:"Completed training episodes",line:false,rolling:true});
     $("calibration-chart").innerHTML=chart(rows.filter(r=>["calibration_progress","calibration_game"].includes(r.event)),"calibration_game_pieces",{label:"Calibration observations",calibration:true});
     $("progress-chart").innerHTML=chart(updates,"placements",{label:"PPO placements",xkey:"runner_updates"});
@@ -64,7 +76,7 @@
   function drawGames(data) {
     const games=Array.isArray(data.games)?data.games:[];
     put("games-note",games.length?`${games.length} reported environments · ${age(games[0].observed_utc)}`:"No environment snapshots reported yet");
-    $("game-grid").innerHTML=Array.from({length:4},(_,i)=>{const g=games[i];return `<article class="game-card"><div class="game-heading"><span class="game-index">ENV / ${String(i+1).padStart(2,"0")}</span><span class="game-status ${!g||data.phase==="calibration"?"waiting":""}">${!g?"Awaiting data":data.phase==="calibration"?"Queued for PPO":g.game_over?"Finished":"Reported"}</span></div><strong class="game-pieces">${num(g?.pieces)}</strong><div class="game-caption">placements this episode</div><div class="game-stats"><span><strong>${num(g?.hyperlayers)}</strong>Clears</span><span><strong>${num(g?.max_height)}</strong>Height</span><span><strong>${num(g?.holes)}</strong>Holes</span></div><p class="game-seed">${g?`Seed ${esc(g.seed??"—")} · episode ${num(g.episode)}`:"No game has been observed"}</p></article>`;}).join("");
+    $("game-grid").innerHTML=games.length?games.map((g,i)=>`<article class="game-card"><div class="game-heading"><span class="game-index">ENV / ${String(i+1).padStart(2,"0")}</span><span class="game-status ${["calibration","optimizing"].includes(data.phase)?"waiting":""}">${data.phase==="optimizing"?"Paused":data.phase==="calibration"?"Queued for PPO":g.game_over?"Finished":"Reported"}</span></div><strong class="game-pieces">${num(g.pieces)}</strong><div class="game-caption">placements this episode</div><div class="game-stats"><span><strong>${num(g.hyperlayers)}</strong>Clears</span><span><strong>${num(g.max_height)}</strong>Height</span><span><strong>${num(g.holes)}</strong>Holes</span></div><p class="game-seed">Seed ${esc(g.seed??"—")} · episode ${num(g.episode)}</p></article>`).join(""):"<p class=\"empty-inline\">No training environments have been reported yet.</p>";
   }
 
   function render(data) {
@@ -77,6 +89,7 @@
     else if(data.phase==="training"||data.phase==="selection")detail=`${num(p.runner_updates)} rollout updates · ${num(p.finished_episodes)} completed episodes`;
     else if(data.phase==="complete")detail="Production stopped · review final assessment separately";
     else if(data.phase==="failed")detail="Inspect the event stream and controller diagnostics";
+    else if(data.phase==="optimizing")detail="Graceful stop saved · preparing optimized sixteen-environment run";
     put("stage-detail",detail);
     put("placements",num(p.placements));put("updates",num(p.runner_updates));put("episodes",num(p.finished_episodes));
     put("optimizer-detail",`Optimizer steps ${num(p.optimizer_steps)}`);put("clears-detail",`Hyperlayers cleared ${num(p.clears)}`);
@@ -99,7 +112,7 @@
 
   function tick() {
     const data=state.data,b=data?.budget||{};
-    const deadline=stamp(b.deadline_utc),start=stamp(b.start_utc),active=["training","calibration","selection"].includes(data?.phase);
+    const deadline=stamp(b.deadline_utc),start=stamp(b.start_utc),active=["training","calibration","selection","optimizing"].includes(data?.phase);
     let remaining=b.remaining_seconds,elapsed=b.elapsed_seconds;
     if(active&&deadline!==null)remaining=Math.max(0,(deadline-Date.now())/1000);
     if(active&&start!==null)elapsed=Math.max(0,(Date.now()-start)/1000);

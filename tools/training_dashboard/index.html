@@ -62,6 +62,8 @@
       <article class="stat"><p>Best selection survival</p><strong id="best-survival">—</strong><span id="best-detail">Awaiting completed selection games</span></article>
     </section>
 
+    <section class="panel chart-panel record-panel" aria-label="Maximum survival"><div class="chart-heading"><div><p class="eyebrow">PPO TRAINING / SURVIVAL RECORD</p><h2>Maximum survived pieces</h2></div><strong id="maximum-value" class="maximum-value">—</strong></div><div id="maximum-chart" class="chart-slot"></div><div class="chart-footer"><span><i class="legend-line record-line"></i> Completed episode record</span><span><i class="legend-ring"></i> Latest active game</span><span id="maximum-detail">No completed PPO episodes observed yet</span></div></section>
+
     <section id="learning" class="chart-grid" aria-label="Learning charts">
       <article class="panel chart-panel wide-chart"><div class="chart-heading"><div><p class="eyebrow">THE OBJECTIVE</p><h2>Episode survival</h2></div><span class="unit-label">placements / episode</span></div><div id="survival-chart" class="chart-slot"></div><div class="chart-footer"><span><i class="legend-dot warm-dot"></i> Completed training episodes</span><span><i class="legend-line"></i> 5-episode mean</span></div></article>
       <article class="panel chart-panel"><div class="chart-heading"><div><p class="eyebrow">FROZEN ACTOR · CRITIC ONLY</p><h2>Calibration</h2></div><span class="unit-label">placements</span></div><div id="calibration-chart" class="chart-slot"></div><div id="calibration-detail" class="chart-footer">Calibration observations appear separately from PPO episodes.</div></article>

@@ -123,6 +123,86 @@ class DashboardTests(unittest.TestCase):
         self.artifact(self.root/'status.json',{'state':'finished'})
         self.assertEqual(collector.snapshot()['phase'],'complete')
 
+    def test_running_record_survives_both_plot_sampling_and_deque_eviction(self):
+        collector = dashboard.Collector(self.run,self.data)
+        for index in range(10025):
+            raw={'event':'episode_end' if index in (0,10024) else 'update',
+                 'utc':'2026-11-15T12:00:00Z','pieces':9000 if index==0 else 100,
+                 'seed':index,'episode':index}
+            row=collector.normalize(raw,index,index+1,b'fixture')
+            collector.apply(row);collector.rows.append(row)
+        status=collector.snapshot()
+        self.assertEqual(len(collector.rows),10000)
+        self.assertEqual(len(status['series']),3000)
+        self.assertEqual(status['series_total_count'],10025)
+        self.assertEqual(status['maximum_survival']['completed_record_pieces'],9000)
+        self.assertEqual(status['maximum_survival']['completed_episodes'],2)
+        self.assertEqual(status['maximum_survival']['records'][0]['seed'],0)
+
+    def test_record_excludes_calibration_selection_baseline_and_teacher_games(self):
+        self.emit('episode_end',pieces=100,episode=1,seed=1,teacher_placements=0)
+        self.emit('calibration_game',pieces=90000,seed=2,terminated=True,truncated=False)
+        self.emit('selection_game',pieces=80000,policy='neural')
+        self.emit('episode_end',pieces=70000,policy='teacher')
+        self.emit('episode_end',pieces=60000,teacher_placements=2)
+        self.emit('episode_end',pieces=50000,policy='sustained')
+        self.emit('episode_end',pieces=80,episode=2,seed=3)
+        self.artifact(self.run/'summary.json',{'active_games':[{'pieces':150},{'pieces':120}]})
+        first=dashboard.Collector(self.run,self.data);first.poll()
+        maximum=first.snapshot()['maximum_survival']
+        self.assertEqual(maximum['completed_record_pieces'],100)
+        self.assertEqual(maximum['completed_episodes'],2)
+        self.assertEqual(maximum['active_max_pieces'],150)
+        self.assertEqual(maximum['current_max_pieces'],150)
+        self.assertEqual(len(maximum['records']),1)
+        self.assertEqual(dashboard.Collector(self.run,self.data).snapshot()['maximum_survival'],maximum)
+
+    def test_migrated_run_combines_prior_history_read_only_and_deduplicates(self):
+        self.emit('episode_end',pieces=100,episode=1,seed=1)
+        first=dashboard.Collector(self.run,self.data);first.poll()
+        saved={path:path.read_bytes() for path in (first.history,first.manifest,self.metrics)}
+        new_run=self.root/'run-16env';new_run.mkdir();new_data=self.root/'dashboard-16env'
+        (new_run/'metrics.jsonl').write_text(json.dumps({'event':'episode_end','utc':'2026-11-15T13:00:00Z',
+                                                      'pieces':200,'episode':2,'seed':2})+'\n')
+        self.artifact(new_run/'summary.json',{'active_games':[{'pieces':index} for index in range(16)]})
+        second=dashboard.Collector(new_run,new_data,self.data);second.poll()
+        maximum=second.snapshot()['maximum_survival']
+        self.assertEqual(maximum['completed_record_pieces'],200)
+        self.assertEqual(maximum['completed_episodes'],2)
+        self.assertEqual(len(second.snapshot()['games']),16)
+        self.assertEqual(len(second.history.read_text().splitlines()),1)
+        combined=list(second.history_lines())
+        self.assertEqual(len(combined),2)
+        # A repeated identity across prior/current files is omitted from downloads and counters.
+        with second.history.open('ab') as stream:stream.write(first.history.read_bytes())
+        third=dashboard.Collector(new_run,new_data,self.data);third.poll()
+        self.assertEqual(third.snapshot()['maximum_survival']['completed_episodes'],2)
+        self.assertEqual(len(list(third.history_lines())),2)
+        self.assertEqual(len(list(csv.DictReader(io.StringIO(third.history_csv().decode())))),2)
+        self.assertEqual(saved,{path:path.read_bytes() for path in saved})
+
+    def test_requested_optimization_and_valid_amended_budget(self):
+        old={'start_epoch':100,'deadline_epoch':28900,'start_utc':'start','deadline_utc':'old'}
+        self.artifact(self.root/'budget-ledger.json',old)
+        original=self.root/'budget-ledger.json'
+        amended={'schema':'tetris4d-survival-budget-v1','start_epoch':100,'deadline_epoch':86500,
+                 'start_utc':'start','deadline_utc':'new','fixed':{'hours':24},
+                 'amendment':{'authorized_total_hours':24},'original_8h_ledger':{
+                     'path':str(original),'bytes':original.stat().st_size,
+                     'sha256':dashboard.hashlib.sha256(original.read_bytes()).hexdigest()}}
+        self.artifact(self.root/'budget-24h-ledger.json',amended)
+        self.artifact(self.root/'optimization-stop-request.json',{'reason':'user requested optimization'})
+        self.artifact(self.run/'summary.json',{'reason':'signal_2','active_games':[{'pieces':50}]})
+        self.artifact(self.root/'status.json',{'state':'failed'})
+        self.artifact(self.root/'pipeline-status.json',{'state':'failed'})
+        collector=dashboard.Collector(self.run,self.data)
+        self.assertEqual(collector.snapshot()['phase'],'optimizing')
+        self.assertEqual(collector.snapshot()['budget']['deadline_utc'],'new')
+        amended['deadline_epoch']=999
+        self.artifact(self.root/'budget-24h-ledger.json',amended)
+        self.assertEqual(collector.snapshot()['budget']['deadline_utc'],'old')
+        self.assertTrue(collector.snapshot()['errors'])
+
     def test_size_freeze_and_source_change_preserve_evidence(self):
         collector = dashboard.Collector(self.run,self.data)
         old = dashboard.MAX_BYTES

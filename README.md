@@ -56,6 +56,8 @@ training does not change placement physics.
 
 Use the [live training dashboard](docs/training-dashboard.md) for local charts,
 calibration and PPO progress, and timestamped CSV/JSONL exports for later graphs.
+See [training performance](docs/training-performance.md) for measured CPU
+optimizations and the optional device input cache.
 
 ## Play a checkpoint
 
