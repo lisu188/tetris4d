@@ -77,3 +77,10 @@ This snapshots the checkpoints by checksum, compares legacy sustained and sustai
 ## Validation scope
 
 The tests cover the 35 recovery states, zero-residual teacher choices, exact CPU resume, calibration actor isolation, censored games, optimizer minibatches, terminal/truncated bootstrapping, compressed replay, headless/lazy trace equivalence, neural logging and immutable archives. CUDA tests explicitly skip on CPU-only workers. Calibration tests using synthetic features establish implementation behavior, not Tetris playing strength. Longer survival and CUDA speedups require the user's paired evaluation.
+
+## Survival exploration experiment
+
+The opt-in `teacher-prior` mode supports scaled teacher guidance and an
+unbounded linear actor correction, actor-preserving initialization and separate
+actor/critic gradient clipping. See [the survival experiment](survival-longevity.md)
+for the eight-hour configuration, diagnostics and independent test seeds.

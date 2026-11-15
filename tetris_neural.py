@@ -42,6 +42,7 @@ class Config:
     residual_scale: float = 1.0
     detach_critic: bool = False
     centered_critic: bool = False
+    teacher_prior_scale: float = 1.0
 
     def __post_init__(self):
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
@@ -53,10 +54,12 @@ class Config:
             raise ValueError('Invalid candidate, shortlist or chunk size')
         if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic')):
             raise ValueError('Target and critic settings must be boolean')
-        if self.policy_mode not in ('neural', 'teacher-residual'):
+        if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
             raise ValueError('residual_scale must be between 0 and 4')
+        if not math.isfinite(self.teacher_prior_scale) or not 0 <= self.teacher_prior_scale <= 4:
+            raise ValueError('teacher_prior_scale must be between 0 and 4')
 
 
 def device_for(name: str) -> torch.device:
@@ -182,10 +185,13 @@ class ColumnPolicy(nn.Module):
                                            batch['indices'][:, start:stop], batch['column_mask'][:, start:stop])
             pieces.append(logits)
         logits = torch.cat(pieces, dim=1)
-        if self.config.policy_mode == 'teacher-residual':
+        if self.config.policy_mode in ('teacher-residual', 'teacher-prior'):
             if 'teacher_prior' not in batch:
                 raise ValueError('Residual policy requires exact teacher ranking features')
-            logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(logits.float()) - 1)
+            if self.config.policy_mode == 'teacher-residual':
+                logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(logits.float()) - 1)
+            else:
+                logits = self.config.teacher_prior_scale * batch['teacher_prior'].float() + self.config.residual_scale * logits.float()
         logits = logits.masked_fill(~batch['valid'].bool(), -torch.inf)
         result = {'logits': logits, 'value': value, 'completion': completion,
                   'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
@@ -196,6 +202,35 @@ class ColumnPolicy(nn.Module):
                                          batch['indices'][rows, selected][:, None], batch['column_mask'][rows, selected][:, None])
             result.update(activation=activation, hidden1=h1[:, 0], hidden2=h2[:, 0])
         return result
+
+    @torch.no_grad()
+    def ranking_diagnostics(self, batch):
+        """Summarize one bounded batch without retaining activation traces."""
+        spatial, pooled, _, _, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
+        count = batch['valid'].sum(1, keepdim=True).double()
+        sums = torch.zeros((len(count), 64), device=spatial.device, dtype=torch.float64)
+        squares = torch.zeros_like(sums)
+        saturated = torch.zeros((), device=spatial.device, dtype=torch.float64)
+        raw = []
+        for start in range(0, batch['features'].shape[1], self.config.chunk):
+            stop = start + self.config.chunk
+            logits, _, hidden = self.rank_chunk(spatial, pooled, batch['context'], batch['features'][:, start:stop],
+                                                batch['indices'][:, start:stop], batch['column_mask'][:, start:stop])
+            mask = batch['valid'][:, start:stop, None].bool()
+            values = hidden.double()
+            sums += (values * mask).sum(1)
+            squares += (values.square() * mask).sum(1)
+            saturated += (((hidden <= .001) | (hidden >= .999)) & mask).sum()
+            raw.append(logits.float())
+        logits = torch.cat(raw, 1)
+        valid = batch['valid'].bool()
+        mean = (logits.double() * valid).sum(1, keepdim=True) / count
+        variance = ((logits.double() - mean).square() * valid).sum(1) / count[:, 0]
+        spread = logits.masked_fill(~valid, -torch.inf).amax(1) - logits.masked_fill(~valid, torch.inf).amin(1)
+        hidden_variance = (squares / count - (sums / count).square()).clamp_min(0)
+        return {'states': len(count), 'h2_saturated_fraction': float(saturated / (count.sum() * 64)),
+                'h2_candidate_std': float(hidden_variance.sqrt().mean()),
+                'raw_logit_spread': float(spread.mean()), 'raw_logit_std': float(variance.sqrt().mean())}
 
 
 @dataclass

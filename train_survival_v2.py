@@ -78,6 +78,27 @@ def actor_digest(model):
     return h.hexdigest()
 
 
+def clip_gradient_groups(optimizer, scope, maximum=1.):
+    """Keep critic gradient magnitude from setting the actor's clipping scale."""
+    if scope not in ('joint', 'separate') or not math.isfinite(maximum) or maximum <= 0:
+        raise ValueError('Invalid gradient clipping setting')
+    groups = {group['name']: group['params'] for group in optimizer.param_groups}
+    actor, critic = groups['actor'], groups['critic']
+    norms = {}
+    for name, parameters in (('actor', actor), ('critic', critic)):
+        gradients = [p.grad for p in parameters if p.grad is not None]
+        norms[name] = (torch.nn.utils.get_total_norm(gradients, error_if_nonfinite=True) if gradients
+                       else torch.zeros((), device=parameters[0].device))
+    if scope == 'joint':
+        total = torch.nn.utils.clip_grad_norm_(actor + critic, maximum, error_if_nonfinite=True)
+    else:
+        torch.nn.utils.clip_grad_norm_(actor, maximum, error_if_nonfinite=True)
+        torch.nn.utils.clip_grad_norm_(critic, maximum, error_if_nonfinite=True)
+        total = torch.linalg.vector_norm(torch.stack(tuple(norms.values())))
+    return {'actor_gradient_norm': float(norms['actor']), 'critic_gradient_norm': float(norms['critic']),
+            'gradient_norm': float(total)}
+
+
 def device_telemetry():
     command = '/usr/lib/wsl/lib/nvidia-smi' if Path('/usr/lib/wsl/lib/nvidia-smi').exists() else 'nvidia-smi'
     try:
@@ -169,7 +190,8 @@ class Rollout:
 class SurvivalTrainer(base.Trainer):
     def training_signature(self):
         names = ('optimizer_batch', 'critic_lr', 'secondary_weight', 'ppo_epochs', 'clip_ratio', 'target_kl',
-                 'regret_weight', 'value_loss', 'value_beta', 'policy_mode', 'residual_scale', 'recover_target',
+                 'regret_weight', 'value_loss', 'value_beta', 'policy_mode', 'residual_scale', 'teacher_prior_scale',
+                 'preserve_initial_actor', 'gradient_clip_scope', 'recover_target',
                  'calibration_games', 'calibration_validation_games', 'calibration_steps', 'calibration_stride',
                  'calibration_seed', 'allow_uncalibrated', 'calibration_ratio', 'gradient_every')
         return {'algorithm': ALGORITHM, 'trainer_sha256': base.file_hash(Path(__file__)),
@@ -180,14 +202,16 @@ class SurvivalTrainer(base.Trainer):
         if not resuming:
             self.model.config = replace(self.model.config, recover_target=self.args.recover_target,
                                         policy_mode=self.args.policy_mode, residual_scale=self.args.residual_scale,
+                                        teacher_prior_scale=self.args.teacher_prior_scale,
                                         detach_critic=True, centered_critic=True)
             self.model.value[0].reset_parameters()
             self.model.value[-1].weight.data.zero_()
             self.model.value[-1].bias.data.zero_()
-            if self.args.policy_mode == 'teacher-residual':
+            if self.args.policy_mode == 'teacher-residual' and not self.args.preserve_initial_actor:
                 self.model.rank_out.weight.data.zero_()
                 self.model.rank_out.bias.data.zero_()
         self.calibration_actor = actor_digest(self.model)
+        self.initial_actor_sha256 = self.calibration_actor
 
     def create_optimizer(self):
         actor = [p for n, p in self.model.named_parameters() if not n.startswith(('value.', 'completion.'))]
@@ -198,6 +222,7 @@ class SurvivalTrainer(base.Trainer):
     def restore_extra(self, saved):
         self.calibration = saved['extra']['calibration']
         self.initial_digest = saved['extra']['initial_checkpoint_sha256']
+        self.initial_actor_sha256 = saved['extra'].get('initial_actor_sha256', self.initial_actor_sha256)
         if self.calibration.get('episode') is not None:
             self.calibration_episode = base.restore_episode(self.calibration['episode'])
 
@@ -207,7 +232,11 @@ class SurvivalTrainer(base.Trainer):
         return {'algorithm': ALGORITHM, 'value_semantics': 'expected_remaining_placements_times_0.001',
                 'completion_semantics': 'imitation_auxiliary_not_recalibrated_during_survival',
                 'initial_checkpoint_sha256': getattr(self, 'initial_digest', None),
-                'calibration': self.calibration, 'actor_critic_gradient_isolation': True}
+                'initial_actor_sha256': self.initial_actor_sha256,
+                'calibration': self.calibration, 'critic_encoder_detached': True,
+                'actor_critic_gradient_isolation': self.args.gradient_clip_scope == 'separate',
+                'preserve_initial_actor': self.args.preserve_initial_actor,
+                'gradient_clip_scope': self.args.gradient_clip_scope}
 
     def __init__(self, args, budget):
         self.calibration = {'stage': 'collect', 'game_index': 0, 'train': [], 'validation': [], 'pending': [],
@@ -226,6 +255,8 @@ class SurvivalTrainer(base.Trainer):
         self.recorder.context = {**context, 'algorithm': ALGORITHM, 'policy_mode': self.model.config.policy_mode}
         self.emit('survival_algorithm', algorithm=ALGORITHM, microbatch=args.batch, optimizer_batch=args.optimizer_batch,
                   policy_mode=self.model.config.policy_mode, reward='one placement * 0.001; gamma=1',
+                  teacher_prior_scale=self.model.config.teacher_prior_scale, preserve_initial_actor=args.preserve_initial_actor,
+                  gradient_clip_scope=args.gradient_clip_scope, initial_actor_sha256=self.initial_actor_sha256,
                   calibration_actor_frozen=True, critic_encoder_detached=True, **device_telemetry())
 
     def prepare_episode(self, episode):
@@ -478,6 +509,25 @@ class SurvivalTrainer(base.Trainer):
     old_batch = legacy.SurvivalTrainer.old_batch
     rollout_kl = legacy.SurvivalTrainer.rollout_kl
 
+    @torch.no_grad()
+    def actor_diagnostics(self, rollout):
+        count = min(len(rollout.records), self.args.batch, 16)
+        batch = neural.collate(rollout.records[:count], self.device)
+        diagnostics = self.model.ranking_diagnostics(batch)
+        logp = legacy.categorical_logp(self.model(batch)['logits'], batch['valid'])
+        winners, deficit = legacy.utility_targets(batch['features'], batch['valid'])
+        probability = logp.exp()
+        rows = torch.arange(count, device=self.device)
+        actions = torch.tensor(rollout.choices[:count], device=self.device)
+        digest = actor_digest(self.model)
+        diagnostics.update(lower_primary_probability=float(probability.masked_fill(winners, 0.).sum(-1).mean()),
+                           expected_primary_deficit=float((probability * deficit * 16).sum(-1).mean()),
+                           sampled_lower_primary_fraction=float((~winners[rows, actions]).float().mean()),
+                           sampled_primary_deficit=float((deficit[rows, actions] * 16).mean()),
+                           actor_sha256=digest, initial_actor_sha256=self.initial_actor_sha256,
+                           actor_changed_from_initial=digest != self.initial_actor_sha256)
+        return diagnostics
+
     def update(self, rollout, warmup):
         self.model.train()
         size = len(rollout.records)
@@ -485,6 +535,7 @@ class SurvivalTrainer(base.Trainer):
         stop, steps, finished_epochs, total_weight = False, 0, 0, 0
         totals, per_loss_norms = {}, {}
         parameters = tuple(p for n, p in self.model.named_parameters() if not n.startswith('completion.'))
+        measure_actor = self.progress['runner_updates'] % self.args.gradient_every == 0
         start_time = time.perf_counter()
         for epoch in range(epoch_count):
             full_kl = self.rollout_kl(rollout)
@@ -520,7 +571,7 @@ class SurvivalTrainer(base.Trainer):
                         loss = sum(components.values())
                     if not bool(torch.isfinite(loss)):
                         raise ValueError('Non-finite v2 PPO loss')
-                    if not per_loss_norms and self.progress['runner_updates'] % self.args.gradient_every == 0:
+                    if not per_loss_norms and measure_actor:
                         per_loss_norms = {name: gradient_size(value, parameters) for name, value in components.items()}
                     fraction = len(indices) / len(subset)
                     self.scaler.scale(loss * fraction).backward()
@@ -533,14 +584,15 @@ class SurvivalTrainer(base.Trainer):
                     for name, value in metrics.items():
                         block_metrics[name] = block_metrics.get(name, 0.) + float(value.detach().item()) * len(indices)
                 self.scaler.unscale_(self.optimizer)
-                norm = torch.nn.utils.clip_grad_norm_(parameters, 1., error_if_nonfinite=True)
+                gradient_norms = clip_gradient_groups(self.optimizer, self.args.gradient_clip_scope)
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
                 self.progress['updates'] += 1
                 self.progress['optimizer_steps'] += 1
                 steps += 1
                 total_weight += len(subset)
-                block_metrics['gradient_norm'] = float(norm) * len(subset)
+                for name, value in gradient_norms.items():
+                    block_metrics[name] = value * len(subset)
                 for name, value in block_metrics.items():
                     totals[name] = totals.get(name, 0.) + value
                 with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
@@ -564,8 +616,10 @@ class SurvivalTrainer(base.Trainer):
         self.progress['warmup_updates' if warmup else 'survival_updates'] += 1
         self.progress['kl_stopped_updates'] += int(stop)
         diagnostics = regression_metrics(rollout.old_values, rollout.returns)
+        actor_diagnostics = self.actor_diagnostics(rollout) if measure_actor else {}
         self.emit('update', **self.progress, stage='warmup' if warmup else 'survival-ppo-v2',
                   **{k: v / total_weight for k, v in totals.items()}, per_loss_gradient_norms=per_loss_norms,
+                  gradient_clip_scope=self.args.gradient_clip_scope, actor_diagnostics=actor_diagnostics,
                   optimizer_steps_this_rollout=steps, completed_epochs=finished_epochs,
                   final_exact_kl=final_kl, kl_early_stop=stop, kl_check_scope='minibatch after each step; full rollout each epoch and at end',
                   rollout_placements=size, terminal_transitions=int(rollout.terminals.sum()),
@@ -652,8 +706,13 @@ def arguments(argv=None):
     extra.add_argument('--regret-weight', type=float, default=.1)
     extra.add_argument('--value-loss', choices=('mse', 'huber'), default='mse')
     extra.add_argument('--value-beta', type=float, default=1.)
-    extra.add_argument('--policy-mode', choices=('neural', 'teacher-residual'), default='teacher-residual')
+    extra.add_argument('--policy-mode', choices=('neural', 'teacher-residual', 'teacher-prior'), default='teacher-residual')
     extra.add_argument('--residual-scale', type=float, default=1.)
+    extra.add_argument('--teacher-prior-scale', type=float, default=1.,
+                       help='Scale the teacher prior only in the opt-in teacher-prior policy')
+    extra.add_argument('--preserve-initial-actor', action='store_true',
+                       help='Retain imported actor parameters; changing policy mode still changes behavior')
+    extra.add_argument('--gradient-clip-scope', choices=('joint', 'separate'), default='joint')
     extra.add_argument('--recover-target', action=argparse.BooleanOptionalAction, default=True)
     extra.add_argument('--calibration-games', type=int, default=4)
     extra.add_argument('--calibration-validation-games', type=int, default=2)
@@ -678,6 +737,8 @@ def arguments(argv=None):
         extra.error('Invalid PPO epoch, clipping or KL setting')
     if not 0 <= args.residual_scale <= 4 or not 0 < args.calibration_ratio < 1:
         extra.error('Invalid residual scale or calibration threshold')
+    if not math.isfinite(args.teacher_prior_scale) or not 0 <= args.teacher_prior_scale <= 4:
+        extra.error('Teacher prior scale must be finite and in [0, 4]')
     if args.calibration_games < 0 or args.calibration_steps < 0:
         extra.error('Calibration counts must be nonnegative')
     if args.calibration_games == 0 and not args.allow_uncalibrated:
