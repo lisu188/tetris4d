@@ -45,9 +45,11 @@ class Config:
     centered_critic: bool = False
     teacher_prior_scale: float = 1.0
     architecture: str = 'column-sigmoid-v1'
+    spatial_actor: bool = False
+    shortlist_mode: str = 'teacher-random'
 
     def __post_init__(self):
-        if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3'):
+        if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3', 'survival-spatial-v4'):
             raise ValueError('Unsupported policy architecture')
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
             if type(getattr(self, name)) is not int:
@@ -56,8 +58,10 @@ class Config:
             raise ValueError('Unsupported encoder dimensions')
         if not 2 <= self.shortlist <= 2048 or not 1 <= self.candidates <= 65536 or not 1 <= self.chunk <= 2048:
             raise ValueError('Invalid candidate, shortlist or chunk size')
-        if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic')):
+        if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic', 'spatial_actor')):
             raise ValueError('Target and critic settings must be boolean')
+        if self.shortlist_mode not in ('teacher-random', 'diverse'):
+            raise ValueError('Unsupported candidate shortlist mode')
         if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
@@ -248,6 +252,9 @@ def create_model(config: Config = Config()):
     if config.architecture == 'survival-feature-v3':
         from tetris_survival_v3 import SurvivalFeaturePolicy
         return SurvivalFeaturePolicy(config)
+    if config.architecture == 'survival-spatial-v4':
+        from tetris_survival_v4 import SurvivalSpatialPolicy
+        return SurvivalSpatialPolicy(config)
     return ColumnPolicy(config)
 
 
@@ -351,7 +358,22 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
         used = set(top)
         rest = [i for i in range(len(options)) if i not in used]
         rng = random.Random(state.seed * 8191 + state.pieces)
-        top.extend(rng.sample(rest, config.shortlist - len(top)))
+        if config.shortlist_mode == 'diverse':
+            buckets, diverse = set(), []
+            for index in sorted(rest, key=keys.__getitem__, reverse=True):
+                option = options[index]
+                bucket = (option.rotation, option.x // 4, option.y // 4, option.w // 4)
+                if bucket not in buckets:
+                    buckets.add(bucket)
+                    diverse.append(index)
+                    if len(diverse) == config.shortlist - len(top):
+                        break
+            top.extend(diverse)
+            if len(top) < config.shortlist:
+                remaining = [index for index in rest if index not in set(diverse)]
+                top.extend(rng.sample(remaining, config.shortlist - len(top)))
+        else:
+            top.extend(rng.sample(rest, config.shortlist - len(top)))
         keep = sorted(top)
     else:
         keep = list(range(len(options)))
@@ -380,6 +402,9 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     rank[order] = np.arange(len(options), dtype=np.float32)
     deficits = np.asarray([kept_keys[teacher][0] - k[0] for k in kept_keys], dtype=np.float32)
     arrays['teacher_prior'] = -32 * deficits - rank / 8
+    if config.architecture == 'survival-spatial-v4':
+        from tetris_survival_v4 import afterstate_descriptors
+        arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(state.board, options, target)
     return Prepared(arrays, options, teacher, evaluations, fallback)
 
 
@@ -420,7 +445,7 @@ def collate(records: list[dict], device: torch.device) -> dict:
             values = []
             for row in records:
                 value = torch.as_tensor(row[name], device=device)
-                if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
+                if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta') and len(value) < maximum:
                     value = F.pad(value, (0, 0) * (value.ndim - 1) + (0, maximum - len(value)))
                 values.append(value)
             result[name] = torch.stack(values)
@@ -434,7 +459,7 @@ def collate(records: list[dict], device: torch.device) -> dict:
         values = []
         for row in records:
             value = np.asarray(row[name])
-            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
+            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta') and len(value) < maximum:
                 value = np.pad(value, [(0, maximum - len(value))] + [(0, 0)] * (value.ndim - 1))
             values.append(value)
         result[name] = torch.from_numpy(np.stack(values)).to(device)
@@ -490,7 +515,8 @@ class NeuralAgent:
         self.model.eval()
         self.last_trace = None
         self.pending_trace = None
-        self.capture_traces = capture_traces
+        self.capture_traces = (False if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4')
+                               else capture_traces)
         self.last_metrics = {}
         self.metadata = {'schema': SCHEMA, 'checkpoint_sha256': hashlib.sha256(Path(path).read_bytes()).hexdigest(),
                          'device': str(self.device), 'config': asdict(self.model.config),
@@ -526,6 +552,18 @@ class NeuralAgent:
         candidate = prepared.options[index]
         move = game.materialize_move(state.board, candidate)
         gain, _, _ = game.sustained_candidate_metrics(state.board, candidate, target)
+        if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4'):
+            teacher_prior = float(batch['teacher_prior'][0, index]) if 'teacher_prior' in batch else 0.
+            if self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
+                raw_score = (score - self.model.config.teacher_prior_scale * teacher_prior) / self.model.config.residual_scale
+            elif self.model.config.policy_mode == 'neural':
+                raw_score = score
+            else:
+                raw_score = None
+            self.last_trace = {'feature_inspector': True, **trace_info, 'actor_score': raw_score,
+                               'teacher_prior': teacher_prior, 'critic_value': float(prediction['value'][0]),
+                               'spatial_delta': (batch['spatial_delta'][0, index].detach().cpu().tolist()
+                                                 if 'spatial_delta' in batch else None)}
         self.last_metrics = {'prepare_ms': (before - started) * 1000,
                              'inference_and_trace_transfer_ms': (inferred - before) * 1000,
                              'evaluations': prepared.evaluations, 'shortlist': len(prepared.options),
@@ -561,6 +599,10 @@ class NeuralAgent:
         return self.last_trace
 
     def create_view(self, parent, legacy_class, policy):
+        if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4'):
+            from tetris_survival_v4 import FeatureView
+            self.capture_traces = False
+            return FeatureView(parent, self, legacy_class, policy)
         self.capture_traces = 'lazy'
         return NeuralView(parent, self, legacy_class, policy)
 

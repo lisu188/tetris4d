@@ -238,7 +238,7 @@ class Rollout:
 
 class RolloutCache:
     """Immutable inputs on the update device; minibatches retain original padding."""
-    CANDIDATE_KEYS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior'))
+    CANDIDATE_KEYS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta'))
 
     @staticmethod
     def required_bytes(rollout):
