@@ -1,0 +1,142 @@
+{
+  "schema": "tetris4d-obsolete-model-cleanup-v1",
+  "completed_utc": "2026-11-15T20:38:39.143354+00:00",
+  "authorization": "User: remove older models",
+  "removed": [
+    {
+      "path": "models/neural-policy.pt",
+      "bytes": 807443,
+      "allocated_bytes": 811008,
+      "sha256": "d09bca2326983d43916c2d7d2718d31bc4406841cdb2df7aeb8ef1b1aa8c3fb9"
+    },
+    {
+      "path": "models/neural-rl.pt",
+      "bytes": 1029179,
+      "allocated_bytes": 1032192,
+      "sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5"
+    },
+    {
+      "path": "survival-ppo-inspection-20261112T073229Z.pt",
+      "bytes": 4825851,
+      "allocated_bytes": 4829184,
+      "sha256": "f7b6a40c0f4c1bfc78ce050217b9028c43f7c4cc2b07be7d9623dbd7236da9bb"
+    },
+    {
+      "path": "survival-ppo-inspection-20261112T085350Z.pt",
+      "bytes": 3716667,
+      "allocated_bytes": 3719168,
+      "sha256": "cccc5262157230acafda343d9f68b14062597976b154c7c393b077feb1d53e9b"
+    },
+    {
+      "path": "runs/overnight-survival/best.pt",
+      "bytes": 5565115,
+      "allocated_bytes": 5566464,
+      "sha256": "f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892"
+    },
+    {
+      "path": "runs/overnight-survival/last.pt",
+      "bytes": 2046267,
+      "allocated_bytes": 2048000,
+      "sha256": "c1ba4d23e89a9a7b5eb1bf03d90a3adc7c1fbe835c516d2f2571092b7329e28f"
+    },
+    {
+      "path": "runs/overnight-survival/previous.pt",
+      "bytes": 2046267,
+      "allocated_bytes": 2048000,
+      "sha256": "e4a63bdf6ed4b76cf467896bac845a7e14eebfecd03abb9a3a77ac395a461f32"
+    },
+    {
+      "path": "runs/survival-ppo/best.pt",
+      "bytes": 2103931,
+      "allocated_bytes": 2105344,
+      "sha256": "1491054f0f69212bd00e6241188cbcd8697e1ff7177aeee348d907ec479e5f35"
+    },
+    {
+      "path": "runs/survival-ppo/last.pt",
+      "bytes": 4151291,
+      "allocated_bytes": 4153344,
+      "sha256": "3759b0177a50f7af6651cdb0e8f39953d0c1b5ccf1341c8c154965b48f6f1d1e"
+    },
+    {
+      "path": "runs/survival-ppo/previous.pt",
+      "bytes": 4151291,
+      "allocated_bytes": 4153344,
+      "sha256": "c124d2e6fceddd2c476ef248733e617d61a49f1eebd6f07914a73ea3beac2d71"
+    },
+    {
+      "path": "runs/survival-ppo-v2/best.pt",
+      "bytes": 9025659,
+      "allocated_bytes": 9027584,
+      "sha256": "38baa04277dac3c1da871dff68046b94a53a9e86670c1ff2d59cd7ce23c12ca9"
+    },
+    {
+      "path": "runs/survival-ppo-v2/last.pt",
+      "bytes": 5231227,
+      "allocated_bytes": 5234688,
+      "sha256": "8ae65a91078dae17086e83eca3c942f3b56ba67daf8600a5d7bcf3342767cfa6"
+    },
+    {
+      "path": "runs/survival-ppo-v2/previous.pt",
+      "bytes": 5231227,
+      "allocated_bytes": 5234688,
+      "sha256": "692a36c384d2675b2d5d64f0700464aae629f126d58ab87bcd40648022dda145"
+    },
+    {
+      "path": "survival-comparison-v2-full.artifacts/checkpoints/e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5.pt",
+      "bytes": 1029179,
+      "allocated_bytes": 1032192,
+      "sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5"
+    },
+    {
+      "path": "survival-comparison-v2-full.artifacts/checkpoints/f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892.pt",
+      "bytes": 5565115,
+      "allocated_bytes": 5566464,
+      "sha256": "f974bb0235a30afb94ad8c40452aa1981e3d1b470ca7b65bbdeff371e8f34892"
+    },
+    {
+      "path": "survival-training.artifacts/mechanism-smoke/best.pt",
+      "bytes": 278820,
+      "allocated_bytes": 282624,
+      "sha256": "3bb108aed4b1da5cef862a1b08741b022bae29128c50126ce03d050a6077d6f4"
+    },
+    {
+      "path": "survival-training.artifacts/mechanism-smoke/last.pt",
+      "bytes": 938363,
+      "allocated_bytes": 942080,
+      "sha256": "a4e6ba1defe0d3fe07fe5305bf0e0c87ae74dae1baabd49ee5a41396f6bd6767"
+    },
+    {
+      "path": "survival-training.artifacts/mechanism-smoke/previous.pt",
+      "bytes": 864251,
+      "allocated_bytes": 864256,
+      "sha256": "12facc969245a0db82da222ce7c8b8ff1a5a20657c81168a2dd2dbc28b367e7e"
+    },
+    {
+      "path": "survival-training.artifacts/run/previous.pt",
+      "bytes": 6529659,
+      "allocated_bytes": 6533120,
+      "sha256": "1f396b2a6497e3cb6f1b9c1f4fe4841d488781ab9304c353dca556090348bdc4"
+    }
+  ],
+  "removed_logical_bytes": 65136802,
+  "removed_allocated_bytes": 65183744,
+  "retained": [
+    "run-16env best/last/previous: active policy, selection and recovery",
+    "run last/best: pinned migration and completed selection evidence",
+    "pre-optimization-4env.pt: immutable migration proof and GPU parity fixture input",
+    "frozen PPO v1/v2 checkpoints: required final held-out comparison and initializer proof",
+    "source and continuation-source neural-rl.pt: frozen runtime checkout, not edited while training runs",
+    "gpu-source neural-rl.pt: bundled compatibility fixture until replaced by final PPO export",
+    "models/trained-sigmoid.json: active teacher weights"
+  ],
+  "active_trainer_unchanged": {
+    "pid": 312858,
+    "start_ticks": "3229118"
+  },
+  "windows_allocation_reclaimed_bytes": 0,
+  "free_bytes_at_cleanup": {
+    "/": 826675908608,
+    "/mnt/c": 333101838336
+  },
+  "scope": "Physical obsolete weights in the original experiment checkout. Git history and frozen active runtime checkouts are retained. Two frozen historical PPO baselines remain required for final evaluation."
+}

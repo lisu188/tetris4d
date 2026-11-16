@@ -110,7 +110,12 @@ def state_context(state, target: int, context=None) -> np.ndarray:
     return result
 
 
-def encode_columns(board: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+def encode_columns(board: torch.Tensor, target: torch.Tensor, *, fused: bool = False) -> torch.Tensor:
+    if (fused and board.is_cuda and board.dtype == torch.int32 and board.is_contiguous()
+            and target.device == board.device and target.dtype in (torch.int32, torch.int64)
+            and target.is_contiguous()):
+        from tetris_gpu_encoding import encode_columns_cuda
+        return encode_columns_cuda(board, target)
     masks = board.to(torch.int32)
     levels = torch.arange(16, device=masks.device, dtype=torch.int32)
     occupied = ((masks[:, None, :] >> levels[None, :, None]) & 1).bool()
@@ -141,6 +146,7 @@ class ColumnPolicy(nn.Module):
     def __init__(self, config: Config = Config()):
         super().__init__()
         self.config = config
+        self.fused_encoding = False
         w = config.width
         self.stem = nn.Sequential(nn.Conv3d(CHANNELS, w, 1), nn.GroupNorm(8, w), nn.Sigmoid())
         self.blocks = nn.ModuleList(SigmoidBlock(w) for _ in range(config.blocks))
@@ -151,7 +157,7 @@ class ColumnPolicy(nn.Module):
         self.completion = nn.Sequential(nn.Linear(w + CONTEXT, 64), nn.Sigmoid(), nn.Linear(64, 16))
 
     def encode(self, boards, targets, context):
-        spatial = self.stem(encode_columns(boards, targets))
+        spatial = self.stem(encode_columns(boards, targets, fused=self.fused_encoding))
         activation = spatial
         for block in self.blocks:
             spatial, activation = block(spatial)
@@ -398,6 +404,19 @@ def collate(records: list[dict], device: torch.device) -> dict:
     if not records:
         raise ValueError('Empty batch')
     maximum = max(len(row['features']) for row in records)
+    if any(torch.is_tensor(row['features']) for row in records):
+        result = {}
+        for name in records[0]:
+            values = []
+            for row in records:
+                value = torch.as_tensor(row[name], device=device)
+                if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
+                    value = F.pad(value, (0, 0) * (value.ndim - 1) + (0, maximum - len(value)))
+                values.append(value)
+            result[name] = torch.stack(values)
+        if not bool(result['valid'].any(dim=1).all()):
+            raise ValueError('Every state must have at least one valid candidate')
+        return result
     if not all(np.asarray(row['valid']).any() for row in records):
         raise ValueError('Every state must have at least one valid candidate')
     result = {}

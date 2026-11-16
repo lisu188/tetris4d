@@ -1,0 +1,521 @@
+{
+  "schema": "tetris4d-gpu-preparation-validation-v1",
+  "status": "passed_bounded_validation",
+  "created_utc": "2026-11-15T21:12:43.353566+00:00",
+  "source_base_commit": "dddb9c111da9afb326b3cb095a3a8d63b691de92",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "driver_visible_memory_mib": 8188.0,
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.4",
+      "triton": "3.8.0"
+    },
+    "cpu_threads": 1,
+    "allocator_cap_mib": 512,
+    "stream_priority": 0,
+    "nice": 19,
+    "concurrent_production": true
+  },
+  "opt_in_flags": {
+    "gpu_prepare": false,
+    "fused_encoding": false,
+    "coalesce_transfers": false
+  },
+  "runtime_source_sha256": {
+    "tetris_neural.py": "5de4978489f77d057ccc4ab944cea2aa5000d9e11d7b6faef26bdd2a19d1ab2b",
+    "sparse_tetris_4d_optimized.py": "f9a338af204c61af47e11f6bb3a703466e1a3001994120a3891a858392a5a706",
+    "tetris_gpu_encoding.py": "04fa826a37d843d022fe88d74eb32769c155790b6254bec9ce6e5f8a3ff28a72",
+    "tetris_gpu_simulation.py": "e7c01bc924176bbfdc84eb9ac0fc3f1e39b469f6f9ab548d81fe0e8e815ac7b7",
+    "train_survival_v2.py": "988120a27fe38778d262d2f09a536acf3480a5be9fe65efd2161fdeed024f726",
+    "train_survival.py": "fe0e91cd35ab76d1d2d2a644edf4436e6e3c7cec0207c44f976fb2c67d0eef85",
+    "train_overnight.py": "c9dfdf961a3eca6adb037a2d2b1960804989e801a3674fedac184f505af1b8fa",
+    "tests/test_gpu_transfers.py": "f854d50950580f001a7831d4e396c9e4f48c87f2895491f490f6ecf971cab006",
+    "reference/train_survival_v2.py": "b38d23a3540b025d10658c3cfc7c1739e97744bbcd9a9acc0b884ed323fc3c46",
+    "reference/train_survival.py": "fe0e91cd35ab76d1d2d2a644edf4436e6e3c7cec0207c44f976fb2c67d0eef85",
+    "reference/train_overnight.py": "c9dfdf961a3eca6adb037a2d2b1960804989e801a3674fedac184f505af1b8fa",
+    "reference/tetris_neural.py": "32591e1b346cfbc912fa1d26c0e09d6d4c63429a26e2e74e47e25f4c25406d4f",
+    "reference/sparse_tetris_4d_optimized.py": "f9a338af204c61af47e11f6bb3a703466e1a3001994120a3891a858392a5a706"
+  },
+  "harness": {
+    "measured_sha256": "c9effc901dcc6b295a28f4e3f5d58a1258dcf0ec1b6e2d04e15a9c6af91d814c",
+    "final_sha256": "853d64eddee0c7b9daa45350f753a4b89ecaa34470137b2a2c6c519d7c1b8069",
+    "final_change": "Extracted the already-measured artifact-root inference into a helper; added normal-checkout/worktree layout regression. CPU-only retest14passed; no runtime change.",
+    "cpu_test_sha256": "8cfc9da7ff51d9b8d0dd358e9d4f8b077acc5df10b99361c0a1ad251d22ccc0e",
+    "cpu_tests_passed": 14
+  },
+  "checkpoint": {
+    "artifact": "checkpoints/pre-optimization-4env.pt",
+    "sha256": "015c29d308071967bf8a2dd4587f29ab214d2f58be7e1333452249e06b7fcca5",
+    "bytes": 6895291,
+    "usage": "Read-only frozen32-channel3-block policy and inherited Adam state; no production model files written."
+  },
+  "validation": {
+    "preparation": {
+      "cases": 40,
+      "pieces": 15,
+      "exact": "Prepared tensors, dtype/shape/value, candidate ordering and scores, teacher labels, fallback/None mapping.",
+      "coverage": [
+        "empty and ragged boards for every piece",
+        "four real reconstructed frozen boards",
+        "single/double clears",
+        "blocked target recovery",
+        "top out",
+        "32000-piece context",
+        "exhaustive fallback"
+      ],
+      "peak_allocated_mib": 11.9443359375
+    },
+    "retention_and_fallback": {
+      "cuda_tests": 3,
+      "passed": true,
+      "coverage": [
+        "retained device records survive later preparation and CPU commits",
+        "clear/dead/buried/exhaustive fallbacks",
+        "protection/recovery disabled",
+        "small odd shortlists and candidates below shortlist",
+        "unsupported candidate/shortlist bounds use CPU fallback"
+      ]
+    },
+    "encoding": {
+      "cuda_tests": 1,
+      "passed": true,
+      "coverage": "All65536column masks, target edge cases, mixed CPU/device records, exact model outputs and gradients."
+    },
+    "transfer": {
+      "passed": true,
+      "coverage": "Exact sampled actions, invalid/nonfinite guards, dtype handling, gradients, Adam state, metrics and RNG."
+    },
+    "integrated": {
+      "envs": 16,
+      "rollout_steps": 4,
+      "transitions": 64,
+      "width": 32,
+      "blocks": 3,
+      "candidate_budget": 2048,
+      "shortlist": 128,
+      "batch": 16,
+      "optimizer_batch": 128,
+      "ppo_epochs": 3,
+      "exact": "Frozen original trainer and all four dependencies versus combined GPU preparation/fused encoding/coalesced transfers: inputs/actions/labels/logp/GAE/boards/counters/model/gradients/Adam/RNG.",
+      "warmup_and_measured_pairs_passed": 4,
+      "post_state_sha256": {
+        "model_sha256": "342cc6a16238c124c5b00c25bcd9f26ea7e85f4b4bbecfb6aea258fc3aede82e",
+        "gradient_sha256": "4839195075134a81446c484377c1d9ba0b08c8c37c460fad762fbe521a97d875",
+        "adam_sha256": "8416f744062441514186f35171bc34fc6352fb3bba4b0140bcd486aa86da8529",
+        "cpu_rng_sha256": "be61d03cc51b106d62f4b9bf2dbbc1fd8b7f005725c6bc72974004b189e75f1b",
+        "cuda_rng_sha256": "5294fa056f35330d1e91eaa00516986544b0b71de2ee20ac0425437ea8809fd5"
+      },
+      "peak_allocated_mib": 222.095703125,
+      "peak_reserved_mib": 286.0
+    },
+    "cpu_regressions": {
+      "tests_run": 118,
+      "passed": 109,
+      "expected_skips": 9,
+      "legacy_suites": 7,
+      "final_gpu_module_suite_tests": 35,
+      "final_gpu_module_suite_skips": 6,
+      "scope": "Seven native/preparation/PPO/cache/neuron suites plus final CPU-only GPU module/layout suite. Runtime sources remained unchanged after the full regression run; fixture and harness-only follow-ups were rerun.",
+      "logs": {
+        "gpu-cpu-final-regressions.log": "6a5b548b110017bd93256544471fc29db373b1428830e232a9d67d81883bb296",
+        "gpu-final-layout-tests.log": "826de9dc22c735279271577ad316ab2eca3b6c3bc0e10e17ec7b37552452936f"
+      }
+    }
+  },
+  "performance": {
+    "existing_production_profile": {
+      "updates": [
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "placements_per_update": 8192,
+      "mean_phase_seconds": {
+        "prepare_seconds": 46.989929924488024,
+        "inference_transfer_seconds": 10.23500557890596,
+        "commit_seconds": 9.441693884994189,
+        "bootstrap_seconds": 0.03244518008250452,
+        "update": 35.5681953582504
+      }
+    },
+    "steady_full_preparation": {
+      "paired_samples_per_workload": 4,
+      "retained_records_unchanged": true,
+      "workloads": [
+        {
+          "name": "frozen4x4",
+          "environments": 16,
+          "distinct_real_boards": 4,
+          "distinct_piece_counter_keys": 4,
+          "paired_samples": 4,
+          "wall_ms": {
+            "cpu_prepare_collate_h2d": [
+              96.84084299806273,
+              84.35666799778119,
+              79.15788100217469,
+              72.00951500271913
+            ],
+            "gpu_prepare_device_selected_d2h": [
+              8.512140004313551,
+              6.892022000101861,
+              7.367983002041001,
+              8.102068997686729
+            ]
+          },
+          "cuda_event_interval_ms": {
+            "cpu_prepare_collate_h2d": [
+              100.38169860839844,
+              87.46495819091797,
+              82.06745910644531,
+              74.36595153808594
+            ],
+            "gpu_prepare_device_selected_d2h": [
+              8.317952156066895,
+              7.0359039306640625,
+              7.611936092376709,
+              8.301568031311035
+            ]
+          },
+          "median_wall_ms": {
+            "cpu_prepare_collate_h2d": 81.75727449997794,
+            "gpu_prepare_device_selected_d2h": 7.735025999863865
+          },
+          "observed_concurrent_ratio": 10.569747858819976
+        },
+        {
+          "name": "four_boards_distinct_counters",
+          "environments": 16,
+          "distinct_real_boards": 4,
+          "distinct_piece_counter_keys": 16,
+          "paired_samples": 4,
+          "wall_ms": {
+            "cpu_prepare_collate_h2d": [
+              73.36683599714888,
+              66.71736299904296,
+              99.85249500459759,
+              80.40331099618925
+            ],
+            "gpu_prepare_device_selected_d2h": [
+              19.955540003138594,
+              25.059397994482424,
+              17.59459599998081,
+              33.56031500152312
+            ]
+          },
+          "cuda_event_interval_ms": {
+            "cpu_prepare_collate_h2d": [
+              76.01971435546875,
+              68.7083511352539,
+              103.372802734375,
+              83.34233856201172
+            ],
+            "gpu_prepare_device_selected_d2h": [
+              20.165632247924805,
+              25.042943954467773,
+              18.23731231689453,
+              34.729984283447266
+            ]
+          },
+          "median_wall_ms": {
+            "cpu_prepare_collate_h2d": 76.88507349666907,
+            "gpu_prepare_device_selected_d2h": 22.50746899881051
+          },
+          "observed_concurrent_ratio": 3.415980424130867
+        }
+      ],
+      "scope": "Warmed full preparation+collation/H2D versus direct device batch+selected moves D2H. Four real boards with repeated or constructed distinct counter contexts; CPU fallback excluded. Shared-device contention; CUDA event intervals include host launch gaps. No uncontended or training-throughput speedup claim."
+    },
+    "integrated_64_transition_microbenchmark": {
+      "settings": {
+        "envs": 16,
+        "rollout_steps": 4,
+        "transitions": 64,
+        "batch": 16,
+        "optimizer_batch": 128,
+        "ppo_epochs": 3,
+        "precision": "fp32",
+        "width": 32,
+        "blocks": 3
+      },
+      "warmup_pairs": 1,
+      "measured_pairs": 3,
+      "raw_measured_pairs": [
+        {
+          "index": 1,
+          "order": [
+            "optimized",
+            "reference"
+          ],
+          "reference": {
+            "rollout_seconds": 0.6732979640000849,
+            "update_seconds": 0.2899631969994516,
+            "total_seconds": 0.9632611609995365
+          },
+          "optimized": {
+            "rollout_seconds": 0.2545733389997622,
+            "update_seconds": 0.3717375970009016,
+            "total_seconds": 0.6263109360006638
+          },
+          "exact_parity": true
+        },
+        {
+          "index": 2,
+          "order": [
+            "reference",
+            "optimized"
+          ],
+          "reference": {
+            "rollout_seconds": 0.8507666060031625,
+            "update_seconds": 0.43555027800175594,
+            "total_seconds": 1.2863168840049184
+          },
+          "optimized": {
+            "rollout_seconds": 0.33129059999919264,
+            "update_seconds": 0.4529635889994097,
+            "total_seconds": 0.7842541889986023
+          },
+          "exact_parity": true
+        },
+        {
+          "index": 3,
+          "order": [
+            "optimized",
+            "reference"
+          ],
+          "reference": {
+            "rollout_seconds": 0.810903284997039,
+            "update_seconds": 0.42165663900232175,
+            "total_seconds": 1.2325599239993608
+          },
+          "optimized": {
+            "rollout_seconds": 0.41785053099738434,
+            "update_seconds": 0.36887528499937616,
+            "total_seconds": 0.7867258159967605
+          },
+          "exact_parity": true
+        }
+      ],
+      "median_seconds": {
+        "reference": {
+          "rollout_seconds": 0.810903284997039,
+          "update_seconds": 0.42165663900232175,
+          "total_seconds": 1.2325599239993608
+        },
+        "optimized": {
+          "rollout_seconds": 0.33129059999919264,
+          "update_seconds": 0.3717375970009016,
+          "total_seconds": 0.7842541889986023
+        }
+      },
+      "observed_concurrent_ratio": {
+        "rollout_seconds": 2.447709910872857,
+        "update_seconds": 1.13428569615814,
+        "total_seconds": 1.5716332042461776
+      },
+      "timing": "CUDA-synchronized wall; excludes checkpoint/setup; includes preparation, host copies, cache construction and full KL checks.",
+      "scope": "Shared-device64-transition microbenchmark; no8192-transition or24-hour training rate claim. Combined flags measured together."
+    }
+  },
+  "production_continuity": {
+    "same_pid": 312858,
+    "same_start_ticks": "3229118",
+    "all_successful_supervisors_observed_new_updates": true,
+    "observations": {
+      "prepare": {
+        "before_update": 88,
+        "after_update": 89,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": true
+      },
+      "retention_and_fallback": {
+        "before_update": 84,
+        "after_update": 85,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": null
+      },
+      "encoding": {
+        "before_update": 83,
+        "after_update": 84,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": null
+      },
+      "transfer_and_integrated_parity": {
+        "before_update": 90,
+        "after_update": 91,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": true
+      },
+      "steady_preparation": {
+        "before_update": 86,
+        "after_update": 87,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": true
+      },
+      "integrated_microbenchmark": {
+        "before_update": 93,
+        "after_update": 94,
+        "placements_delta": 8192,
+        "source_inputs_unchanged": true
+      }
+    },
+    "production_runtime": "Unchanged frozen source/native trainer; no probe signals or training-control APIs. Current training does not adopt these opt-in changes."
+  },
+  "diagnostics_retained": [
+    {
+      "artifact": "gpu-validation/encoding-cuda.supervisor.json",
+      "cause": "Initial isolated Triton clz(uint32) compilation failed; int32 input correction passed all-mask CUDA contract."
+    },
+    {
+      "artifact": "gpu-validation/integration-cuda-final.supervisor.json",
+      "cause": "Reference materialization correctly rejected synthetic full-target board with a pre-existing complete layer.",
+      "correction": "Integrated committed-move test uses valid buried board(column0=2,others=1); strict physics guard unchanged; original40prepare-only negative cases unchanged."
+    }
+  ],
+  "limits": [
+    "Native CPU commits, clears and explicit exceptional preparation paths remain; this is not a fully GPU-resident simulator.",
+    "Forty preparation cases and64-transition optimizer trials are bounded evidence, not exhaustive board/orientation or long-run equivalence.",
+    "Full8192-transition device-rollout memory use and sustained training throughput were not benchmarked.",
+    "Low-priority stream and512MiB allocator cap do not isolate GPU scheduling or bound driver/compiler/context memory.",
+    "Only three warmed measured pairs under concurrent load; per-phase measurements vary, and one optimized update portion was slower.",
+    "No model architecture, physics, policy/objective, optimizer math or production training changes; flags default off."
+  ],
+  "reproduce": {
+    "cpu": "python -B tests/test_gpu_training_parity.py",
+    "guarded_benchmark": "python -B tools/benchmark_gpu_training.py --run-cuda --suite benchmark --seconds 30 --steps 64 --memory-mib 512 --observe-seconds 180 --output ABS_NEW_ARTIFACT_PATH",
+    "requirements": "Existing native runtime, immutable CPU fixtures/frozen checkpoint and live production run; output must be a fresh canonical path under gpu-validation. Retained supervisor files contain exact execution arguments."
+  },
+  "raw_artifacts": [
+    {
+      "artifact": "gpu-validation/fixtures/manifest.json",
+      "sha256": "4b80bc7c32d590da68942b84bd3049f38a3243f17681a7e021572379d28adfb1",
+      "bytes": 3149
+    },
+    {
+      "artifact": "gpu-validation/fixtures-provenance.json",
+      "sha256": "c4e8e04f50c389a4187f26f2907cc72ec64dc532b5ff4cc18b639f64d86d4958",
+      "bytes": 2094
+    },
+    {
+      "artifact": "gpu-validation/production-phase-profile.json",
+      "sha256": "98aa43a08b7aac47bea1e67bbefadd291dc5010151184d734abea2cfc01f4c7a",
+      "bytes": 7058
+    },
+    {
+      "artifact": "gpu-validation/integration-benchmark-cuda.timing.json",
+      "sha256": "9d2fb3ce04dded1f784af1ce161523614a49c3c5e03ef5230cf0c3eb4f074a7e",
+      "bytes": 5337
+    },
+    {
+      "artifact": "gpu-validation/integration-fixture-preflight.json",
+      "sha256": "54f17b28859dbef7fb91e343996621badb8a1f3489729a3bdf28c7cac324ca70",
+      "bytes": 1117
+    },
+    {
+      "artifact": "gpu-validation/encoding-cuda.supervisor.json",
+      "sha256": "8193e05f1fc5ea91ccfd82cf5874189d4dd63a128364e659228682909583da9c",
+      "bytes": 3635
+    },
+    {
+      "artifact": "gpu-validation/integration-cuda-final.supervisor.json",
+      "sha256": "df7616717a1cb1a3e753800c2f3c7aac21758be557167874508c997c6763b443",
+      "bytes": 6869
+    },
+    {
+      "artifact": "gpu-validation/harness-cpu-final.log",
+      "sha256": "5598e6beaabca45c22fd9738daf7e86970390a6bbb59774d04215d1a7771f7d2",
+      "bytes": 1916
+    },
+    {
+      "artifact": "gpu-validation/cleanup.json",
+      "sha256": "7ffb467ef1416b3d3ffead4b25e203fa5a417e48faf11771d910052d9790e628",
+      "bytes": 1190
+    },
+    {
+      "artifact": "gpu-validation/prepare-cuda-final.json",
+      "sha256": "27666f170e68b0e7ab0e10ced263822048263baac1a1c31a909227676646123b",
+      "bytes": 1355
+    },
+    {
+      "artifact": "gpu-validation/prepare-cuda-final.supervisor.json",
+      "sha256": "e4e1e3b27c67f74f6d5100839b42a2f3f1656264357fc758b1f96f3d07b50deb",
+      "bytes": 3858
+    },
+    {
+      "artifact": "gpu-validation/preparation-contracts-cuda.json",
+      "sha256": "629c2c659b300723d79dc15f2d8ad6a09b273fb491613abb0e429aab7ea61039",
+      "bytes": 1368
+    },
+    {
+      "artifact": "gpu-validation/preparation-contracts-cuda.supervisor.json",
+      "sha256": "2dd608280b0e8989f1e8bdcad54da1c58e17afa4ff49f87d903dbcd9756571ab",
+      "bytes": 1610
+    },
+    {
+      "artifact": "gpu-validation/encoding-cuda-fixed.json",
+      "sha256": "0bb551a421b15995d760784b6acad64f91ad21c708045d850590c65e9cc16a25",
+      "bytes": 1050
+    },
+    {
+      "artifact": "gpu-validation/encoding-cuda-fixed.supervisor.json",
+      "sha256": "2bad03297905bf59b4b822b704667de533f211308dcc06c96531ead9dae41a19",
+      "bytes": 1589
+    },
+    {
+      "artifact": "gpu-validation/integration-cuda-valid-fixture.json",
+      "sha256": "8283651920018e82eaa71fc1c7a188bfaf3a5df274624121645a514e0d43e159",
+      "bytes": 1182
+    },
+    {
+      "artifact": "gpu-validation/integration-cuda-valid-fixture.supervisor.json",
+      "sha256": "4857d012d48fe3c580d501b8cb85283e538ae71eb8c12a2563dd8959b651f9e3",
+      "bytes": 5127
+    },
+    {
+      "artifact": "gpu-validation/prepare-steady.json",
+      "sha256": "7cbb01ec72eb3902f417bd2224989c15b1548fdbd59682cbad026b640f13f8c2",
+      "bytes": 3484
+    },
+    {
+      "artifact": "gpu-validation/prepare-steady.supervisor.json",
+      "sha256": "ad42e2818808885be0b1f48a47095457a6312613ca0397c28215adc95c2a968e",
+      "bytes": 2908
+    },
+    {
+      "artifact": "gpu-validation/integration-benchmark-cuda.json",
+      "sha256": "1849320de867e59fbac8b91b9cf54d5bfbfb7727ba6c18763dfadf6a7a58741e",
+      "bytes": 1256
+    },
+    {
+      "artifact": "gpu-validation/integration-benchmark-cuda.supervisor.json",
+      "sha256": "4143a5109591bd407087227b4692721019f340d7e38360f4dafbfb849ebfb73d",
+      "bytes": 7197
+    }
+  ],
+  "cleanup": {
+    "removed": [
+      {
+        "path": "gpu-validation/triton-cache",
+        "files": 273,
+        "bytes": 12952275,
+        "file_manifest_sha256": "ded39434c494f29e841cdce39daa1c8a774807d79b2da2836372a4225ac68634"
+      }
+    ],
+    "retained_gpu_validation_bytes": 976798,
+    "linux_free_bytes": 826671476736,
+    "windows_free_bytes": 333108908032,
+    "windows_allocation_reclaimed": false,
+    "retained": "Raw reports, fixtures/provenance and unique failure diagnostics; only private reproducible Triton compiler cache removed."
+  },
+  "equivalent_published_base_commit": "b2c26a1db2d4aa454c823f0efb348103e6becfb1",
+  "base_note": "Measurements used the local cherry-picked dependency base recorded above. Its complete tree is identical to the published PPO dependency; delivery stacks the GPU commit on that published base."
+}
