@@ -109,6 +109,70 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(third.manifest.read_bytes(),manifest_before)
         self.assertEqual(third.offset,self.metrics.stat().st_size)
 
+    def test_reference_and_bootstrapped_value_metrics_preserve_existing_provenance(self):
+        self.emit('update',runner_updates=1,reference_kl=.003,final_reference_kl=.004,
+                  reference_kl_weight=.05,final_exact_kl=.002,
+                  critic_bootstrapped_diagnostics={'explained_variance':.98})
+        first = dashboard.Collector(self.run,self.data); first.poll()
+        latest = first.snapshot()['latest']
+        self.assertEqual(latest['kl'],.002)
+        self.assertEqual(latest['reference_kl'],.003)
+        self.assertEqual(latest['final_reference_kl'],.004)
+        self.assertEqual(latest['reference_kl_weight'],.05)
+        self.assertEqual(latest['critic_bootstrapped_explained_variance'],.98)
+        # Emulate an older collector's history without optional measurements.
+        legacy = json.loads(first.history.read_text())
+        for key in dashboard.OPTIONAL_NUMBERS:
+            legacy.pop(key)
+        first.history.write_text(json.dumps(legacy)+'\n')
+        saved_history = first.history.read_bytes(); saved_manifest = first.manifest.read_bytes()
+        second = dashboard.Collector(self.run,self.data); second.poll()
+        self.assertEqual(second.snapshot()['latest'],latest)
+        self.assertEqual(second.history.read_bytes(),saved_history)
+        self.assertEqual(second.manifest.read_bytes(),saved_manifest)
+        # Zero is a real coefficient and negative EV is a real measurement.
+        self.emit('update',runner_updates=2,reference_kl=0.,final_reference_kl=0.,reference_kl_weight=0.,
+                  critic_bootstrapped_diagnostics={'explained_variance':-.5})
+        second.poll()
+        rows = list(csv.DictReader(io.StringIO(second.history_csv().decode())))
+        self.assertEqual(rows[0]['final_reference_kl'],'')
+        self.assertEqual(rows[1]['reference_kl_weight'],'0.0')
+        self.assertEqual(rows[1]['critic_bootstrapped_explained_variance'],'-0.5')
+        self.assertEqual(second.snapshot()['latest']['final_reference_kl'],0.)
+        third = dashboard.Collector(self.run,self.data); third.poll()
+        self.assertEqual(third.snapshot()['latest'],second.snapshot()['latest'])
+        self.assertEqual(third.manifest.read_bytes(),saved_manifest)
+        self.assertEqual(third.snapshot()['progress']['runner_updates'],2)
+        # A bounded raw backfill may visit an older event after loading the newest history.
+        third.apply_optional({**legacy, 'final_reference_kl':.004, 'reference_kl_weight':.05})
+        self.assertEqual(third.snapshot()['latest']['final_reference_kl'],0.)
+        self.assertEqual(third.snapshot()['latest']['reference_kl_weight'],0.)
+
+    def test_prior_reference_measurements_do_not_leak_into_unregularized_run(self):
+        self.emit('update',runner_updates=1,final_reference_kl=.02,reference_kl_weight=.1,
+                  critic_bootstrapped_diagnostics={'explained_variance':.9})
+        first = dashboard.Collector(self.run,self.data); first.poll()
+        new_run = self.root/'unregularized'; new_run.mkdir()
+        (new_run/'metrics.jsonl').write_text(json.dumps({'event':'update','utc':'2026-11-15T13:00:00Z',
+                                                       'runner_updates':2,'entropy':.8})+'\n')
+        second = dashboard.Collector(new_run,self.root/'new-dashboard',self.data); second.poll()
+        self.assertEqual(second.snapshot()['latest']['entropy'],.8)
+        for key in dashboard.OPTIONAL_NUMBERS:
+            self.assertIsNone(second.snapshot()['latest'][key])
+        self.assertEqual(second.snapshot()['series'][0]['reference_kl_weight'],.1)
+        self.assertEqual(second.snapshot()['series'][0]['final_reference_kl'],.02)
+
+    def test_optional_measurements_reject_invalid_values_and_keep_missing_empty(self):
+        self.emit('update',runner_updates=1,reference_kl=True,final_reference_kl=float('nan'),
+                  reference_kl_weight='0.2',critic_bootstrapped_diagnostics={'explained_variance':float('inf')})
+        collector = dashboard.Collector(self.run,self.data); collector.poll()
+        for key in dashboard.OPTIONAL_NUMBERS:
+            self.assertIsNone(collector.snapshot()['latest'][key])
+            self.assertIsNone(json.loads(collector.history.read_text())[key])
+        self.emit('update',runner_updates=2,critic_bootstrapped_diagnostics=[])
+        collector.poll()
+        self.assertFalse(collector.snapshot()['errors'])
+
     def test_budget_games_and_phase_artifacts(self):
         self.artifact(self.root/'pipeline-status.json',{'phases':{'comparison':{'state':'running'}}})
         collector = dashboard.Collector(self.run,self.data)

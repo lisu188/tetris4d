@@ -22,7 +22,7 @@
     unknown:["AWAITING DATA","Waiting for telemetry","No current training phase can be established from the available source events.",-1]
   };
 
-  function chart(rows,key,{label,percent=false,line=true,xkey=null,rolling=false,calibration=false,step=false,holdTo=null}={}) {
+  function chart(rows,key,{label,percent=false,line=true,xkey=null,rolling=false,calibration=false,step=false,holdTo=null,minYMax=1}={}) {
     const points=rows.map(r=>({r,x:xkey? r[xkey]:stamp(r.timestamp_utc),y:finite(r[key])?r[key]*(percent?100:1):null}));
     const valid=points.filter(p=>finite(p.x)&&finite(p.y));
     if(!valid.length)return `<div class="chart-empty"><span>No ${esc(label.toLowerCase())} in this window</span><small>Only recorded measurements appear here. Try All history for earlier observations.</small></div>`;
@@ -30,10 +30,10 @@
     let xmin=Math.min(...valid.map(p=>p.x)),xmax=Math.max(...valid.map(p=>p.x));
     if(step&&finite(holdTo))xmax=Math.max(xmax,holdTo);
     if(xmin===xmax){xmin-=xkey?1:30000;xmax+=xkey?1:30000;}
-    const ymax=percent?100:Math.max(1,...valid.map(p=>p.y))*1.12;
+    const ymax=percent?100:Math.max(minYMax,...valid.map(p=>p.y))*1.12;
     const px=x=>pad.l+(x-xmin)/(xmax-xmin)*pw,py=y=>pad.t+ph-y/ymax*ph;
     const xf=x=>xkey?num(x):new Date(x).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
-    const yf=y=>ymax<2?num(y,2):num(y,ymax<10?1:0);
+    const yf=y=>ymax<0.1?num(y,Math.min(6,Math.ceil(-Math.log10(ymax))+2)):ymax<2?num(y,2):num(y,ymax<10?1:0);
     let svg=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}: ${valid.length} recorded measurements. ${xkey?"Horizontal axis: rollout updates.":"Horizontal axis: local time."} Vertical axis: ${esc(percent?"percent":key.replaceAll("_"," "))}."><title>${esc(label)}</title>`;
     for(let i=0;i<4;i++){const y=ymax*i/3;svg+=`<line class="plot-grid" x1="${pad.l}" x2="${w-pad.r}" y1="${py(y)}" y2="${py(y)}"/><text class="plot-axis" text-anchor="end" x="${pad.l-10}" y="${py(y)+3}">${esc(yf(y))}</text>`;}
     for(let i=0;i<3;i++){const x=xmin+(xmax-xmin)*i/2;svg+=`<text class="plot-axis" text-anchor="${i===0?"start":i===2?"end":"middle"}" x="${px(x)}" y="${h-8}">${esc(xf(x))}</text>`;}
@@ -67,6 +67,7 @@
     $("survival-chart").innerHTML=chart(episodes,"episode_pieces",{label:"Completed training episodes",line:false,rolling:true});
     $("calibration-chart").innerHTML=chart(rows.filter(r=>["calibration_progress","calibration_game"].includes(r.event)),"calibration_game_pieces",{label:"Calibration observations",calibration:true});
     $("progress-chart").innerHTML=chart(updates,"placements",{label:"PPO placements",xkey:"runner_updates"});
+    $("reference-kl-chart").innerHTML=chart(updates,"final_reference_kl",{label:"Reference KL measurements",minYMax:0.0001});
     $("entropy-chart").innerHTML=chart(updates,"entropy",{label:"Entropy measurements"});
     $("exploration-chart").innerHTML=chart(updates.filter(r=>finite(r.lower_primary_probability)),"lower_primary_probability",{label:"Exploration measurements",percent:true,line:false});
     $("saturation-chart").innerHTML=chart(updates.filter(r=>finite(r.h2_saturated_fraction)),"h2_saturated_fraction",{label:"Hidden saturation measurements",percent:true,line:false});
@@ -96,6 +97,8 @@
     put("best-survival",finite(best.mean_pieces)?num(best.mean_pieces,1):"—");
     put("best-detail",finite(best.mean_pieces)?"Mean placements across selection games":"Awaiting completed selection games");
     put("entropy-value",num(latest.entropy,4));put("kl-value",num(latest.kl,5));
+    put("reference-kl-value",num(latest.final_reference_kl,5));put("reference-kl-weight",num(latest.reference_kl_weight,5));
+    put("critic-ev-value",num(latest.critic_bootstrapped_explained_variance,4));
     put("exploration-value",finite(latest.lower_primary_probability)?`${num(latest.lower_primary_probability*100,2)}%`:"—");
     put("saturation-value",finite(latest.h2_saturated_fraction)?`${num(latest.h2_saturated_fraction*100,2)}%`:"—");
     const changed=latest.actor_changed_from_initial;

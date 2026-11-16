@@ -47,12 +47,27 @@ def source_manifest():
             ('tetris_neural.py', 'sparse_tetris_4d_optimized.py', 'train_survival_v2.py', 'train_overnight.py')}
 
 
-def run_game(seed, limit, piece_set, agent, policy, candidates, mode, action_seed, recorder=None, number=0):
+def value_audit(samples, pieces, terminated, mode):
+    labeled = [{**sample, 'remaining_pieces': pieces - sample['piece'] if terminated else None}
+               for sample in samples]
+    diagnostics = (training.regression_metrics([sample['predicted_value'] for sample in samples],
+                   [(pieces - sample['piece']) * base.REWARD_SCALE for sample in samples])
+                   if terminated and samples else None)
+    return {'samples': labeled, 'uncensored': terminated, 'diagnostics': diagnostics,
+            'value_units': 'remaining_placements_times_0.001',
+            'on_policy_for_sampled_critic': mode == 'sampled',
+            'note': 'One realized continuation per sampled state; states within a game are correlated. '
+                    'Greedy continuations diagnose a different policy from the sampled critic objective.'}
+
+
+def run_game(seed, limit, piece_set, agent, policy, candidates, mode, action_seed, recorder=None, number=0,
+             value_audit_stride=0, value_audit_samples=256):
     episode = base.Episode(number, game.Game(seed, piece_set), phase=f'evaluation-{policy}-{mode}')
     generator = torch.Generator(device=agent.device if agent else 'cpu').manual_seed(action_seed)
     started = time.perf_counter()
     times = {'prepare': 0., 'inference_transfer': 0., 'commit': 0.}
     clear_steps, recoveries, agreements, primary_agreements = [], 0, 0, 0
+    samples = []
     reason = 'piece_limit'
     while episode.state.pieces < limit:
         start = time.perf_counter()
@@ -77,6 +92,8 @@ def run_game(seed, limit, piece_set, agent, policy, candidates, mode, action_see
                     batch = neural.collate([prepared.arrays], agent.device)
                     with torch.inference_mode():
                         prediction = agent.model(batch)
+                        if value_audit_stride and state.pieces % value_audit_stride == 0 and len(samples) < value_audit_samples:
+                            samples.append({'piece': state.pieces, 'predicted_value': float(prediction['value'][0])})
                         logp = training.legacy.categorical_logp(prediction['logits'], batch['valid'])
                         index = int(logp.argmax(-1).item()) if mode == 'greedy' else int(torch.multinomial(logp.exp(), 1, generator=generator).item())
                         winners, _ = training.legacy.utility_targets(batch['features'], batch['valid'])
@@ -101,7 +118,9 @@ def run_game(seed, limit, piece_set, agent, policy, candidates, mode, action_see
     if recorder:
         recorder.write(episode)
     seconds = time.perf_counter() - started
-    return {**episode.state.summary(), 'policy': policy, 'mode': mode, 'action_seed': action_seed,
+    audit = ({'critic_monte_carlo': value_audit(samples, episode.state.pieces,
+               reason in ('top_out', 'planner_blocked'), mode)} if agent and value_audit_stride else {})
+    return {**audit, **episode.state.summary(), 'policy': policy, 'mode': mode, 'action_seed': action_seed,
             'stopped_reason': reason, 'capped': reason == 'piece_limit', 'target_recoveries': recoveries,
             'teacher_agreement': agreements / episode.state.pieces if episode.state.pieces and policy != 'sustained' else None,
             'primary_utility_agreement': primary_agreements / episode.state.pieces if episode.state.pieces and agent else None,
@@ -126,6 +145,10 @@ def compare(args):
               'action_seeds': args.action_seeds, 'python': platform.python_version(), 'torch': str(torch.__version__),
               'device': str(device), 'sources': source_manifest(), 'checkpoints': [], 'runs': [],
               'note': 'Paired frozen-checkpoint comparison. Baselines and learned models are distinct policies. No automatic promotion.'}
+    if getattr(args, 'value_audit', False):
+        report['value_audit'] = {'stride': args.value_audit_stride, 'max_samples_per_game': args.value_audit_samples,
+                                 'source_sha256': base.file_hash(Path(__file__)),
+                                 'target': 'uncensored final pieces minus pre-move sampled pieces; reward scale 0.001'}
     with training.device_lock(device, args.allow_concurrent) as competing:
         report['competing_trainers'] = competing
         report['resource_snapshot'] = training.device_telemetry()
@@ -134,6 +157,8 @@ def compare(args):
             snapshot, digest = snapshot_checkpoint(path, artifacts / 'checkpoints')
             agent = neural.NeuralAgent(snapshot, str(device), capture_traces=False)
             agent.model.eval()
+            if getattr(args, 'value_audit', False) and agent.metadata['value_semantics'] != 'expected_remaining_placements_times_0.001':
+                raise ValueError('Value audit requires survival checkpoints with remaining-placement value units')
             report['checkpoints'].append({'source': str(path), 'snapshot': str(snapshot), 'sha256': digest,
                                           'config': asdict(agent.model.config), 'progress': agent.checkpoint['progress']})
             agents.append((agent, digest))
@@ -162,7 +187,9 @@ def compare(args):
                     for mode in args.modes:
                         for action_seed in ([0] if mode == 'greedy' else args.action_seeds):
                             result = run_game(seed, args.pieces, args.piece_set, agent, 'neural', candidates, mode,
-                                              action_seed, recorder, len(report['runs']))
+                                              action_seed, recorder, len(report['runs']),
+                                              args.value_audit_stride if getattr(args, 'value_audit', False) else 0,
+                                              getattr(args, 'value_audit_samples', 256))
                             result['checkpoint_sha256'] = digest
                             report['runs'].append(result)
                             base.durable_json(output, report)
@@ -172,6 +199,9 @@ def compare(args):
             base.durable_json(output, report)
             raise
         report['complete'] = True
+        for checkpoint in report['checkpoints']:
+            if base.file_hash(Path(checkpoint['snapshot'])) != checkpoint['sha256']:
+                raise ValueError('Frozen comparison checkpoint changed during evaluation')
         groups = {}
         for row in report['runs']:
             key = row.get('checkpoint_sha256', row['policy']) + ':' + row['mode']
@@ -183,6 +213,20 @@ def compare(args):
                                   'capped_games': sum(r['capped'] for r in rows),
                                   'pieces_per_second': sum(r['pieces'] for r in rows) / sum(r['wall_seconds'] for r in rows)}
                              for key, rows in groups.items()}
+        if getattr(args, 'value_audit', False):
+            report['critic_monte_carlo_summary'] = {}
+            for key, rows in groups.items():
+                audits = [row['critic_monte_carlo'] for row in rows if 'critic_monte_carlo' in row]
+                if not audits:
+                    continue
+                samples = [sample for audit in audits if audit['uncensored'] for sample in audit['samples']]
+                report['critic_monte_carlo_summary'][key] = {
+                    'uncensored_games': sum(audit['uncensored'] for audit in audits),
+                    'censored_games': sum(not audit['uncensored'] for audit in audits),
+                    'diagnostics': (training.regression_metrics([sample['predicted_value'] for sample in samples],
+                                    [sample['remaining_pieces'] * base.REWARD_SCALE for sample in samples])
+                                    if samples else None),
+                    'on_policy_for_sampled_critic': rows[0]['mode'] == 'sampled'}
         base.durable_json(output, report)
         print(json.dumps(report['summary'], indent=2))
     return report
@@ -248,6 +292,11 @@ def main(argv=None):
     test.add_argument('--allow-concurrent', action='store_true')
     test.add_argument('--record-games', action='store_true')
     test.add_argument('--record-max-mib', type=float, default=1024)
+    test.add_argument('--value-audit', action='store_true',
+                      help='Compare bounded critic samples against complete frozen-policy remaining lifetimes')
+    test.add_argument('--value-audit-stride', type=int, default=128)
+    test.add_argument('--value-audit-samples', type=int, default=256,
+                      help='Maximum retained scalar samples per game, at most 1024; capped games remain unlabeled')
     save = sub.add_parser('archive')
     save.add_argument('--run-dir', type=Path, required=True)
     save.add_argument('--output', type=Path, required=True)
@@ -258,6 +307,8 @@ def main(argv=None):
             parser.error('pieces, threads and recording quota must be positive')
         if len(set(args.seeds)) != len(args.seeds) or len(set(args.action_seeds)) != len(args.action_seeds):
             parser.error('Game seeds and action seeds must not contain duplicates')
+        if args.value_audit_stride < 1 or not 1 <= args.value_audit_samples <= 1024:
+            parser.error('Value audit stride must be positive and sample limit in [1, 1024]')
     try:
         (compare if args.command == 'compare' else archive)(args)
         return 0

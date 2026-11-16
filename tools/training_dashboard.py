@@ -33,7 +33,9 @@ FIELDS = ('event_id', 'event', 'timestamp_utc', 'elapsed_seconds', 'session_elap
           'calibration_split', 'calibration_terminated', 'calibration_truncated',
           'calibration_passed', 'best_updated', 'source_offset', 'source_end', 'source_line_sha256')
 # Optional columns extend new rows/downloads without changing existing provenance.
-OPTIONAL_FIELDS = ('actor_changed_from_initial', 'teacher_placements')
+OPTIONAL_NUMBERS = ('reference_kl', 'final_reference_kl', 'reference_kl_weight',
+                    'critic_bootstrapped_explained_variance')
+OPTIONAL_FIELDS = ('actor_changed_from_initial', 'teacher_placements', *OPTIONAL_NUMBERS)
 CSV_FIELDS = (*FIELDS, *OPTIONAL_FIELDS)
 
 
@@ -80,8 +82,9 @@ class Collector:
         self.survival_records = []
         self.progress = {key: None for key in NUMBERS[:5]}
         self.latest = {'timestamp_utc': None, 'actor_changed_from_initial': None,
-                       **{key: None for key in NUMBERS[5:14]}}
+                       **{key: None for key in (*NUMBERS[5:14], *OPTIONAL_NUMBERS)}}
         self.actor_observed_offset = -1
+        self.optional_observed_offsets = {key: -1 for key in OPTIONAL_NUMBERS}
         self.calibration = {'stage': None, 'completed_games': 0, 'finished_games': 0, 'censored_games': 0,
                             'total_games': None, 'current_game': None, 'current_game_index': None,
                             'current_pieces': None, 'passed': None, 'train_mse': None, 'validation_mse': None}
@@ -143,6 +146,8 @@ class Collector:
                 # Prior terminal events are evidence, not the new process's phase.
                 self.event_phase = None
                 self.actor_observed_offset = -1
+                self.optional_observed_offsets = {key: -1 for key in OPTIONAL_NUMBERS}
+                self.latest.update({key: None for key in OPTIONAL_NUMBERS})
 
     def error(self, text):
         if text not in self.errors:
@@ -192,6 +197,11 @@ class Collector:
         changed = diagnostic.get('actor_changed_from_initial')
         row['actor_changed_from_initial'] = changed if type(changed) is bool else None
         row['teacher_placements'] = number(raw.get('teacher_placements'))
+        for key in OPTIONAL_NUMBERS:
+            row[key] = number(raw.get(key))
+        critic = raw.get('critic_bootstrapped_diagnostics')
+        if isinstance(critic, dict):
+            row['critic_bootstrapped_explained_variance'] = number(critic.get('explained_variance'))
         if event == 'episode_end':
             row.update(episode_pieces=number(raw.get('pieces')), episode_clears=number(raw.get('hyperlayers')))
         if event == 'selection_game':
@@ -270,8 +280,13 @@ class Collector:
             'selection_mean_pieces','calibration_game_pieces','stop_reason') if row.get(key) is not None})
 
     def apply_optional(self, row):
-        changed = row.get('actor_changed_from_initial')
         offset = row.get('source_offset', -1)
+        for key in OPTIONAL_NUMBERS:
+            if (number(row.get(key)) is not None and type(offset) is int
+                    and offset >= self.optional_observed_offsets[key]):
+                self.latest[key] = row[key]
+                self.optional_observed_offsets[key] = offset
+        changed = row.get('actor_changed_from_initial')
         if type(changed) is bool and type(offset) is int and offset >= self.actor_observed_offset:
             self.latest['actor_changed_from_initial'] = changed
             self.actor_observed_offset = offset

@@ -38,6 +38,13 @@ An explicit optimization stop is labeled as a requested pause. The wall-clock
 budget continues during that pause. A valid amended 24-hour ledger takes priority
 over the original eight-hour ledger.
 
+Policy signals distinguish PPO update KL from KL against the frozen initial
+policy. The reference KL chart uses the measurement after the complete PPO
+update, and its coefficient is displayed as β. Critic explained variance is
+labeled as fit to **bootstrapped GAE targets**; this metric does not validate
+actual remaining lifetime. These optional columns are also included in CSV
+downloads. Existing history and provenance files remain unchanged on restart.
+
 ## Retain data for later graphs
 
 `metrics.jsonl` in the training directory remains the original event log. The
