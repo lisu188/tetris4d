@@ -72,3 +72,34 @@ completed frozen selection games to judge checkpoint strength.
 The dashboard keeps its own history bounded to 8 MiB and reports collection
 errors on the page. It does not modify checkpoints, calibration, trainer state
 or the training deadline.
+
+## Explore a neuron audit
+
+Pass an existing audit report when starting the dashboard:
+
+```bash
+python tools/training_dashboard.py --run-dir runs/survival-ppo-v2 \
+  --data-dir survival-dashboard.artifacts/history \
+  --neuron-audit neuron-report.artifacts/audit/neurons.json
+```
+
+Open <http://localhost:8765/neurons>, or use the dashboard's **Neuron audit** link.
+The explorer groups units by layer, colors them by a selected activation or
+intervention measurement, and shows a selected unit's formula, activation range,
+strongest sampled contexts and measured move/value effects. Filters and search
+help inspect individual units. The checkpoint checksum and sampled-state count
+identify the report being viewed.
+
+The audit describes a frozen checkpoint over its sampled replay states. Colors
+show measured values; they do not establish semantic detector labels or effects
+on survival. Changing a selected move under an artificial midpoint intervention
+does not demonstrate that the unit improves or harms full-game performance.
+
+The server validates the report schema, recorded provenance fields,
+group counts and finite activation/intervention measurements before listening.
+It reads a regular file of at most 8 MiB once and serves the exact validated
+snapshot from `/api/neuron-audit`. Replacing that file requires restarting the
+dashboard to display the replacement. The report is independent of live training
+and is never appended to training history. Without `--neuron-audit`, the explorer
+shows that no audit is configured and the API returns an explicit JSON 404.
+Requests cannot select a different local audit file.

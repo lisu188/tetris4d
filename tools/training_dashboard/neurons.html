@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Neuron audit · Survival Lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/neurons.css">
+  <script src="/neurons.js" defer></script>
+</head>
+<body class="neuron-page">
+  <a class="skip-link" href="#main">Skip to neuron audit</a>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">4D</span><span>Survival<span class="brand-sub">TRAINING LAB</span></span></a>
+    <div class="project-label">TETRIS / FROZEN POLICY</div>
+    <nav aria-label="Dashboard sections">
+      <a class="nav-link" href="/"><span aria-hidden="true">◈</span> Live training</a>
+      <a class="nav-link" href="#architecture"><span aria-hidden="true">⌁</span> Architecture</a>
+      <a class="nav-link" href="#inventory" aria-current="page"><span aria-hidden="true">⊞</span> Neuron audit</a>
+      <a class="nav-link" href="#method"><span aria-hidden="true">≡</span> Method &amp; limits</a>
+    </nav>
+    <div class="sidebar-note"><span class="tiny-dot"></span> FROZEN CHECKPOINT<p>Measured interventions.<br>Explore every audited unit.</p></div>
+  </aside>
+  <main id="main">
+    <header class="page-header">
+      <div><p class="eyebrow">POLICY RESEARCH / NEURON AUDIT</p><h1>Inside the policy<span class="title-dot">.</span></h1><p class="intro">Explore activations and measured effects, one unit at a time.</p></div>
+      <div class="header-tools"><span id="audit-status" class="tag" role="status">Loading audit</span><a class="quiet-button" href="/">← Live dashboard</a></div>
+    </header>
+    <section id="audit-empty" class="panel audit-empty" hidden><h2 id="empty-title">Audit unavailable</h2><p id="empty-copy" class="muted"></p><button id="retry-audit" class="quiet-button">Retry loading audit</button></section>
+    <div id="audit-content" hidden>
+      <section class="stats-grid audit-totals" aria-label="Audit evidence">
+        <article class="stat"><p>Audited units</p><strong id="unit-count">—</strong><span id="group-count">—</span></article>
+        <article class="stat"><p>Sampled decisions</p><strong id="sample-count">—</strong><span id="recording-count">—</span></article>
+        <article class="stat"><p>Forward parity</p><strong id="parity-result">—</strong><span id="parity-detail">—</span></article>
+        <article class="stat"><p>Checkpoint parameters</p><strong id="parameter-count">—</strong><span>Frozen snapshot · no live weight changes</span></article>
+      </section>
+      <div class="checkpoint-line"><span class="eyebrow">CHECKPOINT SHA256</span><code id="checkpoint-sha"></code><a href="/api/neuron-audit" download="neurons.json">Download JSON ↗</a></div>
+      <p class="audit-caveat">Sampled effects describe these recorded states. They do not establish a semantic detector or an effect on game survival. This is a frozen checkpoint audit; live training may use different weights.</p>
+      <section id="architecture" class="panel architecture-panel" aria-labelledby="architecture-title">
+        <div class="chart-heading"><div><p class="eyebrow">MODEL STRUCTURE</p><h2 id="architecture-title">One encoder, three heads</h2></div><span class="unit-label">Click a layer to filter its units</span></div>
+        <div class="architecture-input" id="architecture-input"></div>
+        <div id="encoder-flow" class="encoder-flow" aria-label="Shared encoder layers"></div>
+        <p class="flow-note">Residual blocks preserve their input and add a learned, centered mixing response. Arrows show computation order, not individual weights.</p>
+        <div class="head-branches">
+          <div class="head-branch"><h3>Actor <span>local + pooled features + context + candidates</span></h3><div id="actor-flow" class="head-flow"></div><p id="policy-formula"></p><span>Move scores → masked softmax or greedy selection</span></div>
+          <div class="head-branch"><h3>Critic <span>pooled features + context</span></h3><div id="critic-flow" class="head-flow"></div><p>Output × 1,000 = estimated remaining placements</p><span>Does not enter move ranking</span></div>
+          <div class="head-branch"><h3>Completion auxiliary <span>pooled features + context</span></h3><div id="completion-flow" class="head-flow"></div><p>16 original-height layer-clear probabilities</p><span>Inherited imitation head; may be stale</span></div>
+        </div>
+      </section>
+      <section id="inventory" class="inventory-section" aria-labelledby="inventory-title">
+        <div class="section-heading"><div><p class="eyebrow">CHANNEL &amp; UNIT INVENTORY</p><h2 id="inventory-title">Every audited unit</h2></div><span id="visible-count" class="muted small"></span></div>
+        <div class="audit-controls">
+          <label>Color by<select id="metric-select"><option value="mean">Activation mean · bounded units</option><option value="saturation">Saturated activation fraction</option><option value="choice">Greedy choice change rate</option><option value="tv">Move probability total variation</option><option value="critic">Absolute critic change · placements</option></select></label>
+          <label>Layer<select id="group-select"><option value="">All layers</option></select></label>
+          <label class="audit-search">Find a unit<input id="unit-search" type="search" placeholder="e.g. rank1[42]" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <div class="audit-workspace">
+          <div class="panel inventory-panel">
+            <div class="heatmap-key"><span id="metric-description"></span><div class="color-key"><div class="color-ramp" aria-hidden="true"></div><div class="key-ticks"><span id="scale-min">0</span><span id="scale-mid">0.5</span><span id="scale-max">1</span></div></div><span class="missing-key">▧ Missing / unbounded raw output</span></div>
+            <p class="heatmap-hint">Each square is one shared channel or head unit. Select a square; arrow keys move between units. A zero is measured, while ▧ means the color metric is unavailable.</p>
+            <div id="unit-grid"></div><p id="no-matches" class="empty-inline" hidden>No units match this filter. Try a layer name or unit number.</p>
+          </div>
+          <aside id="unit-detail" class="panel unit-detail" aria-labelledby="unit-title" aria-live="polite" aria-atomic="false">
+            <div class="detail-heading"><button id="back-to-unit-map" class="quiet-button mobile-grid-back" type="button">↑ Back to unit map</button><p class="eyebrow">SELECTED UNIT</p><h2 id="unit-title">Select a unit</h2><p id="unit-role"></p></div>
+            <div id="detail-body"></div>
+          </aside>
+        </div>
+      </section>
+      <section id="method" class="panel method-panel" aria-labelledby="method-title"><div class="chart-heading"><div><p class="eyebrow">READING THE EVIDENCE</p><h2 id="method-title">What these graphics measure</h2></div></div><dl id="method-details"></dl><ul id="audit-notes"></ul></section>
+      <footer class="page-footer"><span><span class="tiny-dot"></span> LOCALHOST / READ-ONLY AUDIT</span><span>Loaded once. Missing measurements remain missing. Restart the dashboard with a newer report to replace this frozen snapshot.</span></footer>
+    </div>
+  </main>
+</body>
+</html>
