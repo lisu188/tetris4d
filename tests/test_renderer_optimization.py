@@ -84,7 +84,26 @@ class RendererTests(unittest.TestCase):
                             self.assertEqual(len(removed), 1)
                         self.assertEqual(ast.dump(fn), ast.dump(candidate), method)
             else:
-                self.assertEqual(ast.dump(node), ast.dump(new[name]), name)
+                candidate = copy.deepcopy(new[name])
+                if name == '_load_native':
+                    # PPO adds this exact native binding; retain the original
+                    # invariant for every pre-existing engine/native statement.
+                    expected = ast.parse("{'t4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]}").body[0].value
+                    bindings = []
+                    class StripNativeMetrics(ast.NodeTransformer):
+                        def visit_Dict(self, node):
+                            retained = []
+                            for key, value in zip(node.keys, node.values):
+                                if isinstance(key, ast.Constant) and key.value == 't4_sustained_metrics':
+                                    bindings.append(ast.Dict(keys=[key], values=[value]))
+                                else:
+                                    retained.append((key, value))
+                            node.keys = [key for key, _ in retained]
+                            node.values = [value for _, value in retained]
+                            return self.generic_visit(node)
+                    candidate = StripNativeMetrics().visit(candidate)
+                    self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected)])
+                self.assertEqual(ast.dump(node), ast.dump(candidate), name)
         self.assertEqual(game.PIECE_CELLS, baseline.PIECE_CELLS)
         self.assertEqual(game.ROUGHNESS_TABLE, baseline.ROUGHNESS_TABLE)
 
