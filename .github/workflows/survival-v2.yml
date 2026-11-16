@@ -31,6 +31,7 @@ jobs:
       - run: python -B tests/test_survival_v3.py
       - run: python -B tests/test_survival_v4.py
       - run: python -B tests/test_survival_v4_gpu.py
+      - run: python -B tests/test_game_library.py
       - run: python -B tests/test_survival_v3_run.py
       - run: python tests/test_survival_longevity.py
       - run: python tests/test_rollout_cache.py

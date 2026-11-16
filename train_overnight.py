@@ -23,6 +23,8 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
+import tetris_game_library as library
+
 try:
     import tetris_neural as neural
 except ImportError as exc:
@@ -148,6 +150,9 @@ class Episode:
     stop_reason: str = 'in_progress'
     complete: bool = False
 
+    def __post_init__(self):
+        library.tag(self.state, phase=self.phase, episode=self.number)
+
     def snapshot(self):
         result = {'number': self.number, 'seed': self.state.seed, 'piece_set': self.state.piece_set,
                   'target': self.target, 'moves': self.moves, 'phase': self.phase,
@@ -162,6 +167,7 @@ def apply_move(episode: Episode, candidate, update: int, behavior: str):
     state, before_target = episode.state, episode.target
     move = game.materialize_move(state.board, candidate)
     cleared = neural._clear_mask(state, move)
+    library.annotate(state, behavior, update, before_target)
     state.commit(move)
     if move.layers:
         following = game.next_hyperlayer_target(state.board, episode.target)
@@ -236,6 +242,8 @@ class Recorder:
         self.engine_hash = file_hash(Path(game.__file__))
 
     def write(self, episode: Episode, reason=None):
+        if episode.complete:
+            library.finish(episode.state, episode.stop_reason)
         if not self.enabled or episode.number % self.every:
             return None
         snapshot = episode.snapshot()
@@ -291,6 +299,7 @@ def verify_game(path: Path):
     try:
         game.configure_network(data['teacher_parameters'])
         episode = restore_episode(data)
+        library.ignore(episode.state)
         reason = data['stop_reason']
         expected_terminal = data['complete'] and reason in ('top_out', 'planner_blocked')
         expected_truncated = data['complete'] and reason == 'piece_limit'
@@ -430,6 +439,8 @@ class Trainer:
         self.recorder.context = {'training_session': self.session, 'model_config': asdict(self.model.config),
                                  'objective': self.signature['objective'],
                                  'neural_sha256': self.signature['neural_sha256']}
+        library.set_context(source=getattr(self, 'algorithm', 'overnight-survival'), run_dir=str(self.root),
+                            session=self.session, model_architecture=self.model.config.architecture)
         self.optimizer = self.create_optimizer()
         self.scaler = torch.amp.GradScaler('cuda', enabled=self.device.type == 'cuda' and args.precision == 'fp16')
         if saved is not None:
@@ -475,6 +486,7 @@ class Trainer:
     def finish_episode(self, index, reason):
         episode = self.environments[index]
         episode.complete, episode.stop_reason = True, reason
+        library.finish(episode.state, reason)
         self.pending.append(episode)
         self.progress['finished_episodes'] += 1
         self.emit('episode_end', episode=episode.number, stop_reason=reason,

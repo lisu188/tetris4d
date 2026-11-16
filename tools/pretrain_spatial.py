@@ -16,6 +16,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
+import tetris_game_library as library
 import tetris_neural as neural
 from tetris_survival_v4 import ARCHITECTURE
 
@@ -24,6 +25,7 @@ def collect(seeds, snapshots_per_seed, stride, config, deadline):
     records, games = [], []
     for seed in seeds:
         state = neural.game.Game(seed, 'expanded')
+        library.tag(state, source='pretrain_spatial', phase='teacher-imitation', default_behavior='teacher')
         target, snapshots = 1, 0
         while not state.game_over and snapshots < snapshots_per_seed and time.monotonic() < deadline:
             prepared = neural.prepare(state, target, config)
@@ -34,7 +36,9 @@ def collect(seeds, snapshots_per_seed, stride, config, deadline):
                 records.append(prepared.arrays)
                 snapshots += 1
             chosen = neural.game.materialize_move(state.board, prepared.options[prepared.teacher])
+            library.annotate(state, 'teacher', None, target)
             state.commit(chosen)
+        library.finish(state, 'top_out' if state.game_over else 'collection_complete')
         games.append({'seed': seed, 'snapshots': snapshots, 'placements': state.pieces,
                       'complete_game': state.game_over, 'collection_complete': snapshots == snapshots_per_seed})
     return records, games
@@ -48,6 +52,8 @@ def collect_gpu(seeds, snapshots_per_seed, stride, config, deadline, device):
     from tetris_gpu_simulation import GpuPreparer
     preparer = GpuPreparer(config, device)
     states = [neural.game.Game(seed, 'expanded') for seed in seeds]
+    for state in states:
+        library.tag(state, source='pretrain_spatial', phase='teacher-imitation', default_behavior='teacher')
     targets, snapshots = [1] * len(seeds), [0] * len(seeds)
     records, active = [], list(range(len(seeds)))
     while active and time.monotonic() < deadline:
@@ -65,10 +71,13 @@ def collect_gpu(seeds, snapshots_per_seed, stride, config, deadline, device):
                 if states[env].pieces % stride == 0:
                     records.append((env, prepared.arrays))
                     snapshots[env] += 1
+                library.annotate(states[env], 'teacher', None, targets[env])
                 states[env].commit(neural.game.materialize_move(states[env].board, moves[batch_rows[local]]))
         alive = {env for _, env in live}
         active = [env for env in active if env in alive and not states[env].game_over
                   and snapshots[env] < snapshots_per_seed]
+    for state in states:
+        library.finish(state, 'top_out' if state.game_over else 'collection_complete')
     games = [{'seed': seed, 'snapshots': snapshots[i], 'placements': states[i].pieces,
               'complete_game': states[i].game_over, 'collection_complete': snapshots[i] == snapshots_per_seed}
              for i, seed in enumerate(seeds)]

@@ -1503,6 +1503,23 @@ class PieceStream:
         return self.bag.pop()
 
 
+_RECORDING = None
+_RECORDING_READY = False
+
+
+def _recording():
+    """Optional game-library hooks (tetris_game_library); recording never breaks play."""
+    global _RECORDING_READY
+    if not _RECORDING_READY:
+        _RECORDING_READY = True
+        try:
+            import tetris_game_library
+            tetris_game_library.install(sys.modules[__name__])
+        except Exception as error:  # noqa: BLE001 - optional subsystem
+            print(f'Game recording unavailable: {type(error).__name__}: {error}', file=sys.stderr)
+    return _RECORDING
+
+
 class Game:
     def __init__(self, seed: int = 7, piece_set: str = 'expanded') -> None:
         if piece_set not in PIECE_SETS:
@@ -1510,7 +1527,18 @@ class Game:
         self.seed, self.piece_set = seed, piece_set
         self.reset()
 
+    def __del__(self) -> None:
+        recording = _RECORDING
+        if recording is not None:
+            try:
+                recording.released(self)
+            except Exception:  # noqa: BLE001 - never raise from a finalizer
+                pass
+
     def reset(self) -> None:
+        recording = _recording()
+        if recording is not None:
+            recording.retire(self, 'reset')
         self.stream = PieceStream(self.seed, self.piece_set)
         self.board = EMPTY_BOARD
         self.current, self.next_piece = self.stream.pop(), self.stream.pop()
@@ -1519,6 +1547,8 @@ class Game:
         self.game_over = False
         self.locked_pieces: tuple[LockedPiece, ...] = ()
         self.last_move: Move | None = None
+        if recording is not None:
+            recording.start(self)
 
     def commit(self, move: Move) -> None:
         if self.game_over or move.before != self.board or move.piece != self.current:
@@ -1550,6 +1580,9 @@ class Game:
         self.last_move = move
         self.current, self.next_piece = self.next_piece, self.stream.pop()
         self.game_over = not has_legal_move(self.board, self.current)
+        recording = _RECORDING
+        if recording is not None:
+            recording.moved(self, move)
 
     def summary(self) -> dict:
         heights, holes = board_features(self.board)

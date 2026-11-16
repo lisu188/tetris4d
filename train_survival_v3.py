@@ -134,6 +134,7 @@ class SurvivalTrainer(v2.SurvivalTrainer):
                     action = int(torch.multinomial(logp.exp(), 1, generator=generator).item())
                     base.apply_move(episode, prepared.options[action], self.progress['updates'], 'frozen_sampled_neural')
                 terminated = reason in ('top_out', 'planner_blocked')
+                base.library.finish(episode.state, reason)
                 diagnostics = None
                 if terminated and samples:
                     targets = np.asarray([(episode.state.pieces - piece) * base.REWARD_SCALE for piece, _ in samples])

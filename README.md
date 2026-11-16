@@ -143,3 +143,19 @@ and benchmark logs are listed in the [archive catalog](validation/archive-manife
 Git history preserves their committed versions. Existing dirty and untracked
 local experiments are preserved separately; they can differ from the cataloged
 historical blobs. See [storage and recovery](docs/ppo-workflow.md).
+
+## Game library
+
+Every game played by the engine (training rollouts, calibration and selection games,
+pretraining/critic collection tools and the GUI) is recorded once, compactly and
+content-addressed, in `data/game-library/` of the main checkout (set
+`TETRIS4D_GAME_LIBRARY=<dir>` to relocate or `=off` to disable; tests do not record).
+Trainers attach the phase, behaviour policy, policy update and target layer of each
+placement. Reuse recorded games from Python with `tetris_game_library.iter_games(...)`,
+`replay(record)` (deterministic positions, verified final board) and
+`record.remaining_placements()` (exact lifetime labels for completed games):
+
+    python -B tetris_game_library.py stats
+    python -B tetris_game_library.py verify --limit 100
+    python -B tetris_game_library.py import runs/   # backfill legacy JSON recordings
+

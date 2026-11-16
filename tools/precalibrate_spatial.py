@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
+import tetris_game_library as library
 import tetris_neural as neural
 import train_survival_v2 as v2
 from tetris_survival_v4 import ARCHITECTURE
@@ -51,6 +52,8 @@ def collect_gpu(args, selector, model, device):
     from tetris_gpu_simulation import GpuPreparer
     preparer = GpuPreparer(selector, device)
     states = [neural.game.Game(seed, 'expanded') for seed in args.seeds]
+    for state in states:
+        library.tag(state, source='precalibrate_spatial', phase='teacher-continuation', default_behavior='teacher')
     targets = [1] * len(states)
     snapshots = [[] for _ in states]
     active = list(range(len(states)))
@@ -73,10 +76,14 @@ def collect_gpu(args, selector, model, device):
             if local not in rows:
                 continue
             targets[env] = result.targets[local]
+            library.annotate(states[env], 'teacher', None, targets[env])
             states[env].commit(neural.game.materialize_move(states[env].board, moves[rows[local]]))
             if states[env].pieces < args.max_pieces and not states[env].game_over:
                 survivors.append(env)
         active = survivors
+    for state in states:
+        library.finish(state, 'top_out' if state.game_over else
+                       'piece_limit' if state.pieces >= args.max_pieces else 'planner_blocked')
     return [(seed, states[i], snapshots[i]) for i, seed in enumerate(args.seeds)]
 
 
@@ -97,6 +104,7 @@ def collect(args):
         rollouts = None
     for seed in (() if rollouts is not None else args.seeds):
         state = neural.game.Game(seed, 'expanded')
+        library.tag(state, source='precalibrate_spatial', phase='teacher-continuation', default_behavior='teacher')
         target, snapshots = 1, []
         while state.pieces < args.max_pieces and not state.game_over:
             prepared = neural.prepare(state, target, selector)
@@ -110,7 +118,10 @@ def collect(args):
                 with torch.inference_mode():
                     _, pooled, _, _, _ = model.encode(board, levels, context)
                 snapshots.append((torch.cat((pooled, context), 1)[0].numpy().copy(), state.pieces))
+            library.annotate(state, 'teacher', None, target)
             state.commit(neural.game.materialize_move(state.board, prepared.options[prepared.teacher]))
+        library.finish(state, 'top_out' if state.game_over else
+                       'piece_limit' if state.pieces >= args.max_pieces else 'planner_blocked')
         complete = bool(state.game_over or not neural.game.has_legal_move(state.board, state.current))
         if complete:
             for row, piece in snapshots:
