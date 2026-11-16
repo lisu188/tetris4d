@@ -74,6 +74,101 @@ Archive creation requires the run lock, refuses an existing destination, and rec
 
 This snapshots the checkpoints by checksum, compares legacy sustained and sustained-recovery, and evaluates greedy and sampled neural execution separately. Sampled defaults use action seeds 101, 102 and 103 for each game seed. `--modes greedy` is a smaller comparison. Output is updated after every completed game; an interrupted report remains marked incomplete. Existing outputs are not overwritten. These seeds should not become training or selection seeds. A later final test needs further unused seeds.
 
+## Frozen-initializer KL experiment and value audit
+
+`--reference-kl-weight BETA --reference-checkpoint PATH` adds the fixed penalty
+`BETA * KL(frozen_reference || current_policy)` to the minimized PPO objective.
+Both distributions use the same state tensors, candidate order, teacher prior and
+valid-candidate mask. The reference is an immutable policy snapshot, not teacher
+action labels. Its parameters receive no gradients and never enter the optimizer.
+The default weight is zero and adds no model, RNG draws, losses or checkpoint
+fields. Model architecture and neuron inventory are unchanged. Source signatures
+still require a new run directory when changing trainer code.
+
+The positive weight and explicit reference checkpoint must be supplied together.
+Keep the reference file immutable for the run: its checksum is part of the run
+signature. Each training checkpoint also embeds the frozen weights, configuration
+and actor digest; resume validates them and restores the embedded state. Candidate
+or actor configuration mismatches are rejected. `reference_kl` is the raw mean
+measured during optimization, `final_reference_kl` measures the full rollout after
+optimization, and `reference_kl_weight` records the fixed coefficient. The existing
+`final_exact_kl` remains the distinct behavior-policy PPO check. Reference KL is a
+regularizer, not a guarantee against survival regression.
+
+Start a separate controlled arm from a checksum-protected best checkpoint with
+fresh optimizers, sixteen environments, rollout 512 and the existing GPU flags:
+
+```bash
+.venv/bin/python -u train_survival_v2.py \
+  --run-dir runs/reference-kl-pilot --checkpoint /absolute/protected-best.pt \
+  --reference-checkpoint /absolute/protected-best.pt --reference-kl-weight 0.1 \
+  --device cuda --backend native --envs 16 --rollout 512 \
+  --batch 16 --optimizer-batch 128 --lr 0.0001 --critic-lr 0.0003 \
+  --policy-mode teacher-prior --teacher-prior-scale 0.125 --residual-scale 1 \
+  --preserve-initial-actor --gradient-clip-scope separate --recover-target \
+  --imitation 0 --secondary-weight 0 --regret-weight 0 --entropy 0.001 \
+  --gae-lambda 0.999 --ppo-epochs 3 --clip-ratio 0.2 --target-kl 0.02 \
+  --gpu-prepare --fused-encoding --coalesce-transfers --cache-rollout \
+  --rollout-cache-mib 1024 --max-updates 64 --hours REMAINING_HOURS
+```
+
+This example assumes the protected best has exactly the stated actor/candidate
+configuration. The fresh run resets and recalibrates the critic under the frozen
+actor; that time counts against its budget. A supervisor must enforce the existing
+absolute deadline (for the current experiment, 2026-11-16 18:13:32.190616 UTC).
+Calculate `REMAINING_HOURS` when launching; do not restart the 24-hour clock. The
+existing optimized continuation is retained as a control and recovery point.
+Use the same placement budget and multiple independent training seeds when time
+permits, compare paired development games, and reserve the final test seeds.
+Do not increase rollout length or change the encoder in this first ablation.
+
+The opt-in frozen-checkpoint comparison now collects bounded scalar value samples:
+
+```bash
+.venv/bin/python tools/survival_experiments.py compare \
+  --checkpoints /absolute/protected-best.pt /absolute/frozen-pilot.pt \
+  --seeds 955001 955003 --modes greedy sampled --action-seeds 101 102 \
+  --pieces 32000 --device cuda --backend native --value-audit \
+  --value-audit-stride 128 --value-audit-samples 256 \
+  --output value-audit.json
+```
+
+Checkpoints are copied to checksum-addressed immutable snapshots and verified
+again after comparison. Only checkpoints declaring survival-value units are
+accepted for this audit. Sampled actions use a separate fixed generator; collecting
+diagnostics does not change the trajectory. A completed uncensored game labels a
+pre-move state with `(final_pieces - sampled_piece) * 0.001`; capped games retain
+predictions with null targets and never contribute lifetime errors. Reports keep
+greedy and sampled continuations separate and include per-game scalar samples,
+MAE, RMSE and explained variance, bounded to at most 1024 samples per game.
+
+The sampled audit tests the critic's training-policy objective. Greedy continuations
+are an off-policy diagnostic for that critic. Each state has one realized
+continuation, values are noisy, and states within a game are correlated; use
+several games/action seeds before drawing conclusions. The training log's
+`critic_bootstrapped_diagnostics` still compares predictions with finite-rollout
+GAE targets, not realized full-episode lifetimes. An independent critic encoder
+and longer rollouts remain later ablations, guided by this audit.
+
+For a bounded paired pilot, `tools/run_reference_ablation.py` supervises baseline
+and anchored arms sequentially while existing production training continues.
+Both start from one protected initializer with fresh optimizers, the same training
+and calibration seeds, sixteen environments and 524,288 placements per arm.
+The fixed pilot coefficient is 0.1. Each arm has a three-hour limit within the
+original absolute deadline; incomplete arms remain failed experiments. This
+single-training-seed pilot does not automatically promote a policy.
+
+Commit the source first, then provide `--production-artifacts`, a separate
+`--output`, `--budget-ledger`, `--checkpoint`, `--weights` and the existing venv
+`--python`. Without `--run` it prints the frozen plan. `--run --evaluate` also
+compares initializer and final arm checkpoints on common development seeds in
+greedy and sampled modes, with the lifetime audit. Reserved final-test seeds are
+rejected. Recording is disabled; metrics, checkpoints and comparison data remain.
+The supervisor checks both disks, a 384 MiB aggregate output bound, a private
+32 MiB Triton cache and atomic checkpoint reserves. CUDA children require
+3.5 GiB free initially and use a 3 GiB PyTorch allocator limit. Concurrent timing
+is recorded and must not be reported as an isolated speed benchmark.
+
 ## Validation scope
 
 The tests cover the 35 recovery states, zero-residual teacher choices, exact CPU resume, calibration actor isolation, censored games, optimizer minibatches, terminal/truncated bootstrapping, compressed replay, headless/lazy trace equivalence, neural logging and immutable archives. CUDA tests explicitly skip on CPU-only workers. Calibration tests using synthetic features establish implementation behavior, not Tetris playing strength. Longer survival and CUDA speedups require the user's paired evaluation.

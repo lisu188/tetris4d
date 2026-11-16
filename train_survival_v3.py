@@ -175,6 +175,8 @@ def arguments(argv=None):
                          '--target-kl', '.01', '--imitation', '0', '--secondary-weight', '0',
                          '--regret-weight', '0', '--policy-mode', 'teacher-prior',
                          '--teacher-prior-scale', '.125', *supplied])
+    if args.reference_kl_weight:
+        raise ValueError('V3 starts fresh; frozen reference regularization is not supported')
     # V2's historical auto-discovery is deliberately bypassed, even if an old
     # checkpoint appears in models/ after argument parsing.
     args.checkpoint = None

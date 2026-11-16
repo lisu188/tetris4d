@@ -59,6 +59,10 @@ class FreshTrainerTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'starts fresh'):
                 v3.arguments(option)
 
+    def test_frozen_reference_is_rejected_instead_of_silently_ignored(self):
+        with self.assertRaisesRegex(ValueError, 'frozen reference regularization'):
+            v3.arguments(['--reference-kl-weight', '.1', '--reference-checkpoint', 'old.pt'])
+
     def test_softplus_calibration_initializes_from_training_only_mean(self):
         trainer = self.trainer()
         actor = v3.v2.actor_digest(trainer.model)

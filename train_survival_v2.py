@@ -299,13 +299,23 @@ class RolloutCache:
 class SurvivalTrainer(base.Trainer):
     algorithm = ALGORITHM
 
+    def reference_signature(self):
+        weight = getattr(self.args, 'reference_kl_weight', 0.)
+        if not weight:
+            return {}
+        path = self.args.reference_checkpoint
+        if path is None or not Path(path).is_file():
+            raise ValueError('Reference KL requires an immutable --reference-checkpoint')
+        return {'reference_kl_weight': weight, 'reference_checkpoint_sha256': base.file_hash(Path(path)),
+                'reference_kl_direction': 'frozen_reference_to_current'}
+
     def training_signature(self):
         names = ('optimizer_batch', 'critic_lr', 'secondary_weight', 'ppo_epochs', 'clip_ratio', 'target_kl',
                  'regret_weight', 'value_loss', 'value_beta', 'policy_mode', 'residual_scale', 'teacher_prior_scale',
                  'preserve_initial_actor', 'gradient_clip_scope', 'recover_target',
                  'calibration_games', 'calibration_validation_games', 'calibration_steps', 'calibration_stride',
                  'calibration_seed', 'allow_uncalibrated', 'calibration_ratio', 'gradient_every')
-        return {'algorithm': self.algorithm, 'trainer_sha256': base.file_hash(Path(__file__)),
+        return {**self.reference_signature(), 'algorithm': self.algorithm, 'trainer_sha256': base.file_hash(Path(__file__)),
                 'runner_sha256': base.file_hash(Path(base.__file__)),
                 **{name: getattr(self.args, name) for name in names},
                 'cache_rollout': getattr(self.args, 'cache_rollout', False),
@@ -343,6 +353,31 @@ class SurvivalTrainer(base.Trainer):
                 self.model.rank_out.bias.data.zero_()
         self.calibration_actor = actor_digest(self.model)
         self.initial_actor_sha256 = self.calibration_actor
+        if not resuming and getattr(self.args, 'reference_kl_weight', 0.):
+            with base.preserve_rng():
+                reference, checkpoint = neural.load_checkpoint(self.args.reference_checkpoint, self.device)
+            if checkpoint['teacher_parameters'] != game.network_parameters():
+                raise ValueError('Reference policy uses different candidate-pipeline weights')
+            if base.file_hash(Path(self.args.reference_checkpoint)) != self.signature['reference_checkpoint_sha256']:
+                raise ValueError('Reference checkpoint changed while loading')
+            self.set_reference(reference)
+
+    def set_reference(self, reference):
+        # Critic-only flags do not affect candidate generation or the actor distribution.
+        def actor_config(model):
+            return {key: value for key, value in asdict(model.config).items()
+                    if key not in ('detach_critic', 'centered_critic')}
+        if actor_config(reference) != actor_config(self.model):
+            raise ValueError('Reference and current policy must use the same actor and candidate configuration')
+        reference.requires_grad_(False)
+        reference.eval()
+        reference.fused_encoding = getattr(self.args, 'fused_encoding', False)
+        self.reference_policy = reference
+        self.reference_actor_sha256 = actor_digest(reference)
+
+    @torch.no_grad()
+    def reference_logp(self, batch):
+        return self.policy_logp(self.reference_policy(batch)['logits'], batch['valid'])
 
     def create_optimizer(self):
         actor = [p for n, p in self.model.named_parameters() if not n.startswith(('value.', 'completion.'))]
@@ -356,11 +391,28 @@ class SurvivalTrainer(base.Trainer):
         self.initial_actor_sha256 = saved['extra'].get('initial_actor_sha256', self.initial_actor_sha256)
         if self.calibration.get('episode') is not None:
             self.calibration_episode = base.restore_episode(self.calibration['episode'])
+        if getattr(self.args, 'reference_kl_weight', 0.):
+            reference = saved['extra'].get('frozen_reference')
+            if not reference or reference['checkpoint_sha256'] != self.signature['reference_checkpoint_sha256']:
+                raise ValueError('Missing or changed frozen reference in the resumed experiment')
+            with base.preserve_rng():
+                model = neural.ColumnPolicy(neural.Config(**reference['config'])).to(self.device)
+            model.load_state_dict(reference['model'], strict=True)
+            if not all(bool(torch.isfinite(value).all()) for value in model.state_dict().values()):
+                raise ValueError('Non-finite frozen reference parameters')
+            self.set_reference(model)
+            if self.reference_actor_sha256 != reference['actor_sha256']:
+                raise ValueError('Frozen reference digest does not match its stored weights')
 
     def checkpoint_metadata(self):
         if self.calibration_episode is not None:
             self.calibration['episode'] = self.calibration_episode.snapshot()
-        return {'algorithm': self.algorithm, 'value_semantics': 'expected_remaining_placements_times_0.001',
+        reference = ({'frozen_reference': {
+            'checkpoint_sha256': self.signature['reference_checkpoint_sha256'],
+            'actor_sha256': self.reference_actor_sha256, 'config': asdict(self.reference_policy.config),
+            'model': {name: value.detach().cpu().clone() for name, value in self.reference_policy.state_dict().items()}}}
+            if getattr(self, 'reference_policy', None) is not None else {})
+        return {**reference, 'algorithm': self.algorithm, 'value_semantics': 'expected_remaining_placements_times_0.001',
                 'completion_semantics': 'imitation_auxiliary_not_recalibrated_during_survival',
                 'initial_checkpoint_sha256': getattr(self, 'initial_digest', None),
                 'initial_actor_sha256': self.initial_actor_sha256,
@@ -374,6 +426,7 @@ class SurvivalTrainer(base.Trainer):
                             'completed_games': 0, 'censored_games': 0, 'fit_updates': 0, 'done': False,
                             'episode': None, 'fit_optimizer': None, 'best': None, 'best_weights': None}
         self.calibration_episode = None
+        self.reference_policy = None
         self._gpu_preparer = self._prepared_gpu_batch = None
         self._gpu_prepare_active = False
         super().__init__(args, budget)
@@ -773,6 +826,17 @@ class SurvivalTrainer(base.Trainer):
             total += value
         return total / len(rollout.records)
 
+    @torch.no_grad()
+    def reference_rollout_kl(self, rollout):
+        values = []
+        with neural.precision_context(self.device, self.args.precision):
+            for start in range(0, len(rollout.records), self.args.batch):
+                indices = list(range(start, min(start + self.args.batch, len(rollout.records))))
+                batch, _ = self.policy_batch(rollout, indices)
+                current = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                values.append(legacy.exact_kl(self.reference_logp(batch), current, batch['valid']).sum())
+        return sum(scalar_values(values)) / len(rollout.records)
+
     def update_inputs(self, rollout, indices):
         cache = getattr(self, '_rollout_cache', None)
         if cache is not None and cache.rollout is rollout:
@@ -890,6 +954,9 @@ class SurvivalTrainer(base.Trainer):
                                       'secondary': self.args.secondary_weight * secondary,
                                       'regret': self.args.regret_weight * regret,
                                       'entropy': -self.args.entropy * entropy * (not warmup)}
+                        if getattr(self, 'reference_policy', None) is not None:
+                            reference_kl = legacy.exact_kl(self.reference_logp(batch), logp, batch['valid']).mean()
+                            components['reference_kl'] = self.args.reference_kl_weight * reference_kl
                         loss = sum(components.values())
                     if not bool(torch.isfinite(loss)):
                         raise ValueError('Non-finite v2 PPO loss')
@@ -903,6 +970,8 @@ class SurvivalTrainer(base.Trainer):
                                'secondary_teacher_loss': secondary, 'expected_utility_regret': regret, 'entropy': entropy,
                                'clip_fraction': clipped, 'utility_match': winners[rows, picked].float().mean(),
                                'teacher_agreement': (picked == inputs['labels']).float().mean()}
+                    if getattr(self, 'reference_policy', None) is not None:
+                        metrics['reference_kl'] = reference_kl
                     if coalesce:
                         pending_metrics.append((len(indices), {name: value.detach() for name, value in metrics.items()}))
                     else:
@@ -954,7 +1023,12 @@ class SurvivalTrainer(base.Trainer):
         self.progress['kl_stopped_updates'] += int(stop)
         diagnostics = regression_metrics(rollout.old_values, rollout.returns)
         actor_diagnostics = self.actor_diagnostics(rollout) if measure_actor else {}
+        reference_diagnostics = ({'final_reference_kl': self.reference_rollout_kl(rollout),
+                                  'reference_kl_weight': self.args.reference_kl_weight,
+                                  'reference_actor_sha256': self.reference_actor_sha256}
+                                 if getattr(self, 'reference_policy', None) is not None else {})
         self.emit('update', **self.progress, stage='warmup' if warmup else self.algorithm,
+                  **reference_diagnostics,
                   **{k: v / total_weight for k, v in totals.items()}, per_loss_gradient_norms=per_loss_norms,
                   gradient_clip_scope=self.args.gradient_clip_scope, actor_diagnostics=actor_diagnostics,
                   rollout_cache=cache_telemetry,
@@ -1042,6 +1116,10 @@ def arguments(argv=None):
     extra.add_argument('--ppo-epochs', type=int, default=3)
     extra.add_argument('--clip-ratio', type=float, default=.2)
     extra.add_argument('--target-kl', type=float, default=.02)
+    extra.add_argument('--reference-kl-weight', type=float, default=0.,
+                       help='Opt-in fixed weight for KL(frozen reference || current); use a new experiment directory')
+    extra.add_argument('--reference-checkpoint', type=Path,
+                       help='Immutable initializer with the same actor/candidate configuration; preserved for resume')
     extra.add_argument('--regret-weight', type=float, default=.1)
     extra.add_argument('--value-loss', choices=('mse', 'huber'), default='mse')
     extra.add_argument('--value-beta', type=float, default=1.)
@@ -1082,6 +1160,10 @@ def arguments(argv=None):
             extra.error(f'{key} must be finite and positive')
     if not 1 <= args.ppo_epochs <= 16 or not 0 < args.clip_ratio < 1 or not 0 < args.target_kl < 1:
         extra.error('Invalid PPO epoch, clipping or KL setting')
+    if not math.isfinite(args.reference_kl_weight) or args.reference_kl_weight < 0:
+        extra.error('Reference KL weight must be finite and nonnegative')
+    if bool(args.reference_kl_weight) != (args.reference_checkpoint is not None):
+        extra.error('Positive --reference-kl-weight and --reference-checkpoint must be supplied together')
     if not 0 <= args.residual_scale <= 4 or not 0 < args.calibration_ratio < 1:
         extra.error('Invalid residual scale or calibration threshold')
     if not math.isfinite(args.teacher_prior_scale) or not 0 <= args.teacher_prior_scale <= 4:
