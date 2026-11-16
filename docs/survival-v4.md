@@ -48,6 +48,26 @@ Run fresh PPO initialization (a missing pretrained file is a hard error):
 
 The PPO initializer imports matching V4 weights but creates a new optimizer and starts PPO progress at zero. Current-policy critic calibration is performed by the inherited trainer before PPO; the imported teacher-policy critic is **not** assumed calibrated for the actor's new policy. The optional experimental uncalibrated override requires an explicit flag. The V4 trainer rejects GPU candidate preparation until physical afterstate parity has been independently established.
 
+## GPU training path
+
+V4 now trains on CUDA end to end. `train_survival_v4.py` enables `--gpu-prepare`, `--fused-encoding`, `--coalesce-transfers` and `--cache-rollout` (with `--device cuda --backend native`) whenever CUDA is available; pass `--no-gpu-defaults` or `--device cpu` to opt out.
+
+- Candidate afterstates are merged, layer-compacted and measured on device (`device_afterstate_descriptors`), so `--gpu-prepare` is supported. Exact CPU fallback rows skip the host afterstate pass; their descriptors are recomputed on device from the final options.
+- `tetris_gpu_spatial.py` holds fused Triton kernels for the adjacency statistics (one launch per call instead of ~100 tensor ops), used by preparation and by the critic encoder. Single-state V4 preparation fell from 12.6 ms to 4.5 ms and forward+selection sync from 7.3 ms to 2.0 ms on an RTX 4060 Ti.
+- Calibration and selection games (non-rollout phases) prepare single states on CUDA instead of the CPU reference path.
+- `tools/pretrain_spatial.py` collects all seeds in lockstep through the CUDA preparer (identical records; `--cpu-collect` restores the CPU collector), keeps every snapshot resident on device and evaluates in batches. `tools/precalibrate_spatial.py` collects in lockstep on CUDA and fits/audits on `--device` (default auto).
+- Diverse shortlists are not implemented by the CUDA preparer and fall back to exact CPU preparation instead of silently using teacher/random sampling.
+
+Parity: `tests/test_survival_v4_gpu.py` checks exact integer bit lengths, layer compaction, batched-vs-reference descriptors, fused kernels and full GPU preparation against the CPU reference (set `TETRIS4D_TEST_CUDA=1`).
+
+### Actor input scale fix
+
+Each statistic is a mean over 3,840 neighbour edges, so one placement changes it by only ~1e-4. Fed raw into the zero-initialised, bias-free projection, the actor could not learn a material contribution from it. The actor now multiplies the 18 deltas by `SPATIAL_DELTA_SCALE = 3840` (per-placement edge-change counts, O(1)). The stored `spatial_delta` arrays and the critic inputs are unchanged. Checkpoints with non-zero spatial weights trained before this change are not equivalent; the architecture source hash already rejects resuming across it.
+
+### Pretraining loss fix
+
+`F.kl_div` returned NaN whenever a batch contained padded candidates (0 · −inf). The supervised loss now uses an explicitly masked KL in which padding contributes exactly zero.
+
 ## Historical measurements (not reproduced)
 
 The archived manifests report 1,024 training and 256 validation actor snapshots from disjoint seeds, 300 supervised steps, raw actor validation KL changing from 1.30227 to 0.03780, raw exact teacher agreement from 1.17% to 61.72%, and raw primary utility agreement from 7.42% to 100%. They report no PPO updates.

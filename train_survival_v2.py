@@ -473,6 +473,8 @@ class SurvivalTrainer(base.Trainer):
         shortlist = self.model.config.shortlist
         per_record = 4096 * 4 + 8 + neural.CONTEXT * 4 + shortlist * (
             neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
+        if self.model.config.architecture == 'survival-spatial-v4':
+            per_record += 6 * 4 + shortlist * 18 * 4
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
         limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20

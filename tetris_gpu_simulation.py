@@ -11,7 +11,7 @@ change any default backend and does not claim GPU-resident game progression.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import random
 
@@ -403,10 +403,24 @@ class GpuPreparer:
         self._reference_only_reason = (
             "candidate_budget_bound" if self.budget > MAX_GPU_CANDIDATES else
             "shortlist_bound" if self.config.shortlist > MAX_GPU_SHORTLIST else
+            "shortlist_mode" if self.config.shortlist_mode != "teacher-random" else
             "catalog_columns" if any(len(s.columns) > 8 for shapes in game.SHAPES.values() for s in shapes)
             else None)
+        self.spatial = self.config.architecture == "survival-spatial-v4"
+        # Exact CPU fallback rows skip the slow host afterstate pass; V4 descriptors
+        # for every row are recomputed on device from the final options.
+        self._fallback_config = (replace(self.config, architecture="survival-feature-v3")
+                                 if self.spatial else self.config)
         if self._reference_only_reason is not None:
             return
+        width = max(len(s.cells) for shapes in game.SHAPES.values() for s in shapes)
+        table = np.zeros((len(self.names), self.rotations, width, 4), dtype=np.int32)
+        present = np.zeros((len(self.names), self.rotations, width), dtype=np.bool_)
+        for i, piece in enumerate(self.names):
+            for r, shape in enumerate(game.SHAPES[piece]):
+                table[i, r, :len(shape.cells)] = shape.cells
+                present[i, r, :len(shape.cells)] = True
+        self.cell_table, self.cell_present = self._device(table), self._device(present)
         offsets, shapes, cells, templates, sizes, vertical = [], [], [], [], [], []
         cursor = 0
         for piece in self.names:
@@ -441,6 +455,18 @@ class GpuPreparer:
     def _device(self, value):
         return torch.from_numpy(np.array(value, copy=True)).to(self.device)
 
+    def _spatial_arrays(self, boards, targets, piece_ids, option_specs, valid):
+        from tetris_survival_v4 import device_afterstate_descriptors
+        specs = option_specs.long()
+        rotation = torch.where(valid, specs[..., 0], 0)
+        pieces = piece_ids.long()[:, None].expand_as(rotation)
+        relative = self.cell_table[pieces, rotation]
+        present = self.cell_present[pieces, rotation]
+        # Shape cells are (dx, dy, dz, dw); specs are (rotation, x, y, w, z, layers).
+        origin = torch.stack((specs[..., 1], specs[..., 2], specs[..., 4], specs[..., 3]), dim=-1)
+        absolute = (relative + origin[..., None, :]).clamp(0, 15)
+        return device_afterstate_descriptors(boards, targets, absolute, present, valid)
+
     def _reference_batch(self, states, targets, reason):
         references = tuple(neural.prepare(state, target, self.config) for state, target in zip(states, targets))
         envs = tuple(i for i, p in enumerate(references) if p is not None)
@@ -460,7 +486,7 @@ class GpuPreparer:
         option_specs, option_scores = self._device(integers), self._device(scores)
         teachers = self._device(np.asarray([references[i].teacher for i in envs], dtype=np.int64))
         prepared = [None] * len(states)
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior"}
+        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
         for row, env in enumerate(envs):
             p = references[env]
             arrays = {name: value[row, :len(p.options)] if name in candidate_fields else value[row]
@@ -548,7 +574,7 @@ class GpuPreparer:
         for env, (number, has_clear, buried, filled, evaluated) in enumerate(summaries):
             reason = "buried_target" if buried else "full_target" if filled == 4096 else "clear_candidate" if has_clear else "exhaustive_or_recovery" if not number else None
             if reason is not None:
-                references[env] = neural.prepare(states[env], targets[env], self.config)
+                references[env] = neural.prepare(states[env], targets[env], self._fallback_config)
             p = references.get(env)
             reasons.append(reason)
             lengths.append(len(p.options) if p is not None else 0 if env in references else min(number, shortlist))
@@ -605,11 +631,13 @@ class GpuPreparer:
         all_arrays = {"boards": boards, "targets": device_targets, "context": context,
                       "features": features, "indices": indices, "column_mask": column_mask,
                       "valid": ~padding, "teacher_prior": priors}
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior"}
+        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
         for env, p in references.items():
             if p is None:
                 continue
             for name, value in p.arrays.items():
+                if name.startswith("spatial_"):
+                    continue  # recomputed on device below from the final options
                 tensor = self._device(value)
                 if name in candidate_fields:
                     all_arrays[name][env].zero_()
@@ -620,6 +648,9 @@ class GpuPreparer:
             option_specs[env, :len(p.options)].copy_(self._device(np.asarray(
                 [(c.rotation, c.x, c.y, c.w, c.z, c.layers) for c in p.options], dtype=np.int32)))
             option_scores[env, :len(p.options)].copy_(self._device(np.asarray([c.score for c in p.options], dtype=np.float64)))
+        if self.spatial:
+            all_arrays["spatial_board"], all_arrays["spatial_delta"] = self._spatial_arrays(
+                boards, device_targets, device_pieces, option_specs, ~padding)
         prepared = []
         for env, length in enumerate(lengths):
             if not length:

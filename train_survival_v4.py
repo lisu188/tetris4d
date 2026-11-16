@@ -46,6 +46,28 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         self.imported_checkpoint_sha256 = base.file_hash(source)
         return loaded
 
+    def prepare_episode(self, episode):
+        """Calibration and selection games prepare single states on CUDA when enabled.
+
+        Rollout ('training') episodes keep the inherited path; their batches are
+        already prepared on device. Results match the CPU reference preparation.
+        """
+        if (episode.phase == 'training' or not getattr(self.args, 'gpu_prepare', False)
+                or self.device.type != 'cuda' or game.BACKEND != 'native'):
+            return super().prepare_episode(episode)
+        try:
+            if getattr(self, '_gpu_preparer', None) is None:
+                from tetris_gpu_simulation import GpuPreparer
+                self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+            result = self._gpu_preparer.prepare_batch([episode.state], [episode.target])
+        except torch.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            return super().prepare_episode(episode)
+        prepared = result.prepared[0]
+        if prepared is not None:
+            self.note_target(episode, int(result.targets[0]))
+        return prepared
+
     def configure_model(self, resuming):
         if self.model.config.architecture != ARCHITECTURE:
             raise ValueError('V4 cannot resume a different model architecture')
@@ -88,18 +110,38 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         return values
 
 
+GPU_FLAGS = ('--gpu-prepare', '--fused-encoding', '--coalesce-transfers', '--cache-rollout')
+
+
+def gpu_defaults(supplied, disabled=False):
+    """GPU-first defaults; explicit later arguments still override valued options."""
+    def value(name):
+        for index, argument in enumerate(supplied):
+            if argument == name and index + 1 < len(supplied):
+                return supplied[index + 1]
+            if argument.startswith(name + '='):
+                return argument.split('=', 1)[1]
+        return None
+    if disabled or value('--device') == 'cpu' or not torch.cuda.is_available():
+        return []
+    if value('--backend') not in (None, 'native'):
+        return []
+    return ['--device', 'cuda', '--backend', 'native', *GPU_FLAGS]
+
+
 def arguments(argv=None):
     supplied = list(sys.argv[1:] if argv is None else argv)
     extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--pretrained', type=Path)
     extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
+    extra.add_argument('--no-gpu-defaults', action='store_true',
+                       help='Do not enable CUDA preparation, fused encoding, coalesced transfers and rollout caching')
     options, remaining = extra.parse_known_args(supplied)
     args = v3.arguments(['--run-dir', str(base.ROOT/'runs/survival-ppo-v4'),
-                         '--gradient-clip-scope', 'separate', *remaining])
+                         '--gradient-clip-scope', 'separate',
+                         *gpu_defaults(remaining, options.no_gpu_defaults), *remaining])
     args.pretrained = options.pretrained
     args.shortlist_mode = options.shortlist_mode
-    if args.gpu_prepare:
-        raise ValueError('V4 needs physical afterstate descriptors; GPU preparation is not yet supported')
     return args
 
 
