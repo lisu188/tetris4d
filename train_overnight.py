@@ -335,6 +335,19 @@ def preserve_rng():
 
 
 class Trainer:
+    def initial_policy_checkpoint(self):
+        initial = self.args.checkpoint
+        if initial is None:
+            candidate = ROOT / 'models/neural-policy.pt'
+            initial = candidate if candidate.is_file() else None
+        return initial
+
+    def create_fresh_model(self):
+        return neural.ColumnPolicy().to(self.device)
+
+    def selection_ready(self):
+        return self.progress['updates'] >= 1
+
     def training_signature(self):
         return {}
 
@@ -395,10 +408,7 @@ class Trainer:
             self.last_evaluated_update = extra.get('last_evaluated_update')
             self.initial_checkpoint = extra.get('initial_checkpoint')
         else:
-            initial = args.checkpoint
-            if initial is None:
-                candidate = ROOT / 'models/neural-policy.pt'
-                initial = candidate if candidate.is_file() else None
+            initial = self.initial_policy_checkpoint()
             self.initial_checkpoint = str(initial.resolve()) if initial else None
             inherited = 0
             if initial:
@@ -407,7 +417,7 @@ class Trainer:
                     raise ValueError('Initial policy and current candidate-pipeline weights differ.')
                 inherited = int(initial_saved['progress'].get('updates', 0))
             else:
-                self.model = neural.ColumnPolicy().to(self.device)
+                self.model = self.create_fresh_model()
             self.model.value[-1].weight.data.zero_()
             self.model.value[-1].bias.data.zero_()
             self.progress = {'updates': inherited, 'runner_updates': 0, 'warmup_updates': 0,
@@ -653,7 +663,7 @@ class Trainer:
                 'score_definition': 'mean capped survival pieces, then minimum, then median; no clear bonus'}
 
     def select(self):
-        if self.progress['updates'] < 1 or self.budget.expired():
+        if not self.selection_ready() or self.budget.expired():
             return
         if self.baseline is None:
             baseline = self.evaluate_policy('sustained')

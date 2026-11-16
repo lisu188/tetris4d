@@ -167,7 +167,7 @@ def competing_trainers():
                 continue
             arguments = (directory / 'cmdline').read_bytes().split(b'\0')
             arguments = [x.decode(errors='replace') for x in arguments if x]
-            names = {'train_overnight.py', 'train_survival.py', 'train_survival_v2.py'}
+            names = {'train_overnight.py', 'train_survival.py', 'train_survival_v2.py', 'train_survival_v3.py'}
             if any(Path(arg).name in names for arg in arguments[1:3]):
                 found.append({'pid': pid, 'command': arguments[:3]})
         except (OSError, ValueError):
@@ -297,13 +297,15 @@ class RolloutCache:
 
 
 class SurvivalTrainer(base.Trainer):
+    algorithm = ALGORITHM
+
     def training_signature(self):
         names = ('optimizer_batch', 'critic_lr', 'secondary_weight', 'ppo_epochs', 'clip_ratio', 'target_kl',
                  'regret_weight', 'value_loss', 'value_beta', 'policy_mode', 'residual_scale', 'teacher_prior_scale',
                  'preserve_initial_actor', 'gradient_clip_scope', 'recover_target',
                  'calibration_games', 'calibration_validation_games', 'calibration_steps', 'calibration_stride',
                  'calibration_seed', 'allow_uncalibrated', 'calibration_ratio', 'gradient_every')
-        return {'algorithm': ALGORITHM, 'trainer_sha256': base.file_hash(Path(__file__)),
+        return {'algorithm': self.algorithm, 'trainer_sha256': base.file_hash(Path(__file__)),
                 'runner_sha256': base.file_hash(Path(base.__file__)),
                 **{name: getattr(self.args, name) for name in names},
                 'cache_rollout': getattr(self.args, 'cache_rollout', False),
@@ -358,7 +360,7 @@ class SurvivalTrainer(base.Trainer):
     def checkpoint_metadata(self):
         if self.calibration_episode is not None:
             self.calibration['episode'] = self.calibration_episode.snapshot()
-        return {'algorithm': ALGORITHM, 'value_semantics': 'expected_remaining_placements_times_0.001',
+        return {'algorithm': self.algorithm, 'value_semantics': 'expected_remaining_placements_times_0.001',
                 'completion_semantics': 'imitation_auxiliary_not_recalibrated_during_survival',
                 'initial_checkpoint_sha256': getattr(self, 'initial_digest', None),
                 'initial_actor_sha256': self.initial_actor_sha256,
@@ -383,8 +385,8 @@ class SurvivalTrainer(base.Trainer):
         self.progress.setdefault('calibration_updates', self.calibration.get('fit_updates', 0))
         context = self.recorder.context
         self.recorder = CompressedRecorder(self.root / 'games', args.record_games, args.record_every, args.record_max_mib)
-        self.recorder.context = {**context, 'algorithm': ALGORITHM, 'policy_mode': self.model.config.policy_mode}
-        self.emit('survival_algorithm', algorithm=ALGORITHM, microbatch=args.batch, optimizer_batch=args.optimizer_batch,
+        self.recorder.context = {**context, 'algorithm': self.algorithm, 'policy_mode': self.model.config.policy_mode}
+        self.emit('survival_algorithm', algorithm=self.algorithm, microbatch=args.batch, optimizer_batch=args.optimizer_batch,
                   policy_mode=self.model.config.policy_mode, reward='one placement * 0.001; gamma=1',
                   teacher_prior_scale=self.model.config.teacher_prior_scale, preserve_initial_actor=args.preserve_initial_actor,
                   gradient_clip_scope=args.gradient_clip_scope, initial_actor_sha256=self.initial_actor_sha256,
@@ -490,6 +492,16 @@ class SurvivalTrainer(base.Trainer):
         joined = torch.cat((encoded[1], context), 1)
         return encoded[2].float().cpu().numpy(), joined.float().detach().cpu()
 
+    def initialize_calibration_output(self, x, y):
+        with torch.no_grad():
+            hidden = (torch.sigmoid(self.model.value[0](x)) - .5).double().cpu()
+            design = torch.cat((hidden, torch.ones(len(hidden), 1, dtype=torch.float64)), 1)
+            ridge = torch.eye(design.shape[1], dtype=torch.float64) * 1e-3
+            ridge[-1, -1] = 1e-9
+            solution = torch.linalg.solve(design.T @ design + ridge, design.T @ y.double().cpu())
+            self.model.value[-1].weight.copy_(solution[:-1][None].to(self.device, dtype=torch.float32))
+            self.model.value[-1].bias.copy_(solution[-1:].to(self.device, dtype=torch.float32))
+
     def calibrate(self):
         c = self.calibration
         if c['done']:
@@ -564,14 +576,7 @@ class SurvivalTrainer(base.Trainer):
         if c['fit_optimizer'] is not None:
             optimizer.load_state_dict(c['fit_optimizer'])
         elif c['fit_updates'] == 0:
-            with torch.no_grad():
-                hidden = (torch.sigmoid(self.model.value[0](x)) - .5).double().cpu()
-                design = torch.cat((hidden, torch.ones(len(hidden), 1, dtype=torch.float64)), 1)
-                ridge = torch.eye(design.shape[1], dtype=torch.float64) * 1e-3
-                ridge[-1, -1] = 1e-9
-                solution = torch.linalg.solve(design.T @ design + ridge, design.T @ y.double().cpu())
-                self.model.value[-1].weight.copy_(solution[:-1][None].to(self.device, dtype=torch.float32))
-                self.model.value[-1].bias.copy_(solution[-1:].to(self.device, dtype=torch.float32))
+            self.initialize_calibration_output(x, y)
         def assess():
             with torch.no_grad():
                 pred = self.model.critic(vx).float().cpu().numpy()
@@ -609,7 +614,7 @@ class SurvivalTrainer(base.Trainer):
             passed &= metrics['near_end_mae_pieces'] < metrics['constant_near_end_mae_pieces']
         if actor_digest(self.model) != self.calibration_actor:
             raise AssertionError('Calibration changed actor parameters')
-        report = {'algorithm': ALGORITHM, 'passed': bool(passed), 'actor_unchanged': True,
+        report = {'algorithm': self.algorithm, 'passed': bool(passed), 'actor_unchanged': True,
                   'actor_sha256': self.calibration_actor, 'train_samples': len(x), 'validation_samples': len(vx),
                   'completed_games': c['completed_games'], 'censored_games': c['censored_games'],
                   'criterion': f'validation MSE < {self.args.calibration_ratio} * training-mean baseline; lower near-end MAE',
@@ -949,7 +954,7 @@ class SurvivalTrainer(base.Trainer):
         self.progress['kl_stopped_updates'] += int(stop)
         diagnostics = regression_metrics(rollout.old_values, rollout.returns)
         actor_diagnostics = self.actor_diagnostics(rollout) if measure_actor else {}
-        self.emit('update', **self.progress, stage='warmup' if warmup else 'survival-ppo-v2',
+        self.emit('update', **self.progress, stage='warmup' if warmup else self.algorithm,
                   **{k: v / total_weight for k, v in totals.items()}, per_loss_gradient_norms=per_loss_norms,
                   gradient_clip_scope=self.args.gradient_clip_scope, actor_diagnostics=actor_diagnostics,
                   rollout_cache=cache_telemetry,
@@ -1009,7 +1014,7 @@ class SurvivalTrainer(base.Trainer):
     def save(self, reason='checkpoint'):
         started = time.perf_counter()
         summary = super().save(reason)
-        manifest = {'schema': 'tetris4d-run-manifest-v2', 'algorithm': ALGORITHM,
+        manifest = {'schema': 'tetris4d-run-manifest-v2', 'algorithm': self.algorithm,
                     'checkpoint_sha256': base.file_hash(self.last), 'runner_updates': self.progress['runner_updates'],
                     'metrics_bytes': self.metrics.stat().st_size, 'source_sha256': self.signature,
                     'policy_mode': self.model.config.policy_mode, 'calibration_stage': self.calibration['stage'],
