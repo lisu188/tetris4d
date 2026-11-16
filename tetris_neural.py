@@ -44,8 +44,11 @@ class Config:
     detach_critic: bool = False
     centered_critic: bool = False
     teacher_prior_scale: float = 1.0
+    architecture: str = 'column-sigmoid-v1'
 
     def __post_init__(self):
+        if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3'):
+            raise ValueError('Unsupported policy architecture')
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
             if type(getattr(self, name)) is not int:
                 raise ValueError(f'{name} must be an integer')
@@ -239,6 +242,13 @@ class ColumnPolicy(nn.Module):
         return {'states': len(count), 'h2_saturated_fraction': float(saturated / (count.sum() * 64)),
                 'h2_candidate_std': float(hidden_variance.sqrt().mean()),
                 'raw_logit_spread': float(spread.mean()), 'raw_logit_std': float(variance.sqrt().mean())}
+
+
+def create_model(config: Config = Config()):
+    if config.architecture == 'survival-feature-v3':
+        from tetris_survival_v3 import SurvivalFeaturePolicy
+        return SurvivalFeaturePolicy(config)
+    return ColumnPolicy(config)
 
 
 @dataclass
@@ -453,7 +463,7 @@ def load_checkpoint(path, device, restore_rng=False):
     checkpoint = torch.load(Path(path), map_location='cpu', weights_only=True)
     if checkpoint.get('schema') != SCHEMA or checkpoint.get('pieces_sha256') != fingerprint():
         raise ValueError('Checkpoint schema or piece catalog does not match this engine')
-    model = ColumnPolicy(Config(**checkpoint['config']))
+    model = create_model(Config(**checkpoint['config']))
     model.load_state_dict(checkpoint['model'], strict=True)
     if not all(bool(torch.isfinite(t).all()) for t in model.state_dict().values()):
         raise ValueError('Non-finite checkpoint parameters')

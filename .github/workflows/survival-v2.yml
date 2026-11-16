@@ -27,6 +27,9 @@ jobs:
       - run: python tests/test_survival_v2.py
       - run: python tests/test_reference_ppo.py
       - run: python tests/test_reference_ablation.py
+      - run: python -B tests/test_survival_architecture.py
+      - run: python -B tests/test_survival_v3.py
+      - run: python -B tests/test_survival_v3_run.py
       - run: python tests/test_survival_longevity.py
       - run: python tests/test_rollout_cache.py
       - run: python -B -m unittest discover -s tests -p 'test_gpu*.py'
@@ -35,5 +38,7 @@ jobs:
       - run: python tools/validate_survival_v2.py --backend native --output survival-v2-validation.json
       - run: python tests/test_survival_ppo.py
       - run: python train_survival_v2.py --help
+      - run: python -B train_survival_v3.py --help
+      - run: python -B tools/run_survival_v3.py --help
       - run: python tools/survival_experiments.py compare --help
       - run: python tools/survival_experiments.py archive --help
