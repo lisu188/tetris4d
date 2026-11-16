@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 import sys
 
@@ -27,6 +27,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
     def create_fresh_model(self):
         config = neural.Config(architecture=ARCHITECTURE, spatial_actor=True,
                                shortlist_mode=self.args.shortlist_mode,
+                               screening=self.args.screening,
                                recover_target=self.args.recover_target,
                                policy_mode=self.args.policy_mode,
                                residual_scale=self.args.residual_scale,
@@ -37,8 +38,11 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return neural.create_model(config).to(self.device)
         source = Path(self.args.pretrained)
         loaded, checkpoint = neural.load_checkpoint(source, self.device)
-        if asdict(loaded.config) != asdict(config):
+        # Screening only changes which placements are offered, never the weights,
+        # so a sampled-mode pretrained actor may continue under exhaustive screening.
+        if asdict(replace(loaded.config, screening=config.screening)) != asdict(config):
             raise ValueError('Pretrained V4 config does not match the requested actor and shortlist')
+        loaded.config = config
         if checkpoint['teacher_parameters'] != game.network_parameters():
             raise ValueError('Pretrained V4 teacher weights differ from the runtime')
         if not all(bool(torch.isfinite(parameter).all()) for parameter in loaded.state_dict().values()):
@@ -97,6 +101,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                          pretrained_sha256=(base.file_hash(self.args.pretrained)
                                             if self.args.pretrained is not None else None),
                          shortlist_mode=self.args.shortlist_mode,
+                         screening=self.args.screening,
                          spatial_actor=True, fresh_ppo_progress=True)
         return signature
 
@@ -134,6 +139,8 @@ def arguments(argv=None):
     extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--pretrained', type=Path)
     extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
+    extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default='sampled',
+                       help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement")
     extra.add_argument('--no-gpu-defaults', action='store_true',
                        help='Do not enable CUDA preparation, fused encoding, coalesced transfers and rollout caching')
     options, remaining = extra.parse_known_args(supplied)
@@ -142,6 +149,7 @@ def arguments(argv=None):
                          *gpu_defaults(remaining, options.no_gpu_defaults), *remaining])
     args.pretrained = options.pretrained
     args.shortlist_mode = options.shortlist_mode
+    args.screening = options.screening
     return args
 
 

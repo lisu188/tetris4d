@@ -68,6 +68,17 @@ Each statistic is a mean over 3,840 neighbour edges, so one placement changes it
 
 `F.kl_div` returned NaN whenever a batch contained padded candidates (0 · −inf). The supervised loss now uses an explicitly masked KL in which padding contributes exactly zero.
 
+### Exhaustive placement screening
+
+`--screening exhaustive` (on `train_survival_v4.py` and `tools/pretrain_spatial.py`) screens every legal placement, meaning every orientation at every position, instead of the default `--candidates 2048` spread across orientations. That is up to ~648,000 placements per piece for the 192-orientation pieces, against ~10 positions per orientation when sampled. The network is unchanged: the teacher still shortlists `--shortlist` candidates (best plus random), and only those reach the actor. What changes is which placements the teacher can choose from.
+
+- **Cost:** a 15-state CUDA preparation batch takes ~48 ms exhaustive vs ~37 ms sampled. The CPU reference takes ~1.3 s per state, so exhaustive training needs `--gpu-prepare`.
+- **Layer clears are scored on the device** in both modes, with the same float64 order as `game.score_candidate`. Clearing states no longer fall back to the CPU.
+- **Pretrained actors:** screening does not affect the weights, so a model pretrained with sampled screening can be continued with `--pretrained ... --screening exhaustive`. Any other config difference is still rejected. The mode is recorded in the run signature, so a run cannot be resumed under a different mode.
+- **Selection baseline:** the sustained heuristic in selection games always uses `config.candidates` (2,048 sampled), so exhaustive runs are compared against the same baseline as sampled runs.
+
+Parity: `tests/test_gpu_simulation.py` (`TETRIS4D_TEST_CUDA=1`) checks exhaustive GPU preparation against the CPU reference for all 15 pieces, and clearing boards in both modes. `tests/test_exhaustive_screening.py` covers the config, the enumeration count, the CLI and the pretrained continuation.
+
 ## Historical measurements (not reproduced)
 
 The archived manifests report 1,024 training and 256 validation actor snapshots from disjoint seeds, 300 supervised steps, raw actor validation KL changing from 1.30227 to 0.03780, raw exact teacher agreement from 1.17% to 61.72%, and raw primary utility agreement from 7.42% to 100%. They report no PPO updates.

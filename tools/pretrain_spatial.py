@@ -123,7 +123,7 @@ def train(args):
     device = neural.device_for(args.device)
     config = neural.Config(architecture=ARCHITECTURE, spatial_actor=True, shortlist_mode=args.shortlist_mode,
                            policy_mode='teacher-prior', teacher_prior_scale=.125, recover_target=True,
-                           candidates=args.candidates, shortlist=args.shortlist)
+                           candidates=args.candidates, shortlist=args.shortlist, screening=args.screening)
     deadline = time.monotonic() + args.max_seconds
     gpu_collect = (device.type == 'cuda' and args.backend == 'native'
                    and config.shortlist_mode == 'teacher-random' and not args.cpu_collect)
@@ -214,6 +214,8 @@ def arguments(argv=None):
     parser.add_argument('--candidates', type=int, default=2048)
     parser.add_argument('--shortlist', type=int, default=128)
     parser.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
+    parser.add_argument('--screening', choices=('sampled', 'exhaustive'), default='sampled',
+                        help="Candidate pool: 'sampled' (--candidates placements) or every legal placement")
     parser.add_argument('--cpu-collect', action='store_true',
                         help='Collect teacher snapshots with the CPU reference preparer instead of batched CUDA')
     parser.add_argument('--steps', type=int, default=300)
