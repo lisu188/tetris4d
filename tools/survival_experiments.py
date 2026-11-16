@@ -114,13 +114,8 @@ def compare(args):
     if output.exists():
         raise ValueError('Comparison output already exists; choose a new immutable output name')
     paths = args.checkpoints
-    if not paths:
-        paths = [ROOT / 'models/neural-rl.pt', ROOT / 'runs/overnight-survival/best.pt', ROOT / 'runs/survival-ppo/best.pt']
-        newest = sorted(ROOT.glob('survival-ppo-inspection-*.pt'))
-        if newest:
-            paths.append(newest[-1])
     if not paths or any(not p.is_file() for p in paths):
-        raise ValueError('All checkpoint paths must exist; supply --checkpoints explicitly for a smaller comparison')
+        raise ValueError('All explicit checkpoint paths must exist')
     torch.set_num_threads(args.threads)
     game.configure_backend(args.backend)
     game.load_checkpoint(args.weights)
@@ -238,7 +233,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='Immutable paired policy comparisons and lossless experiment archives')
     sub = parser.add_subparsers(dest='command', required=True)
     test = sub.add_parser('compare')
-    test.add_argument('--checkpoints', nargs='+', type=Path)
+    test.add_argument('--checkpoints', nargs='+', type=Path, required=True,
+                      help='Frozen policies to compare; historical run directories are not bundled')
     test.add_argument('--seeds', nargs='+', type=int, default=[94001, 94003, 94005, 94007])
     test.add_argument('--action-seeds', nargs='+', type=int, default=[101, 102, 103])
     test.add_argument('--modes', nargs='+', choices=('greedy', 'sampled'), default=['greedy', 'sampled'])

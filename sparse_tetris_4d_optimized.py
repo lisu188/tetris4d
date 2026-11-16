@@ -892,6 +892,8 @@ def _load_native() -> bool:
             't4_compact': [pointer, pointer, ctypes.c_uint, integer],
             't4_scores': [pointer, pointer, pointer, pointer, integer, pointer, integer, integer,
                           real, real, real, real, pointer, pointer, pointer, pointer, pointer, integer],
+            't4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer,
+                                     pointer, pointer, pointer],
         }
         for name, arguments in signatures.items():
             function = getattr(library, name)
@@ -1380,6 +1382,25 @@ def sustained_above_counts(piece: str):
 
 
 def sustained_batch_metrics(context: BoardEvaluation, piece: str, specs, z, target: int):
+    if BACKEND == 'native':
+        np = _NUMPY
+        raw = np.ascontiguousarray(specs, dtype=np.int32)
+        landings = np.ascontiguousarray(z, dtype=np.int32)
+        if raw.ndim != 2 or raw.shape[1] != 4 or landings.shape != (len(raw),):
+            raise ValueError('Sustained metrics require four-integer specifications and one landing per row.')
+        _native_context(context)
+        records = native_shapes(piece)
+        gains = np.empty(len(raw), dtype=np.int64)
+        blocked = np.empty(len(raw), dtype=np.bool_)
+        future = np.empty(len(raw), dtype=np.int64)
+        _native_check(_NATIVE.t4_sustained_metrics(context.native_heights.ctypes.data,
+            records.ctypes.data, len(records), raw.ctypes.data, landings.ctypes.data, len(raw), target,
+            gains.ctypes.data, blocked.ctypes.data, future.ctypes.data))
+        return gains, blocked, future
+    return _numpy_sustained_batch_metrics(context, piece, specs, z, target)
+
+
+def _numpy_sustained_batch_metrics(context: BoardEvaluation, piece: str, specs, z, target: int):
     np = _NUMPY
     raw = np.asarray(specs, dtype=np.int32)
     rotations = raw[:, 0]

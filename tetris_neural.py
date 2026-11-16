@@ -4,6 +4,7 @@ import argparse
 from collections import OrderedDict
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 import hashlib
 import heapq
 import itertools
@@ -42,6 +43,7 @@ class Config:
     residual_scale: float = 1.0
     detach_critic: bool = False
     centered_critic: bool = False
+    teacher_prior_scale: float = 1.0
 
     def __post_init__(self):
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
@@ -53,10 +55,12 @@ class Config:
             raise ValueError('Invalid candidate, shortlist or chunk size')
         if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic')):
             raise ValueError('Target and critic settings must be boolean')
-        if self.policy_mode not in ('neural', 'teacher-residual'):
+        if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
             raise ValueError('residual_scale must be between 0 and 4')
+        if not math.isfinite(self.teacher_prior_scale) or not 0 <= self.teacher_prior_scale <= 4:
+            raise ValueError('teacher_prior_scale must be between 0 and 4')
 
 
 def device_for(name: str) -> torch.device:
@@ -87,8 +91,9 @@ def fingerprint() -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
-def state_context(state, target: int) -> np.ndarray:
-    context = game.evaluate_board(state.board)
+def state_context(state, target: int, context=None) -> np.ndarray:
+    if context is None:
+        context = game.evaluate_board(state.board)
     names = game.PIECE_SETS[state.piece_set]
     completed = state.pieces // len(names)
     current = [float(name == state.current) for name in NAMES]
@@ -105,7 +110,12 @@ def state_context(state, target: int) -> np.ndarray:
     return result
 
 
-def encode_columns(board: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+def encode_columns(board: torch.Tensor, target: torch.Tensor, *, fused: bool = False) -> torch.Tensor:
+    if (fused and board.is_cuda and board.dtype == torch.int32 and board.is_contiguous()
+            and target.device == board.device and target.dtype in (torch.int32, torch.int64)
+            and target.is_contiguous()):
+        from tetris_gpu_encoding import encode_columns_cuda
+        return encode_columns_cuda(board, target)
     masks = board.to(torch.int32)
     levels = torch.arange(16, device=masks.device, dtype=torch.int32)
     occupied = ((masks[:, None, :] >> levels[None, :, None]) & 1).bool()
@@ -136,6 +146,7 @@ class ColumnPolicy(nn.Module):
     def __init__(self, config: Config = Config()):
         super().__init__()
         self.config = config
+        self.fused_encoding = False
         w = config.width
         self.stem = nn.Sequential(nn.Conv3d(CHANNELS, w, 1), nn.GroupNorm(8, w), nn.Sigmoid())
         self.blocks = nn.ModuleList(SigmoidBlock(w) for _ in range(config.blocks))
@@ -146,7 +157,7 @@ class ColumnPolicy(nn.Module):
         self.completion = nn.Sequential(nn.Linear(w + CONTEXT, 64), nn.Sigmoid(), nn.Linear(64, 16))
 
     def encode(self, boards, targets, context):
-        spatial = self.stem(encode_columns(boards, targets))
+        spatial = self.stem(encode_columns(boards, targets, fused=self.fused_encoding))
         activation = spatial
         for block in self.blocks:
             spatial, activation = block(spatial)
@@ -182,10 +193,13 @@ class ColumnPolicy(nn.Module):
                                            batch['indices'][:, start:stop], batch['column_mask'][:, start:stop])
             pieces.append(logits)
         logits = torch.cat(pieces, dim=1)
-        if self.config.policy_mode == 'teacher-residual':
+        if self.config.policy_mode in ('teacher-residual', 'teacher-prior'):
             if 'teacher_prior' not in batch:
                 raise ValueError('Residual policy requires exact teacher ranking features')
-            logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(logits.float()) - 1)
+            if self.config.policy_mode == 'teacher-residual':
+                logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(logits.float()) - 1)
+            else:
+                logits = self.config.teacher_prior_scale * batch['teacher_prior'].float() + self.config.residual_scale * logits.float()
         logits = logits.masked_fill(~batch['valid'].bool(), -torch.inf)
         result = {'logits': logits, 'value': value, 'completion': completion,
                   'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
@@ -197,6 +211,35 @@ class ColumnPolicy(nn.Module):
             result.update(activation=activation, hidden1=h1[:, 0], hidden2=h2[:, 0])
         return result
 
+    @torch.no_grad()
+    def ranking_diagnostics(self, batch):
+        """Summarize one bounded batch without retaining activation traces."""
+        spatial, pooled, _, _, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
+        count = batch['valid'].sum(1, keepdim=True).double()
+        sums = torch.zeros((len(count), 64), device=spatial.device, dtype=torch.float64)
+        squares = torch.zeros_like(sums)
+        saturated = torch.zeros((), device=spatial.device, dtype=torch.float64)
+        raw = []
+        for start in range(0, batch['features'].shape[1], self.config.chunk):
+            stop = start + self.config.chunk
+            logits, _, hidden = self.rank_chunk(spatial, pooled, batch['context'], batch['features'][:, start:stop],
+                                                batch['indices'][:, start:stop], batch['column_mask'][:, start:stop])
+            mask = batch['valid'][:, start:stop, None].bool()
+            values = hidden.double()
+            sums += (values * mask).sum(1)
+            squares += (values.square() * mask).sum(1)
+            saturated += (((hidden <= .001) | (hidden >= .999)) & mask).sum()
+            raw.append(logits.float())
+        logits = torch.cat(raw, 1)
+        valid = batch['valid'].bool()
+        mean = (logits.double() * valid).sum(1, keepdim=True) / count
+        variance = ((logits.double() - mean).square() * valid).sum(1) / count[:, 0]
+        spread = logits.masked_fill(~valid, -torch.inf).amax(1) - logits.masked_fill(~valid, torch.inf).amin(1)
+        hidden_variance = (squares / count - (sums / count).square()).clamp_min(0)
+        return {'states': len(count), 'h2_saturated_fraction': float(saturated / (count.sum() * 64)),
+                'h2_candidate_std': float(hidden_variance.sqrt().mean()),
+                'raw_logit_spread': float(spread.mean()), 'raw_logit_std': float(variance.sqrt().mean())}
+
 
 @dataclass
 class Prepared:
@@ -207,21 +250,34 @@ class Prepared:
     fallback: bool
 
 
-def _option_features(board, candidate, target, context):
+@lru_cache(maxsize=1024)
+def _shape_features(shape_cells):
+    cells = np.zeros((16, 5), dtype=np.float32)
+    cells[:len(shape_cells), :4] = np.asarray(shape_cells, dtype=np.float32) / 15
+    cells[:len(shape_cells), 4] = 1
+    result = cells.ravel()
+    result.flags.writeable = False
+    return result
+
+
+def _option_features(board, candidate, target, context, metrics=None):
     shape = game.SHAPES[candidate.piece][candidate.rotation]
     base = game.column_index(candidate.x, candidate.y, candidate.w)
     touched = [base + offset for offset, _, _ in shape.columns]
     delta = sum(candidate.z + mask.bit_length() - context.heights[base + offset] for offset, mask, _ in shape.columns)
-    gain, _, future = game.sustained_candidate_metrics(board, candidate, target)
-    cells = np.zeros((16, 5), dtype=np.float32)
-    cells[:len(shape.cells), :4] = np.asarray(shape.cells, dtype=np.float32) / 15
-    cells[:len(shape.cells), 4] = 1
+    if metrics is None:
+        gain, _, future = game.sustained_candidate_metrics(board, candidate, target)
+    else:
+        gain, future = metrics
     fixed = [candidate.x / 15, candidate.y / 15, candidate.z / 15, candidate.w / 15]
     fixed += [v / 16 for v in shape.extents]
     size = game.PIECE_SIZES[candidate.piece]
     fixed += [gain / 16, future / 64, candidate.layers / 16, delta / 64, (delta - size) / 64,
               (candidate.score - context.score) / 64, size / 16, target / 15]
-    return np.concatenate((np.asarray(fixed, dtype=np.float32), cells.ravel())), touched
+    result = np.empty(FEATURES, dtype=np.float32)
+    result[:16] = fixed
+    result[16:] = _shape_features(shape.cells)
+    return result, touched
 
 
 def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
@@ -295,11 +351,19 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     features = np.zeros((len(options), FEATURES), dtype=np.float32)
     indices = np.zeros((len(options), COLUMNS), dtype=np.int64)
     mask = np.zeros((len(options), COLUMNS), dtype=np.bool_)
+    metrics = [None] * len(options)
+    # The batch gain uses column heights. On buried targets the scalar
+    # feature contract also counts gaps below that height.
+    if not status.buried and game.BACKEND in ('numpy', 'native'):
+        specs = [(c.rotation, c.x, c.y, c.w) for c in options]
+        landings = np.asarray([c.z for c in options], dtype=np.int32)
+        gains, _, future = game.sustained_batch_metrics(context, piece, specs, landings, target)
+        metrics = list(zip(gains, future))
     for i, candidate in enumerate(options):
-        features[i], columns = _option_features(state.board, candidate, target, context)
+        features[i], columns = _option_features(state.board, candidate, target, context, metrics[i])
         indices[i, :len(columns)], mask[i, :len(columns)] = columns, True
     arrays = {'boards': np.asarray(state.board, dtype=np.int32), 'targets': np.asarray(target, dtype=np.int64),
-              'context': state_context(state, target), 'features': features, 'indices': indices,
+              'context': state_context(state, target, context), 'features': features, 'indices': indices,
               'column_mask': mask, 'valid': np.ones(len(options), dtype=np.bool_)}
     order = sorted(range(len(options)), key=lambda i: kept_keys[i], reverse=True)
     rank = np.empty(len(options), dtype=np.float32)
@@ -340,17 +404,30 @@ def collate(records: list[dict], device: torch.device) -> dict:
     if not records:
         raise ValueError('Empty batch')
     maximum = max(len(row['features']) for row in records)
+    if any(torch.is_tensor(row['features']) for row in records):
+        result = {}
+        for name in records[0]:
+            values = []
+            for row in records:
+                value = torch.as_tensor(row[name], device=device)
+                if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
+                    value = F.pad(value, (0, 0) * (value.ndim - 1) + (0, maximum - len(value)))
+                values.append(value)
+            result[name] = torch.stack(values)
+        if not bool(result['valid'].any(dim=1).all()):
+            raise ValueError('Every state must have at least one valid candidate')
+        return result
+    if not all(np.asarray(row['valid']).any() for row in records):
+        raise ValueError('Every state must have at least one valid candidate')
     result = {}
     for name in records[0]:
         values = []
         for row in records:
             value = np.asarray(row[name])
-            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior'):
+            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior') and len(value) < maximum:
                 value = np.pad(value, [(0, maximum - len(value))] + [(0, 0)] * (value.ndim - 1))
             values.append(value)
         result[name] = torch.from_numpy(np.stack(values)).to(device)
-    if not bool(result['valid'].any(dim=1).all()):
-        raise ValueError('Every state must have at least one valid candidate')
     return result
 
 

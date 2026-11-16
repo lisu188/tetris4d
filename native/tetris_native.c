@@ -220,3 +220,40 @@ int t4_scores(const uint16_t *board, const int32_t *heights, const int32_t *coun
     }
     return 0;
 }
+
+/* Preserve every row, including illegal/blocked drops: the neural shortlist
+ * applies its own legality filter after combining these integer metrics. */
+int t4_sustained_metrics(const int32_t *heights, const int32_t *shapes, int shape_count,
+                         const int32_t *specs, const int32_t *z, int n, int target,
+                         int64_t *gains, uint8_t *blocked, int64_t *future_holes) {
+    if (!heights || !shapes || !specs || !z || !gains || !blocked || !future_holes
+        || n < 0 || target < 0 || target >= HEIGHT || shape_count < 1 || shape_count > 1024) return -1;
+    for (int row = 0; row < n; ++row) {
+        const int32_t *p = specs + row*4;
+        if (p[0] < 0 || p[0] >= shape_count) return -2;
+        const int32_t *s = shapes + p[0]*SHAPE_STRIDE;
+        if (p[1] < 0 || p[1] > 16-s[0] || p[2] < 0 || p[2] > 16-s[1]
+            || p[3] < 0 || p[3] > 16-s[3] || z[row] < -HEIGHT || z[row] > HEIGHT) return -3;
+        int base = p[1] + p[2]*16 + p[3]*256;
+        int relative = target-z[row], above = relative+1;
+        if (above < 0) above = 0;
+        if (above > HEIGHT+1) above = HEIGHT+1;
+        int64_t gain = 0, future = 0;
+        int buried = 0;
+        for (int i = 0; i < s[4]; ++i) {
+            const int32_t *c = s + HEADER + i*COLUMN_STRIDE;
+            int old = heights[base+c[0]], top = z[row]+c[3];
+            int on_target = relative >= 0 && relative < HEIGHT && ((unsigned)c[1] & (1u << relative));
+            int gap = old <= target;
+            gain += gap && on_target;
+            buried |= gap && top > target && !on_target;
+            int floor = old > target+1 ? old : target+1;
+            if (top > floor) future += top-floor;
+            future -= __builtin_popcount((unsigned)c[1] >> above);
+        }
+        gains[row] = gain;
+        blocked[row] = (uint8_t)buried;
+        future_holes[row] = future;
+    }
+    return 0;
+}

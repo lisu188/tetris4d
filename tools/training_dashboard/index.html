@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Survival Lab · Tetris 4D</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to dashboard</a>
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true">4D</span><span>Survival<span class="brand-sub">TRAINING LAB</span></span></a>
+    <div class="project-label">TETRIS / EXPERIMENT 01</div>
+    <nav aria-label="Dashboard sections">
+      <a class="nav-link" href="#overview"><span aria-hidden="true">◈</span> Overview</a>
+      <a class="nav-link" href="#learning"><span aria-hidden="true">⌁</span> Learning signals</a>
+      <a class="nav-link" href="#environments"><span aria-hidden="true">▦</span> Environments</a>
+      <a class="nav-link" href="#events"><span aria-hidden="true">≡</span> Event stream</a>
+    </nav>
+    <div class="sidebar-note"><span class="tiny-dot"></span> LOCAL TELEMETRY<p>Read-only observation.<br>One placement at a time.</p></div>
+  </aside>
+
+  <main id="main">
+    <header class="page-header">
+      <div><p class="eyebrow">POLICY RESEARCH / LIVE RUN</p><h1>Survival dashboard<span class="title-dot">.</span></h1><p class="intro">Watch the policy learn to keep the board alive.</p></div>
+      <div class="header-tools">
+        <div id="connection" class="connection" role="status"><span class="status-dot"></span><span id="connection-text">Connecting</span></div>
+        <span id="snapshot-age" class="muted small">Awaiting first snapshot</span>
+      </div>
+    </header>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+    <div class="toolbar">
+      <div class="segmented" role="group" aria-label="Chart time window">
+        <button data-window="15m" aria-pressed="false">15 min</button><button data-window="1h" aria-pressed="true">1 hour</button><button data-window="all" aria-pressed="false">All history</button>
+      </div>
+      <div class="toolbar-actions"><span class="refresh-note">Refreshes every 15s</span><button id="pause" class="quiet-button" aria-pressed="false">Pause</button><button id="refresh" class="quiet-button">↻ <span>Refresh</span></button><div class="download-group"><a href="/api/history.csv" download="training-history.csv">CSV ↗</a><a href="/api/history.jsonl" download="training-history.jsonl">JSONL ↗</a></div></div>
+    </div>
+
+    <section id="overview" class="hero-grid" aria-label="Run overview">
+      <article class="panel budget-panel">
+        <div class="panel-heading"><p class="eyebrow">PRODUCTION BUDGET</p><span id="budget-label" class="tag">Awaiting start</span></div>
+        <div id="remaining-time" class="big-clock">—<span class="clock-unit">remaining</span></div>
+        <p id="budget-copy" class="muted">The production clock starts after comparison and preflight.</p>
+        <div class="progress-track" role="progressbar" id="budget-progress" aria-label="Production budget consumed" aria-valuemin="0" aria-valuemax="100"><span id="budget-fill"></span></div>
+        <div class="budget-meta"><span>Elapsed <strong id="elapsed-time">—</strong></span><span>Deadline <strong id="deadline">—</strong></span></div>
+      </article>
+      <article class="panel phase-panel">
+        <div class="panel-heading"><p class="eyebrow">CURRENT PHASE</p><span id="phase-badge" class="tag warm">WAITING</span></div>
+        <h2 id="phase-title">Waiting for telemetry</h2><p id="phase-copy" class="muted">The dashboard will show the current stage when a snapshot arrives.</p>
+        <div class="phase-detail"><span id="stage-detail">No production events yet</span><span id="source-age" class="muted">—</span></div>
+        <ol class="phase-steps" aria-label="Experiment stages"><li data-stage="comparison">Compare</li><li data-stage="calibration">Calibrate</li><li data-stage="training">Train</li><li data-stage="complete">Assess</li></ol>
+      </article>
+    </section>
+
+    <section class="stats-grid" aria-label="Training totals">
+      <article class="stat"><p>Successful placements</p><strong id="placements">—</strong><span>Total in this production run</span></article>
+      <article class="stat"><p>PPO rollout updates</p><strong id="updates">—</strong><span id="optimizer-detail">Optimizer steps —</span></article>
+      <article class="stat"><p>Completed episodes</p><strong id="episodes">—</strong><span id="clears-detail">Hyperlayers cleared —</span></article>
+      <article class="stat"><p>Best selection survival</p><strong id="best-survival">—</strong><span id="best-detail">Awaiting completed selection games</span></article>
+    </section>
+
+    <section class="panel chart-panel record-panel" aria-label="Maximum survival"><div class="chart-heading"><div><p class="eyebrow">PPO TRAINING / SURVIVAL RECORD</p><h2>Maximum survived pieces</h2></div><strong id="maximum-value" class="maximum-value">—</strong></div><div id="maximum-chart" class="chart-slot"></div><div class="chart-footer"><span><i class="legend-line record-line"></i> Completed episode record</span><span><i class="legend-ring"></i> Latest active game</span><span id="maximum-detail">No completed PPO episodes observed yet</span></div></section>
+
+    <section id="learning" class="chart-grid" aria-label="Learning charts">
+      <article class="panel chart-panel wide-chart"><div class="chart-heading"><div><p class="eyebrow">THE OBJECTIVE</p><h2>Episode survival</h2></div><span class="unit-label">placements / episode</span></div><div id="survival-chart" class="chart-slot"></div><div class="chart-footer"><span><i class="legend-dot warm-dot"></i> Completed training episodes</span><span><i class="legend-line"></i> 5-episode mean</span></div></article>
+      <article class="panel chart-panel"><div class="chart-heading"><div><p class="eyebrow">FROZEN ACTOR · CRITIC ONLY</p><h2>Calibration</h2></div><span class="unit-label">placements</span></div><div id="calibration-chart" class="chart-slot"></div><div id="calibration-detail" class="chart-footer">Calibration observations appear separately from PPO episodes.</div></article>
+      <article class="panel chart-panel wide-chart"><div class="chart-heading"><div><p class="eyebrow">WORK COMPLETED</p><h2>Training progress</h2></div><span class="unit-label">placements vs rollout updates</span></div><div id="progress-chart" class="chart-slot"></div><div class="chart-footer">Successful placements collected by PPO. Calibration is excluded.</div></article>
+      <article class="panel signals-panel"><div class="chart-heading"><div><p class="eyebrow">LATEST MEASUREMENTS</p><h2>Policy signals</h2></div><span id="signals-age" class="unit-label">Awaiting update</span></div><dl class="signal-list"><div><dt>Entropy <span>nats</span></dt><dd id="entropy-value">—</dd></div><div><dt>Exact policy KL <span>nats</span></dt><dd id="kl-value">—</dd></div><div><dt>Lower-primary probability <span>% of choice mass</span></dt><dd id="exploration-value">—</dd></div><div><dt>Hidden saturation <span>% near 0 or 1</span></dt><dd id="saturation-value">—</dd></div><div><dt>Actor changed <span>from initialization</span></dt><dd id="actor-change">—</dd></div></dl><p class="signal-note">Signals describe learning activity. Completed games measure survival.</p></article>
+    </section>
+
+    <section class="signal-charts" aria-label="Policy signal history">
+      <article class="panel chart-panel"><div class="chart-heading"><h2>Entropy</h2><span class="unit-label">nats</span></div><div id="entropy-chart" class="chart-slot compact-chart"></div></article>
+      <article class="panel chart-panel"><div class="chart-heading"><h2>Exploration</h2><span class="unit-label">lower-primary choice mass · %</span></div><div id="exploration-chart" class="chart-slot compact-chart"></div></article>
+      <article class="panel chart-panel"><div class="chart-heading"><h2>Hidden saturation</h2><span class="unit-label">ranker activations · %</span></div><div id="saturation-chart" class="chart-slot compact-chart"></div></article>
+    </section>
+
+    <section id="environments" class="environment-section"><div class="section-heading"><div><p class="eyebrow">PARALLEL ROLLOUTS</p><h2>Training environments</h2></div><span id="games-note" class="muted small">Awaiting environment snapshots</span></div><div id="game-grid" class="game-grid"></div></section>
+
+    <section id="selection-section" class="panel selection-panel" hidden><div class="chart-heading"><div><p class="eyebrow">SELECTION EVIDENCE</p><h2>Completed selection result</h2></div><span class="tag">GREEDY GAMES</span></div><div id="selection-details"></div><p class="muted small">Selection seeds choose checkpoints during training. They are separate from the final comparison.</p></section>
+
+    <section id="events" class="panel events-panel"><div class="chart-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>Event stream</h2></div><span id="history-note" class="unit-label">Real events only</span></div><div id="event-list" class="event-list"><p class="empty-inline">No production events have been recorded yet.</p></div></section>
+    <footer class="page-footer"><span><span class="tiny-dot"></span> LOCALHOST / READ-ONLY</span><span>Times follow your browser’s local timezone. Missing data stays missing.</span></footer>
+  </main>
+</body>
+</html>

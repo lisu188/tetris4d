@@ -1,0 +1,316 @@
+{
+  "schema": "tetris4d-ppo-performance-validation-v1",
+  "passed": true,
+  "timestamp_utc": "2026-11-15T19:44:20.336033+00:00",
+  "runtime_commit": "f09a11cf3c435e8a6aab941e5715d4273cc03443",
+  "sources": {
+    "tetris_neural.py": {
+      "sha256": "32591e1b346cfbc912fa1d26c0e09d6d4c63429a26e2e74e47e25f4c25406d4f",
+      "bytes": 63684
+    },
+    "train_survival_v2.py": {
+      "sha256": "b38d23a3540b025d10658c3cfc7c1739e97744bbcd9a9acc0b884ed323fc3c46",
+      "bytes": 53525
+    },
+    "sparse_tetris_4d_optimized.py": {
+      "sha256": "f9a338af204c61af47e11f6bb3a703466e1a3001994120a3891a858392a5a706",
+      "bytes": 176656
+    },
+    "native/tetris_native.c": {
+      "sha256": "3fe37ac3bd1f2cdc51a156e8bff67a412fca48e65d3cca73b52a2ba0f7d31fe0",
+      "bytes": 10402
+    },
+    "native/libtetris4d_native.so": {
+      "sha256": "9f53e02474ac51cf83c8c39f320479e10e68b5d41d422cbaa7b9a72974e78c83",
+      "bytes": 28392
+    },
+    "native/libtetris4d_native.so.json": {
+      "sha256": "a1b6a70c3fa85ed63e6d72ab598552f51180d927cf29c4966c9f31621fcbf23e",
+      "bytes": 869
+    }
+  },
+  "selected": {
+    "envs": 16,
+    "rollout": 512,
+    "batch": 16,
+    "optimizer_batch": 128,
+    "precision": "fp32",
+    "cache_rollout": true,
+    "rollout_cache_mib": 1024,
+    "backend": "native"
+  },
+  "cache_rollout": {
+    "parity_passed": true,
+    "measured_speedup": 1.1560987379442424
+  },
+  "tests": {
+    "cpu_v2_longevity_cache": {
+      "timestamp_utc": "2026-11-15T19:38:33.914510+00:00",
+      "device": "cpu",
+      "reports": [
+        {
+          "module": "test_survival_v2",
+          "run": 34,
+          "passed": 33,
+          "skipped": [
+            "CUDA unavailable on this worker"
+          ],
+          "failures": 0,
+          "errors": 0,
+          "log": "/home/andrz/git/tetris4d/survival-training.artifacts/validation/final-cache-test_survival_v2.log"
+        },
+        {
+          "module": "test_survival_longevity",
+          "run": 11,
+          "passed": 11,
+          "skipped": [],
+          "failures": 0,
+          "errors": 0,
+          "log": "/home/andrz/git/tetris4d/survival-training.artifacts/validation/final-cache-test_survival_longevity.log"
+        },
+        {
+          "module": "test_rollout_cache",
+          "run": 7,
+          "passed": 6,
+          "skipped": [
+            "CUDA parity requires an explicitly isolated GPU window"
+          ],
+          "failures": 0,
+          "errors": 0,
+          "log": "/home/andrz/git/tetris4d/survival-training.artifacts/validation/final-cache-test_rollout_cache.log"
+        }
+      ],
+      "sources": {
+        "train_survival_v2.py": "b38d23a3540b025d10658c3cfc7c1739e97744bbcd9a9acc0b884ed323fc3c46",
+        "tests/test_rollout_cache.py": "e45d3fb56331abc01290ff1fed947f9a33abe10806cda4cae31a779787ed9e3d",
+        ".github/workflows/survival-v2.yml": "ba70620a413467167aebcb8c130baf8f725c527c224b1d4f324d77ae1bcbcff6"
+      },
+      "gpu_tests": "separate isolated CUDA case passed; benchmark exact prior model/gradient/Adam/progress at batch16",
+      "jobs_started": 0
+    },
+    "preparation_cases_passed": 4,
+    "native_metrics_focused_cases_passed": 4,
+    "native_metrics_exact_batches": 600,
+    "native_metrics_exact_rows": 77400,
+    "dashboard_cases_passed": 14,
+    "cuda_ragged_cache_model_adam_case_passed": true,
+    "native_validation": {
+      "passed": true,
+      "backend": "native",
+      "device": "cpu",
+      "torch": "2.14.1+cu130",
+      "parameters": 62485,
+      "initial_checkpoint_sha256": "e3391817f34e2e322653e479b7a8c575f863b17b3b0a74bb6441946e1f9b3ef5",
+      "source_checkpoint_unchanged": true,
+      "identical_teacher_choices": 2600,
+      "clear_events": [
+        1251,
+        2466
+      ],
+      "final_summary": {
+        "seed": 7,
+        "piece_set": "expanded",
+        "pieces": 2600,
+        "cells_placed": 15598,
+        "piece_counts": {
+          "I": 173,
+          "O": 174,
+          "T": 173,
+          "L": 174,
+          "S": 173,
+          "B": 173,
+          "C": 173,
+          "NOVA": 174,
+          "STAIR": 173,
+          "FORK": 173,
+          "HOOK": 174,
+          "BRIDGE": 173,
+          "RING": 173,
+          "CROSS": 174,
+          "HYPER": 173
+        },
+        "hyperlayers": 2,
+        "score": 200,
+        "game_over": false,
+        "max_height": 6,
+        "holes": 2551,
+        "occupied_cells": 7406
+      },
+      "action_digest": "df47b9bfcec90f8d8571825efa817805d9cbddbe0c13f6b4727c0de49ce68eff",
+      "full_model_optimizer_steps": 6,
+      "elapsed_validation_seconds": 32.745177995999256,
+      "note": "Correctness and short optimizer smoke only. Zero residual reproduces teacher behavior; no learned playing-strength gain or CUDA speedup is claimed."
+    }
+  },
+  "benchmarks": {
+    "cpu_preparation_speedup": 1.1206928310903674,
+    "cpu_collation_speedup": 8.576550712233232,
+    "cache_update_speedup": 1.1560987379442424,
+    "larger_microbatches_rejected": "32/64/128 failed the trajectory comparison tolerance; batch16 retained"
+  },
+  "full_16env_preflight": {
+    "passed": true,
+    "progress": {
+      "runner_updates_added": 1,
+      "placements_added": 8192,
+      "optimizer_steps_added": 192
+    },
+    "update": {
+      "rollout_placements": 8192,
+      "optimizer_steps_this_rollout": 192,
+      "rollout_cache": {
+        "requested": true,
+        "enabled": true,
+        "bytes": 700252160
+      },
+      "phase_seconds": {
+        "prepare_seconds": 43.73145928512167,
+        "inference_transfer_seconds": 12.048213934038358,
+        "commit_seconds": 7.645330521132564,
+        "bootstrap_seconds": 0.030685544003063114,
+        "update": 37.11588853899957
+      },
+      "final_exact_kl": 0.00223564077350602,
+      "entropy": 3.289589553140104
+    },
+    "verification": {
+      "passed": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "native_replayed_environments": 16,
+      "native_replayed_placements": 38181,
+      "actor_sha256_before": "4744f51ff4112770b780b4b18624a5458154d289182e56c517fbf18c28d4aaeb",
+      "actor_sha256_after": "aca0b776fa60d148b06f1c69a0f2bd200d7ff85146e6e8a54f5f4367929259b4",
+      "actor_changed": true,
+      "progress_before": {
+        "updates": 24371,
+        "runner_updates": 54,
+        "warmup_updates": 0,
+        "survival_updates": 54,
+        "placements": 109092,
+        "clears": 55,
+        "finished_episodes": 8,
+        "mode": "overnight-survival",
+        "optimizer_steps": 2559,
+        "kl_stopped_updates": 0,
+        "target_recoveries": 3,
+        "calibration_updates": 300
+      },
+      "progress_after": {
+        "updates": 24563,
+        "runner_updates": 55,
+        "warmup_updates": 0,
+        "survival_updates": 55,
+        "placements": 117284,
+        "clears": 55,
+        "finished_episodes": 8,
+        "mode": "overnight-survival",
+        "optimizer_steps": 2751,
+        "kl_stopped_updates": 0,
+        "target_recoveries": 3,
+        "calibration_updates": 300
+      },
+      "calibration_passed_and_done": true,
+      "model_config": {
+        "width": 32,
+        "blocks": 3,
+        "shortlist": 128,
+        "candidates": 2048,
+        "chunk": 256,
+        "protect_target": true,
+        "recover_target": true,
+        "policy_mode": "teacher-prior",
+        "residual_scale": 1.0,
+        "detach_critic": true,
+        "centered_critic": true,
+        "teacher_prior_scale": 0.125
+      },
+      "snapshot_board_hashes": [
+        "81678d387e484dbd446dddffcea6e033c404ede8ec8e13223eb1eadccb97a65a",
+        "ab9cafef3f909cf78b60983b214ea9481367fe2fc8c361fe1ce24b6b221980f8",
+        "90395459b9906ab908af26696e777f6917b1f0fdbf612ab927602936b1040339",
+        "8522efff23752ec77d4417944f7bdf95a935aacbf3c7ff76d267da37042256d6",
+        "5cffd6af26a023e30607c693d875fdb0d12d05589b4240aa4e3c67a6ba9f4f76",
+        "01b6d6a5489cebecf573717473979e47c9324805887e53d9cfbaee445173c54e",
+        "bad5d0f877795e3d6aee70d2ccef984180a50306de24c93cbb9d80feb43bab05",
+        "5ffd7e94c94146c9bd9ac99cfc9730d3dffd7d01a3bb7364f26265d2660d226b",
+        "3982b211a020dbd3e55e1ea75e516f0ff8befd25cd2d6057faa1aeab0e81083a",
+        "28564e5ab775f24cd5943856531938dd306fdc8653354f732457895f67445816",
+        "071fb44de66991a92695d9d993f89a964060ffda6371eee60ee0afb25a801273",
+        "a52f8074a41afbf02a6ef5cb984c6f7ba178b3205484419cde25ca77dd679727",
+        "eeb6f25e14afd76fa87770b1e00a120b778741663249f7beb49c0e807e6681e2",
+        "2404a57ad99f9f795c3a23ab53c13c4c900da78ac2043a5283cea66bbd65d448",
+        "6d09489b6b3e784ce887b16585dd6bc4821b7c16e8ba3b3f51dc16cfaa8b5e55",
+        "7c6b17fb5fe07fef78faffdad9a65a94100ba788bcad6561f995cb5a6200acff"
+      ]
+    },
+    "checkpoint_cleanup": {
+      "removed_checkpoints": [
+        {
+          "path": "/home/andrz/git/tetris4d/survival-training.artifacts/preflight-16env-cache16/last.pt",
+          "sha256": "eadc5ed8042bebc1a6e4c73b8c11c6bc109e58019d8098d31c90b9d8cd93a2d9",
+          "bytes": 8111995
+        },
+        {
+          "path": "/home/andrz/git/tetris4d/survival-training.artifacts/preflight-16env-cache16/previous.pt",
+          "sha256": "25e182e85f6bbc2c0b2ae44d719dd6a83323e8509c1c7ad9c6d5e90aed04ea74",
+          "bytes": 8111995
+        },
+        {
+          "path": "/home/andrz/git/tetris4d/survival-training.artifacts/preflight-16env-cache16/best.pt",
+          "sha256": "60ad59bb0aca438cf1d56c4f1f18ad58db9bd89e087823ac3a34a40d15624e86",
+          "bytes": 280228
+        }
+      ],
+      "retained": "Compact status, migration/finite/native replay reports, raw metrics, manifest, summary, calibration and session log.",
+      "storage": {
+        "owned_output_bytes": 39847211,
+        "output_limit_bytes": 268435456,
+        "disks": {
+          "linux": {
+            "path": "/home/andrz/git/tetris4d/survival-training.artifacts/preflight-16env-cache16",
+            "total_bytes": 1081101176832,
+            "used_bytes": 199270793216,
+            "free_bytes": 826838028288,
+            "used_fraction": 0.18432205744140642
+          },
+          "windows_backing_volume": {
+            "path": "/mnt/c",
+            "total_bytes": 999595962368,
+            "used_bytes": 666491183104,
+            "free_bytes": 333104779264,
+            "used_fraction": 0.6667605794696398
+          }
+        },
+        "stop_reason": null
+      }
+    }
+  },
+  "local_evidence": {
+    "validation/preparation-benchmark.json": {
+      "sha256": "75614dfcf3f2b041c82c55e0f41c3394d7c746120b5dc6589c80cf15346a8c82",
+      "bytes": 2093
+    },
+    "validation/rollout-cache-benchmark.json": {
+      "sha256": "7b48056992f93618450cf1239e9803a3d9399d3b3e8248da5c57b0f2297a879c",
+      "bytes": 7544
+    },
+    "validation/gpu-simulation-isolated.json": {
+      "sha256": "1c71533409cec65da95dc943832e8aebc07b2e5e92b8c2fe68cb23eb7e381913",
+      "bytes": 2100
+    },
+    "validation/gpu-simulation-provenance.json": {
+      "sha256": "3e32a6f05873b080ab26c3c3baa8b5889c66c25bd4cc4fcc3908932b8551b273",
+      "bytes": 3479
+    },
+    "preflight-16env-cache16/preflight-status.json": {
+      "sha256": "ccfce31be779cd695ee4c072428ddf751ae1d87cdb78f1e3bae39f69d8ec2206",
+      "bytes": 20645
+    }
+  },
+  "limitations": [
+    "Isolated component timings do not establish end-to-end training speedup or playing strength.",
+    "The full preflight is one8192-placement rollout from four saved games and twelve new games.",
+    "GPU physics prototype remains local; clear scores still require CPU rescoring.",
+    "Training and final held-out evaluation/neuron audit remain in progress."
+  ]
+}
