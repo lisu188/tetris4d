@@ -13,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import signal
+import stat
 import threading
 import time
 from urllib.parse import urlsplit
@@ -20,6 +21,7 @@ from urllib.parse import urlsplit
 MAX_BYTES = 8 * 2**20
 MAX_LINE = 256 * 1024
 MAX_READ = 4 * 2**20
+MAX_AUDIT_BYTES = 8 * 2**20
 STATIC = Path(__file__).with_suffix('')
 NUMBERS = ('runner_updates', 'placements', 'optimizer_steps', 'finished_episodes', 'clears',
            'entropy', 'kl', 'policy_loss', 'value_loss', 'teacher_agreement',
@@ -53,6 +55,130 @@ def read_json(path):
     def reject(value):
         raise ValueError('non-finite JSON: ' + value)
     return json.loads(path.read_text(encoding='utf-8'), parse_constant=reject)
+
+
+class NeuronAudit:
+    """A validated snapshot, read once from an explicitly configured file."""
+    def __init__(self, path):
+        flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, 'O_NOFOLLOW', 0)
+        path = Path(path)
+        if path.is_symlink():
+            raise ValueError('Neuron audit must be a regular file, not a symlink')
+        with os.fdopen(os.open(path, flags), 'rb') as stream:
+            before = os.fstat(stream.fileno())
+            if not stat.S_ISREG(before.st_mode):
+                raise ValueError('Neuron audit must be a regular file')
+            if before.st_size > MAX_AUDIT_BYTES:
+                raise ValueError('Neuron audit exceeds the 8 MiB read bound')
+            body = stream.read(MAX_AUDIT_BYTES + 1)
+            after = os.fstat(stream.fileno())
+        if len(body) > MAX_AUDIT_BYTES:
+            raise ValueError('Neuron audit exceeds the 8 MiB read bound')
+        if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+            raise ValueError('Neuron audit changed while being read')
+        def reject(value):
+            raise ValueError('Non-finite neuron audit number: ' + value)
+        try:
+            report = json.loads(body, parse_constant=reject)
+        except (UnicodeError, RecursionError) as error:
+            raise ValueError('Invalid neuron audit JSON') from error
+        self.validate(report)
+        self.body = body
+        self.metadata = {'available': True, 'schema': report['schema'],
+                         'units': len(report['units']), 'sampled_states': len(report['samples']),
+                         'checkpoint_sha256': report['checkpoint']['sha256'],
+                         'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+    @staticmethod
+    def validate(report):
+        def require(condition, message):
+            if not condition:
+                raise ValueError('Invalid neuron audit: ' + message)
+        def text(value):
+            return isinstance(value, str) and bool(value.strip())
+        def integer(value, minimum=0):
+            return type(value) is int and value >= minimum
+        def checksum(value):
+            return isinstance(value, str) and len(value) == 64 and all(c in '0123456789abcdef' for c in value)
+        def finite(value):
+            if type(value) not in (int, float): return False
+            try: return math.isfinite(value)
+            except OverflowError: return False
+        require(isinstance(report, dict) and report.get('schema') == 'tetris4d-neuron-audit-v1', 'unsupported schema')
+        # Also reject exponent overflow (e.g. 1e999), which parse_constant does not see.
+        pending = [report]
+        while pending:
+            value = pending.pop()
+            if isinstance(value, dict): pending.extend(value.values())
+            elif isinstance(value, list): pending.extend(value)
+            elif type(value) in (int, float): require(finite(value), 'non-finite numeric field')
+        checkpoint = report.get('checkpoint')
+        require(isinstance(checkpoint, dict) and text(checkpoint.get('path')) and
+                checksum(checkpoint.get('sha256')) and isinstance(checkpoint.get('config'), dict) and
+                integer(checkpoint.get('parameters'), 1), 'checkpoint provenance')
+        for name in ('sources', 'recordings'):
+            records = report.get(name)
+            require(isinstance(records, list) and bool(records), name + ' provenance')
+            for item in records:
+                require(isinstance(item, dict) and text(item.get('path')) and checksum(item.get('sha256')), name + ' checksum')
+                if name == 'recordings':
+                    require(item.get('verified') is True and integer(item.get('placements')), 'unverified recording')
+        require(report.get('baseline_forward_parity_passed') is True, 'forward parity was not verified')
+        for name in ('environment', 'input_schema', 'policy', 'sampling', 'intervention', 'semantics'):
+            require(isinstance(report.get(name), dict), name + ' metadata')
+        samples = report.get('samples')
+        require(isinstance(samples, list) and 1 <= len(samples) <= 64, 'sample count')
+        sample_ids = set()
+        for sample in samples:
+            require(isinstance(sample, dict) and integer(sample.get('id')) and
+                    sample['id'] not in sample_ids and integer(sample.get('recording')) and
+                    sample['recording'] < len(report['recordings']) and checksum(sample.get('board_sha256')), 'sample provenance')
+            sample_ids.add(sample['id'])
+        groups = report.get('groups')
+        require(isinstance(groups, list) and bool(groups), 'groups missing')
+        counts = {}
+        sigmoid_groups = set()
+        for group in groups:
+            require(isinstance(group, dict) and text(group.get('id')) and group['id'] not in counts and
+                    integer(group.get('units'), 1) and text(group.get('role')) and
+                    type(group.get('spatial')) is bool and type(group.get('sigmoid')) is bool, 'invalid or repeated group')
+            counts[group['id']] = group['units']
+            if group['sigmoid']: sigmoid_groups.add(group['id'])
+        units = report.get('units')
+        require(isinstance(units, list) and 1 <= len(units) <= 10000 and len(units) == sum(counts.values()), 'group unit counts')
+        seen = set()
+        observed = {group: 0 for group in counts}
+        effects = ('mean_absolute_score_change', 'maximum_absolute_score_change', 'mean_absolute_raw_score_change',
+                   'top1_changed_fraction', 'mean_absolute_rank_change', 'original_winner_rank_after',
+                   'original_winner_probability_change', 'probability_total_variation', 'signed_value_change',
+                   'absolute_value_change', 'mean_absolute_completion_probability_change', 'top1_changes')
+        if report['semantics'].get('value_code') == 'expected_remaining_placements_times_0.001':
+            effects += ('absolute_value_change_in_placements',)
+        for unit in units:
+            require(isinstance(unit, dict) and text(unit.get('id')) and unit['id'] not in seen and
+                    text(unit.get('group')) and unit['group'] in counts and integer(unit.get('index')) and
+                    unit['index'] < counts[unit['group']] and
+                    unit['id'] == f"{unit['group']}[{unit['index']}]", 'invalid or repeated unit')
+            seen.add(unit['id']); observed[unit['group']] += 1
+            computation, activation, intervention = (unit.get(key) for key in ('computation', 'activation', 'intervention'))
+            require(isinstance(computation, dict) and text(computation.get('formula')) and
+                    text(computation.get('structural_role')) and text(unit.get('explanation')), 'unit computation')
+            require(isinstance(activation, dict) and integer(activation.get('observations'), 1) and
+                    all(finite(activation.get(key)) for key in ('mean', 'std', 'minimum', 'maximum')) and
+                    activation['minimum'] <= activation['mean'] <= activation['maximum'] and
+                    activation['std'] >= 0, 'unit activation')
+            if unit['group'] in sigmoid_groups:
+                require(finite(activation.get('saturated_fraction')) and 0 <= activation['saturated_fraction'] <= 1,
+                        'sigmoid saturation fraction')
+                require(0 <= activation['minimum'] <= activation['maximum'] <= 1, 'sigmoid activation range')
+            require(isinstance(intervention, dict) and all(finite(intervention.get(key)) for key in effects) and
+                    0 <= intervention['top1_changed_fraction'] <= 1 and
+                    0 <= intervention['probability_total_variation'] <= 1 and
+                    0 <= intervention['top1_changes'] <= len(samples) and
+                    intervention['top1_changes'] == int(intervention['top1_changes']) and
+                    math.isclose(intervention['top1_changed_fraction'], intervention['top1_changes']/len(samples),
+                                 rel_tol=1e-9, abs_tol=1e-9), 'unit intervention')
+        require(observed == counts, 'group unit counts')
 
 
 class Collector:
@@ -459,10 +585,11 @@ class Collector:
                     except (ValueError,TypeError,KeyError): break
 
 
-def make_server(collector, host='127.0.0.1', port=8765, static_dir=STATIC):
+def make_server(collector, host='127.0.0.1', port=8765, static_dir=STATIC, neuron_audit=None):
     if host not in ('127.0.0.1','localhost'):
         raise ValueError('The dashboard binds only to loopback 127.0.0.1')
     static_dir = Path(static_dir)
+    audit = neuron_audit if isinstance(neuron_audit, NeuronAudit) else NeuronAudit(neuron_audit) if neuron_audit is not None else None
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # No growing access log; collection errors are visible in /api/status.
@@ -474,23 +601,34 @@ def make_server(collector, host='127.0.0.1', port=8765, static_dir=STATIC):
                     self.send_error(403); return
                 path = urlsplit(self.path).path
                 download = None
+                status = 200
                 with collector.lock:
                     if path == '/api/status':
-                        body = json.dumps(collector.snapshot(),allow_nan=False).encode(); mime = 'application/json'
+                        snapshot = collector.snapshot()
+                        snapshot['neuron_audit'] = dict(audit.metadata) if audit else {'available': False}
+                        body = json.dumps(snapshot,allow_nan=False).encode(); mime = 'application/json'
+                    elif path == '/api/neuron-audit':
+                        mime = 'application/json'
+                        if audit:
+                            body = audit.body
+                        else:
+                            status = 404
+                            body = json.dumps({'error': 'Neuron audit is not configured'}).encode()
                     elif path == '/api/history.csv':
                         body = collector.history_csv(); mime = 'text/csv; charset=utf-8'; download = 'training-history.csv'
                     elif path == '/api/history.jsonl':
                         body = b''.join(collector.history_lines())
                         mime = 'application/x-ndjson'; download = 'training-history.jsonl'
-                    elif path in ('/','/index.html','/app.js','/style.css'):
-                        file = static_dir/('index.html' if path=='/' else path[1:])
+                    elif path in ('/','/index.html','/app.js','/style.css','/neurons','/neurons.js','/neurons.css'):
+                        filename = 'index.html' if path == '/' else 'neurons.html' if path == '/neurons' else path[1:]
+                        file = static_dir/filename
                         if not file.is_file() or file.is_symlink():
                             self.send_error(404); return
                         body = file.read_bytes()
                         mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'}[file.suffix]
                     else:
                         self.send_error(404); return
-                self.send_response(200); self.send_header('Content-Type',mime)
+                self.send_response(status); self.send_header('Content-Type',mime)
                 self.send_header('Content-Length',str(len(body))); self.send_header('Cache-Control','no-store')
                 self.send_header('X-Content-Type-Options','nosniff')
                 if download: self.send_header('Content-Disposition','attachment; filename="'+download+'"')
@@ -505,19 +643,21 @@ def main(argv=None):
     parser.add_argument('--run-dir',type=Path,required=True)
     parser.add_argument('--data-dir',type=Path,required=True)
     parser.add_argument('--prior-data-dir',type=Path,help='Read-only prior dashboard history for a migrated run')
+    parser.add_argument('--neuron-audit',type=Path,help='Read-only neurons.json snapshot for the neuron explorer')
     parser.add_argument('--host',default='127.0.0.1',choices=('127.0.0.1','localhost'))
     parser.add_argument('--port',type=int,default=8765)
     parser.add_argument('--poll-seconds',type=float,default=15)
     args = parser.parse_args(argv)
     if not 1<=args.port<=65535 or not math.isfinite(args.poll_seconds) or not 1<=args.poll_seconds<=300:
         parser.error('port must be 1..65535 and poll-seconds 1..300')
+    audit = NeuronAudit(args.neuron_audit) if args.neuron_audit is not None else None
     collector = Collector(args.run_dir,args.data_dir,args.prior_data_dir)
     lock_path = collector.data_dir/'collector.lock'
     if lock_path.is_symlink(): raise ValueError('Collector lock must not be a symlink')
     with lock_path.open('a') as lock:
         try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError: raise ValueError('Another collector already owns this data directory')
-        collector.poll(); server = make_server(collector,args.host,args.port)
+        collector.poll(); server = make_server(collector,args.host,args.port,neuron_audit=audit)
         thread = threading.Thread(target=server.serve_forever,daemon=True); thread.start()
         stopped = threading.Event()
         handlers = {sig:signal.getsignal(sig) for sig in (signal.SIGTERM,signal.SIGINT)}

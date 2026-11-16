@@ -2,7 +2,10 @@ import csv
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -323,6 +326,187 @@ class DashboardTests(unittest.TestCase):
                 urlopen(Request(base+'/api/status',headers={'Host':'example.com'}))
             self.assertEqual(caught.exception.code,403)
         finally: server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+
+class NeuronAuditTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.audit_path = self.root/'neurons.json'
+
+    @staticmethod
+    def report():
+        effects = {key: 0.0 for key in (
+            'mean_absolute_score_change', 'maximum_absolute_score_change', 'mean_absolute_raw_score_change',
+            'top1_changed_fraction', 'mean_absolute_rank_change', 'original_winner_rank_after',
+            'original_winner_probability_change', 'probability_total_variation', 'signed_value_change',
+            'absolute_value_change', 'mean_absolute_completion_probability_change', 'top1_changes',
+            'absolute_value_change_in_placements')}
+        groups = [{'id': 'stem', 'units': 1, 'role': 'encoder channel', 'spatial': True, 'sigmoid': True},
+                  {'id': 'value', 'units': 1, 'role': 'critic output', 'spatial': False, 'sigmoid': False}]
+        units = [{'id': group['id']+'[0]', 'group': group['id'], 'index': 0,
+                  'computation': {'formula': 'sigmoid(x)', 'structural_role': group['role']},
+                  'activation': {'observations': 16, 'mean': .5, 'std': .1, 'minimum': .2,
+                                 'maximum': .8, **({'saturated_fraction': 0.0} if group['sigmoid'] else {})},
+                  'intervention': dict(effects), 'explanation': 'Measured midpoint intervention.'} for group in groups]
+        return {'schema': 'tetris4d-neuron-audit-v1',
+                'checkpoint': {'path': '/protected-best.pt', 'sha256': 'a'*64, 'parameters': 2, 'config': {}},
+                'sources': [{'path': 'tools/analyze_neurons.py', 'sha256': 'b'*64}],
+                'recordings': [{'path': '/selection.json.gz', 'sha256': 'c'*64, 'verified': True, 'placements': 100}],
+                'baseline_forward_parity_passed': True,
+                'samples': [{'id': 0, 'recording': 0, 'board_sha256': 'd'*64}],
+                'groups': groups, 'units': units,
+                'semantics': {'value_code': 'expected_remaining_placements_times_0.001'},
+                **{key: {} for key in ('environment', 'input_schema', 'policy', 'sampling', 'intervention')}}
+
+    def write_audit(self, report=None):
+        self.audit_path.write_text(json.dumps(self.report() if report is None else report, indent=2)+'\n')
+        return self.audit_path.read_bytes()
+
+    def serve(self, audit=None):
+        run = self.root/'run'; run.mkdir(exist_ok=True)
+        collector = dashboard.Collector(run, self.root/'history')
+        static = self.root/'static'; static.mkdir(exist_ok=True)
+        for name in ('neurons.html', 'neurons.js', 'neurons.css'):
+            (static/name).write_text('test '+name)
+        server = dashboard.make_server(collector, port=0, static_dir=static, neuron_audit=audit)
+        thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=.01), daemon=True)
+        thread.start()
+        def stop():
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
+        self.addCleanup(stop)
+        return 'http://127.0.0.1:'+str(server.server_port), collector
+
+    def test_http_serves_exact_immutable_audit_and_metadata_without_history_changes(self):
+        original = self.write_audit()
+        base, collector = self.serve(self.audit_path)
+        before = collector.manifest.read_bytes()
+        self.audit_path.write_text('{"replaced":true}')
+        for route in ('/api/neuron-audit', '/api/neuron-audit?path=/etc/passwd'):
+            with urlopen(base+route) as response:
+                self.assertEqual(response.headers['Content-Type'], 'application/json')
+                self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
+                self.assertEqual(response.read(), original)
+        with urlopen(base+'/api/status') as response:
+            metadata = json.load(response)['neuron_audit']
+        self.assertEqual(metadata['units'], 2)
+        self.assertEqual(metadata['sampled_states'], 1)
+        self.assertEqual(metadata['sha256'], dashboard.hashlib.sha256(original).hexdigest())
+        self.assertEqual(metadata['checkpoint_sha256'], 'a'*64)
+        self.assertEqual(metadata['bytes'], len(original))
+        self.assertTrue(metadata['available'])
+        self.assertFalse(collector.history.exists())
+        self.assertEqual(collector.manifest.read_bytes(), before)
+
+    def test_unconfigured_audit_is_explicit_and_static_page_is_available(self):
+        base, _ = self.serve()
+        with self.assertRaises(HTTPError) as caught:
+            urlopen(base+'/api/neuron-audit')
+        self.assertEqual(caught.exception.code, 404)
+        self.assertEqual(json.load(caught.exception), {'error': 'Neuron audit is not configured'})
+        with urlopen(base+'/api/status') as response:
+            self.assertEqual(json.load(response)['neuron_audit'], {'available': False})
+        for route, filename in (('/neurons', 'neurons.html'), ('/neurons.js', 'neurons.js'), ('/neurons.css', 'neurons.css')):
+            with urlopen(base+route) as response:
+                self.assertEqual(response.read(), ('test '+filename).encode())
+
+    def test_legacy_critic_report_is_served_without_placement_measurements(self):
+        report = self.report()
+        report['semantics'] = {'value_code': 'discounted_hyperlayers', 'value': 'Discounted future hyperlayer clears.'}
+        for unit in report['units']:
+            del unit['intervention']['absolute_value_change_in_placements']
+        original = self.write_audit(report)
+        base, _ = self.serve(self.audit_path)
+        with urlopen(base+'/api/neuron-audit') as response:
+            self.assertEqual(response.read(), original)
+
+    def test_survival_critic_report_requires_placement_measurements(self):
+        report = self.report()
+        del report['units'][0]['intervention']['absolute_value_change_in_placements']
+        self.write_audit(report)
+        with self.assertRaisesRegex(ValueError, 'unit intervention'):
+            dashboard.NeuronAudit(self.audit_path)
+
+    @unittest.skipUnless(shutil.which('node'), 'Node is required for the explorer value-unit contract')
+    def test_explorer_critic_scaling_follows_report_semantics(self):
+        script = r'''
+const assert = require('node:assert/strict');
+const explorer = require(process.argv[1]);
+const survival = {value_code: 'expected_remaining_placements_times_0.001'};
+const legacy = {value_code: 'discounted_hyperlayers'};
+const unit = {group: 'value', intervention: {absolute_value_change: 0.25, absolute_value_change_in_placements: 250}};
+const groups = new Map([['value', {sigmoid: false}]]);
+assert.equal(explorer.valueUnits(survival).label, 'placements');
+assert.equal(explorer.valueUnits(legacy).label, 'discounted hyperlayers');
+assert.equal(explorer.valueUnits({}).label, 'critic units');
+assert.equal(explorer.valueUnits(survival).multiplier, 1000);
+assert.equal(explorer.valueUnits(legacy).multiplier, 1);
+assert.equal(explorer.criticChange(unit, survival), 250);
+assert.equal(explorer.criticChange(unit, legacy), 0.25);
+assert.equal(explorer.criticChange(unit, {}), 0.25);
+assert.equal(explorer.metricValue(unit, groups.get('value'), 'critic', legacy), 0.25);
+assert.equal(explorer.metricScale([unit], groups, 'critic', legacy).maximum, 0.25);
+delete unit.intervention.absolute_value_change_in_placements;
+assert.equal(explorer.criticChange(unit, legacy), 0.25);
+assert.equal(explorer.criticChange(unit, survival), 250);
+const range = {minimum: 0.1, maximum: 0.5, mean: 0.25, std: 0.1};
+assert.equal(explorer.activationRange(range, false, explorer.valueUnits(legacy).multiplier).mean, 0.25);
+assert.equal(explorer.activationRange(range, false, explorer.valueUnits(survival).multiplier).mean, 250);
+'''
+        subprocess.run(['node', '-e', script, str(dashboard.STATIC/'neurons.js')], check=True, capture_output=True, text=True)
+
+    def test_audit_routes_keep_host_guard_and_file_allowlist(self):
+        self.write_audit()
+        base, _ = self.serve(self.audit_path)
+        for route in ('/api/neuron-audit', '/neurons', '/neurons.js'):
+            with self.assertRaises(HTTPError) as caught:
+                urlopen(Request(base+route, headers={'Host': 'example.com'}))
+            self.assertEqual(caught.exception.code, 403)
+        for route in ('/neurons.json', '/api/neuron-audit/../../etc/passwd', '/neurons/../neurons.json',
+                      '/%2e%2e/neurons.json', '/api/neuron-audit%2f..%2fsecret'):
+            with self.assertRaises(HTTPError) as caught:
+                urlopen(base+route)
+            self.assertEqual(caught.exception.code, 404)
+
+    def test_malformed_audit_is_rejected_before_server_start(self):
+        cases = (
+            ('schema', lambda r: r.update(schema='other')),
+            ('duplicate unit', lambda r: r['units'].__setitem__(1, r['units'][0])),
+            ('group count', lambda r: r['groups'][0].update(units=2)),
+            ('nonfinite activation', lambda r: r['units'][0]['activation'].update(mean=float('nan'))),
+            ('overflow effect', lambda r: r['units'][0]['intervention'].update(signed_value_change=float('inf'))),
+            ('overflow integer', lambda r: r['units'][0]['activation'].update(mean=2**2000)),
+            ('invalid sigmoid range', lambda r: r['units'][0]['activation'].update(maximum=2)),
+            ('invalid fraction', lambda r: r['units'][0]['intervention'].update(top1_changed_fraction=2)),
+            ('inconsistent count', lambda r: r['units'][0]['intervention'].update(top1_changes=1)),
+            ('fractional count', lambda r: r['units'][0]['intervention'].update(top1_changes=.5, top1_changed_fraction=.5)),
+            ('missing formula', lambda r: r['units'][0]['computation'].pop('formula')),
+            ('missing effect', lambda r: r['units'][0]['intervention'].pop('absolute_value_change')),
+            ('invalid group type', lambda r: r['units'][0].update(group=[])),
+            ('checkpoint checksum', lambda r: r['checkpoint'].update(sha256='bad')),
+            ('unverified recording', lambda r: r['recordings'][0].update(verified=False)),
+            ('parity failure', lambda r: r.update(baseline_forward_parity_passed=False)),
+            ('invalid sample reference', lambda r: r['samples'][0].update(recording=9)),
+        )
+        for name, change in cases:
+            with self.subTest(name=name):
+                report = self.report(); change(report); self.write_audit(report)
+                with self.assertRaises(ValueError): dashboard.NeuronAudit(self.audit_path)
+        self.audit_path.write_text('{"schema":"tetris4d-neuron-audit-v1","overflow":1e999}')
+        with self.assertRaisesRegex(ValueError, 'non-finite'): dashboard.NeuronAudit(self.audit_path)
+        self.audit_path.write_bytes(b'not JSON')
+        with self.assertRaises(ValueError): dashboard.NeuronAudit(self.audit_path)
+
+    def test_missing_oversize_and_nonregular_audit_inputs_are_rejected(self):
+        with self.assertRaises(FileNotFoundError): dashboard.NeuronAudit(self.audit_path)
+        self.write_audit()
+        link = self.root/'linked.json'; link.symlink_to(self.audit_path)
+        with self.assertRaises(ValueError): dashboard.NeuronAudit(link)
+        fifo = self.root/'audit.pipe'; os.mkfifo(fifo)
+        with self.assertRaisesRegex(ValueError, 'regular file'): dashboard.NeuronAudit(fifo)
+        with self.audit_path.open('wb') as stream: stream.truncate(dashboard.MAX_AUDIT_BYTES+1)
+        with self.assertRaisesRegex(ValueError, '8 MiB'): dashboard.NeuronAudit(self.audit_path)
 
 
 if __name__ == '__main__':
