@@ -47,6 +47,14 @@ class Config:
     architecture: str = 'column-sigmoid-v1'
     spatial_actor: bool = False
     shortlist_mode: str = 'teacher-random'
+    # 'sampled' screens `candidates` placements spread over all orientations;
+    # 'exhaustive' screens every legal placement (all orientations x positions).
+    screening: str = 'sampled'
+
+    @property
+    def screening_budget(self) -> int:
+        """Placement budget passed to game.specifications (0 = every placement)."""
+        return 0 if self.screening == 'exhaustive' else self.candidates
 
     def __post_init__(self):
         if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3', 'survival-spatial-v4'):
@@ -62,6 +70,8 @@ class Config:
             raise ValueError('Target and critic settings must be boolean')
         if self.shortlist_mode not in ('teacher-random', 'diverse'):
             raise ValueError('Unsupported candidate shortlist mode')
+        if self.screening not in ('sampled', 'exhaustive'):
+            raise ValueError('Unsupported candidate screening mode')
         if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
@@ -298,7 +308,7 @@ def _option_features(board, candidate, target, context, metrics=None):
 
 
 def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
-    budget = config.candidates if candidates is None else candidates
+    budget = config.screening_budget if candidates is None else candidates
     if type(budget) is not int or budget < 0:
         raise ValueError('Invalid candidate budget')
     status = game.target_layer_status(state.board, target)
