@@ -44,14 +44,14 @@
         <p class="flow-note">Residual blocks preserve their input and add a learned, centered mixing response. Arrows show computation order, not individual weights.</p>
         <div class="head-branches">
           <div class="head-branch"><h3>Actor <span>local + pooled features + context + candidates</span></h3><div id="actor-flow" class="head-flow"></div><p id="policy-formula"></p><span>Move scores → masked softmax or greedy selection</span></div>
-          <div class="head-branch"><h3>Critic <span>pooled features + context</span></h3><div id="critic-flow" class="head-flow"></div><p>Output × 1,000 = estimated remaining placements</p><span>Does not enter move ranking</span></div>
+          <div class="head-branch"><h3>Critic <span>pooled features + context</span></h3><div id="critic-flow" class="head-flow"></div><p id="critic-formula"></p><span>Does not enter move ranking</span></div>
           <div class="head-branch"><h3>Completion auxiliary <span>pooled features + context</span></h3><div id="completion-flow" class="head-flow"></div><p>16 original-height layer-clear probabilities</p><span>Inherited imitation head; may be stale</span></div>
         </div>
       </section>
       <section id="inventory" class="inventory-section" aria-labelledby="inventory-title">
         <div class="section-heading"><div><p class="eyebrow">CHANNEL &amp; UNIT INVENTORY</p><h2 id="inventory-title">Every audited unit</h2></div><span id="visible-count" class="muted small"></span></div>
         <div class="audit-controls">
-          <label>Color by<select id="metric-select"><option value="mean">Activation mean · bounded units</option><option value="saturation">Saturated activation fraction</option><option value="choice">Greedy choice change rate</option><option value="tv">Move probability total variation</option><option value="critic">Absolute critic change · placements</option></select></label>
+          <label>Color by<select id="metric-select"><option value="mean">Activation mean · bounded units</option><option value="saturation">Saturated activation fraction</option><option value="choice">Greedy choice change rate</option><option value="tv">Move probability total variation</option><option value="critic">Absolute critic change</option></select></label>
           <label>Layer<select id="group-select"><option value="">All layers</option></select></label>
           <label class="audit-search">Find a unit<input id="unit-search" type="search" placeholder="e.g. rank1[42]" autocomplete="off" spellcheck="false"></label>
         </div>

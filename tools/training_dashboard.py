@@ -149,8 +149,9 @@ class NeuronAudit:
         effects = ('mean_absolute_score_change', 'maximum_absolute_score_change', 'mean_absolute_raw_score_change',
                    'top1_changed_fraction', 'mean_absolute_rank_change', 'original_winner_rank_after',
                    'original_winner_probability_change', 'probability_total_variation', 'signed_value_change',
-                   'absolute_value_change', 'mean_absolute_completion_probability_change', 'top1_changes',
-                   'absolute_value_change_in_placements')
+                   'absolute_value_change', 'mean_absolute_completion_probability_change', 'top1_changes')
+        if report['semantics'].get('value_code') == 'expected_remaining_placements_times_0.001':
+            effects += ('absolute_value_change_in_placements',)
         for unit in units:
             require(isinstance(unit, dict) and text(unit.get('id')) and unit['id'] not in seen and
                     text(unit.get('group')) and unit['group'] in counts and integer(unit.get('index')) and

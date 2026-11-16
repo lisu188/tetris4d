@@ -4,6 +4,8 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -291,7 +293,8 @@ class NeuronAuditTests(unittest.TestCase):
                 'baseline_forward_parity_passed': True,
                 'samples': [{'id': 0, 'recording': 0, 'board_sha256': 'd'*64}],
                 'groups': groups, 'units': units,
-                **{key: {} for key in ('environment', 'input_schema', 'policy', 'sampling', 'intervention', 'semantics')}}
+                'semantics': {'value_code': 'expected_remaining_placements_times_0.001'},
+                **{key: {} for key in ('environment', 'input_schema', 'policy', 'sampling', 'intervention')}}
 
     def write_audit(self, report=None):
         self.audit_path.write_text(json.dumps(self.report() if report is None else report, indent=2)+'\n')
@@ -343,6 +346,51 @@ class NeuronAuditTests(unittest.TestCase):
         for route, filename in (('/neurons', 'neurons.html'), ('/neurons.js', 'neurons.js'), ('/neurons.css', 'neurons.css')):
             with urlopen(base+route) as response:
                 self.assertEqual(response.read(), ('test '+filename).encode())
+
+    def test_legacy_critic_report_is_served_without_placement_measurements(self):
+        report = self.report()
+        report['semantics'] = {'value_code': 'discounted_hyperlayers', 'value': 'Discounted future hyperlayer clears.'}
+        for unit in report['units']:
+            del unit['intervention']['absolute_value_change_in_placements']
+        original = self.write_audit(report)
+        base, _ = self.serve(self.audit_path)
+        with urlopen(base+'/api/neuron-audit') as response:
+            self.assertEqual(response.read(), original)
+
+    def test_survival_critic_report_requires_placement_measurements(self):
+        report = self.report()
+        del report['units'][0]['intervention']['absolute_value_change_in_placements']
+        self.write_audit(report)
+        with self.assertRaisesRegex(ValueError, 'unit intervention'):
+            dashboard.NeuronAudit(self.audit_path)
+
+    @unittest.skipUnless(shutil.which('node'), 'Node is required for the explorer value-unit contract')
+    def test_explorer_critic_scaling_follows_report_semantics(self):
+        script = r'''
+const assert = require('node:assert/strict');
+const explorer = require(process.argv[1]);
+const survival = {value_code: 'expected_remaining_placements_times_0.001'};
+const legacy = {value_code: 'discounted_hyperlayers'};
+const unit = {group: 'value', intervention: {absolute_value_change: 0.25, absolute_value_change_in_placements: 250}};
+const groups = new Map([['value', {sigmoid: false}]]);
+assert.equal(explorer.valueUnits(survival).label, 'placements');
+assert.equal(explorer.valueUnits(legacy).label, 'discounted hyperlayers');
+assert.equal(explorer.valueUnits({}).label, 'critic units');
+assert.equal(explorer.valueUnits(survival).multiplier, 1000);
+assert.equal(explorer.valueUnits(legacy).multiplier, 1);
+assert.equal(explorer.criticChange(unit, survival), 250);
+assert.equal(explorer.criticChange(unit, legacy), 0.25);
+assert.equal(explorer.criticChange(unit, {}), 0.25);
+assert.equal(explorer.metricValue(unit, groups.get('value'), 'critic', legacy), 0.25);
+assert.equal(explorer.metricScale([unit], groups, 'critic', legacy).maximum, 0.25);
+delete unit.intervention.absolute_value_change_in_placements;
+assert.equal(explorer.criticChange(unit, legacy), 0.25);
+assert.equal(explorer.criticChange(unit, survival), 250);
+const range = {minimum: 0.1, maximum: 0.5, mean: 0.25, std: 0.1};
+assert.equal(explorer.activationRange(range, false, explorer.valueUnits(legacy).multiplier).mean, 0.25);
+assert.equal(explorer.activationRange(range, false, explorer.valueUnits(survival).multiplier).mean, 250);
+'''
+        subprocess.run(['node', '-e', script, str(dashboard.STATIC/'neurons.js')], check=True, capture_output=True, text=True)
 
     def test_audit_routes_keep_host_guard_and_file_allowlist(self):
         self.write_audit()

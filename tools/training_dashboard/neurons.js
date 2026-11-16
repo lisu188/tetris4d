@@ -2,10 +2,20 @@
 
 (function () {
   const finite = value => typeof value === "number" && Number.isFinite(value);
-  const placementChange = unit => {
+  const valueUnits = semantics => {
+    if (semantics?.value_code === "expected_remaining_placements_times_0.001") return {
+      multiplier: 1000, label: "placements", description: "Estimated placements (raw critic output × 1,000)."
+    };
+    if (semantics?.value_code === "discounted_hyperlayers") return {
+      multiplier: 1, label: "discounted hyperlayers", description: "Estimated discounted future hyperlayer clears."
+    };
+    return {multiplier: 1, label: "critic units", description: "Raw critic output; value units are unspecified."};
+  };
+  const criticChange = (unit, semantics) => {
     const effect = unit.intervention || {};
-    if (finite(effect.absolute_value_change_in_placements)) return effect.absolute_value_change_in_placements;
-    return finite(effect.absolute_value_change) ? effect.absolute_value_change * 1000 : null;
+    const units = valueUnits(semantics);
+    if (units.multiplier === 1000 && finite(effect.absolute_value_change_in_placements)) return effect.absolute_value_change_in_placements;
+    return finite(effect.absolute_value_change) ? effect.absolute_value_change * units.multiplier : null;
   };
   const metrics = {
     mean: {label: "Mean activation · bounded units only", maximum: 1, percent: false,
@@ -16,15 +26,16 @@
       value: unit => unit.intervention?.top1_changed_fraction},
     tv: {label: "Move-choice probability total variation · 0–1", maximum: 1, percent: false,
       value: unit => unit.intervention?.probability_total_variation},
-    critic: {label: "Mean absolute critic change · placements", maximum: null, percent: false, value: placementChange}
+    critic: {label: "Mean absolute critic change", maximum: null, percent: false,
+      value: (unit, group, semantics) => criticChange(unit, semantics)}
   };
-  function metricValue(unit, group, metric) {
-    const value = (metrics[metric] || metrics.mean).value(unit, group);
+  function metricValue(unit, group, metric, semantics) {
+    const value = (metrics[metric] || metrics.mean).value(unit, group, semantics);
     return finite(value) ? value : null;
   }
-  function metricScale(units, groups, metric) {
+  function metricScale(units, groups, metric, semantics) {
     const specification = metrics[metric] || metrics.mean;
-    const measured = units.map(unit => metricValue(unit, groups.get(unit.group), metric)).filter(finite);
+    const measured = units.map(unit => metricValue(unit, groups.get(unit.group), metric, semantics)).filter(finite);
     return {minimum: 0, maximum: specification.maximum || Math.max(0, ...measured) || 1};
   }
   function colorFor(value, maximum) {
@@ -48,7 +59,7 @@
       (!needle || [unit.id, unit.group, unit.role].some(value => String(value || "").toLowerCase().includes(needle))));
   }
   // Pure helpers also run under Node for small data-contract checks.
-  if (typeof module !== "undefined" && module.exports) module.exports = {metricValue, metricScale, placementChange, colorFor, activationRange, matchingUnits};
+  if (typeof module !== "undefined" && module.exports) module.exports = {metricValue, metricScale, criticChange, valueUnits, colorFor, activationRange, matchingUnits};
   if (typeof document === "undefined") return;
 
   const $ = id => document.getElementById(id);
@@ -95,6 +106,7 @@
     renderFlow("encoder-flow", report.groups.filter(group => group.spatial));
     renderFlow("actor-flow", report.groups.filter(group => ["rank1", "rank2", "score"].includes(group.id)));
     renderFlow("critic-flow", report.groups.filter(group => ["value_hidden", "value"].includes(group.id)));
+    $("critic-formula").textContent = report.semantics?.value || valueUnits(report.semantics).description;
     renderFlow("completion-flow", report.groups.filter(group => ["completion_hidden", "completion"].includes(group.id)));
     $("policy-formula").textContent = report.policy?.final_score_formula || "Policy score formula unavailable.";
   }
@@ -116,7 +128,7 @@
   function renderInventory() {
     if (!report) return;
     const metric = $("metric-select").value;
-    const scale = metricScale(report.units, groupMap, metric);
+    const scale = metricScale(report.units, groupMap, metric, report.semantics);
     const selection = $("group-select").value;
     visible = matchingUnits(report.units, selection, $("unit-search").value);
     $("visible-count").textContent = `${number(visible.length, 0)} / ${number(report.units.length, 0)} units shown`;
@@ -138,7 +150,7 @@
       cells.setAttribute("role", "group");
       cells.setAttribute("aria-labelledby", title.id);
       for (const unit of units) {
-        const value = metricValue(unit, group, metric);
+        const value = metricValue(unit, group, metric, report.semantics);
         const button = make("button", `neuron-cell${value === null ? " metric-missing" : ""}`, unit.index);
         button.type = "button";
         button.dataset.unit = unit.id;
@@ -167,7 +179,7 @@
   }
   function renderActivation(unit, group) {
     const section = detailSection("Observed activations");
-    const multiplier = unit.group === "value" ? 1000 : 1;
+    const multiplier = unit.group === "value" ? valueUnits(report.semantics).multiplier : 1;
     const range = activationRange(unit.activation, group?.sigmoid === true, multiplier);
     if (!range) { section.append(make("p", "detail-copy", "Activation measurements are unavailable.")); return section; }
     const chart = make("div", "range-chart");
@@ -187,7 +199,7 @@
     for (const [label, value] of [["MIN", range.minimum], ["MEAN", range.mean], ["STD", range.std], ["MAX", range.maximum]]) {
       const pair = make("div"); pair.append(make("dt", "", label), make("dd", "", number(value, 4))); statistics.append(pair);
     }
-    const units = unit.group === "value" ? "Estimated placements (raw critic output × 1,000)." : group?.sigmoid ? "Sigmoid activation on a fixed 0–1 axis." : "Raw actor score, on its own numeric axis; not a probability.";
+    const units = unit.group === "value" ? valueUnits(report.semantics).description : group?.sigmoid ? "Sigmoid activation on a fixed 0–1 axis." : "Raw actor score, on its own numeric axis; not a probability.";
     section.append(chart, ticks, statistics, make("p", "range-caption", `${units} Line: observed min–max. Teal band: mean ± std, clipped to that range. Orange marker: mean. No distribution shape is inferred.`));
     const saturation = group?.sigmoid ? ` · ${percent(unit.activation?.saturated_fraction)} saturated` : "";
     section.append(make("p", "detail-copy", `${number(unit.activation?.observations, 0)} observations${saturation}. ${unit.spatial ? "Shared channel measured across spatial sites." : unit.group.startsWith("rank") || unit.group === "score" ? "Measured across valid candidates." : "One scalar observation per sampled state."}`));
@@ -212,27 +224,29 @@
     const section = detailSection("Measured intervention effects");
     const effect = unit.intervention || {};
     const scoreMaximum = maximumEffect(item => item.intervention?.mean_absolute_score_change);
-    const criticMaximum = maximumEffect(placementChange);
+    const units = valueUnits(report.semantics);
+    const criticMaximum = maximumEffect(item => criticChange(item, report.semantics));
     const rankMaximum = maximumEffect(item => item.intervention?.mean_absolute_rank_change);
     section.append(effectRow("Greedy choice changed", effect.top1_changed_fraction, 1, percent),
       effectRow("Move probability total variation", effect.probability_total_variation, 1, value => number(value, 5)),
-      effectRow("Absolute critic change", placementChange(unit), criticMaximum, value => number(value, 2), "placements"),
+      effectRow("Absolute critic change", criticChange(unit, report.semantics), criticMaximum, value => number(value, 2), units.label),
       effectRow("Absolute final-score change", effect.mean_absolute_score_change, scoreMaximum, value => number(value, 5), "score units"),
       effectRow("Absolute candidate-rank change", effect.mean_absolute_rank_change, rankMaximum, value => number(value, 3), "ranks"),
       effectRow("Absolute auxiliary probability change", effect.mean_absolute_completion_probability_change, 1, percent));
     section.append(make("p", "range-caption", "Bars have separately labeled axes. Critic, score and rank axes use the largest measured effect across this audit; probability axes cover their full bounds."));
-    const signed = finite(effect.signed_value_change) ? effect.signed_value_change * 1000 : null;
-    section.append(make("p", "detail-copy", `Greedy choice changed in ${number(effect.top1_changes, 0)} / ${number(report.samples.length, 0)} sampled states. Signed mean critic change: ${finite(signed) && signed > 0 ? "+" : ""}${number(signed, 2)} placements. A value shift is a model response, not measured survival gain.`));
+    const signed = finite(effect.signed_value_change) ? effect.signed_value_change * units.multiplier : null;
+    section.append(make("p", "detail-copy", `Greedy choice changed in ${number(effect.top1_changes, 0)} / ${number(report.samples.length, 0)} sampled states. Signed mean critic change: ${finite(signed) && signed > 0 ? "+" : ""}${number(signed, 2)} ${units.label}. A value shift is a model response, not measured survival gain.`));
     return section;
   }
   function renderContexts(unit) {
     const section = detailSection("Three strongest sampled contexts");
     section.append(make("p", "range-caption", "Ranked by mean activation within the sampled states, not by survival or semantic importance."));
+    const units = valueUnits(report.semantics);
     for (const context of (unit.strongest_contexts || []).slice(0, 3)) {
       const sample = report.samples.find(item => item.id === context.sample);
       const card = make("article", "context-card");
       const top = make("div", "context-top");
-      top.append(make("span", "", `State ${context.sample}${sample ? ` · ${sample.piece} → ${sample.next_piece}` : ""}`), make("span", "", `mean ${number(finite(context.mean_activation) ? context.mean_activation * (unit.group === "value" ? 1000 : 1) : null, 4)}${unit.group === "value" ? " placements" : ""}`));
+      top.append(make("span", "", `State ${context.sample}${sample ? ` · ${sample.piece} → ${sample.next_piece}` : ""}`), make("span", "", `mean ${number(finite(context.mean_activation) ? context.mean_activation * (unit.group === "value" ? units.multiplier : 1) : null, 4)}${unit.group === "value" ? ` ${units.label}` : ""}`));
       card.append(top);
       if (sample) {
         const meta = make("p", "context-meta", `Seed ${sample.seed} · after ${number(sample.placements_before, 0)} placements · target ${sample.effective_target} · ${sample.candidates} candidates`);
@@ -264,6 +278,8 @@
   function renderReport(data) {
     if (!data || data.schema !== "tetris4d-neuron-audit-v1" || !Array.isArray(data.units) || !data.units.length || !Array.isArray(data.groups) || !Array.isArray(data.samples)) throw new Error("This file is not a supported neuron audit.");
     report = data;
+    metrics.critic.label = `Mean absolute critic change · ${valueUnits(report.semantics).label}`;
+    $("metric-select").querySelector('option[value="critic"]').textContent = metrics.critic.label;
     groupMap = new Map(report.groups.map(group => [group.id, group]));
     unitMap = new Map(report.units.map(unit => [unit.id, unit]));
     selectedId = null;
