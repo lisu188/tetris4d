@@ -168,7 +168,7 @@ def configuration(args):
             'initialization': 'all trainable neural weights initialized afresh; no checkpoint or optimizer transfer',
             'hours': HOURS, 'start_epoch': None, 'deadline_epoch': None,
             'seed': args.seed, 'calibration_seed': args.calibration_seed, 'selection_seeds': args.selection_seeds,
-            'envs': 16, 'rollout': 1024, 'gpu_budget_bytes': 6144*MIB,
+            'envs': 16, 'rollout': 1024, 'gpu_budget_bytes': 4096*MIB,
             'gpu_free_headroom_bytes': 512*MIB, 'cache': str(cache), 'cache_limit_bytes': 64*MIB,
             'output_limit_bytes': 256*MIB,
             'protocol': 'One fresh eight-hour run including calibration and selection; no automatic resume, restart or promotion. Fixed heuristic prior remains an explicit hybrid component.'}
@@ -195,7 +195,7 @@ def training_command(config, hours):
         '--recover-target', '--policy-mode', 'teacher-prior', '--teacher-prior-scale', '.125',
         '--residual-scale', '1', '--gradient-clip-scope', 'separate']
     return [config['python'], '-B', '-u', str(Path(config['source'])/'tools/run_survival_v3.py'),
-            '--worker', '--gpu-budget-mib', '6144', '--gpu-headroom-mib', '512', '--', *arguments]
+            '--worker', '--gpu-budget-mib', '4096', '--gpu-headroom-mib', '512', '--', *arguments]
 
 
 def gpu_status(config, starting=False):
@@ -486,7 +486,7 @@ def cuda_budget(torch, budget_bytes, headroom_bytes):
     torch.cuda.set_per_process_memory_fraction(budget_bytes/total, 0)
     free, observed_total = torch.cuda.mem_get_info(0)
     require(observed_total == total and free >= budget_bytes+headroom_bytes,
-            'Insufficient free GPU memory for 6GiB allocator plus512MiB headroom')
+            'Insufficient free GPU memory for 4GiB allocator plus512MiB headroom')
     return {'gpu_budget_bytes': budget_bytes, 'gpu_free_headroom_bytes': headroom_bytes,
             'free_bytes_at_worker_start': free, 'total_bytes': total}
 
@@ -495,7 +495,7 @@ def worker(argv):
     import runpy
     import torch
     parser = argparse.ArgumentParser(description='Set CUDA allocator bound before importing the v3 trainer')
-    parser.add_argument('--gpu-budget-mib', type=int, choices=(6144,), required=True)
+    parser.add_argument('--gpu-budget-mib', type=int, choices=(4096,), required=True)
     parser.add_argument('--gpu-headroom-mib', type=int, choices=(512,), required=True)
     parser.add_argument('arguments', nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)

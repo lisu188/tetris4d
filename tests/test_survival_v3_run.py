@@ -121,7 +121,7 @@ class FreshRunTests(unittest.TestCase):
         config = self.config()
         command = runner.training_command(config, 7.25)
         for flag, expected in [('--hours', '7.25'), ('--envs', '16'), ('--rollout', '1024'),
-                ('--optimizer-batch', '256'), ('--gpu-budget-mib', '6144'), ('--gpu-headroom-mib', '512'),
+                ('--optimizer-batch', '256'), ('--gpu-budget-mib', '4096'), ('--gpu-headroom-mib', '512'),
                 ('--record-max-mib', '16'), ('--record-every', '4'), ('--calibration-steps', '600')]:
             self.assertEqual(command[command.index(flag)+1], expected)
         self.assertNotIn('--checkpoint', command)
@@ -315,17 +315,17 @@ class FreshRunTests(unittest.TestCase):
         total = 8192*runner.MIB
         cuda = types.SimpleNamespace(is_available=lambda: True,
             get_device_properties=lambda device: types.SimpleNamespace(total_memory=total),
-            set_per_process_memory_fraction=Mock(), mem_get_info=Mock(return_value=(7000*runner.MIB, total)))
-        runner.cuda_budget(types.SimpleNamespace(cuda=cuda), 6144*runner.MIB, 512*runner.MIB)
-        cuda.set_per_process_memory_fraction.assert_called_once_with(.75, 0)
-        cuda.mem_get_info.return_value = (6500*runner.MIB, total)
+            set_per_process_memory_fraction=Mock(), mem_get_info=Mock(return_value=(5000*runner.MIB, total)))
+        runner.cuda_budget(types.SimpleNamespace(cuda=cuda), 4096*runner.MIB, 512*runner.MIB)
+        cuda.set_per_process_memory_fraction.assert_called_once_with(.5, 0)
+        cuda.mem_get_info.return_value = (4500*runner.MIB, total)
         with self.assertRaisesRegex(ValueError, 'Insufficient free GPU'):
-            runner.cuda_budget(types.SimpleNamespace(cuda=cuda), 6144*runner.MIB, 512*runner.MIB)
+            runner.cuda_budget(types.SimpleNamespace(cuda=cuda), 4096*runner.MIB, 512*runner.MIB)
 
     def test_periodic_gpu_free_headroom_guard(self):
         config = self.config()
-        with patch.object(runner.subprocess, 'check_output', return_value='7000, 8192\n'):
-            self.assertEqual(runner.gpu_status(config, starting=True)['free_bytes'], 7000*runner.MIB)
+        with patch.object(runner.subprocess, 'check_output', return_value='5000, 8192\n'):
+            self.assertEqual(runner.gpu_status(config, starting=True)['free_bytes'], 5000*runner.MIB)
         with patch.object(runner.subprocess, 'check_output', return_value='500, 8192\n'):
             with self.assertRaisesRegex(ValueError, 'GPU free memory'):
                 runner.gpu_status(config)
@@ -335,13 +335,13 @@ class FreshRunTests(unittest.TestCase):
              patch.object(runner, 'cuda_budget', return_value={}) as budget, \
              patch('runpy.run_path') as execute, patch.object(sys, 'argv', ['worker']), \
              patch.object(sys, 'path', list(sys.path)), contextlib.redirect_stdout(io.StringIO()):
-            runner.worker(['--gpu-budget-mib', '6144', '--gpu-headroom-mib', '512', '--', '--seed', '650000'])
+            runner.worker(['--gpu-budget-mib', '4096', '--gpu-headroom-mib', '512', '--', '--seed', '650000'])
             budget.assert_called_once()
             self.assertEqual(sys.argv, [str(runner.SOURCE/'train_survival_v3.py'), '--seed', '650000'])
             self.assertEqual(sys.path[0], str(runner.SOURCE))
             execute.assert_called_once_with(str(runner.SOURCE/'train_survival_v3.py'), run_name='__main__')
             with self.assertRaisesRegex(ValueError, 'checkpoint transfer'):
-                runner.worker(['--gpu-budget-mib', '6144', '--gpu-headroom-mib', '512', '--', '--checkpoint=old.pt'])
+                runner.worker(['--gpu-budget-mib', '4096', '--gpu-headroom-mib', '512', '--', '--checkpoint=old.pt'])
 
     def test_statistics_read_latest_complete_metric_and_active_max(self):
         config = self.config()

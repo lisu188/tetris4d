@@ -64,7 +64,8 @@ python -B tools/run_survival_v3.py --python /path/to/venv/bin/python \
 Add `--run --plan-sha256 <printed-plan-hash>` to execute that exact plan. The new
 eight-hour clock starts at launch and includes calibration and evaluation. It
 does not inherit an older run's deadline. The runner pins source, executable,
-native backend and heuristic hashes; caps Torch allocation at 6 GiB; bounds
+native backend and heuristic hashes; caps Torch allocation at 4 GiB with 512 MiB
+free GPU headroom; bounds
 output/private caches; checks Linux and Windows disk headroom; and records status
 every 30 seconds with progress reports every five minutes. It requests a graceful
 checkpoint on deadline or guard failure and never automatically restarts.
