@@ -97,12 +97,96 @@ def survival_features(masks):
                         *diversity), dim=1)
 
 
-def assemble(masks, targets, context, moves):
+def board_counts_reference(masks, targets):
+    """Plain-torch reference for tetris_gpu_board_features.board_counts (same [n, 46] int layout)."""
+    masks = masks.to(torch.int32)
+    n = len(masks)
+    levels = torch.arange(16, device=masks.device, dtype=torch.int32)[None, :, None]
+    bits = (masks[:, None, :] >> levels) & 1
+    height = v4._bit_length16(masks)
+    hole = (bits == 0) & (levels < height[:, None, :])
+    above = v4._bitcount16(masks[:, None, :] >> (levels + 1))
+    holes = height - v4._bitcount16(masks)
+    transitions = v4._bitcount16((masks ^ ((masks << 1) | 1)) & 0xFFFF)
+    grid = height.reshape(n, 16, 16, 16)  # [n, w, y, x]: column index = (w * 16 + y) * 16 + x
+    padded = F.pad(grid, (1, 1, 1, 1, 1, 1), value=16)
+    lowest = torch.stack((padded[:, 1:-1, 1:-1, :-2], padded[:, 1:-1, 1:-1, 2:],
+                          padded[:, 1:-1, :-2, 1:-1], padded[:, 1:-1, 2:, 1:-1],
+                          padded[:, :-2, 1:-1, 1:-1], padded[:, 2:, 1:-1, 1:-1])).amin(0)
+    wells = (lowest - grid).clamp_min(0).reshape(n, -1)
+    diversity = []
+    for dim in (3, 2, 1):  # x, y, w
+        difference = torch.diff(grid, dim=dim).reshape(n, -1)
+        present = torch.stack([(difference == value).any(1) for value in range(-2, 3)], 1).to(torch.int32)
+        diversity.append((present << torch.arange(5, device=masks.device, dtype=torch.int32)).sum(1))
+    columns = lambda value: value.sum(1)[:, None]
+    return torch.cat((bits.sum(2), hole.sum(2), columns(height), height.amax(1)[:, None],
+                      columns(height <= targets.to(device=masks.device, dtype=torch.int32)[:, None]),
+                      columns(holes), (hole * above).sum((1, 2))[:, None], columns(holes > 0), columns(transitions),
+                      columns(wells * (wells + 1) // 2), wells.amax(1)[:, None], columns(height >= 12),
+                      columns(height >= 14), torch.stack(diversity, 1)), dim=1).to(torch.int32)
+
+
+_KERNELS = None
+
+
+def board_counts(masks, targets):
+    """[n, 46] integer board statistics: the fused Triton kernel on CUDA, the torch reference otherwise."""
+    global _KERNELS
+    if masks.is_cuda:
+        if _KERNELS is None:
+            try:
+                import tetris_gpu_board_features as kernels
+                _KERNELS = kernels
+            except ImportError:  # Triton unavailable
+                _KERNELS = False
+        if _KERNELS:
+            return _KERNELS.board_counts(masks, targets)
+    return board_counts_reference(masks, targets)
+
+
+def _popcount5(values):
+    return sum(((values >> bit) & 1) for bit in range(5)).float()
+
+
+def pooled_from_counts(counts):
+    """Exactly pooled_columns(masks, targets) from the integer counts: [n, 68]."""
+    area = float(game.AREA)
+    occupied, buried = counts[:, :16], counts[:, 16:32]
+    height_sum, height_max, accessible = counts[:, 32:33], counts[:, 33:34], counts[:, 34:35]
+    return torch.cat((occupied.float() / area, buried.float() / area, height_sum.float() / (16 * area),
+                      accessible.float() / area, (occupied > 0).float(), (buried > 0).float(),
+                      height_max.float() / 16, (accessible > 0).float()), dim=1)
+
+
+def survival_from_counts(counts):
+    """Exactly survival_features(masks) from the integer counts: [n, 11]."""
+    area = float(game.AREA)
+    c = counts
+    return torch.stack((c[:, 35].float() / (16 * area), c[:, 36].float() / (256 * area), c[:, 37].float() / area,
+                        c[:, 38].float() / (16 * area), c[:, 39].float() / (136 * area), c[:, 40].float() / 16,
+                        c[:, 41].float() / area, c[:, 42].float() / area,
+                        _popcount5(c[:, 43]) / 5, _popcount5(c[:, 44]) / 5, _popcount5(c[:, 45]) / 5), dim=1)
+
+
+def context_from_counts(counts, targets, piece_rows, piece_phase):
+    """Exactly tetris_survival_v4.device_afterstate_context from the integer counts: [n, 82]."""
+    area = float(game.AREA)
+    holes, height_sum = counts[:, 35].double(), counts[:, 32].double()
+    glob = torch.stack((targets.double() / 15, holes / 65536, (height_sum - holes) / 65536,
+                        counts[:, 33].double() / 16, piece_phase.double()), dim=1)
+    return torch.cat((piece_rows.double(), counts[:, :16].double() / area, counts[:, 16:32].double() / area,
+                      glob), dim=1).float()
+
+
+def assemble(masks, targets, context, moves, counts=None):
     """One feature row per board: [V4 pooled 266 | adjacency 18, survival 11, move 5 | context 82]."""
-    adjacency = v4.adjacency_statistics(masks.to(torch.int32), targets.to(torch.int32))
-    pooled = torch.cat((pooled_columns(masks, targets), adjacency.mean(dim=1).float(),
+    masks = masks.to(torch.int32)
+    counts = board_counts(masks, targets) if counts is None else counts
+    adjacency = v4.adjacency_statistics(masks, targets.to(torch.int32))
+    pooled = torch.cat((pooled_from_counts(counts), adjacency.mean(dim=1).float(),
                         v4.regional_statistics(masks).float()), dim=1)
-    extras = torch.cat((adjacency.reshape(len(masks), -1).float(), survival_features(masks), moves.float()), dim=1)
+    extras = torch.cat((adjacency.reshape(len(masks), -1).float(), survival_from_counts(counts), moves.float()), dim=1)
     return torch.cat((pooled, extras, context.float()), dim=1)
 
 
@@ -127,17 +211,25 @@ def _shape_tables(device):
     return cells.to(device), present.to(device)
 
 
-def place(boards, cells, cell_mask):
-    """Merge absolute (x, y, z, w) cells and clear full layers -> (after [k,4096] int32, full [k,16])."""
+def place(boards, cells, cell_mask, clears=None):
+    """Merge absolute (x, y, z, w) cells and clear full layers -> (after [k,4096] int32, full [k,16]).
+
+    `clears` (bool [k], optional) marks rows that may clear; other rows skip the full-layer pass.
+    """
     boards = boards.to(torch.int32)
     cells = cells.long()
     index = ((cells[..., 3] * 16 + cells[..., 1]) * 16 + cells[..., 0]).masked_fill(~cell_mask, 0)
     bits = torch.where(cell_mask, torch.bitwise_left_shift(torch.ones_like(index), cells[..., 2]), 0)
     # Placed cells never overlap occupied bits and differ in Z within a column, so sum == OR.
     merged = boards.clone().scatter_add_(1, index, bits.to(torch.int32))
-    levels = torch.arange(16, device=boards.device, dtype=torch.int32)
-    full = ((merged[:, None, :] >> levels[None, :, None]) & 1).sum(2) == boards.shape[1]
-    return v4._compact_full_layers(merged), full
+    full = torch.zeros((len(merged), 16), dtype=torch.bool, device=merged.device)
+    rows = torch.arange(len(merged), device=merged.device) if clears is None else clears.nonzero().flatten()
+    if len(rows):
+        subset = merged.index_select(0, rows)
+        levels = torch.arange(16, device=boards.device, dtype=torch.int32)
+        full[rows] = ((subset[:, None, :] >> levels[None, :, None]) & 1).sum(2) == boards.shape[1]
+        merged[rows] = v4._compact_full_layers(subset)
+    return merged, full
 
 
 @torch.no_grad()
@@ -170,7 +262,7 @@ def next_state_features(boards, targets, specs, valid, states, move, chunk=256):
     chunks = []
     for start in range(0, len(rows), chunk):
         part = slice(start, start + chunk)
-        after, full = place(boards.index_select(0, env[part]), cells[part], mask[part])
+        after, full = place(boards.index_select(0, env[part]), cells[part], mask[part], spec[part, 5] > 0)
         layers = full.sum(1)
         after_targets = owner_targets[part].clone()
         clearing = (layers > 0).nonzero().flatten()
@@ -179,13 +271,14 @@ def next_state_features(boards, targets, specs, valid, states, move, chunk=256):
                 following = game.next_hyperlayer_target(tuple(board), int(after_targets[i]))
                 if following is not None:
                     after_targets[i] = following
-        context = v4.device_afterstate_context(after, after_targets, piece_rows[part], phase[part])
+        counts = board_counts(after, after_targets)
+        context = context_from_counts(counts, after_targets, piece_rows[part], phase[part])
         piece_mask = mask[part]
         eroded = (full.gather(1, cells[part][..., 2].clamp(0, 15)) & piece_mask).sum(1)
         landing = (cells[part][..., 2] * piece_mask).sum(1).float() / piece_mask.sum(1).clamp_min(1)
         moves = torch.stack((layers.float() / 16, (layers * eroded).float() / 16, landing / 16,
                              move[env[part], slot[part], 0].float(), move[env[part], slot[part], 1].float()), dim=1)
-        chunks.append(assemble(after, after_targets, context, moves))
+        chunks.append(assemble(after, after_targets, context, moves, counts))
     out[env, slot] = torch.cat(chunks)
     return out
 

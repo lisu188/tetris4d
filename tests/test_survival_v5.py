@@ -107,6 +107,16 @@ class FeatureExactnessTests(unittest.TestCase):
         torch.testing.assert_close(scores, value, rtol=0, atol=0)
         self.assertFalse(any(p.requires_grad for p in model.base.parameters()))
 
+    def test_count_based_features_equal_the_reference_functions(self):
+        boards = torch.tensor(random_boards(5, 6) + [(0,) * game.AREA, (65535,) * game.AREA], dtype=torch.int32)
+        targets = torch.tensor([0, 2, 5, 9, 15, 3, 7])
+        counts = v5.board_counts_reference(boards, targets)
+        torch.testing.assert_close(v5.pooled_from_counts(counts), v5.pooled_columns(boards, targets), rtol=0, atol=0)
+        torch.testing.assert_close(v5.survival_from_counts(counts), v5.survival_features(boards), rtol=0, atol=0)
+        rows, phase = torch.rand((7, 45), dtype=torch.float64), torch.rand(7, dtype=torch.float64)
+        torch.testing.assert_close(v5.context_from_counts(counts, targets, rows, phase),
+                                   v4.device_afterstate_context(boards, targets, rows, phase), rtol=0, atol=0)
+
     def test_survival_features_match_python_reference(self):
         boards = random_boards(3, 4)
         actual = v5.survival_features(torch.tensor(boards, dtype=torch.int32))
@@ -272,6 +282,13 @@ class CudaTests(unittest.TestCase):
                     self.assertEqual(tuple(actual.options), reference.options)
                     torch.testing.assert_close(actual.arrays['next_features'].cpu(),
                                                torch.as_tensor(reference.arrays['next_features']), rtol=1e-6, atol=1e-6)
+
+    def test_fused_kernel_counts_equal_the_reference(self):
+        boards = torch.tensor(random_boards(16, 8) + [(0,) * game.AREA, (65535,) * game.AREA], dtype=torch.int32).cuda()
+        targets = torch.randint(0, 16, (18,)).cuda()
+        import tetris_gpu_board_features as kernels
+        torch.testing.assert_close(kernels.board_counts(boards, targets), v5.board_counts_reference(boards, targets),
+                                   rtol=0, atol=0)
 
     def test_zero_bound_greedy_replays_v4_choices(self):
         import tetris_gpu_simulation as gpu
