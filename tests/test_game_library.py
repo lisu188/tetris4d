@@ -46,6 +46,16 @@ class GameLibraryTests(unittest.TestCase):
     def index(self):
         return [json.loads(line) for line in (self.root / 'index.jsonl').read_text().splitlines()]
 
+    def test_trainer_entry_point_records_even_when_torch_imported_unittest(self):
+        with mock.patch.dict(os.environ, {'TETRIS4D_GAME_LIBRARY': ''}), \
+                mock.patch.object(library.sys, 'argv', ['train_survival_v4.py']):
+            self.assertIn('unittest', library.sys.modules)
+            self.assertIsNotNone(library.default_root())
+        for entry in ('tests/test_x.py', 'python -m unittest', '/usr/lib/python3.12/unittest/__main__.py'):
+            with mock.patch.dict(os.environ, {'TETRIS4D_GAME_LIBRARY': ''}), \
+                    mock.patch.object(library.sys, 'argv', [entry]):
+                self.assertIsNone(library.default_root(), entry)
+
     def test_default_is_disabled_under_unittest(self):
         with mock.patch.dict(os.environ, {'TETRIS4D_GAME_LIBRARY': ''}):
             self.assertIsNone(library.default_root())
