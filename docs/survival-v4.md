@@ -79,6 +79,21 @@ Each statistic is a mean over 3,840 neighbour edges, so one placement changes it
 
 Parity: `tests/test_gpu_simulation.py` (`TETRIS4D_TEST_CUDA=1`) checks exhaustive GPU preparation against the CPU reference for all 15 pieces, and clearing boards in both modes. `tests/test_exhaustive_screening.py` covers the config, the enumeration count, the CLI and the pretrained continuation.
 
+### Training defaults and options (issues #31-#38)
+
+| Option | Default | Effect |
+|---|---|---|
+| `--screening` | `exhaustive` with GPU defaults, else `sampled` | Teacher prior over every legal placement (#31) |
+| `--fixed-lr`, `--adaptive-kl-target`, `--adaptive-lr-range` | adaptive, target = `--target-kl`/2, range 16 | Actor LR ×1.5 when full-rollout KL < target/2, ÷1.5 when > 2×target; stored in the optimizer state (#33) |
+| `--envs`, `--rollout` | 32 × 256 | 8,192 placements per update. Measured exhaustive: 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (#34) |
+| `--selection-seeds`, `--sequential-selection` | 8 seeds, lockstep on CUDA | One batched preparation and forward pass per step. Identical games to the sequential path (#36) |
+| `--danger-starts P`, `--danger-window MIN MAX`, `--danger-pool`, `--danger-per-game` | off | Start share P of training episodes MIN..MAX placements before a recorded top-out. Copies are never recorded. `episode_end` reports `start_kind`, `start_pieces` and `own_placements`; the dashboard counts fresh games only (#32) |
+| `--regional-critic` | off | Adds 192 fixed features (max height, mean height and holes for each 4×4×4 block of columns) to the critic input. A plain pretrained actor is copied and the critic starts fresh (#38) |
+
+Move commit (#35): profiling showed that about 90% of `apply_move` is `evaluate_board`'s Python conversions, not computation. C-speed column validation and `ndarray.tolist()` halve it (1.06 → 0.57 ms) with identical results. The engine guard allows exactly these two rewrites.
+
+Afterstate experiment (#37): `tools/afterstate_ranking.py CHECKPOINT` plays matched lockstep games, choosing either the actor's greedy move or the actor top-k candidate whose afterstate the critic values highest.
+
 ## Historical measurements (not reproduced)
 
 The archived manifests report 1,024 training and 256 validation actor snapshots from disjoint seeds, 300 supervised steps, raw actor validation KL changing from 1.30227 to 0.03780, raw exact teacher agreement from 1.17% to 61.72%, and raw primary utility agreement from 7.42% to 100%. They report no PPO updates.

@@ -141,6 +141,55 @@ class TrainerTests(unittest.TestCase):
         self.assertEqual(self.actor_lr(trainer), trainer.args.lr)
 
 
+class RegionalCriticTests(TrainerTests):
+    def test_regional_statistics_match_python_reference(self):
+        from tetris_survival_v4 import regional_statistics
+        rng = random.Random(5)
+        boards = [tuple(rng.getrandbits(rng.randint(0, 16)) for _ in range(game.AREA)) for _ in range(2)]
+        actual = regional_statistics(torch.tensor(boards, dtype=torch.int32)).numpy()
+        for row, board in enumerate(boards):
+            expected = []
+            groups = {}
+            for w in range(16):
+                for y in range(16):
+                    for x in range(16):
+                        mask = board[game.column_index(x, y, w)]
+                        height = mask.bit_length()
+                        groups.setdefault((w // 4, y // 4, x // 4), []).append((height, height - bin(mask).count('1')))
+            keys = sorted(groups)
+            expected = ([max(h for h, _ in groups[k]) for k in keys] + [np.mean([h for h, _ in groups[k]]) for k in keys]
+                        + [np.mean([o for _, o in groups[k]]) for k in keys])
+            np.testing.assert_allclose(actual[row], np.asarray(expected) / 16, rtol=1e-6, atol=1e-6)
+
+    def test_actor_unchanged_and_critic_input_extended(self):
+        from dataclasses import replace
+        from tetris_survival_v4 import REGIONAL_CRITIC_FEATURES
+        trainer = self.trainer()
+        plain = trainer.model
+        regional = v4.neural.create_model(replace(plain.config, regional_critic=True))
+        actor = {k: v for k, v in plain.state_dict().items() if not k.startswith('value.')}
+        regional.load_state_dict(actor, strict=False)
+        states = [game.Game(700 + i, 'expanded') for i in range(2)]
+        batch = v4.neural.collate([v4.neural.prepare(s, 1, plain.config).arrays for s in states], torch.device('cpu'))
+        with torch.no_grad():
+            a, b = plain(batch), regional(batch)
+        torch.testing.assert_close(a['logits'], b['logits'], rtol=0, atol=0)
+        self.assertEqual(b['critic_input'].shape[1] - a['critic_input'].shape[1], REGIONAL_CRITIC_FEATURES)
+
+    def test_regional_run_updates_and_adopts_a_plain_pretrained_actor(self):
+        plain = self.trainer().model
+        path = self.directory / 'pretrained.pt'
+        v4.neural.save_checkpoint(path, plain)
+        trainer = self.trainer('--regional-critic', '--pretrained', str(path))
+        self.assertTrue(trainer.model.config.regional_critic)
+        for name, value in plain.state_dict().items():
+            if not name.startswith('value.'):
+                torch.testing.assert_close(trainer.model.state_dict()[name], value, rtol=0, atol=0)
+        self.assertTrue(trainer.calibrate())
+        trainer.update(trainer.rollout(False), False)
+        self.assertEqual(trainer.progress['runner_updates'], 1)
+
+
 class DangerStartTests(TrainerTests):
     def setUp(self):
         super().setUp()

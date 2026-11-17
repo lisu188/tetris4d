@@ -50,6 +50,8 @@ class Config:
     # 'sampled' screens `candidates` placements spread over all orientations;
     # 'exhaustive' screens every legal placement (all orientations x positions).
     screening: str = 'sampled'
+    # Survival V4 only: append fixed per-region height/hole summaries to the critic input.
+    regional_critic: bool = False
 
     @property
     def screening_budget(self) -> int:
@@ -66,7 +68,7 @@ class Config:
             raise ValueError('Unsupported encoder dimensions')
         if not 2 <= self.shortlist <= 2048 or not 1 <= self.candidates <= 65536 or not 1 <= self.chunk <= 2048:
             raise ValueError('Invalid candidate, shortlist or chunk size')
-        if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic', 'spatial_actor')):
+        if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic', 'spatial_actor', 'regional_critic')):
             raise ValueError('Target and critic settings must be boolean')
         if self.shortlist_mode not in ('teacher-random', 'diverse'):
             raise ValueError('Unsupported candidate shortlist mode')

@@ -128,6 +128,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         config = neural.Config(architecture=ARCHITECTURE, spatial_actor=True,
                                shortlist_mode=self.args.shortlist_mode,
                                screening=self.args.screening,
+                               regional_critic=self.args.regional_critic,
                                recover_target=self.args.recover_target,
                                policy_mode=self.args.policy_mode,
                                residual_scale=self.args.residual_scale,
@@ -138,10 +139,19 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return neural.create_model(config).to(self.device)
         source = Path(self.args.pretrained)
         loaded, checkpoint = neural.load_checkpoint(source, self.device)
-        # Screening only changes which placements are offered, never the weights,
-        # so a sampled-mode pretrained actor may continue under exhaustive screening.
-        if asdict(replace(loaded.config, screening=config.screening)) != asdict(config):
+        # Screening only changes which placements are offered, never the weights, so a
+        # sampled-mode pretrained actor may continue under exhaustive screening. A regional
+        # critic changes only the critic input: the actor is copied, the critic starts fresh.
+        if asdict(replace(loaded.config, screening=config.screening,
+                          regional_critic=config.regional_critic)) != asdict(config):
             raise ValueError('Pretrained V4 config does not match the requested actor and shortlist')
+        if loaded.config.regional_critic != config.regional_critic:
+            model = neural.create_model(config).to(self.device)
+            actor = {k: v for k, v in loaded.state_dict().items() if not k.startswith('value.')}
+            missing, unexpected = model.load_state_dict(actor, strict=False)
+            if unexpected or any(not k.startswith('value.') for k in missing):
+                raise ValueError('Pretrained V4 actor parameters do not fit the regional-critic model')
+            loaded = model
         loaded.config = config
         if checkpoint['teacher_parameters'] != game.network_parameters():
             raise ValueError('Pretrained V4 teacher weights differ from the runtime')
@@ -401,6 +411,8 @@ def arguments(argv=None):
     extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
                        help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
                             "Default: exhaustive with the GPU defaults, sampled otherwise (CPU exhaustive is ~1.3 s/state)")
+    extra.add_argument('--regional-critic', action='store_true',
+                       help='Add per-region height/hole features to the critic input (issue #38)')
     extra.add_argument('--danger-starts', type=float, default=0.,
                        help='Share of training episodes started shortly before a recorded top-out (issue #32)')
     extra.add_argument('--danger-window', type=int, nargs=2, default=(500, 3000), metavar=('MIN', 'MAX'),
@@ -430,6 +442,7 @@ def arguments(argv=None):
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
     args.adaptive_lr = not options.fixed_lr
     args.lockstep_selection = not options.sequential_selection
+    args.regional_critic = options.regional_critic
     args.danger_starts, args.danger_window = options.danger_starts, tuple(options.danger_window)
     args.danger_pool, args.danger_per_game = options.danger_pool, options.danger_per_game
     if not 0 <= args.danger_starts < 1 or not 0 < args.danger_window[0] <= args.danger_window[1] \
