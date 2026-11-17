@@ -20,10 +20,22 @@ ALGORITHM = 'survival-ppo-v4'
 SELECTION_SEEDS = tuple(910001 + 2 * i for i in range(8))
 
 
+def library_root(root=None):
+    """Where to *read* recorded games. Disabling recording (TETRIS4D_GAME_LIBRARY=off) must not
+    hide the shared library from danger starts, so fall back to the main checkout's library."""
+    if root is not None:
+        return Path(root)
+    library = base.library
+    resolved = library.default_root()
+    if resolved is None:
+        resolved = library._main_checkout(Path(library.__file__).resolve().parent) / 'data' / 'game-library'
+    return resolved
+
+
 def library_start_state(game_id, offset, root=None):
     """Replay a recorded game to `offset` placements; return an unrecorded copy and its target."""
     library = base.library
-    root = Path(root) if root is not None else library.default_root()
+    root = library_root(root)
     entry = next((e for e in library.iter_index(root) if e['id'] == game_id), None)
     if entry is None:
         raise ValueError(f'Game {game_id} is not in the game library')
@@ -41,7 +53,7 @@ def build_danger_pool(args, root=None):
     """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
     several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
     library = base.library
-    root = Path(root) if root is not None else library.default_root()
+    root = library_root(root)
     low, high = args.danger_window
     rng = random.Random(args.seed + 32)
     entries = [e for e in library.iter_index(root)
