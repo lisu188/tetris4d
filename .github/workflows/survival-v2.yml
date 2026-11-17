@@ -33,6 +33,7 @@ jobs:
       - run: python -B tests/test_survival_v4_gpu.py
       - run: python -B tests/test_exhaustive_screening.py
       - run: python -B tests/test_v4_improvements.py
+      - run: python -B tests/test_survival_v5.py
       - run: python -B tests/test_game_library.py
       - run: python -B tests/test_survival_v3_run.py
       - run: python tests/test_survival_longevity.py

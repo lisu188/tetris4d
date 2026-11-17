@@ -27,6 +27,11 @@ import sparse_tetris_4d_optimized as game
 ROOT = Path(__file__).resolve().parent
 SCHEMA = 'tetris4d-column-policy-v1'
 CHANNELS, CONTEXT, FEATURES, COLUMNS = 34, 82, 96, 16
+# Per-candidate arrays (padded along the candidate axis when batched).
+CANDIDATE_FIELDS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta',
+                              'next_features'))
+# Architectures whose preparation includes V4 afterstate spatial descriptors.
+SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5')
 NAMES = tuple(game.PIECE_NAMES)
 
 
@@ -52,6 +57,10 @@ class Config:
     screening: str = 'sampled'
     # Survival V4 only: append fixed per-region height/hole summaries to the critic input.
     regional_critic: bool = False
+    # Survival V5 only: logits = (base + residual_bound * tanh(afterstate_scale * centred score)) / policy_temperature.
+    residual_bound: float = 0.0
+    policy_temperature: float = 1.0
+    afterstate_scale: float = 1.0
 
     @property
     def screening_budget(self) -> int:
@@ -59,7 +68,7 @@ class Config:
         return 0 if self.screening == 'exhaustive' else self.candidates
 
     def __post_init__(self):
-        if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3', 'survival-spatial-v4'):
+        if self.architecture not in ('column-sigmoid-v1', 'survival-feature-v3', *SPATIAL_ARCHITECTURES):
             raise ValueError('Unsupported policy architecture')
         for name in ('width', 'blocks', 'shortlist', 'candidates', 'chunk'):
             if type(getattr(self, name)) is not int:
@@ -70,10 +79,14 @@ class Config:
             raise ValueError('Invalid candidate, shortlist or chunk size')
         if any(type(getattr(self, n)) is not bool for n in ('protect_target', 'recover_target', 'detach_critic', 'centered_critic', 'spatial_actor', 'regional_critic')):
             raise ValueError('Target and critic settings must be boolean')
-        if self.shortlist_mode not in ('teacher-random', 'diverse'):
+        if self.shortlist_mode not in ('teacher-random', 'diverse', 'teacher-top'):
             raise ValueError('Unsupported candidate shortlist mode')
         if self.screening not in ('sampled', 'exhaustive'):
             raise ValueError('Unsupported candidate screening mode')
+        for name, low, high in (('residual_bound', 0., 16.), ('policy_temperature', 1e-3, 16.), ('afterstate_scale', 1e-6, 1e4)):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
+                raise ValueError(f'{name} must be in [{low}, {high}]')
         if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
@@ -264,6 +277,9 @@ def create_model(config: Config = Config()):
     if config.architecture == 'survival-feature-v3':
         from tetris_survival_v3 import SurvivalFeaturePolicy
         return SurvivalFeaturePolicy(config)
+    if config.architecture == 'survival-afterstate-v5':
+        from tetris_survival_v5 import SurvivalAfterstatePolicy
+        return SurvivalAfterstatePolicy(config)
     if config.architecture == 'survival-spatial-v4':
         from tetris_survival_v4 import SurvivalSpatialPolicy
         return SurvivalSpatialPolicy(config)
@@ -365,7 +381,9 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     if not options:
         return None
     best = max(range(len(options)), key=keys.__getitem__)
-    if len(options) > config.shortlist:
+    if len(options) > config.shortlist and config.shortlist_mode == 'teacher-top':
+        keep = sorted(heapq.nlargest(config.shortlist, range(len(options)), key=keys.__getitem__))
+    elif len(options) > config.shortlist:
         top = heapq.nlargest(max(1, config.shortlist // 2), range(len(options)), key=keys.__getitem__)
         used = set(top)
         rest = [i for i in range(len(options)) if i not in used]
@@ -414,7 +432,7 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     rank[order] = np.arange(len(options), dtype=np.float32)
     deficits = np.asarray([kept_keys[teacher][0] - k[0] for k in kept_keys], dtype=np.float32)
     arrays['teacher_prior'] = -32 * deficits - rank / 8
-    if config.architecture == 'survival-spatial-v4':
+    if config.architecture in SPATIAL_ARCHITECTURES:
         from tetris_survival_v4 import afterstate_descriptors
         arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(state.board, options, target)
     return Prepared(arrays, options, teacher, evaluations, fallback)
@@ -457,7 +475,7 @@ def collate(records: list[dict], device: torch.device) -> dict:
             values = []
             for row in records:
                 value = torch.as_tensor(row[name], device=device)
-                if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta') and len(value) < maximum:
+                if name in CANDIDATE_FIELDS and len(value) < maximum:
                     value = F.pad(value, (0, 0) * (value.ndim - 1) + (0, maximum - len(value)))
                 values.append(value)
             result[name] = torch.stack(values)
@@ -471,7 +489,7 @@ def collate(records: list[dict], device: torch.device) -> dict:
         values = []
         for row in records:
             value = np.asarray(row[name])
-            if name in ('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta') and len(value) < maximum:
+            if name in CANDIDATE_FIELDS and len(value) < maximum:
                 value = np.pad(value, [(0, maximum - len(value))] + [(0, 0)] * (value.ndim - 1))
             values.append(value)
         result[name] = torch.from_numpy(np.stack(values)).to(device)

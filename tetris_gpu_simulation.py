@@ -449,10 +449,10 @@ class GpuPreparer:
         self._reference_only_reason = (
             "candidate_budget_bound" if self.budget > MAX_GPU_CANDIDATES else
             "shortlist_bound" if self.config.shortlist > MAX_GPU_SHORTLIST else
-            "shortlist_mode" if self.config.shortlist_mode != "teacher-random" else
+            "shortlist_mode" if self.config.shortlist_mode not in ("teacher-random", "teacher-top") else
             "catalog_columns" if any(len(s.columns) > 8 for shapes in game.SHAPES.values() for s in shapes)
             else None)
-        self.spatial = self.config.architecture == "survival-spatial-v4"
+        self.spatial = self.config.architecture in neural.SPATIAL_ARCHITECTURES
         # Exact CPU fallback rows skip the slow host afterstate pass; V4 descriptors
         # for every row are recomputed on device from the final options.
         self._fallback_config = (replace(self.config, architecture="survival-feature-v3")
@@ -569,7 +569,7 @@ class GpuPreparer:
         option_specs, option_scores = self._device(integers), self._device(scores)
         teachers = self._device(np.asarray([references[i].teacher for i in envs], dtype=np.int64))
         prepared = [None] * len(states)
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
+        candidate_fields = neural.CANDIDATE_FIELDS
         for row, env in enumerate(envs):
             p = references[env]
             arrays = {name: value[row, :len(p.options)] if name in candidate_fields else value[row]
@@ -687,7 +687,7 @@ class GpuPreparer:
         rest_mask = valid & ~top_mask
         positions = np.zeros((n, shortlist - half), dtype=np.int64)
         for env, (number, *_rest) in enumerate(summaries):
-            if number > shortlist and env not in references:
+            if number > shortlist and env not in references and self.config.shortlist_mode != "teacher-top":
                 rng = random.Random(states[env].seed * 8191 + states[env].pieces)
                 positions[env] = rng.sample(range(number - half), shortlist - half)
         rest_rank = torch.cumsum(rest_mask.to(torch.int32), dim=1)
@@ -695,7 +695,7 @@ class GpuPreparer:
         chosen = torch.cat((top, exploration), dim=1)
         raw_count = self._device(np.asarray([s[0] for s in summaries], dtype=np.int64))
         first = ranked[:, :shortlist]
-        chosen = torch.where((raw_count <= shortlist)[:, None], first, chosen)
+        chosen = first if self.config.shortlist_mode == "teacher-top" else torch.where((raw_count <= shortlist)[:, None], first, chosen)
         padding = torch.arange(shortlist, device=self.device)[None, :] >= self._device(np.asarray(lengths, dtype=np.int64))[:, None]
         chosen = torch.where(padding, candidates, chosen).sort(dim=1).values
         length_tensor = self._device(np.asarray(lengths, dtype=np.int32))
@@ -724,7 +724,7 @@ class GpuPreparer:
         all_arrays = {"boards": boards, "targets": device_targets, "context": context,
                       "features": features, "indices": indices, "column_mask": column_mask,
                       "valid": ~padding, "teacher_prior": priors}
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
+        candidate_fields = neural.CANDIDATE_FIELDS
         for env, p in references.items():
             if p is None:
                 continue
@@ -782,7 +782,7 @@ class GpuPreparer:
                                    batch_option_specs, batch_option_scores)
 
 
-CANDIDATE_FIELDS = frozenset({"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"})
+CANDIDATE_FIELDS = neural.CANDIDATE_FIELDS
 
 
 def _pad_candidates(tensor, width):
