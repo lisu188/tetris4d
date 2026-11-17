@@ -66,13 +66,26 @@ def _main_checkout(start: Path) -> Path:
     return start
 
 
+def _under_tests():
+    """True when the process entry point is a test runner or test script.
+
+    Checking ``'unittest' in sys.modules`` is not enough: torch >= 2.14 imports
+    unittest at import time, which silently disabled recording in every trainer.
+    """
+    if 'pytest' in sys.modules:
+        return True
+    entry = sys.argv[0] if sys.argv and sys.argv[0] else ''
+    name = Path(entry).name
+    return name.startswith('test_') or 'unittest' in entry or name in ('pytest', 'py.test')
+
+
 def default_root():
     value = os.environ.get('TETRIS4D_GAME_LIBRARY', '').strip()
     if value.lower() in ('0', 'off', 'false', 'none', 'disabled'):
         return None
     if value:
         return Path(value).expanduser()
-    if 'unittest' in sys.modules or 'pytest' in sys.modules:
+    if _under_tests():
         return None
     return _main_checkout(Path(__file__).resolve().parent) / 'data' / 'game-library'
 
