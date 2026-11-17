@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import argparse
+import copy
+import random
 from dataclasses import asdict, replace
 from pathlib import Path
 import sys
+import time
 
+import numpy as np
 import torch
 
 import train_survival_v3 as v3
@@ -13,12 +17,108 @@ from tetris_survival_v4 import ARCHITECTURE
 
 v2, base, neural, game = v3.v2, v3.base, v3.neural, v3.game
 ALGORITHM = 'survival-ppo-v4'
+SELECTION_SEEDS = tuple(910001 + 2 * i for i in range(8))
+
+
+def library_start_state(game_id, offset, root=None):
+    """Replay a recorded game to `offset` placements; return an unrecorded copy and its target."""
+    library = base.library
+    root = Path(root) if root is not None else library.default_root()
+    entry = next((e for e in library.iter_index(root) if e['id'] == game_id), None)
+    if entry is None:
+        raise ValueError(f'Game {game_id} is not in the game library')
+    record = library.load(root / entry['file'])
+    for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
+        if index == offset:
+            snapshot = copy.deepcopy(state)
+            snapshot._library_log = None
+            library.ignore(snapshot)
+            return snapshot, int(row[6])
+    raise ValueError(f'Game {game_id} has no placement {offset}')
+
+
+def build_danger_pool(args, root=None):
+    """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
+    several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
+    library = base.library
+    root = Path(root) if root is not None else library.default_root()
+    low, high = args.danger_window
+    rng = random.Random(args.seed + 32)
+    entries = [e for e in library.iter_index(root)
+               if e.get('game_over') and e.get('stop_reason') == 'top_out'
+               and e.get('piece_set') == args.piece_set and e.get('placements', 0) > high]
+    entries.sort(key=lambda e: e['id'])
+    rng.shuffle(entries)
+    pool = []
+    for entry in entries:
+        if len(pool) >= args.danger_pool:
+            break
+        try:
+            record = library.load(root / entry['file'])
+            total = len(record.moves)
+            wanted = sorted({total - rng.randint(low, high) for _ in range(args.danger_per_game)})
+            for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
+                if index in wanted:
+                    snapshot = copy.deepcopy(state)
+                    snapshot._library_log = None
+                    library.ignore(snapshot)
+                    pool.append({'kind': 'library', 'game_id': entry['id'], 'offset': index,
+                                 'remaining_recorded': total - index, 'state': snapshot, 'target': int(row[6])})
+                if index >= wanted[-1]:
+                    break
+        except ValueError:
+            continue  # recorded on a different engine/piece catalogue
+    return pool[:args.danger_pool]
+
+
+def phase_behaviour(phase):
+    return 'frozen_sampled_neural' if phase == 'selection-sampled' else f'greedy_{phase.removeprefix("selection-")}'
 
 
 class SurvivalTrainer(v3.SurvivalTrainer):
     algorithm = ALGORITHM
 
+    def __init__(self, args, budget):
+        self.danger_pool, self._danger_starts = [], {}
+        self._danger_rng = random.Random(args.seed + 3200)
+        if getattr(args, 'danger_starts', 0) > 0:
+            self.danger_pool = build_danger_pool(args)
+            if not self.danger_pool:
+                raise ValueError('--danger-starts needs recorded top-out games in the game library')
+        cache = {(p['game_id'], p['offset']): p for p in self.danger_pool}
+
+        def rebuild(start):
+            cached = cache.get((start['game_id'], start['offset']))
+            if cached is not None:
+                state = copy.deepcopy(cached['state'])
+                base.library.ignore(state)
+                return state, cached['target']
+            return library_start_state(start['game_id'], start['offset'])
+
+        base.START_BUILDERS['library'] = rebuild
+        super().__init__(args, budget)
+
+    def new_episode(self):
+        if not self.danger_pool or self._danger_rng.random() >= self.args.danger_starts:
+            return super().new_episode()
+        number = self.next_episode
+        self.next_episode += 1
+        chosen = self.danger_pool[self._danger_rng.randrange(len(self.danger_pool))]
+        state = copy.deepcopy(chosen['state'])
+        base.library.ignore(state)
+        start = {k: chosen[k] for k in ('kind', 'game_id', 'offset', 'remaining_recorded')}
+        self._danger_starts[number] = start
+        return base.Episode(number, state, target=chosen['target'], phase='training', start=start)
+
     def emit(self, event, **fields):
+        if event == 'episode_end':
+            start = self._danger_starts.pop(fields.get('episode'), None) if hasattr(self, '_danger_starts') else None
+            if start is None:
+                episode = next((e for e in getattr(self, 'environments', ()) if e.number == fields.get('episode')), None)
+                start = episode.start if episode is not None else None
+            fields.update(start_kind=start['kind'] if start else 'fresh',
+                          start_pieces=start['offset'] if start else 0,
+                          own_placements=fields.get('pieces', 0) - (start['offset'] if start else 0))
         if event == 'survival_algorithm':
             fields.update(architecture=ARCHITECTURE, spatial_critic=True,
                           afterstate_spatial_actor=True, actor_critic_parameter_isolation=True)
@@ -28,6 +128,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         config = neural.Config(architecture=ARCHITECTURE, spatial_actor=True,
                                shortlist_mode=self.args.shortlist_mode,
                                screening=self.args.screening,
+                               regional_critic=self.args.regional_critic,
                                recover_target=self.args.recover_target,
                                policy_mode=self.args.policy_mode,
                                residual_scale=self.args.residual_scale,
@@ -38,10 +139,19 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return neural.create_model(config).to(self.device)
         source = Path(self.args.pretrained)
         loaded, checkpoint = neural.load_checkpoint(source, self.device)
-        # Screening only changes which placements are offered, never the weights,
-        # so a sampled-mode pretrained actor may continue under exhaustive screening.
-        if asdict(replace(loaded.config, screening=config.screening)) != asdict(config):
+        # Screening only changes which placements are offered, never the weights, so a
+        # sampled-mode pretrained actor may continue under exhaustive screening. A regional
+        # critic changes only the critic input: the actor is copied, the critic starts fresh.
+        if asdict(replace(loaded.config, screening=config.screening,
+                          regional_critic=config.regional_critic)) != asdict(config):
             raise ValueError('Pretrained V4 config does not match the requested actor and shortlist')
+        if loaded.config.regional_critic != config.regional_critic:
+            model = neural.create_model(config).to(self.device)
+            actor = {k: v for k, v in loaded.state_dict().items() if not k.startswith('value.')}
+            missing, unexpected = model.load_state_dict(actor, strict=False)
+            if unexpected or any(not k.startswith('value.') for k in missing):
+                raise ValueError('Pretrained V4 actor parameters do not fit the regional-critic model')
+            loaded = model
         loaded.config = config
         if checkpoint['teacher_parameters'] != game.network_parameters():
             raise ValueError('Pretrained V4 teacher weights differ from the runtime')
@@ -72,6 +182,126 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             self.note_target(episode, int(result.targets[0]))
         return prepared
 
+    def lockstep_available(self):
+        return (getattr(self.args, 'lockstep_selection', False) and getattr(self.args, 'gpu_prepare', False)
+                and self.device.type == 'cuda' and game.BACKEND == 'native')
+
+    def _selection_preparer(self):
+        if getattr(self, '_gpu_preparer', None) is None:
+            from tetris_gpu_simulation import GpuPreparer
+            self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+        return self._gpu_preparer
+
+    def lockstep_games(self, phase, choose, on_step=None):
+        """Play every selection seed at once: one batched CUDA preparation and one
+        forward pass per step (issue #36). `choose(seed_indices, logits, logp)`
+        returns one action per live row. Returns (episodes, reasons, seconds)."""
+        seeds = list(self.args.selection_seeds)
+        episodes = [base.Episode(self.progress['runner_updates'] * len(seeds) + i,
+                                 game.Game(seed, self.args.piece_set), phase=phase)
+                    for i, seed in enumerate(seeds)]
+        reasons = [None] * len(seeds)
+        started = time.perf_counter()
+        active = list(range(len(seeds)))
+        preparer = self._selection_preparer()
+        while active:
+            if self.budget.expired():
+                for i in active:
+                    reasons[i] = self.budget.reason
+                break
+            result = preparer.prepare_batch([episodes[i].state for i in active], [episodes[i].target for i in active])
+            live = []
+            for local, i in enumerate(active):
+                if result.prepared[local] is None:
+                    reasons[i] = base.stopped_reason(episodes[i].state)
+                else:
+                    self.note_target(episodes[i], int(result.targets[local]))
+                    live.append(i)
+            if live:
+                rows = [active[local] for local in result.environment_indices]
+                prediction = self.model(result.batch)
+                logp = self.policy_logp(prediction['logits'], result.batch['valid'])
+                if on_step is not None:
+                    on_step(rows, episodes, prediction)
+                actions = choose(rows, prediction['logits'], logp)
+                for i, candidate in zip(rows, result.selected_candidates(actions)):
+                    base.apply_move(episodes[i], candidate, self.progress['updates'], phase_behaviour(phase))
+            active = []
+            for i in live:
+                if episodes[i].state.pieces >= self.args.selection_pieces:
+                    reasons[i] = 'piece_limit'
+                else:
+                    active.append(i)
+        return episodes, reasons, time.perf_counter() - started
+
+    def evaluate_policy(self, policy):
+        if policy == 'sustained' or not self.lockstep_available():
+            return super().evaluate_policy(policy)
+        self.model.eval()
+        recoveries = self.progress['target_recoveries']
+        with base.preserve_rng(), torch.inference_mode():
+            episodes, reasons, seconds = self.lockstep_games(
+                f'selection-{policy}', lambda rows, logits, logp: logits.argmax(-1))
+        runs = []
+        for episode, reason in zip(episodes, reasons):
+            episode.stop_reason, episode.complete = reason, reason in ('top_out', 'planner_blocked', 'piece_limit')
+            self.recorder.write(episode)
+            report = {**episode.state.summary(), 'stop_reason': reason, 'evaluation_complete': episode.complete,
+                      'capped': reason == 'piece_limit', 'policy': policy,
+                      'policy_mode': self.model.config.policy_mode,
+                      'target_recoveries': self.progress['target_recoveries'] - recoveries,
+                      'wall_seconds': seconds, 'lockstep_games': len(episodes)}
+            runs.append(report)
+            self.emit('selection_game', **report)
+        complete = all(run['evaluation_complete'] for run in runs)
+        return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
+                'signature': self.signature, 'score_definition': 'mean capped survival, then minimum, then median',
+                'lockstep': True}
+
+    def sampled_policy_check(self):
+        if not self.lockstep_available():
+            return super().sampled_policy_check()
+        self.model.eval()
+        seeds = list(self.args.selection_seeds)
+        generators = [torch.Generator(device=self.device).manual_seed(2701 + seed) for seed in seeds]
+        samples = [[] for _ in seeds]
+
+        def record(rows, episodes, prediction):
+            for row, i in enumerate(rows):
+                pieces = episodes[i].state.pieces
+                if pieces % 128 == 0 and len(samples[i]) < 256:
+                    samples[i].append((pieces, float(prediction['value'][row])))
+
+        def sample(rows, logits, logp):
+            return torch.stack([torch.multinomial(logp[row].exp(), 1, generator=generators[i])[0]
+                                for row, i in enumerate(rows)])
+
+        with base.preserve_rng(), torch.inference_mode():
+            episodes, reasons, seconds = self.lockstep_games('selection-sampled', sample, record)
+        runs = []
+        for i, (episode, reason) in enumerate(zip(episodes, reasons)):
+            terminated = reason in ('top_out', 'planner_blocked')
+            base.library.finish(episode.state, reason)
+            diagnostics = None
+            if terminated and samples[i]:
+                targets = np.asarray([(episode.state.pieces - piece) * base.REWARD_SCALE for piece, _ in samples[i]])
+                predicted = np.asarray([value for _, value in samples[i]])
+                diagnostics = v2.regression_metrics(predicted, targets)
+                diagnostics['mean_signed_error_pieces'] = float((predicted - targets).mean() * 1000)
+            report = {**episode.state.summary(), 'policy': 'sampled_neural', 'mode': 'sampled',
+                      'action_seed': 2701 + seeds[i], 'stop_reason': reason,
+                      'evaluation_complete': terminated or reason == 'piece_limit',
+                      'capped': reason == 'piece_limit', 'critic_monte_carlo': diagnostics,
+                      'critic_uncensored': terminated, 'critic_samples': len(samples[i]),
+                      'wall_seconds': seconds, 'lockstep_games': len(episodes),
+                      'limitation': 'One realized continuation per state; within-game samples are correlated.'}
+            runs.append(report)
+            self.emit('sampled_selection_game', **report)
+        complete = all(run['evaluation_complete'] for run in runs)
+        return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
+                'note': 'Frozen sampled-policy diagnostics; protected best is selected by separate greedy games.',
+                'lockstep': True}
+
     def configure_model(self, resuming):
         if self.model.config.architecture != ARCHITECTURE:
             raise ValueError('V4 cannot resume a different model architecture')
@@ -93,6 +323,37 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                      'teacher_weights_sha256': base.file_hash(self.args.weights)}
             base.durable_json(self.root / 'initialization.json', proof)
 
+    def rollout_kl(self, rollout):
+        kl = super().rollout_kl(rollout)
+        self._last_rollout_kl = kl
+        return kl
+
+    def adapt_learning_rate(self, kl):
+        """KL-targeted actor learning rate; the critic rate is unchanged.
+
+        PPO stays within --target-kl through early stopping; this only moves the
+        actor step size towards --adaptive-kl-target when updates are far from it.
+        The adjusted rate is stored in the optimizer state, so it survives resume.
+        """
+        target = self.args.adaptive_kl_target
+        group = next(g for g in self.optimizer.param_groups if g.get('name') == 'actor')
+        before = group['lr']
+        if kl < target / 2:
+            group['lr'] = min(before * 1.5, self.args.lr * self.args.adaptive_lr_range)
+        elif kl > target * 2:
+            group['lr'] = max(before / 1.5, self.args.lr / self.args.adaptive_lr_range)
+        if group['lr'] != before:
+            self.emit('learning_rate', actor_lr=group['lr'], previous_actor_lr=before, final_exact_kl=kl,
+                      adaptive_kl_target=target, runner_updates=self.progress['runner_updates'])
+        return group['lr']
+
+    def update(self, rollout, warmup):
+        self._last_rollout_kl = None
+        result = super().update(rollout, warmup)
+        if self.args.adaptive_lr and not warmup and self._last_rollout_kl is not None:
+            self.adapt_learning_rate(float(self._last_rollout_kl))
+        return result
+
     def training_signature(self):
         signature = super().training_signature()
         signature.update(algorithm=ALGORITHM,
@@ -102,6 +363,14 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                                             if self.args.pretrained is not None else None),
                          shortlist_mode=self.args.shortlist_mode,
                          screening=self.args.screening,
+                         adaptive_lr=self.args.adaptive_lr,
+                         danger_starts=self.args.danger_starts,
+                         danger_window=list(self.args.danger_window) if self.args.danger_starts else None,
+                         danger_pool=([[p['game_id'], p['offset']] for p in self.danger_pool]
+                                      if self.args.danger_starts else None),
+                         lockstep_selection=self.lockstep_available(),
+                         adaptive_kl_target=self.args.adaptive_kl_target if self.args.adaptive_lr else None,
+                         adaptive_lr_range=self.args.adaptive_lr_range if self.args.adaptive_lr else None,
                          spatial_actor=True, fresh_ppo_progress=True)
         return signature
 
@@ -139,17 +408,50 @@ def arguments(argv=None):
     extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--pretrained', type=Path)
     extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
-    extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default='sampled',
-                       help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement")
+    extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
+                       help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
+                            "Default: exhaustive with the GPU defaults, sampled otherwise (CPU exhaustive is ~1.3 s/state)")
+    extra.add_argument('--regional-critic', action='store_true',
+                       help='Add per-region height/hole features to the critic input (issue #38)')
+    extra.add_argument('--danger-starts', type=float, default=0.,
+                       help='Share of training episodes started shortly before a recorded top-out (issue #32)')
+    extra.add_argument('--danger-window', type=int, nargs=2, default=(500, 3000), metavar=('MIN', 'MAX'),
+                       help='Start this many placements before the recorded top-out')
+    extra.add_argument('--danger-pool', type=int, default=32, help='Number of distinct start states')
+    extra.add_argument('--danger-per-game', type=int, default=4, help='Start states taken from each replayed game')
+    extra.add_argument('--sequential-selection', action='store_true',
+                       help='Play selection games one at a time instead of in lockstep on CUDA (issue #36)')
+    extra.add_argument('--fixed-lr', action='store_true',
+                       help='Disable the KL-targeted actor learning rate (issue #33)')
+    extra.add_argument('--adaptive-kl-target', type=float, default=None,
+                       help='Full-rollout KL the actor step size aims for (default: half of --target-kl)')
+    extra.add_argument('--adaptive-lr-range', type=float, default=16.,
+                       help='Actor learning rate stays within [lr / range, lr * range]')
     extra.add_argument('--no-gpu-defaults', action='store_true',
                        help='Do not enable CUDA preparation, fused encoding, coalesced transfers and rollout caching')
     options, remaining = extra.parse_known_args(supplied)
+    gpu = gpu_defaults(remaining, options.no_gpu_defaults)
     args = v3.arguments(['--run-dir', str(base.ROOT/'runs/survival-ppo-v4'),
                          '--gradient-clip-scope', 'separate',
-                         *gpu_defaults(remaining, options.no_gpu_defaults), *remaining])
+                         '--selection-seeds', *map(str, SELECTION_SEEDS),
+                         # 32 x 256 = 8,192 placements per update. Measured (exhaustive, shared GPU):
+                         # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
+                         '--envs', '32', '--rollout', '256', *gpu, *remaining])
     args.pretrained = options.pretrained
     args.shortlist_mode = options.shortlist_mode
-    args.screening = options.screening
+    args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
+    args.adaptive_lr = not options.fixed_lr
+    args.lockstep_selection = not options.sequential_selection
+    args.regional_critic = options.regional_critic
+    args.danger_starts, args.danger_window = options.danger_starts, tuple(options.danger_window)
+    args.danger_pool, args.danger_per_game = options.danger_pool, options.danger_per_game
+    if not 0 <= args.danger_starts < 1 or not 0 < args.danger_window[0] <= args.danger_window[1] \
+            or min(args.danger_pool, args.danger_per_game) < 1:
+        raise ValueError('--danger-starts must be in [0, 1) with a positive MIN <= MAX window')
+    args.adaptive_kl_target = options.adaptive_kl_target if options.adaptive_kl_target is not None else args.target_kl / 2
+    args.adaptive_lr_range = options.adaptive_lr_range
+    if args.adaptive_kl_target <= 0 or args.adaptive_kl_target > args.target_kl or args.adaptive_lr_range < 1:
+        raise ValueError('--adaptive-kl-target must be in (0, --target-kl] and --adaptive-lr-range >= 1')
     return args
 
 

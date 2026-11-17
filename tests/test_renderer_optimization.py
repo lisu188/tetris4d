@@ -103,6 +103,19 @@ class RendererTests(unittest.TestCase):
                             return self.generic_visit(node)
                     candidate = StripNativeMetrics().visit(candidate)
                     self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected)])
+                if name == 'evaluate_board':
+                    # Two exact speedups: C-speed column validation and ndarray.tolist().
+                    rewrites = {'not _valid_columns(board)': 'any((not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board))',
+                                'tuple(native[1].tolist())': 'tuple(map(int, native[1]))'}
+                    replaced = []
+                    class RestoreOriginal(ast.NodeTransformer):
+                        def generic_visit(self, node):
+                            if isinstance(node, ast.expr) and ast.unparse(node) in rewrites:
+                                replaced.append(ast.unparse(node))
+                                return ast.parse(rewrites[ast.unparse(node)], mode='eval').body
+                            return super().generic_visit(node)
+                    candidate = RestoreOriginal().visit(candidate)
+                    self.assertEqual(sorted(replaced), sorted(rewrites))
                 if name == 'Game':
                     # The game library adds optional recording hooks only: a finalizer,
                     # `recording = ...` lookups and `if recording is not None:` calls.

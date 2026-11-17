@@ -52,7 +52,8 @@
   function drawCharts() {
     const data=state.data||{},cut=state.window==="all"?-Infinity:Date.now()-(state.window==="15m"?900000:3600000);
     const rows=(Array.isArray(data.series)?data.series:[]).filter(r=>stamp(r.timestamp_utc)!==null&&stamp(r.timestamp_utc)>=cut).sort((a,b)=>stamp(a.timestamp_utc)-stamp(b.timestamp_utc));
-    const episodes=rows.filter(r=>r.event==="episode_end");
+    // Episodes started from a recorded near-top-out state (issue #32) are not fresh-game survival.
+    const episodes=rows.filter(r=>r.event==="episode_end"&&(!r.start_kind||r.start_kind==="fresh"));
     const updates=rows.filter(r=>r.event==="update");
     const maximum=data.maximum_survival||{};
     const records=(Array.isArray(maximum.records)?maximum.records:[]).filter(r=>stamp(r.timestamp_utc)!==null).sort((a,b)=>stamp(a.timestamp_utc)-stamp(b.timestamp_utc));

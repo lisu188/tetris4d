@@ -121,12 +121,13 @@ def train(args):
     neural.game.configure_backend(args.backend)
     neural.game.load_checkpoint(args.weights)
     device = neural.device_for(args.device)
+    gpu_collect = (device.type == 'cuda' and args.backend == 'native'
+                   and args.shortlist_mode == 'teacher-random' and not args.cpu_collect)
+    screening = args.screening or ('exhaustive' if gpu_collect else 'sampled')
     config = neural.Config(architecture=ARCHITECTURE, spatial_actor=True, shortlist_mode=args.shortlist_mode,
                            policy_mode='teacher-prior', teacher_prior_scale=.125, recover_target=True,
-                           candidates=args.candidates, shortlist=args.shortlist, screening=args.screening)
+                           candidates=args.candidates, shortlist=args.shortlist, screening=screening)
     deadline = time.monotonic() + args.max_seconds
-    gpu_collect = (device.type == 'cuda' and args.backend == 'native'
-                   and config.shortlist_mode == 'teacher-random' and not args.cpu_collect)
     if gpu_collect:
         training, training_games = collect_gpu(args.train_seeds, args.samples_per_seed, args.stride,
                                                config, deadline, device)
@@ -214,8 +215,9 @@ def arguments(argv=None):
     parser.add_argument('--candidates', type=int, default=2048)
     parser.add_argument('--shortlist', type=int, default=128)
     parser.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
-    parser.add_argument('--screening', choices=('sampled', 'exhaustive'), default='sampled',
-                        help="Candidate pool: 'sampled' (--candidates placements) or every legal placement")
+    parser.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
+                        help="Candidate pool: 'sampled' (--candidates placements) or every legal placement. "
+                             "Default: exhaustive when collecting on CUDA, sampled otherwise")
     parser.add_argument('--cpu-collect', action='store_true',
                         help='Collect teacher snapshots with the CPU reference preparer instead of batched CUDA')
     parser.add_argument('--steps', type=int, default=300)

@@ -21,6 +21,25 @@ SPATIAL_ACTOR_FEATURES = 18
 # Each statistic is a mean over 15*16*16 neighbour edges per axis, so one placement
 # moves it by ~1e-4. Rescale afterstate deltas to per-edge change counts (O(1)).
 SPATIAL_DELTA_SCALE = 15 * 16 * 16
+# Optional critic input (issue #38): for each 4x4x4 block of (x, y, w) columns, the
+# maximum height, mean height and mean holes per column, each divided by 16.
+REGION_SIDE = 4
+REGIONAL_CRITIC_FEATURES = 3 * (16 // REGION_SIDE) ** 3
+
+
+def regional_statistics(boards):
+    """[batch, 4096] column masks -> [batch, 192] fixed local-structure features."""
+    masks = boards.to(torch.int32)
+    heights = _bit_length16(masks)
+    holes = heights - _bitcount16(masks)
+    blocks = 16 // REGION_SIDE
+
+    def regions(values):  # column index = (w * 16 + y) * 16 + x
+        grid = values.float().reshape(-1, blocks, REGION_SIDE, blocks, REGION_SIDE, blocks, REGION_SIDE)
+        return grid.permute(0, 1, 3, 5, 2, 4, 6).reshape(len(values), blocks ** 3, REGION_SIDE ** 3)
+
+    height_blocks, hole_blocks = regions(heights), regions(holes)
+    return torch.cat((height_blocks.amax(-1), height_blocks.mean(-1), hole_blocks.mean(-1)), dim=1) / 16
 
 
 def _bitcount16(value):
@@ -176,14 +195,17 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         self.config = config
         self.spatial_actor = nn.Linear(SPATIAL_ACTOR_FEATURES, 64, bias=False)
         nn.init.zeros_(self.spatial_actor.weight)
-        state_width = 2 * neural.CHANNELS + neural.CONTEXT + SPATIAL_CRITIC_FEATURES
+        state_width = (2 * neural.CHANNELS + neural.CONTEXT + SPATIAL_CRITIC_FEATURES
+                       + (REGIONAL_CRITIC_FEATURES if config.regional_critic else 0))
         self.value = nn.Sequential(nn.LayerNorm(state_width), nn.Linear(state_width, 128), nn.SiLU(),
                                    nn.Linear(128, 64), nn.SiLU(), nn.Linear(64, 1))
 
     def encode(self, boards, targets, context):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
-        pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4)),
-                            adjacency_statistics(boards, targets).mean(dim=1)), dim=1)
+        parts = [spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4)), adjacency_statistics(boards, targets).mean(dim=1)]
+        if self.config.regional_critic:
+            parts.append(regional_statistics(boards).to(parts[0].dtype))
+        pooled = torch.cat(parts, dim=1)
         joined = torch.cat((pooled, context), dim=1)
         value = self.critic(joined)
         return spatial, pooled, value, value.new_empty((len(value), 0)), spatial

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from array import array as _array
 import argparse
 import bisect
 import itertools
@@ -590,13 +591,24 @@ class BoardEvaluation:
     native_counts: object = None
 
 
+def _valid_columns(board: Board) -> bool:
+    """Same acceptance as the per-column isinstance/range loop, with a C-speed common path."""
+    if HEIGHT == 16 and set(map(type, board)) <= {int, bool}:
+        try:
+            _array('H', board)
+        except OverflowError:
+            return False
+        return True
+    return not any(not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board)
+
+
 @lru_cache(maxsize=8)
 def evaluate_board(board: Board) -> BoardEvaluation:
-    if len(board) != AREA or any(not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board):
+    if len(board) != AREA or not _valid_columns(board):
         raise ValueError('Invalid 4D board.')
     native = _native_features(board) if BACKEND == 'native' else None
     if native is not None:
-        heights = tuple(map(int, native[1]))
+        heights = tuple(native[1].tolist())
         holes = int(native[3][1])
         counts = tuple(map(int, native[2]))
     else:
