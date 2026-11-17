@@ -77,6 +77,9 @@
     $("reference-kl-chart").innerHTML=chart(updates,"final_reference_kl",{label:"Reference KL measurements",minYMax:0.0001});
     $("entropy-chart").innerHTML=chart(updates,"entropy",{label:"Entropy measurements"});
     $("exploration-chart").innerHTML=chart(updates.filter(r=>finite(r.lower_primary_probability)),"lower_primary_probability",{label:"Exploration measurements",percent:true,line:false});
+    // Hide panels whose measurement this run never produces (e.g. reference KL without a frozen reference).
+    const everywhere=Array.isArray(data.series)?data.series:[];
+    for(const [id,key] of [["reference-kl-chart","final_reference_kl"],["saturation-chart","h2_saturated_fraction"]]){const panel=$(id).closest("article");if(panel)panel.hidden=everywhere.length>0&&!everywhere.some(r=>finite(r[key]));}
     $("saturation-chart").innerHTML=chart(updates.filter(r=>finite(r.h2_saturated_fraction)),"h2_saturated_fraction",{label:"Hidden saturation measurements",percent:true,line:false});
     put("history-note",data.series_sampled?`${num(data.series?.length)} of ${num(data.series_total_count)} events · download for full history`: `${num(data.series_total_count)} recorded events`);
   }
@@ -89,20 +92,28 @@
 
   function render(data) {
     const p=data.progress||{},cal=data.calibration||{},latest=data.latest||{},best=data.best_selection||{};
+    // Normal-start PPO episodes; danger starts (near-top-out library positions) are counted separately.
+    const survival=data.maximum_survival||{},danger=survival.danger_start_episodes||0;
+    const episodes=finite(survival.completed_episodes)?survival.completed_episodes:p.finished_episodes;
     const phase=phases[data.phase]||phases.unknown;
-    put("phase-badge",phase[0]);put("phase-title",phase[1]);put("phase-copy",phase[2]);
+    put("phase-badge",phase[0]);put("phase-title",phase[1]);
+    // Lockstep selection games and long checkpoints report only when they finish: say so instead of looking stalled.
+    const quiet=stamp(latest.timestamp_utc)===null?0:(Date.now()-stamp(latest.timestamp_utc))/60000;
+    put("phase-copy",data.phase==="training"&&quiet>=5?`No new events for ${Math.floor(quiet)} min. Selection games and checkpoints report only when they finish.`:phase[2]);
     document.querySelectorAll(".phase-steps li").forEach((el,i)=>{el.classList.toggle("done",phase[3]>i);el.classList.toggle("current",phase[3]===i);});
     let detail="Awaiting source events";
     if(data.phase==="calibration")detail=cal.stage==="fit"?`Critic fit · ${num(cal.fit_updates)} updates`:finite(cal.current_game)?`Game ${num(cal.current_game)} / ${num(cal.total_games)} · ${num(cal.current_pieces)} placements`:`${num(cal.finished_games)} / ${num(cal.total_games)} calibration games finished`;
-    else if(data.phase==="training"||data.phase==="selection")detail=`${num(p.runner_updates)} rollout updates · ${num(p.finished_episodes)} completed episodes`;
+    else if(data.phase==="training"||data.phase==="selection")detail=`${num(p.runner_updates)} rollout updates · ${num(episodes)} completed episodes`;
     else if(data.phase==="complete")detail="Production stopped · review final assessment separately";
     else if(data.phase==="failed")detail="Inspect the event stream and controller diagnostics";
     else if(data.phase==="optimizing")detail="Graceful stop saved · preparing optimized sixteen-environment run";
     put("stage-detail",detail);
-    put("placements",num(p.placements));put("updates",num(p.runner_updates));put("episodes",num(p.finished_episodes));
-    put("optimizer-detail",`Optimizer steps ${num(p.optimizer_steps)}`);put("clears-detail",`Hyperlayers cleared ${num(p.clears)}`);
+    put("placements",num(p.placements));put("updates",num(p.runner_updates));put("episodes",num(episodes));
+    put("optimizer-detail",`Optimizer steps ${num(p.optimizer_steps)}`);
+    put("clears-detail",`Hyperlayers cleared ${num(p.clears)}${danger?` · plus ${num(danger)} danger-start games`:""}`);
     put("best-survival",finite(best.mean_pieces)?num(best.mean_pieces,1):"—");
-    put("best-detail",finite(best.mean_pieces)?"Mean placements across selection games":"Awaiting completed selection games");
+    const cap=data.selection_cap;
+    put("best-detail",!finite(best.mean_pieces)?"Awaiting completed selection games":finite(cap)&&best.mean_pieces>=cap?`At the ${num(cap)} cap on every seed: raise --selection-pieces to measure more`:finite(cap)&&best.median_pieces>=cap?`Mean across selection games · at least half reached the ${num(cap)} cap`:"Mean placements across selection games");
     put("entropy-value",num(latest.entropy,4));put("kl-value",num(latest.kl,5));
     put("reference-kl-value",num(latest.final_reference_kl,5));put("reference-kl-weight",num(latest.reference_kl_weight,5));
     put("critic-ev-value",num(latest.critic_bootstrapped_explained_variance,4));

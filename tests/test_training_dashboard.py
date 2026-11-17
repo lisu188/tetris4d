@@ -190,6 +190,23 @@ class DashboardTests(unittest.TestCase):
         self.artifact(self.root/'status.json',{'state':'finished'})
         self.assertEqual(collector.snapshot()['phase'],'complete')
 
+    def test_selection_start_phase_danger_starts_and_selection_cap(self):
+        collector = dashboard.Collector(self.run,self.data)
+        self.artifact(self.run/'manifest.json',{'source_sha256':{'selection_pieces':32000},'calibration_stage':'passed'})
+        self.emit('update',runner_updates=1)
+        self.emit('episode_end',pieces=900,episode=1,seed=1,start_kind='library',start_pieces=4000)
+        self.emit('episode_end',pieces=20000,episode=2,seed=2,start_kind='fresh')
+        self.emit('selection_started',runner_updates=1,selection_seeds=8)
+        collector.poll()
+        status = collector.snapshot()
+        self.assertEqual(status['phase'],'selection')
+        self.assertEqual(status['selection_cap'],32000)
+        self.assertEqual(status['maximum_survival']['danger_start_episodes'],1)
+        self.assertEqual(status['maximum_survival']['completed_episodes'],1)
+        self.assertEqual(status['maximum_survival']['completed_record_pieces'],20000)
+        self.emit('update',runner_updates=2); collector.poll()
+        self.assertEqual(collector.snapshot()['phase'],'training')
+
     def test_running_record_survives_both_plot_sampling_and_deque_eviction(self):
         collector = dashboard.Collector(self.run,self.data)
         for index in range(10025):
