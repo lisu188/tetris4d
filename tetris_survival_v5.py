@@ -233,7 +233,7 @@ def place(boards, cells, cell_mask, clears=None):
 
 
 @torch.no_grad()
-def next_state_features(boards, targets, specs, valid, states, move, chunk=256):
+def next_state_features(boards, targets, specs, valid, states, move, chunk=1024):
     """Exact feature rows of every valid candidate's next state.
 
     boards [n,4096] int, targets [n], specs [n,K,>=5] (rotation, x, y, w, z, ...), valid [n,K],
@@ -254,9 +254,8 @@ def next_state_features(boards, targets, specs, valid, states, move, chunk=256):
     mask = present[piece, spec[:, 0]]
     cells = table[piece, spec[:, 0]] + torch.stack((spec[:, 1], spec[:, 2], spec[:, 4], spec[:, 3]), 1)[:, None, :]
     info = [v4.afterstate_piece_features(s) for s in states]
-    env_list = env.tolist()
-    piece_rows = torch.tensor([info[e][0] for e in env_list], dtype=torch.float64, device=device)
-    phase = torch.tensor([info[e][1] for e in env_list], dtype=torch.float64, device=device)
+    piece_rows = torch.tensor([row for row, _ in info], dtype=torch.float64, device=device)[env]
+    phase = torch.tensor([value for _, value in info], dtype=torch.float64, device=device)[env]
     owner_targets = targets.to(device).long()[env]
     boards = boards.to(device=device, dtype=torch.int32)
     chunks = []
