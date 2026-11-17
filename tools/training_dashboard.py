@@ -204,6 +204,7 @@ class Collector:
         self.total_rows = 0
         self.last_own_row = None
         self.completed_episodes = 0
+        self.danger_episodes = 0
         self.completed_record = None
         self.survival_records = []
         self.progress = {key: None for key in NUMBERS[:5]}
@@ -400,8 +401,10 @@ class Collector:
             self.event_phase = 'calibration'
         if event in ('update','selection_complete') or event == 'calibration_complete' and row['calibration_passed']:
             self.event_phase = 'training'
-        if event == 'selection_game':
+        if event in ('selection_game', 'selection_started'):
             self.event_phase = 'selection'
+        if event == 'episode_end' and row.get('start_kind') == 'library':
+            self.danger_episodes += 1
         if event == 'run_finished':
             self.event_phase = 'complete'
         self.events.append({key:row[key] for key in ('event','timestamp_utc','runner_updates','episode_pieces',
@@ -554,8 +557,11 @@ class Collector:
                     'latest':dict(self.latest),'best_selection':best_selection,
                     'games':[{**game,'observed_utc':observed} for game in games],
                     'series':rows,'series_total_count':self.total_rows,'series_sampled':self.total_rows>len(rows),
+                    'selection_cap':number((manifest.get('source_sha256') or {}).get('selection_pieces'))
+                                    if isinstance(manifest.get('source_sha256'), dict) else None,
                     'maximum_survival':{'completed_record_pieces':self.completed_record,
-                                        'completed_episodes':self.completed_episodes,'records':list(self.survival_records),
+                                        'completed_episodes':self.completed_episodes,
+                                        'danger_start_episodes':self.danger_episodes,'records':list(self.survival_records),
                                         'active_max_pieces':active_max,'active_observed_utc':observed,
                                         'current_max_pieces':max(known) if known else None},
                     'events':list(self.events),'errors':list(self.errors),

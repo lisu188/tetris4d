@@ -355,6 +355,11 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                 'lockstep': True}
 
     def select(self):
+        if self.selection_ready() and not self.budget.expired():
+            # Lockstep selection emits its games only when they finish; announce the phase now.
+            self.emit('selection_started', runner_updates=self.progress['runner_updates'],
+                      selection_seeds=len(self.args.selection_seeds), lockstep=self.lockstep_available(),
+                      selection_cap=self.args.selection_pieces)
         previous = self.last_evaluated_update
         super().select()
         if (not getattr(self.args, 'afterstate_selection', False) or self.budget.expired()
