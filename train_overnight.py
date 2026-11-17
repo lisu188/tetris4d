@@ -149,6 +149,7 @@ class Episode:
     phase: str = 'training'
     stop_reason: str = 'in_progress'
     complete: bool = False
+    start: dict | None = None  # non-seed start state, rebuilt by START_BUILDERS[start['kind']]
 
     def __post_init__(self):
         library.tag(self.state, phase=self.phase, episode=self.number)
@@ -160,6 +161,8 @@ class Episode:
         pending = getattr(self, 'pending_retarget', None)
         if pending is not None:
             result['pending_retarget'] = pending
+        if self.start is not None:
+            result['start'] = self.start
         return result
 
 
@@ -186,9 +189,21 @@ def apply_move(episode: Episode, candidate, update: int, behavior: str):
     return move
 
 
+# kind -> callable(start) returning (Game, target) for episodes that begin mid-game.
+START_BUILDERS = {}
+
+
 def restore_episode(snapshot) -> Episode:
-    state = game.Game(int(snapshot['seed']), snapshot['piece_set'])
-    episode = Episode(int(snapshot['number']), state, phase=snapshot.get('phase', 'training'))
+    start = snapshot.get('start')
+    if start is not None:
+        if start.get('kind') not in START_BUILDERS:
+            raise ValueError(f"No builder for episode start kind {start.get('kind')!r}")
+        state, target = START_BUILDERS[start['kind']](start)
+        episode = Episode(int(snapshot['number']), state, target=target,
+                          phase=snapshot.get('phase', 'training'), start=start)
+    else:
+        state = game.Game(int(snapshot['seed']), snapshot['piece_set'])
+        episode = Episode(int(snapshot['number']), state, phase=snapshot.get('phase', 'training'))
     for row in snapshot['moves']:
         if row['piece_number'] != state.pieces + 1 or row['piece'] != state.current:
             raise ValueError('Replay piece order does not match the deterministic bag.')

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import copy
+import random
 from dataclasses import asdict, replace
 from pathlib import Path
 import sys
@@ -18,6 +20,57 @@ ALGORITHM = 'survival-ppo-v4'
 SELECTION_SEEDS = tuple(910001 + 2 * i for i in range(8))
 
 
+def library_start_state(game_id, offset, root=None):
+    """Replay a recorded game to `offset` placements; return an unrecorded copy and its target."""
+    library = base.library
+    root = Path(root) if root is not None else library.default_root()
+    entry = next((e for e in library.iter_index(root) if e['id'] == game_id), None)
+    if entry is None:
+        raise ValueError(f'Game {game_id} is not in the game library')
+    record = library.load(root / entry['file'])
+    for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
+        if index == offset:
+            snapshot = copy.deepcopy(state)
+            snapshot._library_log = None
+            library.ignore(snapshot)
+            return snapshot, int(row[6])
+    raise ValueError(f'Game {game_id} has no placement {offset}')
+
+
+def build_danger_pool(args, root=None):
+    """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
+    several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
+    library = base.library
+    root = Path(root) if root is not None else library.default_root()
+    low, high = args.danger_window
+    rng = random.Random(args.seed + 32)
+    entries = [e for e in library.iter_index(root)
+               if e.get('game_over') and e.get('stop_reason') == 'top_out'
+               and e.get('piece_set') == args.piece_set and e.get('placements', 0) > high]
+    entries.sort(key=lambda e: e['id'])
+    rng.shuffle(entries)
+    pool = []
+    for entry in entries:
+        if len(pool) >= args.danger_pool:
+            break
+        try:
+            record = library.load(root / entry['file'])
+            total = len(record.moves)
+            wanted = sorted({total - rng.randint(low, high) for _ in range(args.danger_per_game)})
+            for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
+                if index in wanted:
+                    snapshot = copy.deepcopy(state)
+                    snapshot._library_log = None
+                    library.ignore(snapshot)
+                    pool.append({'kind': 'library', 'game_id': entry['id'], 'offset': index,
+                                 'remaining_recorded': total - index, 'state': snapshot, 'target': int(row[6])})
+                if index >= wanted[-1]:
+                    break
+        except ValueError:
+            continue  # recorded on a different engine/piece catalogue
+    return pool[:args.danger_pool]
+
+
 def phase_behaviour(phase):
     return 'frozen_sampled_neural' if phase == 'selection-sampled' else f'greedy_{phase.removeprefix("selection-")}'
 
@@ -25,7 +78,47 @@ def phase_behaviour(phase):
 class SurvivalTrainer(v3.SurvivalTrainer):
     algorithm = ALGORITHM
 
+    def __init__(self, args, budget):
+        self.danger_pool, self._danger_starts = [], {}
+        self._danger_rng = random.Random(args.seed + 3200)
+        if getattr(args, 'danger_starts', 0) > 0:
+            self.danger_pool = build_danger_pool(args)
+            if not self.danger_pool:
+                raise ValueError('--danger-starts needs recorded top-out games in the game library')
+        cache = {(p['game_id'], p['offset']): p for p in self.danger_pool}
+
+        def rebuild(start):
+            cached = cache.get((start['game_id'], start['offset']))
+            if cached is not None:
+                state = copy.deepcopy(cached['state'])
+                base.library.ignore(state)
+                return state, cached['target']
+            return library_start_state(start['game_id'], start['offset'])
+
+        base.START_BUILDERS['library'] = rebuild
+        super().__init__(args, budget)
+
+    def new_episode(self):
+        if not self.danger_pool or self._danger_rng.random() >= self.args.danger_starts:
+            return super().new_episode()
+        number = self.next_episode
+        self.next_episode += 1
+        chosen = self.danger_pool[self._danger_rng.randrange(len(self.danger_pool))]
+        state = copy.deepcopy(chosen['state'])
+        base.library.ignore(state)
+        start = {k: chosen[k] for k in ('kind', 'game_id', 'offset', 'remaining_recorded')}
+        self._danger_starts[number] = start
+        return base.Episode(number, state, target=chosen['target'], phase='training', start=start)
+
     def emit(self, event, **fields):
+        if event == 'episode_end':
+            start = self._danger_starts.pop(fields.get('episode'), None) if hasattr(self, '_danger_starts') else None
+            if start is None:
+                episode = next((e for e in getattr(self, 'environments', ()) if e.number == fields.get('episode')), None)
+                start = episode.start if episode is not None else None
+            fields.update(start_kind=start['kind'] if start else 'fresh',
+                          start_pieces=start['offset'] if start else 0,
+                          own_placements=fields.get('pieces', 0) - (start['offset'] if start else 0))
         if event == 'survival_algorithm':
             fields.update(architecture=ARCHITECTURE, spatial_critic=True,
                           afterstate_spatial_actor=True, actor_critic_parameter_isolation=True)
@@ -261,6 +354,10 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                          shortlist_mode=self.args.shortlist_mode,
                          screening=self.args.screening,
                          adaptive_lr=self.args.adaptive_lr,
+                         danger_starts=self.args.danger_starts,
+                         danger_window=list(self.args.danger_window) if self.args.danger_starts else None,
+                         danger_pool=([[p['game_id'], p['offset']] for p in self.danger_pool]
+                                      if self.args.danger_starts else None),
                          lockstep_selection=self.lockstep_available(),
                          adaptive_kl_target=self.args.adaptive_kl_target if self.args.adaptive_lr else None,
                          adaptive_lr_range=self.args.adaptive_lr_range if self.args.adaptive_lr else None,
@@ -304,6 +401,12 @@ def arguments(argv=None):
     extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
                        help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
                             "Default: exhaustive with the GPU defaults, sampled otherwise (CPU exhaustive is ~1.3 s/state)")
+    extra.add_argument('--danger-starts', type=float, default=0.,
+                       help='Share of training episodes started shortly before a recorded top-out (issue #32)')
+    extra.add_argument('--danger-window', type=int, nargs=2, default=(500, 3000), metavar=('MIN', 'MAX'),
+                       help='Start this many placements before the recorded top-out')
+    extra.add_argument('--danger-pool', type=int, default=32, help='Number of distinct start states')
+    extra.add_argument('--danger-per-game', type=int, default=4, help='Start states taken from each replayed game')
     extra.add_argument('--sequential-selection', action='store_true',
                        help='Play selection games one at a time instead of in lockstep on CUDA (issue #36)')
     extra.add_argument('--fixed-lr', action='store_true',
@@ -324,6 +427,11 @@ def arguments(argv=None):
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
     args.adaptive_lr = not options.fixed_lr
     args.lockstep_selection = not options.sequential_selection
+    args.danger_starts, args.danger_window = options.danger_starts, tuple(options.danger_window)
+    args.danger_pool, args.danger_per_game = options.danger_pool, options.danger_per_game
+    if not 0 <= args.danger_starts < 1 or not 0 < args.danger_window[0] <= args.danger_window[1] \
+            or min(args.danger_pool, args.danger_per_game) < 1:
+        raise ValueError('--danger-starts must be in [0, 1) with a positive MIN <= MAX window')
     args.adaptive_kl_target = options.adaptive_kl_target if options.adaptive_kl_target is not None else args.target_kl / 2
     args.adaptive_lr_range = options.adaptive_lr_range
     if args.adaptive_kl_target <= 0 or args.adaptive_kl_target > args.target_kl or args.adaptive_lr_range < 1:

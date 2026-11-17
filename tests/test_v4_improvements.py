@@ -136,6 +136,73 @@ class TrainerTests(unittest.TestCase):
         self.assertEqual(self.actor_lr(trainer), trainer.args.lr)
 
 
+class DangerStartTests(TrainerTests):
+    def setUp(self):
+        super().setUp()
+        import json
+        library = v4.base.library
+        self.root = self.directory / 'library'
+        library.configure(self.root)
+        self.addCleanup(library.configure, None, False)
+        state = game.Game(4242, 'expanded')
+        library.tag(state, phase='training', source='test')
+        target = 1
+        for _ in range(60):
+            decision = game.choose_sustained_move(state.board, state.current, target, 64, state.pieces)
+            library.annotate(state, 'teacher', 0, target)
+            state.commit(decision.move)
+        library.finish(state, 'top_out')
+        index = self.root / 'index.jsonl'
+        rows = [json.loads(line) for line in index.read_text().splitlines()]
+        for row in rows:
+            row['game_over'] = True
+        index.write_text(''.join(json.dumps(row) + '\n' for row in rows))
+        patcher = patch.object(library, 'default_root', return_value=self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_pool_offsets_and_unrecorded_copies(self):
+        args = self.arguments('--danger-starts', '.5', '--danger-window', '5', '20', '--danger-pool', '3')
+        pool = v4.build_danger_pool(args, self.root)
+        self.assertEqual(len(pool), 3)
+        for start in pool:
+            self.assertTrue(5 <= start['remaining_recorded'] <= 20)
+            self.assertEqual(start['state'].pieces, start['offset'])
+            self.assertTrue(start['state']._library_log.ignore)
+            state, target = v4.library_start_state(start['game_id'], start['offset'], self.root)
+            self.assertEqual(state.board, start['state'].board)
+            self.assertEqual((state.current, target), (start['state'].current, start['target']))
+
+    def test_trainer_starts_restores_and_labels_danger_episodes(self):
+        trainer = self.trainer('--danger-starts', '.99', '--danger-window', '5', '20', '--danger-pool', '4')
+        starts = [e.start for e in trainer.environments]
+        self.assertTrue(any(starts))
+        self.assertTrue(trainer.calibrate())
+        trainer.update(trainer.rollout(False), False)
+        trainer.save('test_checkpoint')
+        resumed = self.trainer('--danger-starts', '.99', '--danger-window', '5', '20', '--danger-pool', '4')
+        for before, after in zip(trainer.environments, resumed.environments):
+            self.assertEqual(after.start, before.start)
+            self.assertEqual(after.state.board, before.state.board)
+            self.assertEqual(after.state.pieces, before.state.pieces)
+        emitted = []
+        with patch.object(v4.v2.SurvivalTrainer, 'emit', lambda self, event, **f: emitted.append(f)):
+            for episode in resumed.environments:
+                resumed.emit('episode_end', episode=episode.number, pieces=episode.state.pieces + 7)
+        for episode, event in zip(resumed.environments, emitted):
+            if episode.start is None:
+                self.assertEqual((event['start_kind'], event['own_placements']), ('fresh', episode.state.pieces + 7))
+            else:
+                self.assertEqual(event['start_kind'], 'library')
+                self.assertEqual(event['start_pieces'], episode.start['offset'])
+                self.assertEqual(event['own_placements'], episode.state.pieces + 7 - episode.start['offset'])
+
+    def test_fresh_runs_never_touch_the_library(self):
+        trainer = self.trainer()
+        self.assertEqual(trainer.danger_pool, [])
+        self.assertTrue(all(e.start is None for e in trainer.environments))
+
+
 @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'CUDA probes require TETRIS4D_TEST_CUDA=1')
 class LockstepSelectionTests(TrainerTests):
     backend, device = 'native', 'cuda'

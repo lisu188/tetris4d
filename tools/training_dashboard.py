@@ -37,7 +37,7 @@ FIELDS = ('event_id', 'event', 'timestamp_utc', 'elapsed_seconds', 'session_elap
 # Optional columns extend new rows/downloads without changing existing provenance.
 OPTIONAL_NUMBERS = ('reference_kl', 'final_reference_kl', 'reference_kl_weight',
                     'critic_bootstrapped_explained_variance')
-OPTIONAL_FIELDS = ('actor_changed_from_initial', 'teacher_placements', *OPTIONAL_NUMBERS)
+OPTIONAL_FIELDS = ('actor_changed_from_initial', 'teacher_placements', 'start_kind', *OPTIONAL_NUMBERS)
 CSV_FIELDS = (*FIELDS, *OPTIONAL_FIELDS)
 
 
@@ -323,6 +323,7 @@ class Collector:
         changed = diagnostic.get('actor_changed_from_initial')
         row['actor_changed_from_initial'] = changed if type(changed) is bool else None
         row['teacher_placements'] = number(raw.get('teacher_placements'))
+        row['start_kind'] = raw.get('start_kind') if isinstance(raw.get('start_kind'), str) else None
         for key in OPTIONAL_NUMBERS:
             row[key] = number(raw.get(key))
         critic = raw.get('critic_bootstrapped_diagnostics')
@@ -355,7 +356,8 @@ class Collector:
         pieces = number(row.get('episode_pieces'))
         if (event == 'episode_end' and pieces is not None and pieces >= 0
                 and row.get('policy') in (None,'neural','ppo')
-                and row.get('teacher_placements') in (None,0)):
+                and row.get('teacher_placements') in (None,0)
+                and row.get('start_kind') in (None,'fresh')):
             self.completed_episodes += 1
             if self.completed_record is None or pieces > self.completed_record:
                 self.completed_record = pieces
