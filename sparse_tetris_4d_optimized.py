@@ -126,9 +126,16 @@ PAIR_ACTIVE_COUNTS = tuple(int(SIGMOID_TABLE[HEIGHT + d] >= .5)
 del _OUTPUT_SIGNALS, _OUTPUT_TICKS
 
 
+def _valid_heights(heights) -> bool:
+    """Same acceptance as the per-height isinstance/range loop, with a C-speed common path."""
+    if set(map(type, heights)) <= {int, bool}:
+        return min(heights) >= 0 and max(heights) <= HEIGHT
+    return not any(not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights)
+
+
 @lru_cache(maxsize=16)
 def pooled_histograms(heights: tuple[int, ...]) -> tuple[tuple[int, ...], tuple[int, ...]]:
-    if len(heights) != AREA or any(not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights):
+    if len(heights) != AREA or not _valid_heights(heights):
         raise ValueError('Histogram pooling requires 4096 integer column heights in [0, 16].')
     if BACKEND in ('numpy', 'native'):
         np, a, b, _ = numpy_tables()

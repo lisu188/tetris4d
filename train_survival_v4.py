@@ -166,7 +166,11 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         Rollout ('training') episodes keep the inherited path; their batches are
         already prepared on device. Results match the CPU reference preparation.
         """
-        if (episode.phase == 'training' or not getattr(self.args, 'gpu_prepare', False)
+        # Training resets only need the None check before the next batched preparation;
+        # on CUDA they use the same exact single-state path instead of CPU preparation
+        # (~1.3 s per state with exhaustive screening). See issue #34.
+        training_on_device = episode.phase == 'training' and getattr(self, '_gpu_prepare_active', False)
+        if ((episode.phase == 'training' and not training_on_device) or not getattr(self.args, 'gpu_prepare', False)
                 or self.device.type != 'cuda' or game.BACKEND != 'native'):
             return super().prepare_episode(episode)
         try:
@@ -181,6 +185,54 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         if prepared is not None:
             self.note_target(episode, int(result.targets[0]))
         return prepared
+
+    def _overlap_split(self):
+        if (not getattr(self.args, 'overlap_prepare', False) or not getattr(self, '_gpu_prepare_active', False)
+                or len(self.environments) < 4):
+            return 0
+        return len(self.environments) // 2
+
+    def committed_environment(self, index):
+        """Issue #34: once the first half of the environments has committed, prepare it
+        on a second CUDA preparer in a worker thread while the main thread commits and
+        prepares the second half. CUDA waits release the GIL, so CPU commits overlap
+        GPU preparation. The merged batch equals a single full preparation."""
+        split = self._overlap_split()
+        if not split or index != split - 1:
+            return
+        if getattr(self, '_overlap_preparer', None) is None:
+            from concurrent.futures import ThreadPoolExecutor
+            from tetris_gpu_simulation import GpuPreparer
+            self._overlap_preparer = GpuPreparer(self.model.config, self.device)
+            self._overlap_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='v4-prepare')
+        states = [e.state for e in self.environments[:split]]
+        targets = [e.target for e in self.environments[:split]]
+        self._overlap_pending = (split, self._overlap_executor.submit(self._overlap_preparer.prepare_batch,
+                                                                      states, targets))
+
+    def _prepare_all(self):
+        pending, self._overlap_pending = getattr(self, '_overlap_pending', None), None
+        if pending is None:
+            return super()._prepare_all()
+        split, future = pending
+        if not self._gpu_prepare_active or self._prepared_gpu_batch is not None:
+            future.exception()  # drain; the full preparation below supersedes it
+            return super()._prepare_all()
+        from tetris_gpu_simulation import GpuPreparer, merge_prepared_batches
+        try:
+            if getattr(self, '_gpu_preparer', None) is None:
+                self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+            second = self._gpu_preparer.prepare_batch([e.state for e in self.environments[split:]],
+                                                      [e.target for e in self.environments[split:]])
+            first = future.result()
+        except torch.OutOfMemoryError:
+            future.exception()
+            torch.cuda.empty_cache()
+            return super()._prepare_all()  # retries in one call, then falls back to CPU
+        stats = getattr(self, '_gpu_prepare_stats', None)
+        if stats is not None:
+            stats['overlapped_steps'] = stats.get('overlapped_steps', 0) + 1
+        self._accept_gpu_batch(merge_prepared_batches(first, second), calls=2)
 
     def lockstep_available(self):
         return (getattr(self.args, 'lockstep_selection', False) and getattr(self.args, 'gpu_prepare', False)
@@ -223,7 +275,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                 logp = self.policy_logp(prediction['logits'], result.batch['valid'])
                 if on_step is not None:
                     on_step(rows, episodes, prediction)
-                actions = choose(rows, prediction['logits'], logp)
+                actions = choose(rows, prediction['logits'], logp, episodes, result)
                 for i, candidate in zip(rows, result.selected_candidates(actions)):
                     base.apply_move(episodes[i], candidate, self.progress['updates'], phase_behaviour(phase))
             active = []
@@ -241,7 +293,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         recoveries = self.progress['target_recoveries']
         with base.preserve_rng(), torch.inference_mode():
             episodes, reasons, seconds = self.lockstep_games(
-                f'selection-{policy}', lambda rows, logits, logp: logits.argmax(-1))
+                f'selection-{policy}', lambda rows, logits, logp, *_: logits.argmax(-1))
         runs = []
         for episode, reason in zip(episodes, reasons):
             episode.stop_reason, episode.complete = reason, reason in ('top_out', 'planner_blocked', 'piece_limit')
@@ -272,7 +324,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                 if pieces % 128 == 0 and len(samples[i]) < 256:
                     samples[i].append((pieces, float(prediction['value'][row])))
 
-        def sample(rows, logits, logp):
+        def sample(rows, logits, logp, *_):
             return torch.stack([torch.multinomial(logp[row].exp(), 1, generator=generators[i])[0]
                                 for row, i in enumerate(rows)])
 
@@ -301,6 +353,50 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
                 'note': 'Frozen sampled-policy diagnostics; protected best is selected by separate greedy games.',
                 'lockstep': True}
+
+    def select(self):
+        previous = self.last_evaluated_update
+        super().select()
+        if (not getattr(self.args, 'afterstate_selection', False) or self.budget.expired()
+                or self.last_evaluated_update in (None, previous) or not self.lockstep_available()):
+            return
+        result = self.afterstate_policy_check()
+        result.update(runner_updates=self.progress['runner_updates'], checkpoint_sha256=base.file_hash(self.last))
+        base.durable_json(self.root / f'afterstate-selection-{self.progress["runner_updates"]:08d}.json', result)
+        self.emit('afterstate_selection_complete', score=result['score'], top_k=self.args.afterstate_top_k,
+                  runner_updates=self.progress['runner_updates'])
+
+    def afterstate_policy_check(self):
+        """Issue #37: greedy games choosing, among the actor's top-k, the candidate whose
+        afterstate the critic values highest. Report-only; checkpoint selection is unchanged."""
+        from tetris_survival_v4 import afterstate_values
+        self.model.eval()
+
+        def choose(rows, logits, logp, episodes, result):
+            top = logits.topk(min(self.args.afterstate_top_k, logits.shape[1]), dim=-1).indices
+            finite = torch.isfinite(logits.gather(1, top)).cpu().tolist()
+            indices, options = [], []
+            for row, (ranked, ok) in enumerate(zip(top.cpu().tolist(), finite)):
+                indices.append([a for a, keep in zip(ranked, ok) if keep])
+                pool = result.prepared[result.environment_indices[row]].options
+                options.append([pool[a] for a in indices[-1]])
+            values = afterstate_values(self.model, [episodes[i].state for i in rows],
+                                       [episodes[i].target for i in rows], options)
+            return torch.tensor([valid[int(v.argmax())] for valid, v in zip(indices, values)], device=logits.device)
+
+        with base.preserve_rng(), torch.inference_mode():
+            episodes, reasons, seconds = self.lockstep_games('selection-afterstate', choose)
+        runs = []
+        for episode, reason in zip(episodes, reasons):
+            base.library.finish(episode.state, reason)
+            runs.append({**episode.state.summary(), 'policy': 'afterstate', 'stop_reason': reason,
+                         'evaluation_complete': reason in ('top_out', 'planner_blocked', 'piece_limit'),
+                         'capped': reason == 'piece_limit', 'wall_seconds': seconds})
+            self.emit('afterstate_selection_game', **runs[-1])
+        complete = all(run['evaluation_complete'] for run in runs)
+        return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
+                'top_k': self.args.afterstate_top_k,
+                'note': 'Report-only afterstate ranking with the current critic; best checkpoint selection unchanged.'}
 
     def configure_model(self, resuming):
         if self.model.config.architecture != ARCHITECTURE:
@@ -369,6 +465,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                          danger_pool=([[p['game_id'], p['offset']] for p in self.danger_pool]
                                       if self.args.danger_starts else None),
                          lockstep_selection=self.lockstep_available(),
+                         overlap_prepare=self.args.overlap_prepare,
+                         afterstate_selection=self.args.afterstate_top_k if self.args.afterstate_selection else None,
                          adaptive_kl_target=self.args.adaptive_kl_target if self.args.adaptive_lr else None,
                          adaptive_lr_range=self.args.adaptive_lr_range if self.args.adaptive_lr else None,
                          spatial_actor=True, fresh_ppo_progress=True)
@@ -419,6 +517,13 @@ def arguments(argv=None):
                        help='Start this many placements before the recorded top-out')
     extra.add_argument('--danger-pool', type=int, default=32, help='Number of distinct start states')
     extra.add_argument('--danger-per-game', type=int, default=4, help='Start states taken from each replayed game')
+    extra.add_argument('--afterstate-selection', action='store_true',
+                       help='Also report afterstate-ranked selection games after each selection (issue #37)')
+    extra.add_argument('--afterstate-top-k', type=int, default=16,
+                       help='Actor candidates whose afterstates the critic ranks')
+    extra.add_argument('--overlap-prepare', action='store_true',
+                       help='Overlap CPU move commits with CUDA preparation of the other half (issue #34). '
+                            'Identical results; measured ~+1%% on an idle RTX 4060 Ti, so off by default')
     extra.add_argument('--sequential-selection', action='store_true',
                        help='Play selection games one at a time instead of in lockstep on CUDA (issue #36)')
     extra.add_argument('--fixed-lr', action='store_true',
@@ -442,6 +547,10 @@ def arguments(argv=None):
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
     args.adaptive_lr = not options.fixed_lr
     args.lockstep_selection = not options.sequential_selection
+    args.overlap_prepare = options.overlap_prepare
+    args.afterstate_selection, args.afterstate_top_k = options.afterstate_selection, options.afterstate_top_k
+    if args.afterstate_top_k < 2:
+        raise ValueError('--afterstate-top-k must be at least 2')
     args.regional_critic = options.regional_critic
     args.danger_starts, args.danger_window = options.danger_starts, tuple(options.danger_window)
     args.danger_pool, args.danger_per_game = options.danger_pool, options.danger_per_game

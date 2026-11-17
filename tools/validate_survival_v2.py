@@ -101,6 +101,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.pieces < 1:
         parser.error('pieces must be positive')
+    import tetris_game_library
+    # Throwaway smoke games in a temporary run must not enter the persistent game library.
+    tetris_game_library.configure(enabled=False)
     validate(args)
 
 

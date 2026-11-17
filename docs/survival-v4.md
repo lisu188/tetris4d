@@ -90,9 +90,13 @@ Parity: `tests/test_gpu_simulation.py` (`TETRIS4D_TEST_CUDA=1`) checks exhaustiv
 | `--danger-starts P`, `--danger-window MIN MAX`, `--danger-pool`, `--danger-per-game` | off | Start share P of training episodes MIN..MAX placements before a recorded top-out. Copies are never recorded. `episode_end` reports `start_kind`, `start_pieces` and `own_placements`; the dashboard counts fresh games only (#32) |
 | `--regional-critic` | off | Adds 192 fixed features (max height, mean height and holes for each 4×4×4 block of columns) to the critic input. A plain pretrained actor is copied and the critic starts fresh (#38) |
 
-Move commit (#35): profiling showed that about 90% of `apply_move` is `evaluate_board`'s Python conversions, not computation. C-speed column validation and `ndarray.tolist()` halve it (1.06 → 0.57 ms) with identical results. The engine guard allows exactly these two rewrites.
+Move commit (#35): commit time is dominated by Python-side conversions and validation in `evaluate_board` and `pooled_histograms`, not computation. Exact fast paths (C-speed validation and `ndarray.tolist()`) take commit from 1.65 to 0.58 ms per placement. Preparation (~2.2 ms) is now the largest phase, so a GPU port of `Game.commit` is not warranted. The engine guard allows exactly these rewrites. Training-episode resets use the single-state CUDA preparer instead of CPU preparation, which takes ~1.3 s per state with exhaustive screening.
 
-Afterstate experiment (#37): `tools/afterstate_ranking.py CHECKPOINT` plays matched lockstep games, choosing either the actor's greedy move or the actor top-k candidate whose afterstate the critic values highest.
+Throughput (#34): exhaustive, 32 environments, idle RTX 4060 Ti: ~335 placements/s, up from ~195 in the first V4 GPU run. `--overlap-prepare` prepares half the environments in a worker thread while the main thread commits the other half. Rollouts are bit-identical (CUDA test), but the gain is only ~1%: both threads compete for the GIL. It is therefore off by default.
+
+Afterstate ranking (#37): `tetris_survival_v4.afterstate_values` builds afterstate boards and critic contexts on the device. A CPU test checks it bit-for-bit against `neural.state_context`. `--afterstate-selection` (with `--afterstate-top-k`) also reports afterstate-ranked selection games. This is report-only: checkpoint selection is unchanged. On the first V4 run's best checkpoint, afterstate ranking scored 19,472 vs 14,325 placements for the greedy actor (8/8 seeds).
+
+Afterstate experiment (#37): `tools/afterstate_ranking.py CHECKPOINT` plays matched lockstep games, choosing either the actor's greedy move or the actor top-k candidate whose afterstate the critic values highest. It uses the batched device path; `--cpu-reference` keeps the original CPU path.
 
 ## Historical measurements (not reproduced)
 

@@ -782,6 +782,46 @@ class GpuPreparer:
                                    batch_option_specs, batch_option_scores)
 
 
+CANDIDATE_FIELDS = frozenset({"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"})
+
+
+def _pad_candidates(tensor, width):
+    missing = width - tensor.shape[1]
+    if missing <= 0:
+        return tensor
+    shape = (tensor.shape[0], missing, *tensor.shape[2:])
+    return torch.cat((tensor, tensor.new_zeros(shape)), dim=1)
+
+
+def merge_prepared_batches(first, second):
+    """Concatenate two DevicePreparedBatch results for consecutive environment groups.
+
+    Valid candidate slots are identical to preparing both groups in one call; padded
+    (masked) slots beyond a group's own maximum are zero. Per-environment records stay
+    views of each group's own allocations.
+    """
+    offset = len(first.prepared)
+    halves = [b for b in (first, second) if b.environment_indices]
+    if len(halves) < 2:
+        batch = halves[0] if halves else first
+        indices = (first.environment_indices if batch is first
+                   else tuple(offset + i for i in second.environment_indices))
+        return DevicePreparedBatch(first.prepared + second.prepared, indices, batch.batch, batch.teachers,
+                                   first.cpu_fallbacks + second.cpu_fallbacks, first.targets + second.targets,
+                                   batch._option_specs, batch._option_scores)
+    width = max(first._option_specs.shape[1], second._option_specs.shape[1])
+    batch = {name: torch.cat([_pad_candidates(b.batch[name], width) if name in CANDIDATE_FIELDS else b.batch[name]
+                              for b in halves], dim=0)
+             for name in first.batch}
+    return DevicePreparedBatch(
+        first.prepared + second.prepared,
+        first.environment_indices + tuple(offset + i for i in second.environment_indices),
+        batch, torch.cat((first.teachers, second.teachers)),
+        first.cpu_fallbacks + second.cpu_fallbacks, first.targets + second.targets,
+        torch.cat([_pad_candidates(b._option_specs, width) for b in halves]),
+        torch.cat([_pad_candidates(b._option_scores, width) for b in halves]))
+
+
 def compile_offline():
     """Compile bounded sm_89 kernels without initializing CUDA or running jobs."""
     import hashlib

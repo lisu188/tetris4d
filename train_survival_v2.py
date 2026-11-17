@@ -507,21 +507,27 @@ class SurvivalTrainer(base.Trainer):
                         torch.cuda.empty_cache()
                     self.prepared = [self.prepare_episode(e) for e in self.environments]
                     return
-                stats = getattr(self, '_gpu_prepare_stats', None)
-                if stats is not None:
-                    stats['batch_calls'] += 1
-                    stats['environment_calls'] += len(self.environments)
-                    for reason in result.cpu_fallbacks:
-                        if reason:
-                            stats['cpu_fallbacks'][reason] = stats['cpu_fallbacks'].get(reason, 0) + 1
-                self.prepared = list(result.prepared)
-                self._prepared_gpu_batch = result
-                for episode, prepared, target in zip(self.environments, self.prepared, result.targets):
-                    if prepared is not None:
-                        self.note_target(episode, target)
+                self._accept_gpu_batch(result)
             return
         if self.prepared is None:
             self.prepared = [self.prepare_episode(e) for e in self.environments]
+
+    def _accept_gpu_batch(self, result, calls=1):
+        stats = getattr(self, '_gpu_prepare_stats', None)
+        if stats is not None:
+            stats['batch_calls'] += calls
+            stats['environment_calls'] += len(self.environments)
+            for reason in result.cpu_fallbacks:
+                if reason:
+                    stats['cpu_fallbacks'][reason] = stats['cpu_fallbacks'].get(reason, 0) + 1
+        self.prepared = list(result.prepared)
+        self._prepared_gpu_batch = result
+        for episode, prepared, target in zip(self.environments, self.prepared, result.targets):
+            if prepared is not None:
+                self.note_target(episode, target)
+
+    def committed_environment(self, index):
+        """Hook after environment `index` committed its move (GPU preparation active)."""
 
     def finish_episode(self, index, reason):
         episode = self.environments[index]
@@ -751,7 +757,9 @@ class SurvivalTrainer(base.Trainer):
                 timings['commit_seconds'] += time.perf_counter() - started
                 self.progress['placements'] += 1
                 self.progress['clears'] += move.layers
-                if not self._gpu_prepare_active:
+                if self._gpu_prepare_active:
+                    self.committed_environment(i)
+                else:
                     started = time.perf_counter()
                     self.prepared[i] = self.prepare_episode(episode)
                     timings['prepare_seconds'] += time.perf_counter() - started
