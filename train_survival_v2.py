@@ -439,6 +439,7 @@ class SurvivalTrainer(base.Trainer):
         context = self.recorder.context
         self.recorder = CompressedRecorder(self.root / 'games', args.record_games, args.record_every, args.record_max_mib)
         self.recorder.context = {**context, 'algorithm': self.algorithm, 'policy_mode': self.model.config.policy_mode}
+        base.library.set_context(source=self.algorithm, policy_mode=self.model.config.policy_mode)
         self.emit('survival_algorithm', algorithm=self.algorithm, microbatch=args.batch, optimizer_batch=args.optimizer_batch,
                   policy_mode=self.model.config.policy_mode, reward='one placement * 0.001; gamma=1',
                   teacher_prior_scale=self.model.config.teacher_prior_scale, preserve_initial_actor=args.preserve_initial_actor,
@@ -473,6 +474,8 @@ class SurvivalTrainer(base.Trainer):
         shortlist = self.model.config.shortlist
         per_record = 4096 * 4 + 8 + neural.CONTEXT * 4 + shortlist * (
             neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
+        if self.model.config.architecture == 'survival-spatial-v4':
+            per_record += 6 * 4 + shortlist * 18 * 4
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
         limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
@@ -523,6 +526,7 @@ class SurvivalTrainer(base.Trainer):
     def finish_episode(self, index, reason):
         episode = self.environments[index]
         episode.complete, episode.stop_reason = True, reason
+        base.library.finish(episode.state, reason)
         self.pending.append(episode)
         self.progress['finished_episodes'] += 1
         teacher_moves = sum(row['behavior'] == 'teacher' for row in episode.moves)

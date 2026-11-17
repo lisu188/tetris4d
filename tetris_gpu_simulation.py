@@ -11,7 +11,7 @@ change any default backend and does not claim GPU-resident game progression.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import random
 
@@ -25,6 +25,7 @@ import tetris_neural as neural
 
 MAX_GPU_CANDIDATES = 4096
 MAX_GPU_SHORTLIST = 256
+SUMMARY_KERNEL_LIMIT = 16384
 
 
 @triton.jit
@@ -198,6 +199,49 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
 
 
 @triton.jit
+def _clear_score_kernel(boards, owners, cell_index, cell_bits, scratch, ticks_low, ticks_high,
+                        out_int, out_limbs, CELLS: tl.constexpr, BLOCK: tl.constexpr):
+    """Exact afterstate statistics of a layer-clearing placement (merge, compact, score terms)."""
+    row = tl.program_id(0).to(tl.int64)
+    owner = tl.load(owners + row).to(tl.int64)
+    column = tl.arange(0, BLOCK)
+    mask = tl.load(boards + owner * BLOCK + column).to(tl.int32)
+    for cell in tl.static_range(CELLS):
+        index = tl.load(cell_index + row * CELLS + cell)
+        bit = tl.load(cell_bits + row * CELLS + cell)
+        mask = tl.where(column == index, mask | bit, mask)
+    full = tl.zeros((), dtype=tl.int32)
+    for level in tl.static_range(16):
+        count = tl.sum((mask >> level) & 1, axis=0)
+        full = full | tl.where(count == BLOCK, 1 << level, 0)
+    for layer in tl.static_range(15, -1, -1):
+        compacted = (mask & ((1 << layer) - 1)) | ((mask >> (layer + 1)) << layer)
+        mask = tl.where(((full >> layer) & 1) != 0, compacted, mask)
+    base = scratch + row * BLOCK
+    tl.store(base + column, mask)
+    tl.debug_barrier()
+    height = 32 - tl.extra.cuda.libdevice.clz(mask)
+    height_sum = tl.sum(height, 0)
+    mass = tl.sum(tl.extra.cuda.libdevice.popc(mask), 0)
+    low = tl.full((), 0, tl.int64)
+    high = tl.full((), 0, tl.int64)
+    for axis in tl.static_range(3):
+        step = 1 << (axis * 4)
+        edge = ((column >> (axis * 4)) & 15) < 15
+        other = tl.load(base + column + step, edge, 0).to(tl.int32)
+        difference = tl.abs(32 - tl.extra.cuda.libdevice.clz(other) - height)
+        low += tl.sum(tl.load(ticks_low + difference, edge, 0).to(tl.int64), 0)
+        high += tl.sum(tl.load(ticks_high + difference, edge, 0).to(tl.int64), 0)
+    high += low >> 32
+    low &= 4294967295
+    tl.store(out_int + row * 3, height_sum)
+    tl.store(out_int + row * 3 + 1, height_sum - mass)
+    tl.store(out_int + row * 3 + 2, tl.extra.cuda.libdevice.popc(full))
+    tl.store(out_limbs + row * 2, low)
+    tl.store(out_limbs + row * 2 + 1, high)
+
+
+@triton.jit
 def _summary_kernel(valid, clears, statistics, counts, piece_ids, sample_counts,
                     targets, summary, CANDIDATES: tl.constexpr, BLOCK: tl.constexpr):
     env = tl.program_id(0)
@@ -231,6 +275,7 @@ def _features_kernel(chosen, specs, scores, gains, future, deltas, board_scores,
     y = tl.load(specs + source * 6 + 2)
     w = tl.load(specs + source * 6 + 3)
     z = tl.load(specs + source * 6 + 4)
+    layers = tl.load(specs + source * 6 + 5)
     shape_id = tl.load(piece_offsets + tl.load(piece_ids + env)) + rotation
     shape = shape_id * 182
     ext_x = tl.load(shapes + shape)
@@ -254,6 +299,7 @@ def _features_kernel(chosen, specs, scores, gains, future, deltas, board_scores,
     value = tl.where(feature == 7, ext_w.to(tl.float64) / 16.0, value)
     value = tl.where(feature == 8, gain.to(tl.float64) / 16.0, value)
     value = tl.where(feature == 9, holes.to(tl.float64) / 64.0, value)
+    value = tl.where(feature == 10, layers.to(tl.float64) / 16.0, value)
     value = tl.where(feature == 11, delta.to(tl.float64) / 64.0, value)
     value = tl.where(feature == 12, (delta - size).to(tl.float64) / 64.0, value)
     value = tl.where(feature == 13, (score - tl.load(board_scores + env)) / 64.0, value)
@@ -398,15 +444,29 @@ class GpuPreparer:
             raise ValueError("GPU preparation requires the native reference backend")
         self.names = tuple(game.PIECE_NAMES)
         self.rotations = max(map(len, game.SHAPES.values()))
-        self.budget = self.config.candidates
+        self.budget = self.config.screening_budget
         self._teacher_parameters = game.network_parameters()
         self._reference_only_reason = (
             "candidate_budget_bound" if self.budget > MAX_GPU_CANDIDATES else
             "shortlist_bound" if self.config.shortlist > MAX_GPU_SHORTLIST else
+            "shortlist_mode" if self.config.shortlist_mode != "teacher-random" else
             "catalog_columns" if any(len(s.columns) > 8 for shapes in game.SHAPES.values() for s in shapes)
             else None)
+        self.spatial = self.config.architecture == "survival-spatial-v4"
+        # Exact CPU fallback rows skip the slow host afterstate pass; V4 descriptors
+        # for every row are recomputed on device from the final options.
+        self._fallback_config = (replace(self.config, architecture="survival-feature-v3")
+                                 if self.spatial else self.config)
         if self._reference_only_reason is not None:
             return
+        width = max(len(s.cells) for shapes in game.SHAPES.values() for s in shapes)
+        table = np.zeros((len(self.names), self.rotations, width, 4), dtype=np.int32)
+        present = np.zeros((len(self.names), self.rotations, width), dtype=np.bool_)
+        for i, piece in enumerate(self.names):
+            for r, shape in enumerate(game.SHAPES[piece]):
+                table[i, r, :len(shape.cells)] = shape.cells
+                present[i, r, :len(shape.cells)] = True
+        self.cell_table, self.cell_present = self._device(table), self._device(present)
         offsets, shapes, cells, templates, sizes, vertical = [], [], [], [], [], []
         cursor = 0
         for piece in self.names:
@@ -441,6 +501,55 @@ class GpuPreparer:
     def _device(self, value):
         return torch.from_numpy(np.array(value, copy=True)).to(self.device)
 
+    def _score_clearing(self, boards, piece_ids, specifications, scores, clears, valid, chunk=2048):
+        """Score layer-clearing candidates exactly on device instead of falling back to CPU.
+
+        Matches game.score_candidate: network_score on the merged, compacted board,
+        evaluated in the same float64 operation order.
+        """
+        clearing = valid & (clears != 0)
+        if not bool(clearing.any()):
+            return
+        env, slot = clearing.nonzero(as_tuple=True)
+        spec = specifications[env, slot].long()
+        pieces = piece_ids.long().index_select(0, env)
+        relative = self.cell_table[pieces, spec[:, 0]].long()
+        present = self.cell_present[pieces, spec[:, 0]]
+        x, y, w, z = (relative[..., i] + spec[:, j, None] for i, j in ((0, 1), (1, 2), (3, 3), (2, 4)))
+        index = torch.where(present, (w * 16 + y) * 16 + x, -1).to(torch.int32)
+        bits = torch.where(present, torch.bitwise_left_shift(torch.ones_like(z), z), 0).to(torch.int32)
+        rows = len(env)
+        integers = torch.empty((rows, 3), dtype=torch.int32, device=self.device)
+        limbs = torch.empty((rows, 2), dtype=torch.int64, device=self.device)
+        owners = env.to(torch.int32)
+        for start in range(0, rows, chunk):
+            stop = min(rows, start + chunk)
+            scratch = torch.empty((stop - start, 4096), dtype=torch.int32, device=self.device)
+            _clear_score_kernel[(stop - start,)](
+                boards, owners[start:stop].contiguous(), index[start:stop].contiguous(),
+                bits[start:stop].contiguous(), scratch, self.ticks_low, self.ticks_high,
+                integers[start:stop], limbs[start:stop], CELLS=index.shape[1], BLOCK=4096, num_warps=8)
+        roughness = (limbs[:, 1].to(torch.float64) * 4294967296.0 + limbs[:, 0].to(torch.float64)) / self.weights[3]
+        exact = self.weights[0] * integers[:, 0].to(torch.float64)
+        exact = exact + self.weights[1] * integers[:, 1].to(torch.float64)
+        exact = exact + game.LAYERS_WEIGHT * integers[:, 2].to(torch.float64)
+        exact = exact + self.weights[2] * roughness
+        scores[env, slot] = exact
+        specifications[env, slot, 5] = integers[:, 2]
+        clears[env, slot] = 0  # resolved exactly; no reference fallback needed
+
+    def _spatial_arrays(self, boards, targets, piece_ids, option_specs, valid):
+        from tetris_survival_v4 import device_afterstate_descriptors
+        specs = option_specs.long()
+        rotation = torch.where(valid, specs[..., 0], 0)
+        pieces = piece_ids.long()[:, None].expand_as(rotation)
+        relative = self.cell_table[pieces, rotation]
+        present = self.cell_present[pieces, rotation]
+        # Shape cells are (dx, dy, dz, dw); specs are (rotation, x, y, w, z, layers).
+        origin = torch.stack((specs[..., 1], specs[..., 2], specs[..., 4], specs[..., 3]), dim=-1)
+        absolute = (relative + origin[..., None, :]).clamp(0, 15)
+        return device_afterstate_descriptors(boards, targets, absolute, present, valid)
+
     def _reference_batch(self, states, targets, reason):
         references = tuple(neural.prepare(state, target, self.config) for state, target in zip(states, targets))
         envs = tuple(i for i, p in enumerate(references) if p is not None)
@@ -460,7 +569,7 @@ class GpuPreparer:
         option_specs, option_scores = self._device(integers), self._device(scores)
         teachers = self._device(np.asarray([references[i].teacher for i in envs], dtype=np.int64))
         prepared = [None] * len(states)
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior"}
+        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
         for row, env in enumerate(envs):
             p = references[env]
             arrays = {name: value[row, :len(p.options)] if name in candidate_fields else value[row]
@@ -539,16 +648,26 @@ class GpuPreparer:
             scores, gains, future, deltas, clears, valid, CANDIDATES=candidates,
             SAMPLES=self.samples, ROTATIONS=self.rotations, PROTECT=self.config.protect_target,
             BLOCK=128, enable_fp_fusion=False, num_warps=4)
-        summary = torch.empty((n, 5), dtype=torch.int32, device=self.device)
-        _summary_kernel[(n,)](valid, clears, statistics, counts, device_pieces,
-                             self.sample_counts, device_targets, summary,
-                             CANDIDATES=candidates, BLOCK=triton.next_power_of_2(candidates), num_warps=8)
+        self._score_clearing(boards, device_pieces, specifications, scores, clears, valid)
+        if candidates <= SUMMARY_KERNEL_LIMIT:
+            summary = torch.empty((n, 5), dtype=torch.int32, device=self.device)
+            _summary_kernel[(n,)](valid, clears, statistics, counts, device_pieces,
+                                 self.sample_counts, device_targets, summary,
+                                 CANDIDATES=candidates, BLOCK=triton.next_power_of_2(candidates), num_warps=8)
+        else:
+            # Exhaustive pools exceed one program block; reduce with tensor ops instead.
+            filled = statistics[:, 0]
+            evaluated = (self.sample_counts.index_select(0, device_pieces)
+                         + torch.where(device_pieces == 0, 4096 - filled, 0))
+            summary = torch.stack((valid.sum(1, dtype=torch.int32),
+                                   (valid & (clears != 0)).any(1).to(torch.int32),
+                                   statistics[:, 1], filled, evaluated.to(torch.int32)), dim=1)
         summaries = summary.cpu().tolist()
         reasons, references, lengths, evaluations, fallbacks = [], {}, [], [], []
         for env, (number, has_clear, buried, filled, evaluated) in enumerate(summaries):
             reason = "buried_target" if buried else "full_target" if filled == 4096 else "clear_candidate" if has_clear else "exhaustive_or_recovery" if not number else None
             if reason is not None:
-                references[env] = neural.prepare(states[env], targets[env], self.config)
+                references[env] = neural.prepare(states[env], targets[env], self._fallback_config)
             p = references.get(env)
             reasons.append(reason)
             lengths.append(len(p.options) if p is not None else 0 if env in references else min(number, shortlist))
@@ -605,11 +724,13 @@ class GpuPreparer:
         all_arrays = {"boards": boards, "targets": device_targets, "context": context,
                       "features": features, "indices": indices, "column_mask": column_mask,
                       "valid": ~padding, "teacher_prior": priors}
-        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior"}
+        candidate_fields = {"features", "indices", "column_mask", "valid", "teacher_prior", "spatial_delta"}
         for env, p in references.items():
             if p is None:
                 continue
             for name, value in p.arrays.items():
+                if name.startswith("spatial_"):
+                    continue  # recomputed on device below from the final options
                 tensor = self._device(value)
                 if name in candidate_fields:
                     all_arrays[name][env].zero_()
@@ -620,6 +741,9 @@ class GpuPreparer:
             option_specs[env, :len(p.options)].copy_(self._device(np.asarray(
                 [(c.rotation, c.x, c.y, c.w, c.z, c.layers) for c in p.options], dtype=np.int32)))
             option_scores[env, :len(p.options)].copy_(self._device(np.asarray([c.score for c in p.options], dtype=np.float64)))
+        if self.spatial:
+            all_arrays["spatial_board"], all_arrays["spatial_delta"] = self._spatial_arrays(
+                boards, device_targets, device_pieces, option_specs, ~padding)
         prepared = []
         for env, length in enumerate(lengths):
             if not length:

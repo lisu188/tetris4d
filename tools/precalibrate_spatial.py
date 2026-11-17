@@ -7,10 +7,14 @@ from pathlib import Path
 import hashlib
 import json
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import torch
 from torch.nn import functional as F
 
+import tetris_game_library as library
 import tetris_neural as neural
 import train_survival_v2 as v2
 from tetris_survival_v4 import ARCHITECTURE
@@ -42,6 +46,47 @@ def describe(predictions, targets, constant):
             'near_end_mae_pieces': float(np.mean(np.abs(errors[near])) / SCALE) if near.any() else None}
 
 
+@torch.inference_mode()
+def collect_gpu(args, selector, model, device):
+    """Play every seed's teacher game in lockstep with batched CUDA preparation and encoding."""
+    from tetris_gpu_simulation import GpuPreparer
+    preparer = GpuPreparer(selector, device)
+    states = [neural.game.Game(seed, 'expanded') for seed in args.seeds]
+    for state in states:
+        library.tag(state, source='precalibrate_spatial', phase='teacher-continuation', default_behavior='teacher')
+    targets = [1] * len(states)
+    snapshots = [[] for _ in states]
+    active = list(range(len(states)))
+    while active:
+        result = preparer.prepare_batch([states[i] for i in active], [targets[i] for i in active])
+        rows = {local: row for row, local in enumerate(result.env_indices)}
+        moves = result.selected_candidates(result.teachers) if rows else ()
+        wanted = [local for local in rows if states[active[local]].pieces % args.stride == 0]
+        if wanted:
+            picks = torch.tensor([rows[local] for local in wanted], device=device)
+            boards = result.batch['boards'].index_select(0, picks)
+            levels = result.batch['targets'].index_select(0, picks)
+            context = result.batch['context'].index_select(0, picks)
+            _, pooled, _, _, _ = model.encode(boards, levels, context)
+            values = torch.cat((pooled, context), 1).float().cpu().numpy()
+            for local, row in zip(wanted, values):
+                snapshots[active[local]].append((row.copy(), states[active[local]].pieces))
+        survivors = []
+        for local, env in enumerate(active):
+            if local not in rows:
+                continue
+            targets[env] = result.targets[local]
+            library.annotate(states[env], 'teacher', None, targets[env])
+            states[env].commit(neural.game.materialize_move(states[env].board, moves[rows[local]]))
+            if states[env].pieces < args.max_pieces and not states[env].game_over:
+                survivors.append(env)
+        active = survivors
+    for state in states:
+        library.finish(state, 'top_out' if state.game_over else
+                       'piece_limit' if state.pieces >= args.max_pieces else 'planner_blocked')
+    return [(seed, states[i], snapshots[i]) for i, seed in enumerate(args.seeds)]
+
+
 def collect(args):
     torch.set_num_threads(args.threads)
     neural.game.configure_backend(args.backend)
@@ -52,8 +97,14 @@ def collect(args):
                              policy_mode='teacher-prior', teacher_prior_scale=.125)
     model = neural.create_model(config).eval()
     inputs, labels, seed_rows, episodes = [], [], [], []
-    for seed in args.seeds:
+    device = neural.device_for(args.device)
+    if device.type == 'cuda' and args.backend == 'native':
+        rollouts = collect_gpu(args, selector, model.to(device), device)
+    else:
+        rollouts = None
+    for seed in (() if rollouts is not None else args.seeds):
         state = neural.game.Game(seed, 'expanded')
+        library.tag(state, source='precalibrate_spatial', phase='teacher-continuation', default_behavior='teacher')
         target, snapshots = 1, []
         while state.pieces < args.max_pieces and not state.game_over:
             prepared = neural.prepare(state, target, selector)
@@ -67,7 +118,19 @@ def collect(args):
                 with torch.inference_mode():
                     _, pooled, _, _, _ = model.encode(board, levels, context)
                 snapshots.append((torch.cat((pooled, context), 1)[0].numpy().copy(), state.pieces))
+            library.annotate(state, 'teacher', None, target)
             state.commit(neural.game.materialize_move(state.board, prepared.options[prepared.teacher]))
+        library.finish(state, 'top_out' if state.game_over else
+                       'piece_limit' if state.pieces >= args.max_pieces else 'planner_blocked')
+        complete = bool(state.game_over or not neural.game.has_legal_move(state.board, state.current))
+        if complete:
+            for row, piece in snapshots:
+                inputs.append(row)
+                labels.append((state.pieces - piece) * SCALE)
+                seed_rows.append(seed)
+        episodes.append({'seed': seed, 'pieces': state.pieces, 'snapshots': len(snapshots),
+                         'natural_top_out': complete, 'labeled': len(snapshots) if complete else 0})
+    for seed, state, snapshots in (rollouts or ()):
         complete = bool(state.game_over or not neural.game.has_legal_move(state.board, state.current))
         if complete:
             for row, piece in snapshots:
@@ -101,21 +164,22 @@ def fit(args):
     val_x, val_y, val_seeds = load_dataset(args.selection_dataset)
     if set(train_seeds) & set(val_seeds):
         raise ValueError('Training and checkpoint-selection games must be disjoint')
-    model, original = neural.load_checkpoint(args.actor_checkpoint, torch.device('cpu'))
+    device = neural.device_for(args.device)
+    model, original = neural.load_checkpoint(args.actor_checkpoint, device)
     if model.config.architecture != ARCHITECTURE:
         raise ValueError('Expected spatial V4 actor checkpoint')
     if original['teacher_parameters'] != neural.game.network_parameters():
         raise ValueError('Teacher policy weights do not match checkpoint')
     actor_before = v2.actor_digest(model)
-    x = torch.from_numpy(train_x)
-    y = torch.from_numpy(train_y)
-    vx = torch.from_numpy(val_x)
+    x = torch.from_numpy(train_x).to(device)
+    y = torch.from_numpy(train_y).to(device)
+    vx = torch.from_numpy(val_x).to(device)
     constant = float(np.mean(train_y))
     optimizer = torch.optim.Adam(model.value.parameters(), lr=args.lr)
     rng = np.random.default_rng(args.seed)
     best, best_state, selected, history = float('inf'), None, None, []
     for step in range(1, args.steps + 1):
-        indices = torch.from_numpy(rng.integers(0, len(x), size=args.batch)).long()
+        indices = torch.from_numpy(rng.integers(0, len(x), size=args.batch)).long().to(device, non_blocking=True)
         loss = F.mse_loss(model.critic(x[indices]), y[indices])
         if not bool(torch.isfinite(loss)):
             raise ValueError('Non-finite critic calibration loss')
@@ -125,7 +189,7 @@ def fit(args):
         optimizer.step()
         if step % args.evaluate_every == 0 or step == args.steps:
             with torch.inference_mode():
-                predictions = model.critic(vx).numpy()
+                predictions = model.critic(vx).cpu().numpy()
             metrics = describe(predictions, val_y, constant)
             report = {'update': step, **metrics}
             history.append(report)
@@ -149,6 +213,7 @@ def fit(args):
                                      'selected_update': selected['update'], 'selected': selected,
                                      'constant_training_mean': constant,
                                      'actor_unchanged': True, 'actor_sha256': actor_before})
+    model = model.cpu()
     neural.save_checkpoint(output, model, progress=original.get('progress'), extra=extra)
     report = {'schema': 'tetris4d-reconstructed-critic-fit-v1', 'output': str(output),
               'sha256': hashlib.sha256(output.read_bytes()).hexdigest(), 'selected': selected,
@@ -164,14 +229,15 @@ def fit(args):
 def audit(args):
     torch.set_num_threads(args.threads)
     x, y, seeds = load_dataset(args.dataset)
-    model, checkpoint = neural.load_checkpoint(args.checkpoint, torch.device('cpu'))
+    device = neural.device_for(args.device)
+    model, checkpoint = neural.load_checkpoint(args.checkpoint, device)
     if model.config.architecture != ARCHITECTURE or not checkpoint.get('extra', {}).get('critic_calibrated'):
         raise ValueError('Audit requires a calibrated Spatial V4 checkpoint')
     used = checkpoint['extra']['critic_calibration']
     if set(map(int, seeds)) & (set(used['training_seeds']) | set(used['selection_seeds'])):
         raise ValueError('Independent audit seeds overlap the fitting/selection split')
     with torch.inference_mode():
-        values = model.critic(torch.from_numpy(x)).numpy()
+        values = model.critic(torch.from_numpy(x).to(device)).cpu().numpy()
     baseline = float(used['constant_training_mean'])
     result = {'schema': 'tetris4d-reconstructed-critic-independent-audit-v1',
               'checkpoint_sha256': hashlib.sha256(Path(args.checkpoint).read_bytes()).hexdigest(),
@@ -190,6 +256,7 @@ def arguments(argv=None):
         item = commands.add_parser(command)
         item.add_argument('--report', type=Path)
         item.add_argument('--threads', type=int, default=2)
+        item.add_argument('--device', choices=('auto', 'cpu', 'cuda'), default='auto')
         if command != 'audit':
             item.add_argument('--backend', choices=('python', 'numpy', 'native'), default='native')
             item.add_argument('--weights', type=Path, default=Path('models/trained-sigmoid.json'))

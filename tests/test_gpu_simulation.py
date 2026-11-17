@@ -129,6 +129,27 @@ class CudaPreparationContractTests(unittest.TestCase):
             candidates=64, shortlist=gpu.MAX_GPU_SHORTLIST + 1))
         self.assertEqual(result.cpu_fallbacks, ("shortlist_bound",))
 
+    def test_exhaustive_screening_all_pieces(self):
+        config = neural.Config(shortlist=128, screening="exhaustive")
+        states = [game.Game(9300 + i, "expanded") for i in range(len(game.PIECE_NAMES))]
+        for state, piece in zip(states, game.PIECE_NAMES):
+            state.current = piece
+        self.compare(states, [1] * len(states), config)
+
+    def test_layer_clears_scored_on_device_in_both_modes(self):
+        states = [game.Game(9400 + i, "expanded") for i in range(3)]
+        for state, piece in zip(states, ("I", "L", "T")):
+            state.current = piece
+            state.board = (0,) + (3,) * 4095
+        for screening in ("sampled", "exhaustive"):
+            with self.subTest(screening=screening):
+                config = neural.Config(candidates=2048, shortlist=64, screening=screening,
+                                       protect_target=False, recover_target=False)
+                result = self.compare(states, [5] * 3, config)
+                self.assertEqual(result.cpu_fallbacks, (None,) * len(states))
+                if screening == "exhaustive":  # only the vertical I in column 0 clears; sampling may skip it
+                    self.assertTrue(any(c.layers for p in result.prepared if p is not None for c in p.options))
+
 
 if __name__ == "__main__":
     unittest.main()

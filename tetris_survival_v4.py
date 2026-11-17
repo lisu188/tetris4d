@@ -18,6 +18,9 @@ STATISTIC_NAMES = ('height_abs', 'height_squared', 'cliff', 'occupancy_boundary'
                    'buried_gap_boundary', 'target_layer_boundary')
 SPATIAL_CRITIC_FEATURES = 6
 SPATIAL_ACTOR_FEATURES = 18
+# Each statistic is a mean over 15*16*16 neighbour edges per axis, so one placement
+# moves it by ~1e-4. Rescale afterstate deltas to per-edge change counts (O(1)).
+SPATIAL_DELTA_SCALE = 15 * 16 * 16
 
 
 def _bitcount16(value):
@@ -27,14 +30,46 @@ def _bitcount16(value):
     return ((((value + (value >> 4)) & 0x0f0f) * 0x0101) >> 8) & 0x1f
 
 
+def _bit_length16(value):
+    # Exact integer bit length of 16-bit masks (no float log2 rounding).
+    result = torch.zeros_like(value)
+    for shift in (8, 4, 2, 1):
+        high = (value >> shift) > 0
+        result = result + high.to(value.dtype) * shift
+        value = torch.where(high, value >> shift, value)
+    return result + (value > 0).to(result.dtype)
+
+
+_GPU_SPATIAL = False
+
+
+def _gpu_spatial():
+    """Fused Triton kernels, or None when Triton is unavailable."""
+    global _GPU_SPATIAL
+    if _GPU_SPATIAL is False:
+        try:
+            import tetris_gpu_spatial as module
+        except ImportError:
+            module = None
+        _GPU_SPATIAL = module
+    return _GPU_SPATIAL
+
+
 def adjacency_statistics(boards, targets):
     if boards.ndim != 2 or boards.shape[1] != neural.game.AREA:
         raise ValueError('Expected [batch, 4096] vertical-column masks')
     if targets.ndim != 1 or targets.shape[0] != boards.shape[0]:
         raise ValueError('Expected one target level per board')
+    kernels = _gpu_spatial() if boards.is_cuda else None
+    if kernels is not None:
+        return kernels.adjacency_statistics(boards, targets)
+    return reference_adjacency_statistics(boards, targets)
+
+
+def reference_adjacency_statistics(boards, targets):
+    """Tensor-op reference used on CPU and for kernel parity tests."""
     masks = boards.to(torch.int32).reshape(-1, 16, 16, 16)
-    heights = torch.floor(masks.clamp_min(1).float().log2()).to(torch.int32) + 1
-    heights = torch.where(masks > 0, heights, 0)
+    heights = _bit_length16(masks)
     buried = (torch.bitwise_left_shift(torch.ones_like(heights), heights) - 1) ^ masks
     target_layers = (masks >> targets.to(torch.int32)[:, None, None, None]) & 1
     axis_results = []
@@ -56,6 +91,61 @@ def adjacency_statistics(boards, targets):
             layer_xor.float().mean((1, 2, 3)),
         ), dim=1))
     return torch.stack(axis_results, dim=1)
+
+
+def _compact_full_layers(columns):
+    """Clear full Z hyperlayers of [rows, 4096] int32 masks, matching game.clear_layers."""
+    counts = torch.stack([((columns >> z) & 1).sum(1) for z in range(16)], dim=1)
+    full = counts == columns.shape[1]
+    if not bool(full.any()):
+        return columns
+    for z in range(15, -1, -1):
+        rows = full[:, z, None]
+        low = (1 << z) - 1
+        columns = torch.where(rows, (columns & low) | ((columns >> (z + 1)) << z), columns)
+    return columns
+
+
+@torch.no_grad()
+def device_afterstate_descriptors(boards, targets, cells, cell_mask, valid, chunk_rows=2048):
+    """Batched device equivalent of afterstate_descriptors.
+
+    boards [n,4096] int, targets [n], cells [n,S,C,4] absolute (x,y,z,w) placed
+    cells, cell_mask [n,S,C], valid [n,S]. Returns ([n,6], [n,S,18]) float32.
+    """
+    n, shortlist = valid.shape
+    boards = boards.to(torch.int32)
+    targets = targets.to(torch.int32)
+    initial = adjacency_statistics(boards, targets)
+    cells = cells.long()
+    index = (cells[..., 3] * 16 + cells[..., 1]) * 16 + cells[..., 0]
+    mask = cell_mask & valid[..., None]
+    bits = torch.where(mask, torch.bitwise_left_shift(torch.ones_like(index), cells[..., 2]), 0).to(torch.int32)
+    kernels = _gpu_spatial() if boards.is_cuda else None
+    if kernels is not None:
+        owners = torch.arange(n, device=boards.device, dtype=torch.int32).repeat_interleave(shortlist)
+        after = kernels.afterstate_statistics(boards, owners, targets,
+                                              index.masked_fill(~mask, -1).reshape(n * shortlist, -1),
+                                              bits.reshape(n * shortlist, -1))
+        impacts = (after.reshape(n, shortlist, SPATIAL_ACTOR_FEATURES)
+                   - initial.reshape(n, 1, SPATIAL_ACTOR_FEATURES)).masked_fill(~valid[..., None], 0.)
+        return initial.mean(dim=1), impacts
+    index = index.masked_fill(~mask, 0)
+    flat_index = index.reshape(n * shortlist, -1)
+    flat_bits = bits.reshape(n * shortlist, -1)
+    flat_targets = targets[:, None].expand(n, shortlist).reshape(-1)
+    owners = torch.arange(n, device=boards.device)[:, None].expand(n, shortlist).reshape(-1)
+    impacts = torch.empty((n * shortlist, 3, 6), dtype=torch.float32, device=boards.device)
+    for start in range(0, n * shortlist, chunk_rows):
+        stop = min(start + chunk_rows, n * shortlist)
+        after = boards.index_select(0, owners[start:stop]).clone()
+        # Placed cells never overlap occupied bits and differ in Z within a column, so sum == OR.
+        after.scatter_add_(1, flat_index[start:stop], flat_bits[start:stop])
+        after = _compact_full_layers(after)
+        impacts[start:stop] = (adjacency_statistics(after, flat_targets[start:stop])
+                               - initial.index_select(0, owners[start:stop]))
+    impacts = impacts.reshape(n, shortlist, SPATIAL_ACTOR_FEATURES).masked_fill(~valid[..., None], 0.)
+    return initial.mean(dim=1), impacts
 
 
 @torch.no_grad()
@@ -103,7 +193,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         local = self.local_statistics(spatial, indices, column_mask)
         candidates = self.candidate(torch.cat((features, local), dim=-1))
         if self.config.spatial_actor:
-            candidates = candidates + self.spatial_actor(spatial_delta)
+            candidates = candidates + self.spatial_actor(spatial_delta * SPATIAL_DELTA_SCALE)
         if state_hidden is None:
             state_hidden = self.actor_state(torch.cat((pooled[:, :2 * neural.CHANNELS], context), dim=1))
         state = state_hidden[:, None].expand(-1, features.shape[1], -1)
