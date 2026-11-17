@@ -103,6 +103,30 @@ class RendererTests(unittest.TestCase):
                             return self.generic_visit(node)
                     candidate = StripNativeMetrics().visit(candidate)
                     self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected)])
+                if name == 'Game':
+                    # The game library adds optional recording hooks only: a finalizer,
+                    # `recording = ...` lookups and `if recording is not None:` calls.
+                    # Every pre-existing engine statement must remain identical.
+                    hooks = []
+                    class StripRecording(ast.NodeTransformer):
+                        def visit_FunctionDef(self, node):
+                            if node.name == '__del__':
+                                hooks.append('__del__')
+                                return None
+                            return self.generic_visit(node)
+                        def visit_Assign(self, node):
+                            if [ast.unparse(t) for t in node.targets] == ['recording'] and ast.unparse(node.value) in ('_recording()', '_RECORDING'):
+                                hooks.append('lookup')
+                                return None
+                            return node
+                        def visit_If(self, node):
+                            if ast.unparse(node.test) == 'recording is not None' and not node.orelse and all(
+                                    ast.unparse(s).startswith('recording.') for s in node.body):
+                                hooks.append('call')
+                                return None
+                            return self.generic_visit(node)
+                    candidate = StripRecording().visit(candidate)
+                    self.assertEqual(sorted(hooks), ['__del__', 'call', 'call', 'call', 'lookup', 'lookup'])
                 self.assertEqual(ast.dump(node), ast.dump(candidate), name)
         self.assertEqual(game.PIECE_CELLS, baseline.PIECE_CELLS)
         self.assertEqual(game.ROUGHNESS_TABLE, baseline.ROUGHNESS_TABLE)
