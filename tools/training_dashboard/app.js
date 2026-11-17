@@ -65,6 +65,12 @@
     put("maximum-value",num(maximum.current_max_pieces));
     put("maximum-detail",`Completed record ${num(maximum.completed_record_pieces)} · active ${num(maximum.active_max_pieces)} · ${num(maximum.completed_episodes)} completed PPO episodes`);
     $("survival-chart").innerHTML=chart(episodes,"episode_pieces",{label:"Completed training episodes",line:false,rolling:true});
+    const perClear=episodes.map(r=>({...r,placements_per_clear:finite(r.episode_pieces)&&finite(r.episode_clears)&&r.episode_clears>0?r.episode_pieces/r.episode_clears:null}));
+    $("per-clear-chart").innerHTML=chart(perClear,"placements_per_clear",{label:"Placements per clear",line:false,rolling:true});
+    const lastUpdate=(Array.isArray(data.series)?data.series:[]).filter(r=>r.event==="update"&&finite(r.placements)&&finite(r.clears)).at(-1);
+    put("per-clear-value",lastUpdate&&lastUpdate.clears>0?num(lastUpdate.placements/lastUpdate.clears):"—");
+    const noClear=episodes.filter(r=>r.episode_clears===0).length;
+    put("per-clear-detail",lastUpdate&&lastUpdate.clears>0?`Run average ${num(lastUpdate.placements)} placements ÷ ${num(lastUpdate.clears)} clears${noClear?` · ${num(noClear)} episodes without a clear omitted`:""}`:"Run average appears after the first clear");
     $("calibration-chart").innerHTML=chart(rows.filter(r=>["calibration_progress","calibration_game"].includes(r.event)),"calibration_game_pieces",{label:"Calibration observations",calibration:true});
     $("progress-chart").innerHTML=chart(updates,"placements",{label:"PPO placements",xkey:"runner_updates"});
     $("reference-kl-chart").innerHTML=chart(updates,"final_reference_kl",{label:"Reference KL measurements",minYMax:0.0001});
