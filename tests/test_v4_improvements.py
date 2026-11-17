@@ -65,6 +65,11 @@ class ArgumentTests(unittest.TestCase):
         self.assertFalse(v4.arguments(['--no-gpu-defaults', '--sequential-selection']).lockstep_selection)
         self.assertEqual(v4.arguments(['--no-gpu-defaults', '--selection-seeds', '910001']).selection_seeds, [910001])
 
+    def test_throughput_defaults_keep_8192_placements_per_update(self):
+        args = v4.arguments(['--no-gpu-defaults'])
+        self.assertEqual((args.envs, args.rollout), (32, 256))
+        self.assertEqual(v4.arguments(['--no-gpu-defaults', '--envs', '16', '--rollout', '512']).envs, 16)
+
     def test_adaptive_lr_defaults_and_validation(self):
         args = v4.arguments(['--no-gpu-defaults'])
         self.assertTrue(args.adaptive_lr)

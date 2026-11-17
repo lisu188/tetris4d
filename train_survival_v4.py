@@ -421,7 +421,10 @@ def arguments(argv=None):
     gpu = gpu_defaults(remaining, options.no_gpu_defaults)
     args = v3.arguments(['--run-dir', str(base.ROOT/'runs/survival-ppo-v4'),
                          '--gradient-clip-scope', 'separate',
-                         '--selection-seeds', *map(str, SELECTION_SEEDS), *gpu, *remaining])
+                         '--selection-seeds', *map(str, SELECTION_SEEDS),
+                         # 32 x 256 = 8,192 placements per update. Measured (exhaustive, shared GPU):
+                         # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
+                         '--envs', '32', '--rollout', '256', *gpu, *remaining])
     args.pretrained = options.pretrained
     args.shortlist_mode = options.shortlist_mode
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
