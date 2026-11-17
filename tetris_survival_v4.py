@@ -1,6 +1,7 @@
 """Spatial survival actor/critic built on V3 fixed descriptors."""
 from __future__ import annotations
 
+import copy
 from dataclasses import replace
 
 import numpy as np
@@ -185,6 +186,95 @@ def afterstate_descriptors(board, options, target):
     impacts = adjacency_statistics(after, targets) - initial
     return (initial.mean(dim=1)[0].numpy().astype(np.float32),
             impacts.reshape(len(options), SPATIAL_ACTOR_FEATURES).numpy().astype(np.float32))
+
+
+@torch.no_grad()
+def afterstate_boards(boards, cells, cell_mask):
+    """Place each row's piece and clear full layers: boards [k,4096] int, cells [k,C,4]
+    absolute (x, y, z, w), cell_mask [k,C] -> [k,4096] int32, matching game.clear_layers(merge)."""
+    boards = boards.to(torch.int32)
+    cells = cells.long()
+    index = ((cells[..., 3] * 16 + cells[..., 1]) * 16 + cells[..., 0]).masked_fill(~cell_mask, 0)
+    bits = torch.where(cell_mask, torch.bitwise_left_shift(torch.ones_like(index), cells[..., 2]), 0)
+    # Placed cells never overlap occupied bits and differ in Z within a column, so sum == OR.
+    return _compact_full_layers(boards.clone().scatter_add_(1, index, bits.to(torch.int32)))
+
+
+@torch.no_grad()
+def device_afterstate_context(after, targets, piece_rows, piece_phase):
+    """Exact device mirror of neural.state_context for afterstates.
+
+    after [k,4096] int32, targets [k], piece_rows [k, 3*len(NAMES)] (current, following,
+    remaining one-hots), piece_phase [k] = (pieces % len(set)) / len(set). Values are formed
+    in float64 and rounded once to float32, as the CPU path does.
+    """
+    masks = after.to(torch.int32)
+    heights = _bit_length16(masks).long()
+    holes = (heights - _bitcount16(masks).long()).sum(1)
+    levels = torch.arange(16, device=masks.device, dtype=torch.int32)[None, :, None]
+    bits = (masks[:, None, :] >> levels) & 1
+    above = (masks[:, None, :] >> (levels + 1)) != 0
+    area = float(neural.game.AREA)
+    fill = bits.sum(2).double() / area
+    buried = ((bits == 0) & above).sum(2).double() / area
+    glob = torch.stack((targets.double() / 15, holes.double() / 65536, (heights.sum(1) - holes).double() / 65536,
+                        heights.amax(1).double() / 16, piece_phase.double()), dim=1)
+    return torch.cat((piece_rows.double(), fill, buried, glob), dim=1).float()
+
+
+def afterstate_piece_features(state):
+    """(one-hot row, phase) of the state reached after placing state.current."""
+    game = neural.game
+    names = game.PIECE_SETS[state.piece_set]
+    counts = dict(state.piece_counts)
+    counts[state.current] += 1
+    pieces = state.pieces + 1
+    completed = pieces // len(names)
+    upcoming = copy.deepcopy(state.stream).pop()  # the stream does not depend on the move
+    row = ([float(n == state.next_piece) for n in neural.NAMES] + [float(n == upcoming) for n in neural.NAMES]
+           + [float(n in names and counts[n] == completed) for n in neural.NAMES])
+    return row, (pieces % len(names)) / len(names)
+
+
+@torch.no_grad()
+def afterstate_values(model, states, targets, candidates, chunk=64):
+    """Critic value of every candidate's afterstate (issue #37), batched on the model's device.
+
+    states: Games; targets: their target layers; candidates: one list of game.Candidate per
+    state. Returns one 1-D float tensor of values per state.
+    """
+    game = neural.game
+    device = next(model.parameters()).device
+    owners = [s for s, options in enumerate(candidates) for _ in options]
+    flat = [c for options in candidates for c in options]
+    if not flat:
+        return [torch.empty(0, device=device) for _ in states]
+    width = max(len(game.SHAPES[c.piece][c.rotation].cells) for c in flat)
+    cells = torch.zeros((len(flat), width, 4), dtype=torch.int64)
+    mask = torch.zeros((len(flat), width), dtype=torch.bool)
+    for row, c in enumerate(flat):
+        placed = game.placed_cells(c)
+        cells[row, :len(placed)] = torch.tensor(placed)
+        mask[row, :len(placed)] = True
+    owner = torch.tensor(owners, device=device)
+    boards = torch.tensor([s.board for s in states], dtype=torch.int32, device=device).index_select(0, owner)
+    after = afterstate_boards(boards, cells.to(device), mask.to(device))
+    after_targets = [targets[o] for o in owners]
+    clearing = [row for row, c in enumerate(flat) if c.layers]
+    if clearing:  # rare: retarget exactly like train_overnight.apply_move
+        host = after.index_select(0, torch.tensor(clearing, device=device)).cpu().tolist()
+        for row, board in zip(clearing, host):
+            following = game.next_hyperlayer_target(tuple(board), after_targets[row])
+            if following is not None:
+                after_targets[row] = following
+    features = [afterstate_piece_features(s) for s in states]
+    piece_rows = torch.tensor([features[o][0] for o in owners], dtype=torch.float64, device=device)
+    phase = torch.tensor([features[o][1] for o in owners], dtype=torch.float64, device=device)
+    target_tensor = torch.tensor(after_targets, device=device)
+    context = device_afterstate_context(after, target_tensor, piece_rows, phase)
+    values = torch.cat([model.encode(after[i:i + chunk], target_tensor[i:i + chunk], context[i:i + chunk])[2].float()
+                        for i in range(0, len(flat), chunk)])
+    return list(values.split([len(options) for options in candidates]))
 
 
 class SurvivalSpatialPolicy(SurvivalFeaturePolicy):

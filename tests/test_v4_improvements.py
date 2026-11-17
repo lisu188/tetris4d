@@ -31,6 +31,22 @@ class EngineSpeedupTests(unittest.TestCase):
                 with self.subTest(tail=repr(tail), container=container.__name__):
                     self.assertEqual(game._valid_columns(board), original_validation(board))
 
+    def test_fast_height_validation_accepts_exactly_the_original_set(self):
+        def original(heights):
+            return not any(not isinstance(h, int) or not 0 <= h <= game.HEIGHT for h in heights)
+        rng = random.Random(9)
+        base = [rng.randint(0, 16) for _ in range(game.AREA)]
+        for tail in (0, 16, 17, -1, 1.0, True, np.int64(3), None, 2 ** 70):
+            heights = tuple(base[:-1] + [tail])
+            with self.subTest(tail=repr(tail)):
+                self.assertEqual(game._valid_heights(heights), original(heights))
+        game.configure_backend('numpy')
+        heights = tuple(base)
+        self.assertEqual(game.pooled_histograms.__wrapped__(heights)[0],
+                         tuple(int(heights.count(h)) for h in range(game.HEIGHT + 1)))
+        with self.assertRaises(ValueError):
+            game.pooled_histograms.__wrapped__(heights[:-1] + (17,))
+
     def test_evaluate_board_results_unchanged(self):
         for backend in ('python', 'native'):
             try:
@@ -57,6 +73,10 @@ class ArgumentTests(unittest.TestCase):
             self.assertEqual(v4.arguments([]).screening, 'exhaustive')
             self.assertEqual(v4.arguments(['--screening', 'sampled']).screening, 'sampled')
 
+    def test_overlap_prepare_is_opt_in(self):
+        self.assertFalse(v4.arguments(['--no-gpu-defaults']).overlap_prepare)
+        self.assertTrue(v4.arguments(['--no-gpu-defaults', '--overlap-prepare']).overlap_prepare)
+
     def test_selection_defaults_to_eight_lockstep_seeds(self):
         args = v4.arguments(['--no-gpu-defaults'])
         self.assertEqual(args.selection_seeds, list(v4.SELECTION_SEEDS))
@@ -79,7 +99,7 @@ class ArgumentTests(unittest.TestCase):
             v4.arguments(['--no-gpu-defaults', '--adaptive-kl-target', '1'])
 
 
-class TrainerTests(unittest.TestCase):
+class TrainerHarness(unittest.TestCase):
     backend, device = 'numpy', 'cpu'
 
     @classmethod
@@ -106,6 +126,9 @@ class TrainerTests(unittest.TestCase):
 
     def actor_lr(self, trainer):
         return next(g['lr'] for g in trainer.optimizer.param_groups if g['name'] == 'actor')
+
+
+class TrainerTests(TrainerHarness):
 
     def test_learning_rate_moves_towards_the_kl_target_within_bounds(self):
         trainer = self.trainer()
@@ -141,7 +164,7 @@ class TrainerTests(unittest.TestCase):
         self.assertEqual(self.actor_lr(trainer), trainer.args.lr)
 
 
-class RegionalCriticTests(TrainerTests):
+class RegionalCriticTests(TrainerHarness):
     def test_regional_statistics_match_python_reference(self):
         from tetris_survival_v4 import regional_statistics
         rng = random.Random(5)
@@ -190,7 +213,57 @@ class RegionalCriticTests(TrainerTests):
         self.assertEqual(trainer.progress['runner_updates'], 1)
 
 
-class DangerStartTests(TrainerTests):
+class AfterstateTests(TrainerHarness):
+    def test_batched_afterstates_match_the_cpu_reference_exactly(self):
+        import importlib.util
+        from tetris_survival_v4 import afterstate_values, afterstate_boards, device_afterstate_context, \
+            afterstate_piece_features
+        spec = importlib.util.spec_from_file_location('afterstate_ranking', ROOT / 'tools/afterstate_ranking.py')
+        tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tool)
+        model = self.trainer('--regional-critic').model.eval()
+        states, targets = [], []
+        for seed, moves in ((501, 40), (503, 90)):
+            state, target = game.Game(seed, 'expanded'), 1
+            for _ in range(moves):
+                state.commit(game.choose_sustained_move(state.board, state.current, target, 64, state.pieces).move)
+            states.append(state)
+            targets.append(target)
+        clearing = game.Game(505, 'expanded')
+        clearing.current, clearing.board = 'I', (0,) + (3,) * (game.AREA - 1)
+        states.append(clearing)
+        targets.append(5)
+        config = v4.neural.Config(candidates=4096, shortlist=24, protect_target=False, recover_target=False)
+        options = [list(v4.neural.prepare(s, t, config).options) for s, t in zip(states, targets)]
+        options[-1].append(game.make_move(clearing.board, 'I', next(r for r, sh in enumerate(game.SHAPES['I'])
+                                                                    if sh.extents[2] == 4), 0, 0, 0).candidate)
+        self.assertTrue(any(c.layers for c in options[-1]))
+        expected_values = []
+        for state, target, cands in zip(states, targets, options):
+            proxies = [tool.afterstate(state, target, c) for c in cands]
+            boards = torch.tensor([p.board for p, _ in proxies], dtype=torch.int32)
+            cells = [game.placed_cells(c) for c in cands]
+            width = max(map(len, cells))
+            cell_tensor = torch.zeros((len(cands), width, 4), dtype=torch.int64)
+            mask = torch.zeros((len(cands), width), dtype=torch.bool)
+            for row, placed in enumerate(cells):
+                cell_tensor[row, :len(placed)] = torch.tensor(placed)
+                mask[row, :len(placed)] = True
+            after = afterstate_boards(torch.tensor([state.board] * len(cands), dtype=torch.int32), cell_tensor, mask)
+            torch.testing.assert_close(after, boards, rtol=0, atol=0)
+            row, phase = afterstate_piece_features(state)
+            context = device_afterstate_context(after, torch.tensor([t for _, t in proxies]),
+                                                torch.tensor([row] * len(cands)), torch.tensor([phase] * len(cands)))
+            reference = torch.from_numpy(np.stack([v4.neural.state_context(p, t) for p, t in proxies]))
+            torch.testing.assert_close(context, reference, rtol=0, atol=0)
+            with torch.no_grad():
+                expected_values.append(model.encode(boards, torch.tensor([t for _, t in proxies]), reference)[2].float())
+        actual = afterstate_values(model, states, targets, options, chunk=5)
+        for got, want in zip(actual, expected_values):
+            torch.testing.assert_close(got, want, rtol=1e-6, atol=1e-6)
+
+
+class DangerStartTests(TrainerHarness):
     def setUp(self):
         super().setUp()
         import json
@@ -271,6 +344,66 @@ class LockstepSelectionTests(TrainerTests):
         result = evaluate()
         torch.testing.assert_close(torch.get_rng_state(), before, rtol=0, atol=0)
         return [(run['pieces'], run['score'], run['stop_reason']) for run in result['runs']], result
+
+    def test_merged_halves_equal_one_full_preparation(self):
+        import tetris_gpu_simulation as gpu
+        states = [game.Game(8800 + i, 'expanded') for i in range(6)]
+        for i, state in enumerate(states):
+            state.current = game.PIECE_NAMES[(3 * i) % len(game.PIECE_NAMES)]
+        states[4].board = (65535,) * game.AREA  # unpreparable: exercises the partial-batch path
+        targets = [1, 1, 1, 1, 15, 1]
+        for screening in ('sampled', 'exhaustive'):
+            config = v4.neural.Config(architecture=v4.ARCHITECTURE, spatial_actor=True, screening=screening)
+            full = gpu.GpuPreparer(config).prepare_batch(states, targets)
+            merged = gpu.merge_prepared_batches(gpu.GpuPreparer(config).prepare_batch(states[:3], targets[:3]),
+                                                gpu.GpuPreparer(config).prepare_batch(states[3:], targets[3:]))
+            with self.subTest(screening=screening):
+                self.assertEqual(merged.environment_indices, full.environment_indices)
+                self.assertEqual((merged.targets, merged.cpu_fallbacks), (full.targets, full.cpu_fallbacks))
+                torch.testing.assert_close(merged.teachers, full.teachers, rtol=0, atol=0)
+                valid = full.batch['valid'].bool()
+                self.assertEqual(merged.batch.keys(), full.batch.keys())
+                for name, value in full.batch.items():
+                    other = merged.batch[name]
+                    self.assertEqual(other.shape, value.shape, name)
+                    if name in gpu.CANDIDATE_FIELDS:
+                        torch.testing.assert_close(other[valid], value[valid], rtol=0, atol=0)
+                    else:
+                        torch.testing.assert_close(other, value, rtol=0, atol=0)
+                self.assertEqual(merged.selected_candidates(full.teachers), full.selected_candidates(full.teachers))
+
+    def test_overlapped_preparation_gives_identical_rollouts(self):
+        for screening in ('sampled', 'exhaustive'):
+            extra = ('--envs', '4', '--rollout', '6', '--screening', screening)
+            overlapped, plain = self.trainer(*extra, '--overlap-prepare'), self.trainer(*extra)
+            plain.model.load_state_dict(overlapped.model.state_dict())
+            results = []
+            for trainer in (overlapped, plain):
+                trainer.calibrate()
+                torch.manual_seed(4321)  # both trainers sample actions from identical RNG streams
+                results.append([trainer.rollout(False) for _ in range(2)])
+            with self.subTest(screening=screening):
+                self.assertGreater(overlapped._gpu_prepare_stats.get('overlapped_steps', 0), 0)
+                self.assertNotIn('overlapped_steps', plain._gpu_prepare_stats)
+                for fast, slow in zip(*results):
+                    self.assertEqual(fast.choices, slow.choices)
+                    self.assertEqual(fast.labels, slow.labels)
+                    for name in ('returns', 'old_values', 'terminals', 'truncations', 'raw_advantages'):
+                        np.testing.assert_array_equal(getattr(fast, name), getattr(slow, name), err_msg=name)
+                    for left, right in zip(fast.records, slow.records):
+                        for name, value in right.items():
+                            torch.testing.assert_close(left[name], value, rtol=0, atol=0)
+                self.assertEqual([e.state.board for e in overlapped.environments],
+                                 [e.state.board for e in plain.environments])
+
+    def test_afterstate_selection_reports_complete_games(self):
+        trainer = self.trainer('--afterstate-selection', '--afterstate-top-k', '4')
+        before = torch.get_rng_state().clone()
+        result = trainer.afterstate_policy_check()
+        torch.testing.assert_close(torch.get_rng_state(), before, rtol=0, atol=0)
+        self.assertTrue(result['complete'])
+        self.assertEqual([run['pieces'] for run in result['runs']], [60, 60, 60])
+        self.assertEqual(result['top_k'], 4)
 
     def test_lockstep_matches_sequential_greedy_and_sampled_games(self):
         lockstep, sequential = self.trainer(), self.trainer('--sequential-selection')

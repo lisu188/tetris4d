@@ -28,6 +28,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import tetris_neural as neural  # noqa: E402
+import tetris_survival_v4 as v4  # noqa: E402
 import train_overnight as base  # noqa: E402
 
 game = neural.game
@@ -54,7 +55,7 @@ def afterstate_values(model, device, proxies):
     return model.encode(boards, targets, context)[2].float()
 
 
-def play(model, device, seeds, policy, top_k, cap, preparer):
+def play(model, device, seeds, policy, top_k, cap, preparer, cpu_reference=False):
     states = [game.Game(seed, 'expanded') for seed in seeds]
     for state in states:
         base.library.ignore(state)
@@ -75,15 +76,21 @@ def play(model, device, seeds, policy, top_k, cap, preparer):
             if policy == 'afterstate':
                 k = min(top_k, logits.shape[1])
                 top = logits.topk(k, dim=-1).indices
-                chosen = []
-                for row, i in enumerate(rows):
-                    valid = [int(a) for a in top[row] if torch.isfinite(logits[row, a])]
-                    options = result.prepared[result.environment_indices[row]].options
-                    values = afterstate_values(model, device, [afterstate(states[i], targets[i], options[a]) for a in valid])
-                    best = valid[int(values.argmax())]
-                    changed += best != int(actions[row])
-                    decisions += 1
-                    chosen.append(best)
+                finite = torch.isfinite(logits.gather(1, top)).cpu().tolist()
+                indices, options = [], []
+                for row, (ranked, ok) in enumerate(zip(top.cpu().tolist(), finite)):
+                    valid = [a for a, keep in zip(ranked, ok) if keep]
+                    pool = result.prepared[result.environment_indices[row]].options
+                    indices.append(valid)
+                    options.append([pool[a] for a in valid])
+                if cpu_reference:
+                    values = [afterstate_values(model, device, [afterstate(states[i], targets[i], c) for c in cands])
+                              for i, cands in zip(rows, options)]
+                else:
+                    values = v4.afterstate_values(model, [states[i] for i in rows], [targets[i] for i in rows], options)
+                chosen = [valid[int(v.argmax())] for valid, v in zip(indices, values)]
+                changed += sum(best != int(a) for best, a in zip(chosen, actions.tolist()))
+                decisions += len(chosen)
                 actions = torch.tensor(chosen, device=device)
             for i, candidate in zip(rows, result.selected_candidates(actions)):
                 move = game.materialize_move(states[i].board, candidate)
@@ -116,6 +123,8 @@ def main(argv=None):
                         help='Override the checkpoint screening (default: keep it)')
     parser.add_argument('--weights', type=Path, default=ROOT / 'models/trained-sigmoid.json')
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--cpu-reference', action='store_true',
+                        help='Build afterstate contexts with the CPU reference path (slow; for verification)')
     args = parser.parse_args(argv)
     if args.top_k < 2 or args.pieces < 1:
         parser.error('--top-k must be >= 2 and --pieces positive')
@@ -134,7 +143,7 @@ def main(argv=None):
               'piece_cap': args.pieces, 'screening': model.config.screening, 'results': []}
     with torch.inference_mode():
         for policy in args.policies:
-            result = play(model, device, args.seeds, policy, args.top_k, args.pieces, preparer)
+            result = play(model, device, args.seeds, policy, args.top_k, args.pieces, preparer, args.cpu_reference)
             report['results'].append(result)
             print(json.dumps({k: result[k] for k in ('policy', 'mean', 'median', 'minimum', 'censored',
                                                      'changed_from_actor', 'wall_seconds')}), flush=True)

@@ -103,6 +103,18 @@ class RendererTests(unittest.TestCase):
                             return self.generic_visit(node)
                     candidate = StripNativeMetrics().visit(candidate)
                     self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected)])
+                if name == 'pooled_histograms':
+                    # Exact C-speed validation of the 4096 heights (issue #35).
+                    original = 'any((not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights))'
+                    swapped = []
+                    class RestoreValidation(ast.NodeTransformer):
+                        def generic_visit(self, node):
+                            if isinstance(node, ast.expr) and ast.unparse(node) == 'not _valid_heights(heights)':
+                                swapped.append(node)
+                                return ast.parse(original, mode='eval').body
+                            return super().generic_visit(node)
+                    candidate = RestoreValidation().visit(candidate)
+                    self.assertEqual(len(swapped), 1)
                 if name == 'evaluate_board':
                     # Two exact speedups: C-speed column validation and ndarray.tolist().
                     rewrites = {'not _valid_columns(board)': 'any((not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board))',
