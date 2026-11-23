@@ -6,6 +6,7 @@ import random
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import torch
@@ -185,6 +186,31 @@ class PolicyTests(unittest.TestCase):
             prepared = neural.prepare(state, 1, config)
             records.append(v5.augment_prepared(prepared, state, torch.device('cpu')).arrays)
         return neural.collate(records, torch.device('cpu'))
+
+    def test_checkpoint_agent_plays_and_inspects_the_selected_afterstate(self):
+        model = v5.from_v4(v4_regional_model(), residual_bound=2., policy_temperature=.5, afterstate_scale=3.)
+        with tempfile.TemporaryDirectory() as directory:
+            checkpoint = Path(directory) / 'v5.pt'
+            neural.save_checkpoint(checkpoint, model)
+            agent = neural.NeuralAgent(checkpoint, 'cpu', allow_untrained=True)
+        state = game.Game(621, 'expanded')
+        prepared = neural.prepare(state, 1, model.config)
+        v5.augment_prepared(prepared, state, agent.device)
+        with torch.inference_mode():
+            prediction = model(neural.collate([prepared.arrays], agent.device))
+        index = int(prediction['logits'][0].argmax())
+        decision = agent.choose(state)
+        trace = agent.get_trace()
+        self.assertEqual(decision.move, game.materialize_move(state.board, prepared.options[index]))
+        self.assertEqual(trace['logit'], float(prediction['logits'][0, index]))
+        self.assertEqual(trace['base_logit'], float(prediction['base_logits'][0, index]))
+        self.assertEqual(trace['residual'], float(prediction['raw_logits'][0, index]))
+        state.commit(decision.move)
+        with patch.object(v4, 'FeatureView') as view:
+            self.assertIs(agent.create_view(None, None, None), view.return_value)
+            view.assert_called_once_with(None, agent, None, None)
+        self.assertIsNotNone(agent.choose(state))
+        self.assertEqual(agent.get_trace()['piece_number'], 2)
 
     def test_zero_bound_replays_the_base_and_the_residual_is_bounded(self):
         source = v4_regional_model()

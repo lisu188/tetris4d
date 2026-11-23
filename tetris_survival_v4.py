@@ -399,12 +399,19 @@ class FeatureView:
                 f"Move: {trace['piece_number']} / {trace['piece']}",
                 f"Selection: {trace['selected']} of {trace['shortlist']} candidates",
                 f"Total selected logit: {trace['logit']:.6g}",
-                f"Raw actor score: {raw:.6g}" if raw is not None else "Raw actor score: not decomposed",
-                f"Teacher prior: {teacher:.6g}" if teacher is not None else "Teacher prior: unavailable",
-                f"Scaled teacher contribution: {teacher * config.teacher_prior_scale:.6g}" if teacher is not None and config.policy_mode == 'teacher-prior' else "Teacher contribution: depends on policy mode",
-                f"Critic value: {value:.6g}" if value is not None else "Critic value: unavailable",
-                f"Value semantics: {semantics}",
             ]
+            if 'base_logit' in trace:
+                parts.extend([f"Frozen V4 logit: {trace['base_logit']:.6g}",
+                              f"Afterstate residual: {trace['residual']:.6g}",
+                              f"Policy temperature: {config.policy_temperature:.6g}"])
+            else:
+                parts.extend([
+                    f"Raw actor score: {raw:.6g}" if raw is not None else "Raw actor score: not decomposed",
+                    f"Teacher prior: {teacher:.6g}" if teacher is not None else "Teacher prior: unavailable",
+                    f"Scaled teacher contribution: {teacher * config.teacher_prior_scale:.6g}" if teacher is not None and config.policy_mode == 'teacher-prior' else "Teacher contribution: depends on policy mode",
+                ])
+            parts.extend([f"Critic value: {value:.6g}" if value is not None else "Critic value: unavailable",
+                          f"Value semantics: {semantics}"])
             if geometry is not None:
                 parts.append('Afterstate adjacency changes (with layer compaction):')
                 for axis, offset in zip(AXIS_NAMES, range(0, SPATIAL_ACTOR_FEATURES, 6)):

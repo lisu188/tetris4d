@@ -32,6 +32,7 @@ CANDIDATE_FIELDS = frozenset(('features', 'indices', 'column_mask', 'valid', 'te
                               'next_features'))
 # Architectures whose preparation includes V4 afterstate spatial descriptors.
 SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5')
+FEATURE_ARCHITECTURES = ('survival-feature-v3', *SPATIAL_ARCHITECTURES)
 NAMES = tuple(game.PIECE_NAMES)
 
 
@@ -545,7 +546,7 @@ class NeuralAgent:
         self.model.eval()
         self.last_trace = None
         self.pending_trace = None
-        self.capture_traces = (False if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4')
+        self.capture_traces = (False if self.model.config.architecture in FEATURE_ARCHITECTURES
                                else capture_traces)
         self.last_metrics = {}
         self.metadata = {'schema': SCHEMA, 'checkpoint_sha256': hashlib.sha256(Path(path).read_bytes()).hexdigest(),
@@ -562,6 +563,9 @@ class NeuralAgent:
         prepared = yield from prepare_steps(state, target, self.model.config, candidates)
         if prepared is None:
             return None
+        if self.model.config.architecture == 'survival-afterstate-v5':
+            from tetris_survival_v5 import augment_prepared
+            augment_prepared(prepared, state, self.device)
         before = time.perf_counter()
         requested_target = target
         target = int(prepared.arrays['targets'])
@@ -582,18 +586,21 @@ class NeuralAgent:
         candidate = prepared.options[index]
         move = game.materialize_move(state.board, candidate)
         gain, _, _ = game.sustained_candidate_metrics(state.board, candidate, target)
-        if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4'):
+        if self.model.config.architecture in FEATURE_ARCHITECTURES:
             teacher_prior = float(batch['teacher_prior'][0, index]) if 'teacher_prior' in batch else 0.
-            if self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
-                raw_score = (score - self.model.config.teacher_prior_scale * teacher_prior) / self.model.config.residual_scale
-            elif self.model.config.policy_mode == 'neural':
-                raw_score = score
-            else:
-                raw_score = None
-            self.last_trace = {'feature_inspector': True, **trace_info, 'actor_score': raw_score,
+            self.last_trace = {'feature_inspector': True, **trace_info,
                                'teacher_prior': teacher_prior, 'critic_value': float(prediction['value'][0]),
                                'spatial_delta': (batch['spatial_delta'][0, index].detach().cpu().tolist()
                                                  if 'spatial_delta' in batch else None)}
+            if self.model.config.architecture == 'survival-afterstate-v5':
+                self.last_trace['base_logit'] = float(prediction['base_logits'][0, index])
+                self.last_trace['residual'] = float(prediction['raw_logits'][0, index])
+            elif self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
+                self.last_trace['actor_score'] = (score - self.model.config.teacher_prior_scale * teacher_prior) / self.model.config.residual_scale
+            elif self.model.config.policy_mode == 'neural':
+                self.last_trace['actor_score'] = score
+            else:
+                self.last_trace['actor_score'] = None
         self.last_metrics = {'prepare_ms': (before - started) * 1000,
                              'inference_and_trace_transfer_ms': (inferred - before) * 1000,
                              'evaluations': prepared.evaluations, 'shortlist': len(prepared.options),
@@ -629,7 +636,7 @@ class NeuralAgent:
         return self.last_trace
 
     def create_view(self, parent, legacy_class, policy):
-        if self.model.config.architecture in ('survival-feature-v3', 'survival-spatial-v4'):
+        if self.model.config.architecture in FEATURE_ARCHITECTURES:
             from tetris_survival_v4 import FeatureView
             self.capture_traces = False
             return FeatureView(parent, self, legacy_class, policy)
