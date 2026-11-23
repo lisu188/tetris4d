@@ -23,7 +23,7 @@ import train_survival_v4 as v4
 
 base, game = v4.base, v4.game
 TOP_K = 16
-POLICY_ORDER = ('actor', 'frozen', 'ppo', 'previous_td', 'td')
+POLICY_ORDER = ('actor', 'frozen', 'ppo', 'previous_td', 'initial_td', 'td')
 DEVELOPMENT_SEEDS = tuple(910001 + 2*i for i in range(8))
 HOLDOUT_SEEDS = tuple(7310001 + 2*i for i in range(16))
 
@@ -216,7 +216,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
     try:
         if policy == 'frozen':
             model = td.from_v4(model).to(device).eval()
-        scoring = policy in ('frozen', 'previous_td', 'td')
+        scoring = policy in ('frozen', 'previous_td', 'initial_td', 'td')
         preparer = None
         if torch.device(device).type == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
@@ -362,6 +362,8 @@ def evaluate(args, device, budget, runtime):
         paths['ppo'] = args.ppo
     if args.previous_td:
         paths['previous_td'] = args.previous_td
+    if args.initial_td:
+        paths['initial_td'] = args.initial_td
     if args.td:
         paths['td'] = args.td
     if split == 'holdout':
@@ -416,6 +418,7 @@ def main(argv=None):
     evaluation.add_argument('--td', type=Path)
     evaluation.add_argument('--ppo', type=Path)
     evaluation.add_argument('--previous-td', type=Path, help='Evaluate the pinned predecessor TD checkpoint as a control')
+    evaluation.add_argument('--initial-td', type=Path, help='Evaluate the TD policy as initialized before training')
     evaluation.add_argument('--selection', type=Path)
     evaluation.add_argument('--cap', type=int, default=64000)
     evaluation.add_argument('--max-cap', type=int, default=128000)

@@ -46,8 +46,8 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(ev.development_score(dev), (4.5,4.5))
 
     def test_policy_tie_break_and_pooled_clear_rate(self):
-        tied = {name: report(name, [64,64,63,63]) for name in ('td','ppo','frozen','actor')}
-        self.assertEqual(ev.rank(tied), ['actor','frozen','ppo','td'])
+        tied = {name: report(name, [64,64,63,63]) for name in ('td','initial_td','previous_td','ppo','frozen','actor')}
+        self.assertEqual(ev.rank(tied), ['actor','frozen','ppo','previous_td','initial_td','td'])
         self.assertEqual(ev.extension_pair(tied), ['actor','frozen'])
         tied['ppo'] = report('ppo', [64,64,64,64])
         self.assertEqual(ev.extension_pair(tied), ['ppo','actor'])
@@ -102,12 +102,14 @@ class EvaluationTests(unittest.TestCase):
             architecture='survival-spatial-v4', spatial_actor=True, regional_critic=True,
             policy_mode='teacher-prior', teacher_prior_scale=.125, screening='exhaustive', shortlist=16))
         trained = td.from_v4(source)
+        initial = td.from_v4(source, actor_bound=.5, value_scale=400.)
         results = {}
         select = ev.select_moves
         def observed(model, states, *args):
             self.assertTrue(all(state.locked_pieces == () for state in states))
             return select(model, states, *args)
-        for policy, model in [('actor',source),('frozen',source),('td',trained),('previous_td',trained),('ppo',source)]:
+        for policy, model in [('actor',source),('frozen',source),('td',trained),('previous_td',trained),
+                              ('initial_td',initial),('ppo',source)]:
             with self.subTest(policy=policy), patch.object(ev, 'select_moves', side_effect=observed):
                 rows = []
                 result = ev.evaluate_fresh(model, [11,13], policy=policy, cap=2, device='cpu', on_finish=rows.append)
@@ -130,7 +132,7 @@ class EvaluationTests(unittest.TestCase):
             root = Path(tmp)
             source = root/'source'
             source.write_text('checkpoint')
-            args = SimpleNamespace(source=source, weights=source, td=None, ppo=None, previous_td=None, split='development',
+            args = SimpleNamespace(source=source, weights=source, td=None, ppo=None, previous_td=None, initial_td=None, split='development',
                 selection=None, cap=2, max_cap=4, cache_dir=root/'cache', output=root/'dev.json')
             budget = SimpleNamespace(expired=lambda: False)
             calls = []
@@ -146,7 +148,9 @@ class EvaluationTests(unittest.TestCase):
                 args.split, args.output = 'holdout', root/'held.json'
                 with self.assertRaisesRegex(ValueError, 'Holdout requires'):
                     ev.evaluate(args, 'cpu', budget, {})
-                args.td = args.ppo = args.previous_td = source
+                args.td = args.ppo = source
+                args.initial_td = root/'initial-checkpoint'
+                args.initial_td.write_text('initial TD with frozen policy settings')
                 args.selection = root/'selection.json'
                 args.selection.write_text(json.dumps({'complete': True, 'best_sha256': 'wrong'}))
                 with self.assertRaisesRegex(ValueError, 'not selected'):
@@ -155,7 +159,15 @@ class EvaluationTests(unittest.TestCase):
                 args.selection.write_text(json.dumps({'complete': True, 'best_sha256': ev.base.file_hash(source)}))
                 self.assertTrue(ev.evaluate(args, 'cpu', budget, {}))
                 held = ev.read_json(args.output)
-                self.assertIn('previous_td', [item['control'] for item in held['initial_comparisons']])
+                self.assertIn('initial_td', [item['control'] for item in held['initial_comparisons']])
+                self.assertNotIn('previous_td', held['checkpoints'])
+                args.previous_td = source
+                self.assertTrue(ev.evaluate(args, 'cpu', budget, {}))
+                held = ev.read_json(args.output)
+                self.assertEqual(held['checkpoints']['initial_td'], ev.base.file_hash(args.initial_td))
+                self.assertEqual(held['checkpoints']['previous_td'], ev.base.file_hash(args.previous_td))
+                self.assertEqual({item['control'] for item in held['initial_comparisons']},
+                                 {'actor', 'frozen', 'ppo', 'previous_td', 'initial_td'})
                 self.assertFalse(set(held['seeds']).intersection(ev.DEVELOPMENT_SEEDS))
                 self.assertFalse(held['promotion_gate_passed'])
 

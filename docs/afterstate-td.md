@@ -34,7 +34,7 @@ Related work studies policy updates constrained by a prior, the effects of value
 
 ## Final checkpoint and holdout
 
-After training, `select-final` evaluates the final checkpoint on the eight development seeds and compares it with the best completed scheduled selection at the same cap. The earlier checkpoint wins a tie. If no scheduled selection finished, a completed final development evaluation supplies the checkpoint. Read its filename from the selection receipt before evaluating the 16 reserved fresh seeds. Supply `--previous-td` to include the predecessor as a fourth control alongside the V4 actor, frozen V4 afterstate critic, and PPO checkpoint.
+After training, `select-final` evaluates the final checkpoint on the eight development seeds and compares it with the best completed scheduled selection at the same cap. The earlier checkpoint wins a tie. If no scheduled selection finished, a completed final development evaluation supplies the checkpoint. Read its filename from the selection receipt before evaluating the 16 reserved fresh seeds. Supply `--previous-td` to include the predecessor as a fourth control alongside the V4 actor, frozen V4 afterstate critic, and PPO checkpoint. Pass the independently pinned, warm-started policy with its chosen actor bound to `--initial-td` to measure the effect of the training updates on holdout survival.
 
 ```sh
 python tools/evaluate_afterstate_td.py select-final --run-dir "$OUT/production" \
