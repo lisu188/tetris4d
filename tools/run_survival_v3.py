@@ -103,13 +103,13 @@ def tree_bytes(root, exclude=()):
     return total
 
 
-def storage(config):
+def storage(config, additional_bytes=0, checkpoint_bytes=0):
     output, source, cache = (Path(config[k]) for k in ('output', 'source', 'cache'))
     require(source == output/'source', 'Only the source worktree is excluded from the output bound')
     owned = tree_bytes(output, exclude=(source,))
     cache_bytes = tree_bytes(cache)
     require(cache_bytes < config['cache_limit_bytes'], 'Private Triton cache bound reached')
-    largest = 0
+    largest = checkpoint_bytes
     run = output/'run'
     if run.exists():
         for path in run.rglob('*.pt'):
@@ -119,10 +119,10 @@ def storage(config):
             except FileNotFoundError:
                 pass
     reserve = 2*largest + 8*MIB
-    require(owned + reserve < config['output_limit_bytes'], 'Output cap including atomic checkpoint reserve reached')
+    require(owned + additional_bytes + reserve < config['output_limit_bytes'], 'Output cap including atomic checkpoint reserve reached')
     require(os.path.ismount('/mnt/c'), 'Windows backing volume is unavailable')
     disks = {}
-    future = reserve + config['cache_limit_bytes']
+    future = additional_bytes + reserve + config['cache_limit_bytes']
     for name in ('/', '/mnt/c'):
         usage = shutil.disk_usage(name)
         require(usage.used + future < .9*usage.total and usage.free > future,
@@ -141,6 +141,8 @@ def frozen(config, configuration_proof=None):
     require(current == config['commit'], 'Frozen source commit changed')
     for item in config['files']:
         require(proof(item['path']) == item, 'Frozen input changed: ' + item['path'])
+    if 'runtime_configuration' in config:
+        frozen(config['runtime_configuration'], config['runtime_configuration_proof'])
 
 
 def configuration(args):
@@ -149,6 +151,8 @@ def configuration(args):
     require(source == output/'source', 'Source must be the isolated output/source worktree')
     require(cache.is_relative_to(Path('/tmp')) and cache != Path('/tmp'), 'Private cache must be under /tmp')
     require(not output.is_relative_to(cache) and not cache.is_relative_to(output), 'Cache and output overlap')
+    envs = getattr(args, 'envs', 16)
+    require(envs in (4, 16), 'Reviewed environment counts are 4 or 16')
     require(args.seed >= 0 and args.seed % 2 == 0 and args.calibration_seed % 2 == 0
             and args.calibration_seed >= 2*args.seed + 200000, 'Invalid separate training/calibration seed ranges')
     require(len(set(args.selection_seeds)) == len(args.selection_seeds)
@@ -168,7 +172,7 @@ def configuration(args):
             'initialization': 'all trainable neural weights initialized afresh; no checkpoint or optimizer transfer',
             'hours': HOURS, 'start_epoch': None, 'deadline_epoch': None,
             'seed': args.seed, 'calibration_seed': args.calibration_seed, 'selection_seeds': args.selection_seeds,
-            'envs': 16, 'rollout': 1024, 'gpu_budget_bytes': 4096*MIB,
+            'envs': envs, 'rollout': 1024, 'gpu_budget_bytes': 4096*MIB,
             'gpu_free_headroom_bytes': 512*MIB, 'cache': str(cache), 'cache_limit_bytes': 64*MIB,
             'output_limit_bytes': 256*MIB,
             'protocol': 'One fresh eight-hour run including calibration and selection; no automatic resume, restart or promotion. Fixed heuristic prior remains an explicit hybrid component.'}
@@ -182,7 +186,7 @@ def training_command(config, hours):
     require(0 < hours <= HOURS, 'Invalid remaining training budget')
     arguments = ['--hours', format(hours, '.12g'), '--run-dir', str(Path(config['output'])/'run'),
         '--weights', config['weights'], '--device', 'cuda', '--backend', 'native', '--threads', '4',
-        '--precision', 'fp32', '--envs', '16', '--rollout', '1024', '--batch', '32', '--optimizer-batch', '256',
+        '--precision', 'fp32', '--envs', str(config['envs']), '--rollout', '1024', '--batch', '32', '--optimizer-batch', '256',
         '--lr', '5e-5', '--critic-lr', '3e-4', '--ppo-epochs', '2', '--clip-ratio', '.1', '--target-kl', '.01',
         '--entropy', '.001', '--gae-lambda', '.999', '--imitation', '0', '--secondary-weight', '0',
         '--regret-weight', '0', '--warmup-updates', '0', '--seed', str(config['seed']),
@@ -194,7 +198,7 @@ def training_command(config, hours):
         '--rollout-cache-mib', '2048', '--gpu-prepare', '--fused-encoding', '--coalesce-transfers',
         '--recover-target', '--policy-mode', 'teacher-prior', '--teacher-prior-scale', '.125',
         '--residual-scale', '1', '--gradient-clip-scope', 'separate']
-    return [config['python'], '-B', '-u', str(Path(config['source'])/'tools/run_survival_v3.py'),
+    return [config['python'], '-B', '-u', str(Path(config.get('runtime_configuration', config)['source'])/'tools/run_survival_v3.py'),
             '--worker', '--gpu-budget-mib', '4096', '--gpu-headroom-mib', '512', '--', *arguments]
 
 
@@ -459,6 +463,7 @@ def arguments(argv=None):
     parser.add_argument('--weights', type=Path, default=SOURCE/'models/trained-sigmoid.json')
     parser.add_argument('--cache', type=Path, default=Path('/tmp')/f'tetris4d-survival-v3-training-{os.getuid()}')
     parser.add_argument('--seed', type=int, default=650000)
+    parser.add_argument('--envs', type=int, choices=(4, 16), default=16)
     parser.add_argument('--calibration-seed', type=int, default=5500000)
     parser.add_argument('--selection-seeds', type=int, nargs='+', default=[980101, 980103])
     parser.add_argument('--plan-sha256', help='Require the exact previously reviewed stable configuration digest')
