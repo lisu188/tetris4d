@@ -25,6 +25,7 @@ jobs:
       - run: python tests/test_native_sustained_metrics.py
       - run: python tests/test_neural_preparation.py
       - run: python tests/test_survival_v2.py
+      - run: python -B tests/test_ppo_bootstrap.py
       - run: python tests/test_reference_ppo.py
       - run: python tests/test_reference_ablation.py
       - run: python -B tests/test_survival_architecture.py
@@ -33,8 +34,11 @@ jobs:
       - run: python -B tests/test_survival_v4_gpu.py
       - run: python -B tests/test_exhaustive_screening.py
       - run: python -B tests/test_v4_improvements.py
+      - run: python -B tests/test_survival_v5.py
       - run: python -B tests/test_game_library.py
       - run: python -B tests/test_survival_v3_run.py
+      - run: python -B tests/test_survival_v3_migration.py
+      - run: python -B tests/test_survival_v3_continue.py
       - run: python tests/test_survival_longevity.py
       - run: python tests/test_rollout_cache.py
       - run: python -B -m unittest discover -s tests -p 'test_gpu*.py'

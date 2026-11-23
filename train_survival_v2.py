@@ -56,6 +56,19 @@ def regression_metrics(predicted, target, constant=None):
             'predictions_pieces': tensor_summary(p, 1000), 'targets_pieces': tensor_summary(y, 1000)}
 
 
+def survival_gae(rewards, values, next_values, terminated, truncated, lam, nonnegative_bootstrap=False):
+    """Use the same nonnegative baseline on both sides of a survival TD error.
+
+    The critic still trains on raw predictions so negative values receive a
+    corrective gradient. Flooring only next_values would break the cancellation
+    of intermediate baselines in lambda returns.
+    """
+    if nonnegative_bootstrap:
+        values = np.maximum(values, 0.)
+        next_values = np.maximum(next_values, 0.)
+    return neural.gae(rewards, values, next_values, terminated, truncated, 1., lam)
+
+
 def secondary_teacher_loss(logp, batch, winners=None):
     if winners is None:
         winners, _ = legacy.utility_targets(batch['features'], batch['valid'])
@@ -238,7 +251,7 @@ class Rollout:
 
 class RolloutCache:
     """Immutable inputs on the update device; minibatches retain original padding."""
-    CANDIDATE_KEYS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta'))
+    CANDIDATE_KEYS = neural.CANDIDATE_FIELDS
 
     @staticmethod
     def required_bytes(rollout):
@@ -319,6 +332,8 @@ class SurvivalTrainer(base.Trainer):
                 'runner_sha256': base.file_hash(Path(base.__file__)),
                 **{name: getattr(self.args, name) for name in names},
                 'cache_rollout': getattr(self.args, 'cache_rollout', False),
+                'nonnegative_bootstrap': getattr(self.args, 'nonnegative_bootstrap', False),
+                'freeze_encoder': getattr(self.args, 'freeze_encoder', False),
                 'rollout_cache_mib': getattr(self.args, 'rollout_cache_mib', 1024),
                 'coalesce_transfers': getattr(self.args, 'coalesce_transfers', False),
                 'fused_encoding': getattr(self.args, 'fused_encoding', False),
@@ -351,6 +366,10 @@ class SurvivalTrainer(base.Trainer):
             if self.args.policy_mode == 'teacher-residual' and not self.args.preserve_initial_actor:
                 self.model.rank_out.weight.data.zero_()
                 self.model.rank_out.bias.data.zero_()
+        # Checkpoints store tensors, so reapply the encoder freeze on resume.
+        if getattr(self.args, 'freeze_encoder', False):
+            self.model.stem.requires_grad_(False)
+            self.model.blocks.requires_grad_(False)
         self.calibration_actor = actor_digest(self.model)
         self.initial_actor_sha256 = self.calibration_actor
         if not resuming and getattr(self.args, 'reference_kl_weight', 0.):
@@ -380,7 +399,8 @@ class SurvivalTrainer(base.Trainer):
         return self.policy_logp(self.reference_policy(batch)['logits'], batch['valid'])
 
     def create_optimizer(self):
-        actor = [p for n, p in self.model.named_parameters() if not n.startswith(('value.', 'completion.'))]
+        actor = [p for n, p in self.model.named_parameters()
+                 if p.requires_grad and not n.startswith(('value.', 'completion.'))]
         return torch.optim.AdamW([{'params': actor, 'lr': self.args.lr, 'name': 'actor'},
                                   {'params': list(self.model.value.parameters()), 'lr': self.args.critic_lr, 'name': 'critic'}],
                                  weight_decay=1e-4)
@@ -419,9 +439,13 @@ class SurvivalTrainer(base.Trainer):
                 'calibration': self.calibration, 'critic_encoder_detached': True,
                 'actor_critic_gradient_isolation': self.args.gradient_clip_scope == 'separate',
                 'preserve_initial_actor': self.args.preserve_initial_actor,
+                'nonnegative_bootstrap': getattr(self.args, 'nonnegative_bootstrap', False),
+                'freeze_encoder': getattr(self.args, 'freeze_encoder', False),
                 'gradient_clip_scope': self.args.gradient_clip_scope}
 
     def __init__(self, args, budget):
+        if getattr(args, 'freeze_encoder', False) and self.algorithm != ALGORITHM:
+            raise ValueError('--freeze-encoder requires the shared column encoder of the V2 trainer')
         self.calibration = {'stage': 'collect', 'game_index': 0, 'train': [], 'validation': [], 'pending': [],
                             'completed_games': 0, 'censored_games': 0, 'fit_updates': 0, 'done': False,
                             'episode': None, 'fit_optimizer': None, 'best': None, 'best_weights': None}
@@ -443,6 +467,8 @@ class SurvivalTrainer(base.Trainer):
         self.emit('survival_algorithm', algorithm=self.algorithm, microbatch=args.batch, optimizer_batch=args.optimizer_batch,
                   policy_mode=self.model.config.policy_mode, reward='one placement * 0.001; gamma=1',
                   teacher_prior_scale=self.model.config.teacher_prior_scale, preserve_initial_actor=args.preserve_initial_actor,
+                  nonnegative_bootstrap=getattr(args, 'nonnegative_bootstrap', False),
+                  freeze_encoder=getattr(args, 'freeze_encoder', False),
                   gradient_clip_scope=args.gradient_clip_scope, initial_actor_sha256=self.initial_actor_sha256,
                   calibration_actor_frozen=True, critic_encoder_detached=True, **device_telemetry())
 
@@ -474,8 +500,9 @@ class SurvivalTrainer(base.Trainer):
         shortlist = self.model.config.shortlist
         per_record = 4096 * 4 + 8 + neural.CONTEXT * 4 + shortlist * (
             neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
-        if self.model.config.architecture == 'survival-spatial-v4':
+        if self.model.config.architecture in neural.SPATIAL_ARCHITECTURES:
             per_record += 6 * 4 + shortlist * 18 * 4
+        per_record += shortlist * 4 * getattr(self.model, 'NEXT_FEATURES', 0)
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
         limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
@@ -792,8 +819,9 @@ class SurvivalTrainer(base.Trainer):
             started = time.perf_counter()
             next_values[-1][final] = self.value_inputs([self.environments[i] for i in final])[0]
             timings['bootstrap_seconds'] += time.perf_counter() - started
-        advantage, returns = neural.gae(np.asarray(rewards), np.asarray(values), np.asarray(next_values),
-                                        np.asarray(terminals), np.asarray(truncations), 1., self.args.gae_lambda)
+        advantage, returns = survival_gae(np.asarray(rewards), np.asarray(values), np.asarray(next_values),
+                                         np.asarray(terminals), np.asarray(truncations), self.args.gae_lambda,
+                                         getattr(self.args, 'nonnegative_bootstrap', False))
         raw = advantage.ravel().copy()
         normalized = (raw - raw.mean()) / max(1e-6, float(raw.std()))
         return Rollout(records, choices, labels, normalized, returns.ravel(), old, np.asarray(values).ravel(),
@@ -934,7 +962,8 @@ class SurvivalTrainer(base.Trainer):
         epoch_count = 1 if warmup else self.args.ppo_epochs
         stop, steps, finished_epochs, total_weight = False, 0, 0, 0
         totals, per_loss_norms = {}, {}
-        parameters = tuple(p for n, p in self.model.named_parameters() if not n.startswith('completion.'))
+        parameters = tuple(p for n, p in self.model.named_parameters()
+                           if p.requires_grad and not n.startswith('completion.'))
         measure_actor = self.progress['runner_updates'] % self.args.gradient_every == 0
         coalesce = getattr(self.args, 'coalesce_transfers', False)
         for epoch in range(epoch_count):
@@ -1135,6 +1164,10 @@ def arguments(argv=None):
     extra.add_argument('--regret-weight', type=float, default=.1)
     extra.add_argument('--value-loss', choices=('mse', 'huber'), default='mse')
     extra.add_argument('--value-beta', type=float, default=1.)
+    extra.add_argument('--nonnegative-bootstrap', action='store_true',
+                       help='Floor survival rollout baselines and bootstrap values at zero while fitting the raw critic')
+    extra.add_argument('--freeze-encoder', action='store_true',
+                       help='Keep the V2 column encoder fixed while optimizing the actor and critic heads')
     extra.add_argument('--policy-mode', choices=('neural', 'teacher-residual', 'teacher-prior'), default='teacher-residual')
     extra.add_argument('--residual-scale', type=float, default=1.)
     extra.add_argument('--teacher-prior-scale', type=float, default=1.,
