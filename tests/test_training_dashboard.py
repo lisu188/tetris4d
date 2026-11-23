@@ -190,6 +190,21 @@ class DashboardTests(unittest.TestCase):
         self.artifact(self.root/'status.json',{'state':'finished'})
         self.assertEqual(collector.snapshot()['phase'],'complete')
 
+    def test_afterstate_training_uses_its_clock_and_fresh_game_records(self):
+        self.artifact(self.run/'manifest.json', {'algorithm':'afterstate-td-lambda','selection_pieces':64000,
+                                                  'source_sha256':'a'*64, 'start_epoch':100,'deadline_epoch':28900})
+        self.artifact(self.run/'active-games.json', {'games':[{'pieces':36000,'start_kind':'library'},
+                                                               {'pieces':125,'start_kind':'fresh'}]})
+        self.emit('update',runner_updates=1,value_loss=.005)
+        collector = dashboard.Collector(self.run,self.data)
+        collector.poll()
+        status = collector.snapshot()
+        self.assertEqual(status['algorithm'],'afterstate-td-lambda')
+        self.assertEqual(status['selection_cap'],64000)
+        self.assertEqual(collector.budget()['deadline_epoch'],28900)
+        self.assertEqual(status['latest']['value_loss'],.005)
+        self.assertEqual(status['maximum_survival']['active_max_pieces'],125)
+
     def test_selection_start_phase_danger_starts_and_selection_cap(self):
         collector = dashboard.Collector(self.run,self.data)
         self.artifact(self.run/'manifest.json',{'source_sha256':{'selection_pieces':32000},'calibration_stage':'passed'})

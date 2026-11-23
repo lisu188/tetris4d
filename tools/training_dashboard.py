@@ -479,6 +479,15 @@ class Collector:
                         self.error('Metric offset '+str(start)+': '+str(error))
 
     def budget(self):
+        manifest = self.artifact(self.run_dir/'manifest.json')
+        if manifest.get('algorithm') == 'afterstate-td-lambda':
+            clock = {}
+            for key in ('start', 'deadline'):
+                value = number(manifest.get(key+'_epoch'))
+                if value is not None:
+                    clock[key+'_epoch'] = value
+                    clock[key+'_utc'] = datetime.fromtimestamp(value, timezone.utc).isoformat()
+            return clock
         original = self.artifact(self.control/'budget-ledger.json')
         path = self.control/'budget-24h-ledger.json'
         if not path.exists():
@@ -510,6 +519,8 @@ class Collector:
             calibration_report = self.artifact(self.run_dir/'critic-calibration.json')
             best = self.artifact(self.run_dir/'best.json')
             signature = manifest.get('source_sha256', {})
+            if not isinstance(signature, dict):
+                signature = {}
             cal = dict(self.calibration)
             if cal['total_games'] is None and all(type(signature.get(key)) is int for key in ('calibration_games','calibration_validation_games')):
                 cal['total_games'] = signature['calibration_games']+signature['calibration_validation_games']
@@ -543,13 +554,17 @@ class Collector:
             if len(rows)>3000:
                 chosen = {round(i*(len(rows)-1)/2999) for i in range(3000)}
                 rows = [rows[index] for index in sorted(chosen)]
+            games_path = self.run_dir/'summary.json'
             games = summary.get('active_games', [])
-            observed = datetime.fromtimestamp((self.run_dir/'summary.json').stat().st_mtime,timezone.utc).isoformat() if games else None
-            active = [number(game.get('pieces')) for game in games]
+            if manifest.get('algorithm') == 'afterstate-td-lambda':
+                games_path = self.run_dir/'active-games.json'
+                games = self.artifact(games_path).get('games', [])
+            observed = datetime.fromtimestamp(games_path.stat().st_mtime,timezone.utc).isoformat() if games else None
+            active = [number(game.get('pieces')) for game in games if game.get('start_kind', 'fresh') == 'fresh']
             active = [pieces for pieces in active if pieces is not None and pieces >= 0]
             active_max = max(active) if active else None
             known = [pieces for pieces in (active_max,self.completed_record) if pieces is not None]
-            return {'updated_utc':utc(), 'phase':phase,
+            return {'updated_utc':utc(), 'phase':phase, 'algorithm':manifest.get('algorithm'),
                     'budget':{'start_utc':ledger.get('start_utc'),'deadline_utc':ledger.get('deadline_utc'),
                               'elapsed_seconds':None if start is None else max(0,now-start),
                               'remaining_seconds':None if deadline is None else max(0,deadline-now)},
@@ -557,8 +572,9 @@ class Collector:
                     'latest':dict(self.latest),'best_selection':best_selection,
                     'games':[{**game,'observed_utc':observed} for game in games],
                     'series':rows,'series_total_count':self.total_rows,'series_sampled':self.total_rows>len(rows),
-                    'selection_cap':number((manifest.get('source_sha256') or {}).get('selection_pieces'))
-                                    if isinstance(manifest.get('source_sha256'), dict) else None,
+                    'selection_cap':(number(manifest.get('selection_pieces')) or
+                                     (number(manifest['source_sha256'].get('selection_pieces'))
+                                      if isinstance(manifest.get('source_sha256'), dict) else None)),
                     'maximum_survival':{'completed_record_pieces':self.completed_record,
                                         'completed_episodes':self.completed_episodes,
                                         'danger_start_episodes':self.danger_episodes,'records':list(self.survival_records),

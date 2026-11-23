@@ -49,7 +49,7 @@ def library_start_state(game_id, offset, root=None):
     raise ValueError(f'Game {game_id} has no placement {offset}')
 
 
-def build_danger_pool(args, root=None):
+def build_danger_pool(args, root=None, *, exclude_game_ids=(), exclude_seeds=()):
     """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
     several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
     library = base.library
@@ -58,7 +58,8 @@ def build_danger_pool(args, root=None):
     rng = random.Random(args.seed + 32)
     entries = [e for e in library.iter_index(root)
                if e.get('game_over') and e.get('stop_reason') == 'top_out'
-               and e.get('piece_set') == args.piece_set and e.get('placements', 0) > high]
+               and e.get('piece_set') == args.piece_set and e.get('placements', 0) > high
+               and e['id'] not in exclude_game_ids and e.get('seed') not in exclude_seeds]
     entries.sort(key=lambda e: e['id'])
     rng.shuffle(entries)
     pool = []

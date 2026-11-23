@@ -400,7 +400,9 @@ class FeatureView:
                 f"Selection: {trace['selected']} of {trace['shortlist']} candidates",
                 f"Total selected logit: {trace['logit']:.6g}",
             ]
-            if 'base_logit' in trace:
+            if 'afterstate_value' in trace:
+                parts.append(f"Selected afterstate: {trace['afterstate_value'] * 1000:.1f} predicted remaining placements")
+            elif 'base_logit' in trace:
                 parts.extend([f"Frozen V4 logit: {trace['base_logit']:.6g}",
                               f"Afterstate residual: {trace['residual']:.6g}",
                               f"Policy temperature: {config.policy_temperature:.6g}"])
