@@ -29,9 +29,10 @@ SCHEMA = 'tetris4d-column-policy-v1'
 CHANNELS, CONTEXT, FEATURES, COLUMNS = 34, 82, 96, 16
 # Per-candidate arrays (padded along the candidate axis when batched).
 CANDIDATE_FIELDS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta',
-                              'next_features', 'td_features'))
+                              'next_features', 'td_features', 'td_actor_logits'))
 # Architectures whose preparation includes V4 afterstate spatial descriptors.
-SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5', 'survival-afterstate-td')
+AFTERSTATE_TD_ARCHITECTURES = ('survival-afterstate-td', 'survival-actor-regularized-td')
+SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5', *AFTERSTATE_TD_ARCHITECTURES)
 FEATURE_ARCHITECTURES = ('survival-feature-v3', *SPATIAL_ARCHITECTURES)
 NAMES = tuple(game.PIECE_NAMES)
 
@@ -278,7 +279,7 @@ def create_model(config: Config = Config()):
     if config.architecture == 'survival-feature-v3':
         from tetris_survival_v3 import SurvivalFeaturePolicy
         return SurvivalFeaturePolicy(config)
-    if config.architecture == 'survival-afterstate-td':
+    if config.architecture in AFTERSTATE_TD_ARCHITECTURES:
         from tetris_afterstate_td import AfterstateTDPolicy
         return AfterstateTDPolicy(config)
     if config.architecture == 'survival-afterstate-v5':
@@ -563,7 +564,7 @@ class NeuralAgent:
 
     def steps(self, state, target=1, candidates=None):
         started = time.perf_counter()
-        afterstate_td = self.model.config.architecture == 'survival-afterstate-td'
+        afterstate_td = self.model.config.architecture in AFTERSTATE_TD_ARCHITECTURES
         # The TD actor shortlist always starts from exhaustive screening, including GUI playback.
         if afterstate_td:
             candidates = 0
@@ -602,7 +603,7 @@ class NeuralAgent:
                                'spatial_delta': (batch['spatial_delta'][0, index].detach().cpu().tolist()
                                                  if 'spatial_delta' in batch else None)}
             if afterstate_td:
-                self.last_trace['afterstate_value'] = score
+                self.last_trace['afterstate_value'] = float(prediction['value'][0])
             elif self.model.config.architecture == 'survival-afterstate-v5':
                 self.last_trace['base_logit'] = float(prediction['base_logits'][0, index])
                 self.last_trace['residual'] = float(prediction['raw_logits'][0, index])

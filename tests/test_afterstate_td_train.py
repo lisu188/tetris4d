@@ -113,6 +113,65 @@ class Training(unittest.TestCase):
         self.trainer()
         self.assertEqual(trainer.metrics.read_bytes(), recorded)
 
+    def test_warm_start_is_head_only_and_lagged_targets_resume_exactly(self):
+        original = self.trainer()
+        original.emit('run_start')
+        while original.buffer.steps < self.args.rollout:
+            original.step()
+        original.update()
+        original.checkpoint('warm')
+        original_value = train.v4.v3.model_digest(original.model.value)
+        self.args.warm_start = original.last
+        self.args.run_dir = self.root/'replacement'
+        self.args.run_dir.mkdir()
+        self.args.actor_bound, self.args.target_tau, self.args.clip_grad = .5, .01, 1.
+        calibration = json.loads(self.args.calibration.read_text())
+        self.signature = train.provenance(self.args, calibration, [])
+        new = self.trainer()
+        self.assertEqual(new.progress['placements'], 0)
+        self.assertFalse(new.optimizer.state)
+        self.assertEqual(train.v4.v3.model_digest(new.model.value), original_value)
+        self.assertEqual(train.v4.v3.model_digest(new.target_head), original_value)
+        self.assertTrue(all(not p.requires_grad for p in new.target_head.parameters()))
+        new.emit('run_start')
+        while new.buffer.steps < self.args.rollout:
+            new.step()
+        new.update()
+        self.assertNotEqual(train.v4.v3.model_digest(new.target_head), original_value)
+        self.assertNotEqual(train.v4.v3.model_digest(new.model.value), train.v4.v3.model_digest(new.target_head))
+        new.checkpoint('recover')
+        new.step()
+        restored = self.trainer()
+        self.assertEqual(train.v4.v3.model_digest(restored.target_head), train.v4.v3.model_digest(new.target_head))
+        restored.step()
+        self.assertEqual(train.pack_env(restored.envs[0]), train.pack_env(new.envs[0]))
+        self.assertTrue(torch.equal(restored.buffer.next_values[:1], new.buffer.next_values[:1]))
+        self.assertTrue(torch.equal(restored.buffer.pending, new.buffer.pending))
+        with torch.no_grad():
+            restored.target_head[-1].bias.add_(2.)
+            pool = train.td.CandidatePool(torch.randn(2, 3, train.td.FEATURES),
+                torch.ones(2, 3, dtype=torch.bool), torch.tensor([[0, 1, 2], [0, 1, 2]]),
+                torch.zeros(2, 3), torch.zeros(2, 3))
+            indices, chosen, bootstrap = restored.sampled_rows(pool)
+            self.assertTrue(torch.equal(chosen, pool.features[torch.arange(2), indices]))
+            self.assertTrue(torch.equal(bootstrap, train.td.score_features(restored.target_head, chosen)))
+            self.assertTrue((bootstrap > restored.model.score(chosen)).all())
+
+    def test_training_resets_skip_screen_streams_after_resume(self):
+        path = self.root/'positions.json'
+        start = 2*self.args.seed
+        path.write_text(json.dumps(dict(schema='afterstate-screen-exclusions-v1',positions=[
+            dict(phase='discovery', game_id='first', seed=start),
+            dict(phase='confirmation', game_id='second', seed=start+4),
+            dict(phase='reserved_extension', game_id='third', seed=start+6)])))
+        self.args.exclude_positions = path
+        self.signature = train.provenance(self.args,json.loads(self.args.calibration.read_text()),[])
+        original = self.trainer()
+        self.assertEqual(original.envs[0].state.seed,start+2)
+        original.emit('run_start')
+        original.checkpoint('recover')
+        self.assertEqual(self.trainer().new_env().state.seed,start+8)
+
     def test_signal_during_final_save_does_not_complete_the_trial(self):
         trainer = self.trainer()
         trainer.budget.deadline = trainer.budget.clock()
@@ -134,6 +193,23 @@ class Training(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'explicit CUDA slot required')
     def test_cuda_resume_restores_optimizer_rng_and_next_update(self):
+        self.check_cuda_replay()
+
+    @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'explicit CUDA slot required')
+    def test_cuda_warm_start_restores_lagged_head_and_next_update(self):
+        initializer = self.trainer()
+        initializer.emit('run_start')
+        while initializer.buffer.steps < self.args.rollout:
+            initializer.step()
+        initializer.update()
+        initializer.checkpoint('initializer')
+        self.args.warm_start = initializer.last
+        self.args.run_dir = self.root/'replacement'
+        self.args.run_dir.mkdir()
+        self.args.actor_bound, self.args.target_tau, self.args.lr = .5, .01, 1e-5
+        self.check_cuda_replay()
+
+    def check_cuda_replay(self):
         train.game.configure_backend('native')
         self.addCleanup(train.game.configure_backend, 'numpy')
         self.args.device = 'cuda'
@@ -152,7 +228,8 @@ class Training(unittest.TestCase):
             while trainer.buffer.steps < self.args.rollout:
                 trainer.step()
             trainer.update()
-            return train.pack_env(trainer.envs[0]), train.v4.v3.model_digest(trainer.model.value)
+            target = train.v4.v3.model_digest(trainer.target_head) if trainer.target_head is not None else None
+            return train.pack_env(trainer.envs[0]), train.v4.v3.model_digest(trainer.model.value), target
 
         expected = finish_update(t)
         resumed = self.trainer()
@@ -162,6 +239,7 @@ class Training(unittest.TestCase):
 
     def test_unchanged_best_on_tie_and_incomplete_selection(self):
         trainer = self.trainer()
+        trainer.started = train.time.time()
         trainer.emit('run_start')
         trainer.progress['updates'] = 1
         report = dict(complete=True, seeds=list(train.evaluation.DEVELOPMENT_SEEDS),
@@ -178,6 +256,27 @@ class Training(unittest.TestCase):
         self.assertEqual(trainer.next_selection, 3)
         _, saved = train.neural.load_checkpoint(self.root/'best.pt', torch.device('cpu'))
         self.assertEqual(saved['progress']['updates'], 1)
+
+    def test_slow_selection_skips_missed_slots_and_waits_for_new_weights_after_resume(self):
+        trainer = self.trainer()
+        trainer.emit('run_start')
+        trainer.progress['updates'] = 4
+        period = self.args.selection_hours * 3600
+        with patch.object(train.time, 'time', return_value=trainer.started + period):
+            self.assertTrue(trainer.selection_due())
+        report = dict(complete=True, seeds=list(train.evaluation.DEVELOPMENT_SEEDS),
+                      mean=10., median=10., minimum=10.)
+        # Slot 1 finished after slots 2 and 3 elapsed.
+        with patch.object(train.time, 'time', return_value=trainer.started + 3.5 * period), \
+                patch.object(train.evaluation, 'evaluate_fresh', return_value=report):
+            trainer.select()
+            self.assertEqual(trainer.next_selection, 4)
+            self.assertFalse(trainer.selection_due())
+        resumed = self.trainer()
+        with patch.object(train.time, 'time', return_value=resumed.started + 4 * period):
+            self.assertFalse(resumed.selection_due())
+            resumed.progress['updates'] += 1
+            self.assertTrue(resumed.selection_due())
 
     def test_deadline_manifest_is_reused_on_restart(self):
         args = ['--device','cpu','--run-dir',str(self.root/'bounded'),'--source-checkpoint',str(self.args.source_checkpoint),

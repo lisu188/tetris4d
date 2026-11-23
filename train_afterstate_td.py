@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 from dataclasses import dataclass
 import hashlib
 import json
@@ -79,11 +80,27 @@ def unpack_env(payload):
                        payload['start_pieces'], payload['start_layers'])
 
 
+def screening_exclusions(path):
+    if path is None:
+        return (), ()
+    manifest = json.loads(path.read_bytes())
+    schemas = ('afterstate-development-positions-v1', 'afterstate-screen-exclusions-v1')
+    if manifest.get('schema') not in schemas:
+        raise ValueError('Unrecognized screening position manifest')
+    rows = manifest.get('positions', [])
+    phases = {row['phase'] for row in rows}
+    if (not {'discovery', 'confirmation'} <= phases <= {'discovery', 'confirmation', 'reserved_extension'} or
+            any(type(row['seed']) is not int or not row.get('game_id') for row in rows)):
+        raise ValueError('Incomplete discovery/confirmation game IDs or stream seeds')
+    return sorted({r['game_id'] for r in rows}), sorted({r['seed'] for r in rows})
+
+
 def danger_pool(args, calibration):
     if args.danger_starts == 0:
         return []
-    excluded_ids = sorted({p[0] for p in calibration['position_ids']})
-    excluded_seeds = sorted(set(evaluation.DEVELOPMENT_SEEDS) | set(evaluation.HOLDOUT_SEEDS))
+    screen_ids, screen_seeds = screening_exclusions(args.exclude_positions)
+    excluded_ids = sorted({p[0] for p in calibration['position_ids']} | set(screen_ids))
+    excluded_seeds = sorted(set(evaluation.DEVELOPMENT_SEEDS) | set(evaluation.HOLDOUT_SEEDS) | set(screen_seeds))
     identity = dict(schema=1, seed=args.seed, pool=args.danger_pool, window=list(args.danger_window),
                     per_game=args.danger_per_game, catalog=neural.fingerprint(),
                     exclude_ids=excluded_ids, exclude_seeds=excluded_seeds)
@@ -166,7 +183,14 @@ def provenance(args, calibration, pool):
                'sparse_tetris_4d_optimized.py', 'tools/evaluate_afterstate_td.py')
     keys = ('seed', 'envs', 'rollout', 'batch', 'pieces', 'hours', 'lr', 'lam', 'danger_starts',
             'selection_hours', 'selection_pieces', 'device')
-    return dict(algorithm=ALGORITHM, **{k: getattr(args, k) for k in keys},
+    extra = {key: getattr(args, key) for key in ('actor_bound', 'target_tau', 'clip_grad')
+             if getattr(args, key) is not None}
+    if args.warm_start:
+        extra['warm_start_sha256'] = base.file_hash(args.warm_start)
+    if args.exclude_positions:
+        extra['exclude_positions_sha256'] = base.file_hash(args.exclude_positions)
+        _, extra['excluded_screen_seeds'] = screening_exclusions(args.exclude_positions)
+    return dict(algorithm=ALGORITHM, **{k: getattr(args, k) for k in keys}, **extra,
                 sha256={name: base.file_hash(Path(__file__).parent / name) for name in sources},
                 source_sha256=base.file_hash(args.source_checkpoint), weights_sha256=base.file_hash(args.weights),
                 calibration_sha256=base.file_hash(args.calibration), beta=calibration['beta'],
@@ -180,9 +204,12 @@ class Trainer:
         self.last, self.metrics = self.root / 'last.pt', self.root / 'metrics.jsonl'
         self.started, self.deadline = manifest['start_epoch'], manifest['deadline_epoch']
         self.rng, self.session = random.Random(args.seed), uuid.uuid4().hex[:12]
+        self.excluded_seeds = set(evaluation.HOLDOUT_SEEDS) | set(evaluation.DEVELOPMENT_SEEDS)
+        self.excluded_seeds.update(signature.get('excluded_screen_seeds', ()))
         self.buffer = Rollout(args.rollout, args.envs)
         self.best = None
         self.next_selection = 1
+        self.last_selected_update = 0
         self.next_episode = 0
         self.training_seconds = 0.
         self.max_step_seconds = .05
@@ -199,6 +226,7 @@ class Trainer:
             self.buffer.restore(extra['rollout'])
             self.progress = saved['progress']
             self.best, self.next_selection = extra['best'], extra['next_selection']
+            self.last_selected_update = extra.get('last_selected_update', 0)
             self.next_episode = extra['next_episode']
             self.rng.setstate(extra['rng'])
             self.optimizer = self.new_optimizer()
@@ -223,10 +251,34 @@ class Trainer:
             source, saved = neural.load_checkpoint(args.source_checkpoint, self.device)
             if saved['teacher_parameters'] != game.network_parameters():
                 raise ValueError('TD initializer and current heuristic weights differ')
-            self.model = td.from_v4(source)
+            self.model = td.from_v4(source, actor_bound=args.actor_bound, value_scale=signature['beta'])
+            if args.warm_start is not None:
+                # Warm start only the scorer. All source weights, rollout state,
+                # optimizer moments, RNGs and the run budget are otherwise fresh.
+                with base.preserve_rng():
+                    warm, initializer = neural.load_checkpoint(args.warm_start, self.device)
+                if (not isinstance(warm, td.AfterstateTDPolicy) or initializer['progress'].get('updates', 0) < 1
+                        or initializer['teacher_parameters'] != game.network_parameters()
+                        or warm.base.config != self.model.base.config
+                        or v4.v3.model_digest(warm.base) != v4.v3.model_digest(source)
+                        or initializer['extra'].get('signature', {}).get(
+                            'source_sha256', signature['source_sha256']) != signature['source_sha256']
+                        or base.file_hash(args.warm_start) != signature['warm_start_sha256']):
+                    raise ValueError('Warm start must be a trained TD checkpoint with the pinned V4 and teacher')
+                self.model.value.load_state_dict(warm.value.state_dict(), strict=True)
             self.optimizer = self.new_optimizer()
             self.envs = [self.new_env() for _ in range(args.envs)]
         self.model.eval()
+        if (self.model.actor_bound != args.actor_bound or
+                args.actor_bound is not None and self.model.config.afterstate_scale != signature['beta']):
+            raise ValueError('TD checkpoint policy bound or calibrated value scale changed')
+        self.target_head = None
+        if args.target_tau is not None:
+            self.target_head = copy.deepcopy(self.model.value).eval().requires_grad_(False)
+            if self.last.exists():
+                self.target_head.load_state_dict(extra['target_head'], strict=True)
+                if v4.v3.model_digest(self.target_head) != extra['target_sha256']:
+                    raise ValueError('TD target head changed on resume')
         self.actor_hash = v4.v2.actor_digest(self.model.base)
         if self.last.exists() and self.actor_hash != extra['actor_sha256']:
             raise ValueError('TD frozen actor changed on resume')
@@ -250,7 +302,7 @@ class Trainer:
             env.number = number
             return env
         seed = 2 * (self.args.seed + number)
-        while seed in evaluation.HOLDOUT_SEEDS or seed in evaluation.DEVELOPMENT_SEEDS:
+        while seed in self.excluded_seeds:
             number = self.next_episode
             self.next_episode += 1
             seed = 2 * (self.args.seed + number)
@@ -269,6 +321,16 @@ class Trainer:
                      start_kind=e.start['kind'], own_placements=e.state.pieces-e.start_pieces,
                      clears=e.state.layers-e.start_layers) for e in self.envs]
 
+    def sampled_rows(self, pool):
+        scores = self.model.score(pool.features)
+        slots = self.model.choose(pool, beta=self.signature['beta'], scores=scores)
+        rows = torch.arange(len(slots), device=self.device)
+        chosen = pool.features[rows, slots]
+        # Only the single on-policy successor is bootstrapped. The lagged head
+        # is held fixed throughout collection and never selects a different move.
+        head = self.target_head if self.target_head is not None else self.model.value
+        return pool.indices[rows, slots], chosen, td.score_features(head, chosen)
+
     @torch.no_grad()
     def choices(self):
         """Return only selected afterstate features/values on CPU and candidate handles."""
@@ -282,12 +344,10 @@ class Trainer:
             indices = list(result.environment_indices)
             if indices:
                 pool = self.model.prepare_device(result, states)
-                slots = self.model.choose(pool, beta=self.signature['beta'])
-                rows = torch.arange(len(indices), device=self.device)
-                chosen = pool.features[rows, slots]
+                original_indices, chosen, next_values = self.sampled_rows(pool)
                 features[indices] = chosen.cpu()
-                values[indices] = self.model.score(chosen).cpu()
-                for i, candidate in zip(indices, result.selected_candidates(pool.indices[rows, slots])):
+                values[indices] = next_values.cpu()
+                for i, candidate in zip(indices, result.selected_candidates(original_indices)):
                     choices[i] = int(result.targets[i]), candidate
         else:
             for i, (state, target) in enumerate(zip(states, targets)):
@@ -295,10 +355,10 @@ class Trainer:
                 if prepared is None:
                     continue
                 pool = self.model.prepare_cpu(prepared, state)
-                slot = self.model.choose(pool, beta=self.signature['beta']).item()
-                features[i] = pool.features[0, slot].cpu()
-                values[i] = self.model.score(pool.features[0, slot:slot+1]).item()
-                choices[i] = int(prepared.arrays['targets']), prepared.options[int(pool.indices[0, slot])]
+                original_indices, chosen, next_values = self.sampled_rows(pool)
+                features[i] = chosen[0].cpu()
+                values[i] = next_values.item()
+                choices[i] = int(prepared.arrays['targets']), prepared.options[original_indices.item()]
         return features, values, choices
 
     def step(self):
@@ -339,7 +399,9 @@ class Trainer:
         buf = self.buffer
         if buf.steps != self.args.rollout:
             raise ValueError('TD optimizer requires a complete rollout')
-        targets = lambda_returns(buf.next_values, buf.has_next, buf.continues, self.args.lam)[buf.valid].to(self.device)
+        bootstrap = buf.next_values.double() if self.target_head is not None else buf.next_values
+        targets = lambda_returns(bootstrap, buf.has_next, buf.continues, self.args.lam)[buf.valid].to(
+            self.device, dtype=buf.features.dtype)
         features = buf.features[buf.valid].to(self.device)
         order = torch.randperm(len(targets), device=self.device)
         squared_error = torch.zeros((), device=self.device)
@@ -350,7 +412,14 @@ class Trainer:
                 raise FloatingPointError('TD loss is not finite')
             self.optimizer.zero_grad(set_to_none=True)
             loss.backward()
+            if self.args.clip_grad is not None:
+                torch.nn.utils.clip_grad_norm_(self.model.value.parameters(), self.args.clip_grad,
+                                               error_if_nonfinite=True)
             self.optimizer.step()
+            if self.target_head is not None:
+                with torch.no_grad():
+                    for target, current in zip(self.target_head.parameters(), self.model.value.parameters()):
+                        target.lerp_(current, self.args.target_tau)
             self.progress['optimizer_steps'] += 1
             squared_error += loss.detach() * len(batch)
         self.progress['updates'] += 1
@@ -371,11 +440,15 @@ class Trainer:
                      scorer_sha256=v4.v3.model_digest(self.model.value),
                      environments=[pack_env(e) for e in self.envs], rollout=self.buffer.save(),
                      rng=self.rng.getstate(), next_episode=self.next_episode, best=self.best,
-                     next_selection=self.next_selection, metrics_bytes=len(journal),
+                     next_selection=self.next_selection, last_selected_update=self.last_selected_update,
+                     metrics_bytes=len(journal),
                      metrics_zlib=zlib.compress(journal, level=1), reason=reason,
                      training_seconds=self.training_seconds, max_step_seconds=self.max_step_seconds,
                      max_checkpoint_seconds=self.max_checkpoint_seconds,
                      cuda_peak_bytes=[self.peak_allocated, self.peak_reserved])
+        if self.target_head is not None:
+            extra['target_head'] = self.target_head.state_dict()
+            extra['target_sha256'] = v4.v3.model_digest(self.target_head)
         neural.save_checkpoint(self.last, self.model, self.optimizer, self.progress, extra)
         base.durable_json(self.root / 'active-games.json', {'games': self.active_games()})
         self.next_save = time.monotonic() + self.args.save_seconds
@@ -402,6 +475,10 @@ class Trainer:
             best_path = self.root / 'best.pt'
             if not best_path.is_file() or base.file_hash(best_path) != self.best['sha256']:
                 base.copy_atomic(candidate, best_path)
+
+    def selection_due(self):
+        due_epoch = self.started + self.next_selection * self.args.selection_hours * 3600
+        return self.progress['updates'] > self.last_selected_update and time.time() >= due_epoch
 
     def select(self):
         slot = self.next_selection
@@ -435,7 +512,9 @@ class Trainer:
                                              development=result, selection_slot=slot))
             self.best = dict(checkpoint=path.name, sha256=base.file_hash(path), mean=score[0], median=score[1],
                              selection_slot=slot, updates=self.progress['updates'])
-        self.next_selection += 1
+        self.last_selected_update = self.progress['updates']
+        elapsed_slots = int((time.time() - self.started) // (self.args.selection_hours * 3600))
+        self.next_selection = max(slot, elapsed_slots) + 1
         self.emit('selection_complete', best_updated=promoted, score=[score[0], result['minimum'], score[1]])
         self.checkpoint('selection_complete')
         self.restore_best()
@@ -444,8 +523,7 @@ class Trainer:
         self.emit('run_start', beta=self.signature['beta'])
         self.checkpoint('run_start')
         while not self.should_stop():
-            if (self.progress['updates'] and time.time() >=
-                    self.started + self.next_selection * self.args.selection_hours * 3600):
+            if self.selection_due():
                 self.select()
             else:
                 began = time.monotonic()
@@ -494,6 +572,11 @@ def arguments(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-checkpoint', type=Path, required=True)
     parser.add_argument('--calibration', type=Path, required=True)
+    parser.add_argument('--warm-start', type=Path, help='Initialize only the value head from a trained TD checkpoint')
+    parser.add_argument('--actor-bound', type=float, help='Limit the actor logit gap the value head can overcome')
+    parser.add_argument('--target-tau', type=float, help='Polyak coefficient for the bootstrap head per AdamW step')
+    parser.add_argument('--clip-grad', type=float, help='Clip the trainable value head gradient norm before AdamW')
+    parser.add_argument('--exclude-positions', type=Path, help='Discovery/confirmation positions.json to exclude')
     parser.add_argument('--run-dir', type=Path, required=True)
     parser.add_argument('--weights', type=Path, default=Path(__file__).parent/'models/trained-sigmoid.json')
     parser.add_argument('--danger-cache', type=Path)
@@ -522,6 +605,12 @@ def arguments(argv=None):
         parser.error('Invalid training ranges')
     if not 0 < args.danger_window[0] <= args.danger_window[1]:
         parser.error('Invalid danger window')
+    if args.target_tau is not None and not 0 < args.target_tau <= 1:
+        parser.error('--target-tau must be in (0, 1]')
+    if args.actor_bound is not None and not 0 <= args.actor_bound <= 16:
+        parser.error('--actor-bound must be finite and in [0, 16]')
+    if args.clip_grad is not None and not (math.isfinite(args.clip_grad) and args.clip_grad > 0):
+        parser.error('--clip-grad must be finite and positive')
     return args
 
 

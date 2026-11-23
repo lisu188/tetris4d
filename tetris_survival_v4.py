@@ -312,14 +312,13 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         hidden = F.silu(self.rank1(torch.cat((state, candidates), dim=-1)))
         return self.rank_out(hidden).squeeze(-1), candidates, hidden
 
-    def raw_scores(self, batch):
+    def _rank_candidates(self, batch, spatial, pooled, keep_hidden):
         valid = batch['valid'].bool()
         column_mask = batch['column_mask'].bool() & valid[..., None]
         if not bool(valid.any(-1).all() & ((~valid) | column_mask.any(-1)).all()):
             raise ValueError('Every state needs a valid candidate with an affected column')
         if 'spatial_delta' not in batch or batch['spatial_delta'].shape[:2] != valid.shape:
             raise ValueError('V4 requires candidate afterstate spatial descriptors')
-        spatial, pooled, value, completion, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
         state_hidden = self.actor_state(torch.cat((pooled[:, :2 * neural.CHANNELS], batch['context']), dim=1))
         features = batch['features'].masked_fill(~valid[..., None], 0.)
         impacts = batch['spatial_delta'].masked_fill(~valid[..., None], 0.)
@@ -330,13 +329,23 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                                         batch['indices'][:, start:stop], column_mask[:, start:stop],
                                         impacts[:, start:stop], state_hidden)
             scores.append(raw)
-            hidden.append(h)
-        return torch.cat(scores, 1), torch.cat(hidden, 1), pooled, value, completion
+            if keep_hidden:
+                hidden.append(h)
+        return torch.cat(scores, 1), torch.cat(hidden, 1) if keep_hidden else None
 
-    def forward(self, batch, capture=False):
-        if capture:
-            raise NotImplementedError('V4 uses feature diagnostics rather than legacy CNN activations')
-        raw, _, pooled, value, completion = self.raw_scores(batch)
+    def raw_scores(self, batch):
+        spatial, pooled, value, completion, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
+        raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden=True)
+        return raw, hidden, pooled, value, completion
+
+    def actor_logits(self, batch):
+        """Rank candidates without computing the regional critic or retaining hidden activations."""
+        spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
+        pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
+        raw, _ = self._rank_candidates(batch, spatial, pooled, keep_hidden=False)
+        return self._policy_logits(raw, batch)
+
+    def _policy_logits(self, raw, batch):
         logits = raw
         if self.config.policy_mode in ('teacher-residual', 'teacher-prior'):
             if 'teacher_prior' not in batch:
@@ -345,7 +354,13 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                 logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(raw.float()) - 1)
             else:
                 logits = self.config.teacher_prior_scale * batch['teacher_prior'].float() + self.config.residual_scale * raw.float()
-        logits = logits.masked_fill(~batch['valid'].bool(), -torch.inf)
+        return logits.masked_fill(~batch['valid'].bool(), -torch.inf)
+
+    def forward(self, batch, capture=False):
+        if capture:
+            raise NotImplementedError('V4 uses feature diagnostics rather than legacy CNN activations')
+        raw, _, pooled, value, completion = self.raw_scores(batch)
+        logits = self._policy_logits(raw, batch)
         return {'logits': logits, 'raw_logits': raw, 'value': value, 'completion': completion,
                 'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
 
