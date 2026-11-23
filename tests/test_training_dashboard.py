@@ -205,6 +205,29 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(status['latest']['value_loss'],.005)
         self.assertEqual(status['maximum_survival']['active_max_pieces'],125)
 
+    @unittest.skipUnless(shutil.which('node'), 'Node is required for the dashboard card renderer')
+    def test_cards_show_per_episode_td_counters_and_available_stats(self):
+        script = r'''
+const assert = require("node:assert/strict");
+require(process.argv[1]);
+const card = globalThis.TrainingDashboard.gameCard;
+const danger = {start_kind: "library", pieces: 36007, own_placements: 7, clears: 0, seed: 25, episode: 2};
+const html = card(danger, 0, "training", true);
+assert.match(html, /class="game-pieces">7</);
+assert.match(html, /<strong>0<\/strong>Clears/);
+assert.doesNotMatch(html, /36,?007|Height|Holes/);
+const fresh = card({pieces: 0, own_placements: 0, clears: 0}, 1, "training", true);
+assert.match(fresh, /class="game-pieces">0</);
+assert.match(card({pieces: 125, start_kind: "fresh"}, 1, "training", true), /class="game-pieces">125</);
+assert.match(card({pieces: 36000, start_kind: "library"}, 1, "training", true), /class="game-pieces">—</);
+const ppo = card({pieces: 25, hyperlayers: 3, max_height: 7, holes: 0}, 1, "training", false);
+assert.match(ppo, /class="game-pieces">25</);
+for (const [value, label] of [[3, "Clears"], [7, "Height"], [0, "Holes"]]) {
+  assert.ok(ppo.includes(`<strong>${value}</strong>${label}`));
+}
+'''
+        subprocess.run(['node', '-e', script, str(dashboard.STATIC/'app.js')], check=True)
+
     def test_selection_start_phase_danger_starts_and_selection_cap(self):
         collector = dashboard.Collector(self.run,self.data)
         self.artifact(self.run/'manifest.json',{'source_sha256':{'selection_pieces':32000},'calibration_stage':'passed'})

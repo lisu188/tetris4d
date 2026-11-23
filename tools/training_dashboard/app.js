@@ -84,10 +84,27 @@
     put("history-note",data.series_sampled?`${num(data.series?.length)} of ${num(data.series_total_count)} events · download for full history`: `${num(data.series_total_count)} recorded events`);
   }
 
+  function gameCard(game, index, phase, td) {
+    const waiting = phase === "calibration" || phase === "optimizing";
+    const status = phase === "optimizing" ? "Paused" : phase === "calibration" ? "Queued for PPO" : game.game_over ? "Finished" : "Reported";
+    let placements = game.pieces;
+    if (td && (finite(game.own_placements) || game.start_kind !== "fresh")) placements = game.own_placements;
+    const stats = [["Clears", td ? game.clears : game.hyperlayers], ["Height", game.max_height], ["Holes", game.holes]];
+    const visible = td ? stats.filter(([, value]) => finite(value)) : stats;
+    const metrics = visible.map(([label, value]) => `<span><strong>${num(value)}</strong>${label}</span>`).join("");
+    return `<article class="game-card">
+      <div class="game-heading"><span class="game-index">ENV / ${String(index + 1).padStart(2, "0")}</span><span class="game-status ${waiting ? "waiting" : ""}">${status}</span></div>
+      <strong class="game-pieces">${num(placements)}</strong><div class="game-caption">placements this episode</div>
+      ${metrics ? `<div class="game-stats">${metrics}</div>` : ""}
+      <p class="game-seed">Seed ${esc(game.seed ?? "—")} · episode ${num(game.episode)}</p></article>`;
+  }
+
   function drawGames(data) {
     const games=Array.isArray(data.games)?data.games:[];
     put("games-note",games.length?`${games.length} reported environments · ${age(games[0].observed_utc)}`:"No environment snapshots reported yet");
-    $("game-grid").innerHTML=games.length?games.map((g,i)=>`<article class="game-card"><div class="game-heading"><span class="game-index">ENV / ${String(i+1).padStart(2,"0")}</span><span class="game-status ${["calibration","optimizing"].includes(data.phase)?"waiting":""}">${data.phase==="optimizing"?"Paused":data.phase==="calibration"?"Queued for PPO":g.game_over?"Finished":"Reported"}</span></div><strong class="game-pieces">${num(g.pieces)}</strong><div class="game-caption">placements this episode</div><div class="game-stats"><span><strong>${num(g.hyperlayers)}</strong>Clears</span><span><strong>${num(g.max_height)}</strong>Height</span><span><strong>${num(g.holes)}</strong>Holes</span></div><p class="game-seed">Seed ${esc(g.seed??"—")} · episode ${num(g.episode)}</p></article>`).join(""):"<p class=\"empty-inline\">No training environments have been reported yet.</p>";
+    const td = data.algorithm === "afterstate-td-lambda";
+    $("game-grid").innerHTML = games.length ? games.map((game, i) => gameCard(game, i, data.phase, td)).join("")
+      : '<p class="empty-inline">No training environments have been reported yet.</p>';
   }
 
   function render(data) {
@@ -173,7 +190,7 @@
   }
 
   // Pure formatter/chart exports allow small offline fixture checks without a server.
-  globalThis.TrainingDashboard={chart,num,clock,stamp};
+  globalThis.TrainingDashboard={chart,num,clock,stamp,gameCard};
   if(typeof document==="undefined")return;
   $("pause").addEventListener("click",()=>{state.paused=!state.paused;$("pause").setAttribute("aria-pressed",String(state.paused));put("pause",state.paused?"Resume":"Pause");if(!state.paused)refresh();tick();});
   $("refresh").addEventListener("click",refresh);
