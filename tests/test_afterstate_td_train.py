@@ -1,4 +1,5 @@
 """Afterstate reward indexing, same-game boundaries and deterministic TD recovery."""
+import copy
 import json
 import os
 from pathlib import Path
@@ -277,6 +278,134 @@ class Training(unittest.TestCase):
             self.assertFalse(resumed.selection_due())
             resumed.progress['updates'] += 1
             self.assertTrue(resumed.selection_due())
+
+    def interrupted_at_32k(self, device):
+        if device == 'cuda':
+            train.game.configure_backend('native')
+            self.addCleanup(train.game.configure_backend, 'numpy')
+        self.args.device, self.args.pieces = device, 32000
+        self.args.actor_bound, self.args.target_tau = .5, .01
+        self.signature = train.provenance(self.args, json.loads(self.args.calibration.read_text()), [])
+        start = train.time.time() - 60
+        self.manifest = dict(algorithm=train.ALGORITHM, signature=self.signature, start_epoch=start,
+                             deadline_epoch=start+self.args.hours*3600, selection_pieces=self.args.selection_pieces,
+                             source_sha256=self.signature['source_sha256'])
+        train.base.durable_json(self.root/'manifest.json', self.manifest)
+        trainer = self.trainer()
+        trainer.emit('run_start')
+        while trainer.buffer.steps < self.args.rollout:
+            trainer.step()
+        trainer.update()
+        games = dict(complete=True, seeds=list(train.evaluation.DEVELOPMENT_SEEDS),
+                     mean=12., median=10., minimum=1.)
+        with patch.object(train.evaluation, 'evaluate_fresh', return_value=games):
+            trainer.select()
+        trainer.step()
+        self.assertEqual(trainer.buffer.steps, 1)
+        self.assertTrue(trainer.buffer.pending_valid.all())
+        # Place the live episode's counter at the real limit without simulating 32,000 moves.
+        trainer.envs[0].state.pieces = trainer.progress['placements'] = 32000
+        trainer.budget.handle(signal.SIGTERM, None)
+        summary = trainer.run()
+        self.assertFalse(summary['complete'])
+        self.assertEqual(summary['stop_reason'], f'signal_{signal.SIGTERM}')
+        return trainer, train.base.file_hash(self.root/'manifest.json')
+
+    def training_state(self, t):
+        def portable(x):
+            if isinstance(x, torch.Tensor):
+                return x.detach().cpu().contiguous().numpy().tobytes()
+            if isinstance(x, dict):
+                return {key: portable(v) for key, v in x.items()}
+            if isinstance(x, (list, tuple)):
+                return type(x)(portable(v) for v in x)
+            return x
+        return dict(envs=[train.pack_env(e) for e in t.envs], rollout=portable(t.buffer.save()),
+                    optimizer=portable(t.optimizer.state_dict()), target=train.v4.v3.model_digest(t.target_head),
+                    head=train.v4.v3.model_digest(t.model.value), base=train.v4.v3.model_digest(t.model.base),
+                    rng=t.rng.getstate(), cpu_rng=portable(torch.get_rng_state()), python_rng=train.random.getstate(),
+                    cuda_rng=portable(torch.cuda.get_rng_state()) if t.device.type=='cuda' else None,
+                    progress=dict(t.progress), next_episode=t.next_episode, best=copy.deepcopy(t.best),
+                    next_selection=t.next_selection, last_selected_update=t.last_selected_update, deadline=t.deadline)
+
+    def check_uncapped_continuation(self, device):
+        original, manifest_sha = self.interrupted_at_32k(device)
+        original_sha = train.base.file_hash(original.last)
+        best_files = [self.root/n for n in ('best.pt','selection-1.pt','selection-1.json')]
+        historical = [train.base.file_hash(p) for p in best_files]
+        boundary = self.training_state(original)
+        # Reference continuation changes only the cap in a still-resident trainer.
+        original.args = copy.copy(self.args)
+        original.args.pieces = 0
+        original.step()
+        self.assertEqual(original.envs[0].state.pieces, 32001)
+        self.assertTrue(original.buffer.continues[1,0])
+        original.update()
+        expected = self.training_state(original)
+        self.assertEqual(expected['progress']['truncated_afterstates'], boundary['progress']['truncated_afterstates'])
+
+        flags = ['--source-checkpoint', str(self.args.source_checkpoint), '--calibration', str(self.args.calibration),
+                 '--envs','1','--rollout','2','--batch','2','--danger-starts','0','--device',device,
+                 '--actor-bound','.5','--target-tau','.01','--run-dir',str(self.root),'--pieces','0',
+                 '--uncap-existing-run',manifest_sha]
+        amended = train.arguments(flags)
+        effective = train.provenance(amended, json.loads(amended.calibration.read_text()), [])
+        seen = []
+        def stop_after_update(t):
+            if not seen:
+                seen.append(self.training_state(t))
+                self.assertEqual(seen[0],boundary)
+            if t.progress['updates'] == expected['progress']['updates']:
+                self.assertEqual(self.training_state(t),expected)
+                t.budget.handle(signal.SIGTERM,None)
+                return True
+            return False
+        with patch.object(train.Trainer,'should_stop',stop_after_update):
+            if device=='cpu':
+                self.assertEqual(train.main(flags),0)
+            else:
+                # The opt-in CUDA fixture shares the device; never acquire the production trainer's run lock.
+                receipt = train.cap_amendment(self.root,self.manifest,manifest_sha,effective)
+                resumed = train.Trainer(amended,train.base.Budget(1),[],effective,self.manifest,receipt)
+                resumed.run()
+        self.assertEqual(len(seen),1)
+        receipt = train.cap_amendment(self.root,self.manifest,manifest_sha,effective)
+        self.assertEqual(receipt['boundary_checkpoint_sha256'],original_sha)
+        archived = self.root/receipt['boundary_checkpoint']
+        self.assertEqual(train.base.file_hash(archived),original_sha)
+        self.assertNotEqual(archived.stat().st_ino, original.last.stat().st_ino)
+        repeated = train.Trainer(amended,train.base.Budget(1),[],effective,self.manifest,receipt)
+        self.assertEqual(self.training_state(repeated),expected)
+        self.assertEqual(train.base.file_hash(self.root/'manifest.json'),manifest_sha)
+        self.assertEqual([train.base.file_hash(p) for p in best_files],historical)
+        journal = [json.loads(line) for line in repeated.metrics.read_text().splitlines()]
+        self.assertEqual(sum(e['event']=='training_cap_amended' for e in journal),1)
+
+    def test_uncapped_cpu_handoff_continues_32k_episode_and_partial_update(self):
+        self.check_uncapped_continuation('cpu')
+
+    @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'explicit CUDA slot required')
+    def test_uncapped_cuda_handoff_continues_32k_episode_and_partial_update(self):
+        self.check_uncapped_continuation('cuda')
+
+    def test_uncap_existing_requires_only_the_training_limit_to_change(self):
+        _, digest = self.interrupted_at_32k('cpu')
+        self.args.pieces = 0
+        effective = train.provenance(self.args,json.loads(self.args.calibration.read_text()),[])
+        for field, value in [('lr', .05),('selection_pieces',0),('hours',9),('pieces',40000)]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                train.cap_amendment(self.root,self.manifest,digest,{**effective,field:value})
+        with self.assertRaises(ValueError):
+            train.cap_amendment(self.root,self.manifest,'0'*64,effective)
+        summary_path = self.root/'summary.json'
+        summary = json.loads(summary_path.read_text())
+        train.base.durable_json(summary_path,{**summary,'complete':True,'stop_reason':'time_budget'})
+        with self.assertRaises(ValueError):
+            train.cap_amendment(self.root,self.manifest,digest,effective)
+        train.base.durable_json(summary_path,summary)
+        with patch.object(train.time,'time',return_value=self.manifest['deadline_epoch']+1), self.assertRaises(ValueError):
+            train.cap_amendment(self.root,self.manifest,digest,effective)
+        self.assertFalse((self.root/'cap-amendment.json').exists())
 
     def test_deadline_manifest_is_reused_on_restart(self):
         args = ['--device','cpu','--run-dir',str(self.root/'bounded'),'--source-checkpoint',str(self.args.source_checkpoint),

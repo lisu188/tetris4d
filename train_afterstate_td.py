@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import random
 import struct
@@ -26,6 +27,9 @@ from tools import evaluate_afterstate_td as evaluation
 game, neural = base.game, base.neural
 ALGORITHM = 'afterstate-td-lambda'
 UNIT = .001
+LEGACY_TRAINER_SHA256 = 'b39b02e6c7c875c1afa37848d948bbdd11ca2aaf742b4b2e79c3380fab1affd6'
+AMENDMENT_FILE = 'cap-amendment.json'
+BOUNDARY_FILE = 'cap-amendment-boundary.pt'
 
 
 def lambda_returns(next_values, has_next, continues, lam):
@@ -197,11 +201,97 @@ def provenance(args, calibration, pool):
                 danger_ids=[[p['start']['game_id'], p['start']['offset'], p['board_hash']] for p in pool])
 
 
+def cap_amendment(run_dir, manifest, original_manifest_sha256, signature):
+    """Validate the one supported protocol amendment while holding both trainer locks."""
+    manifest_bytes = (run_dir / 'manifest.json').read_bytes()
+    if (hashlib.sha256(manifest_bytes).hexdigest() != original_manifest_sha256
+            or json.loads(manifest_bytes) != manifest):
+        raise ValueError('Original TD manifest digest differs')
+    prior = manifest['signature']
+    trainer_file = 'train_afterstate_td.py'
+    trainer_sha = base.file_hash(Path(__file__))
+    expected = copy.deepcopy(prior)
+    expected['pieces'] = 0
+    expected['sha256'][trainer_file] = trainer_sha
+    if (prior['algorithm'] != ALGORITHM or type(prior['pieces']) is not int or prior['pieces'] < 1
+            or prior['sha256'][trainer_file] not in (LEGACY_TRAINER_SHA256, trainer_sha)
+            or signature != expected):
+        raise ValueError('Only the training piece cap and supported trainer revision may change')
+    if time.time() >= manifest['deadline_epoch']:
+        raise ValueError('Cannot uncap an expired TD run')
+
+    receipt_path = run_dir / AMENDMENT_FILE
+    boundary = run_dir / BOUNDARY_FILE
+    last = run_dir / 'last.pt'
+    if not last.is_file():
+        raise ValueError('An existing TD training checkpoint is required to uncap a run')
+    summary_file = run_dir / 'summary.json'
+    latest_summary = json.loads(summary_file.read_bytes()) if summary_file.exists() else {}
+    if latest_summary.get('complete'):
+        raise ValueError('Cannot uncap a completed TD run')
+    existing = json.loads(receipt_path.read_bytes()) if receipt_path.exists() else None
+    summary = existing['interrupted_summary'] if existing is not None else latest_summary
+    reason = summary.get('stop_reason', '')
+    if (summary.get('complete') is not False or reason not in ('signal_1', 'signal_2', 'signal_15')
+            or summary.get('algorithm') != ALGORITHM or summary.get('start_epoch') != manifest['start_epoch']
+            or summary.get('deadline_epoch') != manifest['deadline_epoch']):
+        raise ValueError('The original run must have a matching graceful signal-interruption summary')
+
+    # A failed process can leave the independently copied boundary before publishing
+    # its receipt. An existing boundary is always verified, never overwritten.
+    checkpoint_sha = summary['last_sha256']
+    if existing is None and base.file_hash(last) != checkpoint_sha:
+        raise ValueError('Interrupted summary does not identify the current checkpoint')
+    source = boundary if boundary.exists() or existing is not None else last
+    if not source.is_file() or base.file_hash(source) != checkpoint_sha:
+        raise ValueError('Cap-amendment boundary checkpoint digest differs')
+    if boundary.exists() and boundary.samefile(last):
+        raise ValueError('Cap-amendment boundary must be an independent checkpoint copy')
+    saved = torch.load(source, map_location='cpu', weights_only=True)
+    extra, progress = saved['extra'], saved['progress']
+    if (extra['signature'] != prior or extra['deadline_epoch'] != manifest['deadline_epoch']
+            or extra['reason'] != reason or any(summary.get(k) != v for k, v in progress.items())):
+        raise ValueError('Interrupted checkpoint and summary disagree on settings, reason, or progress')
+    journal = zlib.decompress(extra['metrics_zlib'])
+    if len(journal) != extra['metrics_bytes']:
+        raise ValueError('Invalid cap-amendment boundary metrics journal')
+    event = json.loads(journal.rstrip(b'\n').rsplit(b'\n', 1)[-1])
+    if (event.get('event') != 'run_interrupted' or event.get('stop_reason') != reason
+            or not event.get('session') or any(event.get(k) != v for k, v in progress.items())):
+        raise ValueError('Missing final interruption event in cap-amendment boundary')
+    receipt = dict(schema='afterstate-training-cap-amendment-v1',
+                   original_manifest_sha256=original_manifest_sha256,
+                   prior_signature=prior, effective_signature=signature,
+                   start_epoch=manifest['start_epoch'], deadline_epoch=manifest['deadline_epoch'],
+                   boundary_checkpoint=BOUNDARY_FILE, boundary_checkpoint_sha256=checkpoint_sha,
+                   boundary_updates=progress['updates'], boundary_session=event['session'],
+                   interrupted_summary=summary)
+    if existing is not None:
+        if receipt != existing:
+            raise ValueError('Cap-amendment receipt differs from original run or interrupted checkpoint')
+        return receipt
+    if not boundary.exists():
+        base.copy_atomic(last, boundary)
+        if base.file_hash(boundary) != checkpoint_sha:
+            raise ValueError('Independent boundary checkpoint copy differs')
+    base.durable_json(receipt_path, receipt)
+    if os.name == 'posix':
+        directory_fd = os.open(run_dir, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    return receipt
+
+
 class Trainer:
-    def __init__(self, args, budget, pool, signature, manifest):
+    def __init__(self, args, budget, pool, signature, manifest, amendment=None):
         self.args, self.budget, self.pool, self.signature = args, budget, pool, signature
         self.root, self.device = args.run_dir, torch.device(args.device)
         self.last, self.metrics = self.root / 'last.pt', self.root / 'metrics.jsonl'
+        self.amendment = amendment
+        self.amendment_sha = base.file_hash(self.root / AMENDMENT_FILE) if amendment is not None else None
+        self.at_cap_boundary = False
         self.started, self.deadline = manifest['start_epoch'], manifest['deadline_epoch']
         self.rng, self.session = random.Random(args.seed), uuid.uuid4().hex[:12]
         self.excluded_seeds = set(evaluation.HOLDOUT_SEEDS) | set(evaluation.DEVELOPMENT_SEEDS)
@@ -220,7 +310,12 @@ class Trainer:
         if self.last.exists():
             self.model, saved = neural.load_checkpoint(self.last, self.device, restore_rng=True)
             extra = saved['extra']
-            if extra['signature'] != signature or extra['deadline_epoch'] != self.deadline:
+            if amendment is not None and extra['signature'] == amendment['prior_signature']:
+                self.at_cap_boundary = base.file_hash(self.last) == amendment['boundary_checkpoint_sha256']
+                if not self.at_cap_boundary:
+                    raise ValueError('Only the exact interrupted checkpoint may cross the cap amendment')
+            if (extra['deadline_epoch'] != self.deadline or not self.at_cap_boundary and
+                    (extra['signature'] != signature or extra.get('cap_amendment_sha256') != self.amendment_sha)):
                 raise ValueError('TD checkpoint settings, source or fixed deadline changed')
             self.envs = [unpack_env(s) for s in extra['environments']]
             self.buffer.restore(extra['rollout'])
@@ -369,7 +464,7 @@ class Trainer:
             s = env.state
             if i in choices:
                 live[i] = True
-            if i not in choices or s.pieces-env.start_pieces >= self.args.pieces:
+            if i not in choices or (self.args.pieces > 0 and s.pieces-env.start_pieces >= self.args.pieces):
                 reason = ('piece_limit' if i in choices else 'top_out' if s.game_over else 'planner_blocked')
                 if self.buffer.pending_valid[i]:
                     key = 'truncated_afterstates' if i in choices else 'terminal_afterstates'
@@ -449,6 +544,8 @@ class Trainer:
         if self.target_head is not None:
             extra['target_head'] = self.target_head.state_dict()
             extra['target_sha256'] = v4.v3.model_digest(self.target_head)
+        if self.amendment_sha is not None:
+            extra['cap_amendment_sha256'] = self.amendment_sha
         neural.save_checkpoint(self.last, self.model, self.optimizer, self.progress, extra)
         base.durable_json(self.root / 'active-games.json', {'games': self.active_games()})
         self.next_save = time.monotonic() + self.args.save_seconds
@@ -506,10 +603,12 @@ class Trainer:
         promoted = self.best is None or score > (self.best['mean'], self.best['median'])
         if promoted:
             path = self.root / f'selection-{slot}.pt'
-            neural.save_checkpoint(path, self.model, progress=self.progress,
-                                  extra=dict(actor_sha256=self.actor_hash, signature=self.signature,
-                                             scorer_sha256=v4.v3.model_digest(self.model.value),
-                                             development=result, selection_slot=slot))
+            extra = dict(actor_sha256=self.actor_hash, signature=self.signature,
+                         scorer_sha256=v4.v3.model_digest(self.model.value),
+                         development=result, selection_slot=slot)
+            if self.amendment_sha is not None:
+                extra['cap_amendment_sha256'] = self.amendment_sha
+            neural.save_checkpoint(path, self.model, progress=self.progress, extra=extra)
             self.best = dict(checkpoint=path.name, sha256=base.file_hash(path), mean=score[0], median=score[1],
                              selection_slot=slot, updates=self.progress['updates'])
         self.last_selected_update = self.progress['updates']
@@ -520,8 +619,14 @@ class Trainer:
         self.restore_best()
 
     def run(self):
+        if self.at_cap_boundary:
+            self.emit('training_cap_amended', cap_amendment_sha256=self.amendment_sha,
+                      previous_pieces=self.amendment['prior_signature']['pieces'], pieces=0,
+                      boundary_checkpoint_sha256=self.amendment['boundary_checkpoint_sha256'],
+                      boundary_session=self.amendment['boundary_session'])
         self.emit('run_start', beta=self.signature['beta'])
         self.checkpoint('run_start')
+        self.at_cap_boundary = False
         while not self.should_stop():
             if self.selection_due():
                 self.select()
@@ -587,7 +692,9 @@ def arguments(argv=None):
     parser.add_argument('--rollout', type=int, default=256)
     parser.add_argument('--batch', type=int, default=256)
     parser.add_argument('--seed', type=int, default=150000)
-    parser.add_argument('--pieces', type=int, default=32000)
+    parser.add_argument('--pieces', type=int, default=32000, help='Training placements per episode, 0 for unlimited')
+    parser.add_argument('--uncap-existing-run', metavar='ORIGINAL_MANIFEST_SHA256',
+                        help='Continue a gracefully interrupted capped run with --pieces 0')
     parser.add_argument('--danger-starts', type=float, default=.25)
     parser.add_argument('--danger-pool', type=int, default=32)
     parser.add_argument('--danger-window', type=int, nargs=2, default=(500, 3000))
@@ -599,10 +706,16 @@ def arguments(argv=None):
     parser.add_argument('--lam', type=float, default=.999)
     args = parser.parse_args(argv)
     args.piece_set = 'expanded'
-    if not all(math.isfinite(n) and n > 0 for n in (args.envs, args.rollout, args.batch, args.pieces,
+    if not all(math.isfinite(n) and n > 0 for n in (args.envs, args.rollout, args.batch,
             args.hours, args.save_seconds, args.lr, args.selection_hours, args.selection_pieces, args.danger_pool,
-            args.danger_per_game)) or not 0 <= args.lam <= 1 or not 0 <= args.danger_starts <= 1:
+            args.danger_per_game)) or args.pieces < 0 or not 0 <= args.lam <= 1 or not 0 <= args.danger_starts <= 1:
         parser.error('Invalid training ranges')
+    if args.uncap_existing_run is not None:
+        digest = args.uncap_existing_run
+        if len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
+            parser.error('--uncap-existing-run requires the lowercase SHA-256 digest of the original manifest')
+        if args.pieces != 0 or args.prepare_danger_cache:
+            parser.error('--uncap-existing-run requires --pieces 0 and an existing training run')
     if not 0 < args.danger_window[0] <= args.danger_window[1]:
         parser.error('Invalid danger window')
     if args.target_tau is not None and not 0 < args.target_tau <= 1:
@@ -634,9 +747,14 @@ def main(argv=None):
     with v4.v2.device_lock(device), base.run_lock(args.run_dir):
         signature = provenance(args, calibration, pool)
         path = args.run_dir / 'manifest.json'
+        amendment = None
+        if args.uncap_existing_run and not path.is_file():
+            raise ValueError('Cannot uncap a run without its original manifest')
         if path.is_file():
             manifest = json.loads(path.read_text())
-            if manifest['signature'] != signature:
+            if args.uncap_existing_run:
+                amendment = cap_amendment(args.run_dir, manifest, args.uncap_existing_run, signature)
+            elif (args.run_dir / AMENDMENT_FILE).exists() or manifest['signature'] != signature:
                 raise ValueError('TD run settings or pinned sources changed')
             summary_path = args.run_dir / 'summary.json'
             if summary_path.exists():
@@ -657,7 +775,7 @@ def main(argv=None):
             torch.cuda.reset_peak_memory_stats(device)
         remaining = manifest['deadline_epoch'] - time.time()
         with base.Budget(max(0., remaining) / 3600.) as budget:
-            trainer = Trainer(args, budget, pool, signature, manifest)
+            trainer = Trainer(args, budget, pool, signature, manifest, amendment)
             summary = trainer.run()
             print(json.dumps(summary, allow_nan=False), flush=True)
     return 0
