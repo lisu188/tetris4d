@@ -258,7 +258,63 @@ class Training(unittest.TestCase):
         _, saved = train.neural.load_checkpoint(self.root/'best.pt', torch.device('cpu'))
         self.assertEqual(saved['progress']['updates'], 1)
 
+    def test_deadline_slot_never_runs_even_if_monotonic_clock_is_behind(self):
+        trainer = self.trainer()
+        trainer.progress['updates'] = 1
+        period = trainer.args.selection_hours * 3600
+        trainer.deadline = trainer.started + 4 * period
+        for slot in (3, 4, 5):
+            trainer.next_selection = slot
+            now = max(trainer.deadline + .055, trainer.started + slot * period)
+            with self.subTest(slot=slot), patch.object(train.time, 'time', return_value=now):
+                self.assertFalse(trainer.selection_due())
+        trainer.next_selection = 4
+        with patch.object(train.time, 'time', return_value=trainer.deadline + .055):
+            with patch.object(trainer, 'select', side_effect=AssertionError('late selection')), \
+                    patch.object(trainer, 'step', side_effect=AssertionError('late rollout')):
+                self.assertTrue(trainer.run()['complete'])
+        events = [json.loads(line)['event'] for line in trainer.metrics.read_text().splitlines()]
+        self.assertIn('run_finished', events)
+        self.assertNotIn('selection_started', events)
+
+    def test_selection_stop_reserves_checkpoint_time_on_either_clock(self):
+        trainer = self.trainer()
+        trainer.deadline = 1000.
+        trainer.budget = train.base.Budget(1., clock=lambda: 100.)
+        trainer.max_step_seconds = trainer.max_checkpoint_seconds = 1.
+
+        def check_clocks(*args, stop_requested, **kwargs):
+            # The monotonic clock has an hour left while wall time crosses the save reserve.
+            with patch.object(train.time, 'time', return_value=990.):
+                self.assertFalse(stop_requested())
+            with patch.object(train.time, 'time', return_value=998.):
+                self.assertTrue(stop_requested())
+                self.assertEqual(trainer.budget.reason, 'time_budget')
+            # The monotonic limit still applies when the wall clock moves backward.
+            trainer.budget.reason = None
+            trainer.budget.deadline = 102.
+            with patch.object(train.time, 'time', return_value=500.):
+                self.assertTrue(stop_requested())
+                self.assertEqual(trainer.budget.reason, 'time_budget')
+            for when in (trainer.budget.deadline, trainer.budget.deadline - 10):
+                trainer.budget.reason = None
+
+                def signal_during_clock_read():
+                    trainer.budget.handle(signal.SIGTERM, None)
+                    return when
+
+                with patch.object(train.time, 'time', return_value=500.), \
+                        patch.object(trainer.budget, 'clock', signal_during_clock_read):
+                    self.assertTrue(stop_requested())
+                    self.assertEqual(trainer.budget.reason, f'signal_{signal.SIGTERM}')
+            return {'complete': False}
+
+        with patch.object(train.evaluation, 'evaluate_fresh', side_effect=check_clocks):
+            trainer.select()
+
     def test_slow_selection_skips_missed_slots_and_waits_for_new_weights_after_resume(self):
+        # The fourth scheduled slot in this fixture falls before its deadline.
+        self.manifest['deadline_epoch'] = self.manifest['start_epoch'] + 5*self.args.selection_hours*3600
         trainer = self.trainer()
         trainer.emit('run_start')
         trainer.progress['updates'] = 4

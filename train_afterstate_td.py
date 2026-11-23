@@ -556,13 +556,13 @@ class Trainer:
     def should_stop(self):
         # Leave enough time for the longest observed operation and a final atomic
         # checkpoint. The absolute wall deadline is shared by training and selection.
-        if self.budget.expired():
+        if self.budget.reason is not None:
             return True
         reserve = self.max_step_seconds + self.max_checkpoint_seconds * 1.5 + .1
-        if self.budget.clock() + reserve >= self.budget.deadline:
-            self.budget.reason = 'time_budget'
-            return True
-        return False
+        remaining = min(self.deadline - time.time(), self.budget.deadline - self.budget.clock())
+        if remaining <= reserve:
+            self.budget.reason = self.budget.reason or 'time_budget'
+        return self.budget.reason is not None
 
     def restore_best(self):
         if self.best:
@@ -575,7 +575,7 @@ class Trainer:
 
     def selection_due(self):
         due_epoch = self.started + self.next_selection * self.args.selection_hours * 3600
-        return self.progress['updates'] > self.last_selected_update and time.time() >= due_epoch
+        return self.progress['updates'] > self.last_selected_update and due_epoch <= time.time() < self.deadline
 
     def select(self):
         slot = self.next_selection
