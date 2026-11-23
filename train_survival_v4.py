@@ -20,10 +20,22 @@ ALGORITHM = 'survival-ppo-v4'
 SELECTION_SEEDS = tuple(910001 + 2 * i for i in range(8))
 
 
+def library_root(root=None):
+    """Where to *read* recorded games. Disabling recording (TETRIS4D_GAME_LIBRARY=off) must not
+    hide the shared library from danger starts, so fall back to the main checkout's library."""
+    if root is not None:
+        return Path(root)
+    library = base.library
+    resolved = library.default_root()
+    if resolved is None:
+        resolved = library._main_checkout(Path(library.__file__).resolve().parent) / 'data' / 'game-library'
+    return resolved
+
+
 def library_start_state(game_id, offset, root=None):
     """Replay a recorded game to `offset` placements; return an unrecorded copy and its target."""
     library = base.library
-    root = Path(root) if root is not None else library.default_root()
+    root = library_root(root)
     entry = next((e for e in library.iter_index(root) if e['id'] == game_id), None)
     if entry is None:
         raise ValueError(f'Game {game_id} is not in the game library')
@@ -41,7 +53,7 @@ def build_danger_pool(args, root=None):
     """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
     several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
     library = base.library
-    root = Path(root) if root is not None else library.default_root()
+    root = library_root(root)
     low, high = args.danger_window
     rng = random.Random(args.seed + 32)
     entries = [e for e in library.iter_index(root)
@@ -77,6 +89,7 @@ def phase_behaviour(phase):
 
 class SurvivalTrainer(v3.SurvivalTrainer):
     algorithm = ALGORITHM
+    architecture = ARCHITECTURE
 
     def __init__(self, args, budget):
         self.danger_pool, self._danger_starts = [], {}
@@ -234,6 +247,10 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             stats['overlapped_steps'] = stats.get('overlapped_steps', 0) + 1
         self._accept_gpu_batch(merge_prepared_batches(first, second), calls=2)
 
+    def augment_batch(self, result, states):
+        """Hook for subclasses that add per-candidate arrays to a prepared CUDA batch."""
+        return result
+
     def lockstep_available(self):
         return (getattr(self.args, 'lockstep_selection', False) and getattr(self.args, 'gpu_prepare', False)
                 and self.device.type == 'cuda' and game.BACKEND == 'native')
@@ -261,7 +278,9 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                 for i in active:
                     reasons[i] = self.budget.reason
                 break
-            result = preparer.prepare_batch([episodes[i].state for i in active], [episodes[i].target for i in active])
+            result = self.augment_batch(preparer.prepare_batch([episodes[i].state for i in active],
+                                                               [episodes[i].target for i in active]),
+                                        [episodes[i].state for i in active])
             live = []
             for local, i in enumerate(active):
                 if result.prepared[local] is None:
@@ -404,8 +423,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                 'note': 'Report-only afterstate ranking with the current critic; best checkpoint selection unchanged.'}
 
     def configure_model(self, resuming):
-        if self.model.config.architecture != ARCHITECTURE:
-            raise ValueError('V4 cannot resume a different model architecture')
+        if self.model.config.architecture != self.architecture:
+            raise ValueError(f'{self.algorithm} cannot resume a different model architecture')
         self.model.fused_encoding = getattr(self.args, 'fused_encoding', False)
         self.calibration_actor = v2.actor_digest(self.model)
         self.initial_actor_sha256 = self.calibration_actor
@@ -416,7 +435,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             proof = {'schema': 'tetris4d-v4-initialization-v1',
                      'fresh_optimizer': True, 'fresh_ppo_progress': True,
                      'inherited_checkpoint': None, 'imported_model_sha256': imported,
-                     'seed': self.args.seed, 'architecture': ARCHITECTURE,
+                     'seed': self.args.seed, 'architecture': self.architecture,
                      'config': asdict(self.model.config),
                      'model_sha256': v3.model_digest(self.model),
                      'actor_sha256': self.initial_actor_sha256,
@@ -479,7 +498,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def checkpoint_metadata(self):
         values = super().checkpoint_metadata()
-        values.update(algorithm=ALGORITHM, architecture=ARCHITECTURE,
+        values.update(algorithm=self.algorithm, architecture=self.architecture,
                       fresh_random_trainable_weights=self.args.pretrained is None,
                       imported_pretrained_sha256=self.signature.get('pretrained_sha256'),
                       value_semantics='expected_current_policy_remaining_placements_times_0.001',
@@ -510,7 +529,7 @@ def arguments(argv=None):
     supplied = list(sys.argv[1:] if argv is None else argv)
     extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--pretrained', type=Path)
-    extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse'), default='teacher-random')
+    extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse', 'teacher-top'), default='teacher-random')
     extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
                        help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
                             "Default: exhaustive with the GPU defaults, sampled otherwise (CPU exhaustive is ~1.3 s/state)")

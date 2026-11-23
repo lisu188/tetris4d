@@ -238,7 +238,7 @@ class Rollout:
 
 class RolloutCache:
     """Immutable inputs on the update device; minibatches retain original padding."""
-    CANDIDATE_KEYS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta'))
+    CANDIDATE_KEYS = neural.CANDIDATE_FIELDS
 
     @staticmethod
     def required_bytes(rollout):
@@ -474,8 +474,9 @@ class SurvivalTrainer(base.Trainer):
         shortlist = self.model.config.shortlist
         per_record = 4096 * 4 + 8 + neural.CONTEXT * 4 + shortlist * (
             neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
-        if self.model.config.architecture == 'survival-spatial-v4':
+        if self.model.config.architecture in neural.SPATIAL_ARCHITECTURES:
             per_record += 6 * 4 + shortlist * 18 * 4
+        per_record += shortlist * 4 * getattr(self.model, 'NEXT_FEATURES', 0)
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
         limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
@@ -934,7 +935,8 @@ class SurvivalTrainer(base.Trainer):
         epoch_count = 1 if warmup else self.args.ppo_epochs
         stop, steps, finished_epochs, total_weight = False, 0, 0, 0
         totals, per_loss_norms = {}, {}
-        parameters = tuple(p for n, p in self.model.named_parameters() if not n.startswith('completion.'))
+        parameters = tuple(p for n, p in self.model.named_parameters()
+                           if p.requires_grad and not n.startswith('completion.'))
         measure_actor = self.progress['runner_updates'] % self.args.gradient_every == 0
         coalesce = getattr(self.args, 'coalesce_transfers', False)
         for epoch in range(epoch_count):
