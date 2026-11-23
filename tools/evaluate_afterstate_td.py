@@ -23,7 +23,7 @@ import train_survival_v4 as v4
 
 base, game = v4.base, v4.game
 TOP_K = 16
-POLICY_ORDER = ('actor', 'frozen', 'ppo', 'td')
+POLICY_ORDER = ('actor', 'frozen', 'ppo', 'previous_td', 'initial_td', 'td')
 DEVELOPMENT_SEEDS = tuple(910001 + 2*i for i in range(8))
 HOLDOUT_SEEDS = tuple(7310001 + 2*i for i in range(16))
 
@@ -207,7 +207,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
     seeds = tuple(seeds)
     if top_k != TOP_K or cap < 1 or not seeds or len(set(seeds)) != len(seeds):
         raise ValueError('Expected a positive cap, distinct fresh seeds and top_k=16')
-    if policy not in ('actor', 'frozen', 'ppo', 'td'):
+    if policy not in POLICY_ORDER:
         raise ValueError('Unknown evaluation policy')
     began = time.monotonic()
     original_model = model
@@ -216,7 +216,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
     try:
         if policy == 'frozen':
             model = td.from_v4(model).to(device).eval()
-        scoring = policy in ('frozen', 'td')
+        scoring = policy in ('frozen', 'previous_td', 'initial_td', 'td')
         preparer = None
         if torch.device(device).type == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
@@ -291,12 +291,79 @@ def extension_pair(results):
     return []
 
 
+def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, device, budget, runtime, weights_hash, cache_dir):
+    started = time.monotonic()
+    identity = {'policy': name, 'checkpoint': checkpoint_hash, 'weights': weights_hash, 'runtime': runtime,
+                'screening': 'exhaustive', 'top_k': TOP_K, 'cap': cap, 'split': split, 'seeds': list(seeds)}
+    path = cache_dir/digest(identity)
+    rows = {}
+    def record(row):
+        key = dict(identity, seed=row['seed'])
+        write_cache(path/f"{row['seed']}.json", key, row)
+        rows[row['seed']] = row
+    for seed in seeds:
+        row = checked_cached(path/f'{seed}.json', dict(identity, seed=seed))
+        if row is not None:
+            rows[seed] = row
+    missing = [s for s in seeds if s not in rows]
+    if missing and not budget.expired():
+        start = time.monotonic()
+        model = load_model(checkpoint, device)
+        if base.file_hash(checkpoint) != checkpoint_hash:
+            raise ValueError('Evaluation checkpoint changed during load')
+        evaluate_fresh(model, missing, policy=name, cap=cap, device=device, stop_requested=budget.expired, on_finish=record)
+        print(f'{name} cap {cap}: {len(rows)}/{len(seeds)} games, {time.monotonic()-start:.1f}s', flush=True)
+        del model
+    result = summarize(rows, seeds, name, cap)
+    result['invocation_wall_seconds'] = time.monotonic()-started
+    return result
+
+
+def select_final(args, device, budget, runtime):
+    """Consider the final update alongside the best completed scheduled development trial."""
+    run = args.run_dir
+    summary = read_json(run/'summary.json')
+    selection = read_json(run/'selection.json')
+    manifest = read_json(run/'manifest.json')
+    cap = manifest['selection_pieces']
+    weights_hash = base.file_hash(args.weights)
+    if selection['cap'] != cap or weights_hash != manifest['signature']['weights_sha256']:
+        raise ValueError('Development cap or teacher weights differ from the training manifest')
+    final_path = run/'last.pt'
+    final_hash = base.file_hash(final_path)
+    if (not summary['complete'] or summary['stop_reason'] != 'time_budget' or not summary['updates']
+            or final_hash != summary['last_sha256'] or tuple(selection['seeds']) != DEVELOPMENT_SEEDS):
+        raise ValueError('Final selection requires completed training and its pinned checkpoint and development seeds')
+    best = selection['best']
+    if best:
+        if (not selection['complete'] or best != summary['best'] or best['sha256'] != selection['best_sha256']
+                or base.file_hash(run/'best.pt') != best['sha256']):
+            raise ValueError('Scheduled development winner differs from its selection record')
+    elif summary['best'] is not None:
+        raise ValueError('Scheduled development winner is missing')
+    candidate = evaluate_checkpoint(final_path, final_hash, 'td', DEVELOPMENT_SEEDS, cap, 'development',
+                                    device, budget, runtime, weights_hash, args.cache_dir)
+    if not candidate['complete']:
+        return False
+    score = development_score(candidate)
+    final_wins = best is None or score > (best['mean'], best['median'])
+    winner, winner_hash = (final_path, final_hash) if final_wins else (run/'best.pt', best['sha256'])
+    base.durable_json(args.output, dict(complete=True, best_sha256=winner_hash, checkpoint=winner.name,
+                      checkpoint_dir=str(run.resolve()), seeds=list(DEVELOPMENT_SEEDS), cap=cap,
+                      final_development=candidate, final_sha256=final_hash, scheduled_best=best))
+    return True
+
+
 def evaluate(args, device, budget, runtime):
     split = args.split
     seeds = DEVELOPMENT_SEEDS if split == 'development' else HOLDOUT_SEEDS
     paths = {'actor': args.source, 'frozen': args.source}
     if args.ppo:
         paths['ppo'] = args.ppo
+    if args.previous_td:
+        paths['previous_td'] = args.previous_td
+    if args.initial_td:
+        paths['initial_td'] = args.initial_td
     if args.td:
         paths['td'] = args.td
     if split == 'holdout':
@@ -316,30 +383,8 @@ def evaluate(args, device, budget, runtime):
         stage = {}
         report['stages'].append({'cap': cap, 'policies': stage})
         for name in names:
-            started = time.monotonic()
-            identity = {'policy': name, 'checkpoint': hashes[name], 'weights': weights_hash, 'runtime': runtime,
-                        'screening': 'exhaustive', 'top_k': TOP_K, 'cap': cap, 'split': split, 'seeds': list(seeds)}
-            path = args.cache_dir/digest(identity)
-            rows = {}
-            def record(row):
-                key = dict(identity, seed=row['seed'])
-                write_cache(path/f"{row['seed']}.json", key, row)
-                rows[row['seed']] = row
-            for seed in seeds:
-                row = checked_cached(path/f'{seed}.json', dict(identity, seed=seed))
-                if row is not None:
-                    rows[seed] = row
-            missing = [s for s in seeds if s not in rows]
-            if missing and not budget.expired():
-                start = time.monotonic()
-                model = load_model(paths[name], device)
-                if base.file_hash(paths[name]) != hashes[name]:
-                    raise ValueError('Evaluation checkpoint changed during load')
-                evaluate_fresh(model, missing, policy=name, cap=cap, device=device, stop_requested=budget.expired, on_finish=record)
-                print(f'{name} cap {cap}: {len(rows)}/{len(seeds)} games, {time.monotonic()-start:.1f}s', flush=True)
-                del model
-            stage[name] = summarize(rows, seeds, name, cap)
-            stage[name]['invocation_wall_seconds'] = time.monotonic()-started
+            stage[name] = evaluate_checkpoint(paths[name], hashes[name], name, seeds, cap, split,
+                                              device, budget, runtime, weights_hash, args.cache_dir)
             base.durable_json(args.output, report)
             if not stage[name]['complete']:
                 return False
@@ -372,11 +417,16 @@ def main(argv=None):
     evaluation.add_argument('--split', choices=('development','holdout'), required=True)
     evaluation.add_argument('--td', type=Path)
     evaluation.add_argument('--ppo', type=Path)
+    evaluation.add_argument('--previous-td', type=Path, help='Evaluate the pinned predecessor TD checkpoint as a control')
+    evaluation.add_argument('--initial-td', type=Path, help='Evaluate the TD policy as initialized before training')
     evaluation.add_argument('--selection', type=Path)
     evaluation.add_argument('--cap', type=int, default=64000)
     evaluation.add_argument('--max-cap', type=int, default=128000)
+    final = sub.add_parser('select-final')
+    final.add_argument('--run-dir', type=Path, required=True)
     for command in (calibration, evaluation):
         command.add_argument('--source', type=Path, required=True)
+    for command in (calibration, evaluation, final):
         command.add_argument('--weights', type=Path, default=ROOT/'models/trained-sigmoid.json')
         command.add_argument('--output', type=Path, required=True)
         command.add_argument('--cache-dir', type=Path)
@@ -393,7 +443,7 @@ def main(argv=None):
     game.load_checkpoint(args.weights)
     with base.Budget(args.max_seconds / 3600) as budget:
         runtime = runtime_identity(device)
-        action = calibrate if args.action == 'calibrate' else evaluate
+        action = {'calibrate': calibrate, 'evaluate': evaluate, 'select-final': select_final}[args.action]
         complete = action(args, device, budget, runtime)
     return 0 if complete else 2
 

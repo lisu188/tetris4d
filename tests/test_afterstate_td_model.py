@@ -1,5 +1,6 @@
 """Afterstate TD policy, feature parity and normal checkpoint gameplay."""
 import os
+from dataclasses import replace
 from pathlib import Path
 import sys
 import tempfile
@@ -87,6 +88,55 @@ class PolicyTests(unittest.TestCase):
             reference = torch.multinomial(priors.softmax(1), 1, generator=reference_rng).item()
             self.assertEqual(model.choose(pool, beta=2., generator=actual_rng).item(), reference)
 
+    def test_actor_regularization_limits_logit_loss_and_uses_one_prior(self):
+        model = td.from_v4(regional_source(), actor_bound=.5, value_scale=2.)
+        values = torch.tensor([[1., 1.3, 2., 99.], [4., 5., 6., 99.]])
+        valid = torch.tensor([[True, True, True, False], [True, True, True, False]])
+        actor = torch.tensor([[3., 2.4, 2.35, 88.], [1., .6, -.5, 88.]])
+        pool = td.CandidatePool(values[..., None], valid, torch.arange(4).expand_as(valid),
+                                torch.tensor([[-16., -2., 0., 0.]]).expand_as(actor), actor)
+        # The TD winner lies outside the allowed actor gap on both boards.
+        expected = torch.tensor([[2.5, 1.9, 2.35, -torch.inf], [.5, .1, -.5, -torch.inf]])
+        torch.testing.assert_close(model.ranking_logits(values, valid, actor), expected)
+        self.assertEqual(model.choose(pool, scores=values).tolist(), [0, 0])
+        rng = torch.Generator().manual_seed(43)
+        ref_rng = torch.Generator().manual_seed(43)
+        for _ in range(64):
+            actual = model.choose(pool, beta=2., generator=rng, scores=values)
+            reference = torch.multinomial(expected.softmax(1), 1, generator=ref_rng).squeeze(1)
+            torch.testing.assert_close(actual, reference)
+        # A slightly weaker actor candidate can win; adding a constant to every value changes nothing.
+        closer = replace(pool, actor_logits=actor.clone())
+        closer.actor_logits[0, 2] = 2.75
+        self.assertEqual(model.choose(closer, scores=values + 100.).tolist(), [2, 0])
+        model.configure_policy(actor_bound=0., value_scale=2.)
+        self.assertEqual(model.choose(closer, scores=values).tolist(), [0, 0])
+        model.configure_policy()
+        self.assertEqual(model.choose(closer, scores=values).tolist(), [2, 2])
+        for invalid in (float('nan'), -1., float('inf')):
+            with self.assertRaises(ValueError):
+                model.configure_policy(actor_bound=invalid)
+
+    def test_actor_regularized_checkpoint_playback_and_value_units(self):
+        model = td.from_v4(regional_source(), actor_bound=.5, value_scale=400.)
+        state = game.Game(49, 'expanded')
+        prepared = neural.prepare(state, 1, model.config)
+        pool = model.prepare_cpu(prepared, state)
+        values = model.score(pool.features).detach()
+        logits = model.ranking_logits(values, pool.valid, pool.actor_logits)
+        slot = int(logits[0].argmax())
+        idx = pool.indices[0, slot].item()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'anchored-td.pt'
+            neural.save_checkpoint(path, model, progress={'updates': 1})
+            agent = neural.NeuralAgent(path, 'cpu')
+            self.assertEqual(agent.model.actor_bound, .5)
+            self.assertEqual(agent.model.config.afterstate_scale, 400.)
+            decision = agent.choose(state)
+        self.assertEqual(decision.move, game.materialize_move(state.board, prepared.options[idx]))
+        self.assertAlmostEqual(decision.search_score, logits[0, slot].item(), places=6)
+        self.assertAlmostEqual(agent.get_trace()['afterstate_value'], values[0, slot].item(), places=6)
+
     def test_checkpoint_agent_commits_greedy_move(self):
         model = td.from_v4(regional_source())
         state = game.Game(49, 'expanded')
@@ -122,16 +172,22 @@ class CudaTests(unittest.TestCase):
         targets = [1, 0]
         result = GpuPreparer(gpu.config).prepare_batch(states, targets)
         pool = gpu.prepare_device(result, states)
+        reference_pools = []
         for row, env in enumerate(result.environment_indices):
             prepared = neural.prepare(states[env], targets[env], cpu.config)
             expected = cpu.prepare_cpu(prepared, states[env])
+            reference_pools.append(expected)
             valid = pool.valid[row]
             actual_candidates = [result.prepared[env].options[i] for i in pool.indices[row, valid].tolist()]
             self.assertEqual(actual_candidates, [prepared.options[i] for i in expected.indices[0].tolist()])
             torch.testing.assert_close(pool.features[row, valid].cpu(), expected.features[0], rtol=1e-6, atol=1e-6)
             torch.testing.assert_close(pool.teacher_prior[row, valid].cpu(), expected.teacher_prior[0])
-        self.assertEqual(gpu.choose(pool).tolist(), [cpu.choose(cpu.prepare_cpu(neural.prepare(s, t, cpu.config), s)).item()
-                                                     for s, t in zip(states, targets)])
+            torch.testing.assert_close(pool.actor_logits[row, valid].cpu(), expected.actor_logits[0],
+                                       rtol=1e-5, atol=1e-5)
+        for bound in (None, 0., .5, 1.):
+            cpu.configure_policy(bound, value_scale=400.)
+            gpu.configure_policy(bound, value_scale=400.)
+            self.assertEqual(gpu.choose(pool).tolist(), [cpu.choose(p).item() for p in reference_pools])
 
 
 if __name__ == '__main__':
