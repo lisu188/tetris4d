@@ -20,6 +20,8 @@ Calibration replays 32 fixed development positions and takes the reciprocal of t
 
 Rerun a training command with the same inputs to recover its last atomic checkpoint. The manifest fixes the original deadline. Training uses 32 environments, 256 steps per rollout, a 256-row optimizer batch, one AdamW pass at 0.0003, and TD(λ) with γ = 1 and λ = 0.999. A check for the successor move supplies the bootstrap value at a truncation. The final checkpoint includes pending transitions for exact recovery.
 
+The default training episode limit is 32,000 placements. Use `--pieces 0` for episodes that continue until top-out or the planner runs out of legal moves. To lift the limit on an existing run, stop it gracefully and resume with its original arguments, changing the limit to `--pieces 0` and adding `--uncap-existing-run ORIGINAL_MANIFEST_SHA256`. Continue to use those flags for subsequent resumes. The amendment receipt links the original manifest and interrupted checkpoint. Active games retain their piece streams, the partial rollout and optimizer continue, and the original wall deadline and greedy selection cap still apply. Games that already ended at the old limit remain recorded as truncated.
+
 During training, run `python tools/training_dashboard.py --run-dir "$OUT/production" --data-dir "$OUT/dashboard"` for loopback telemetry. Greedy development selection uses eight fresh games on a two-hour schedule. A completed selection skips elapsed slots and requires a newer update before the next comparison. Mean placements, then median, then earliest checkpoint determine the selection.
 
 ## Experimental actor-regularized TD
