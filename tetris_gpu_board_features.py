@@ -71,6 +71,8 @@ def _board_counts_kernel(masks, targets, out, COUNTS: tl.constexpr):
     tl.store(o + 33, tl.max(h, axis=0))
     tl.store(o + 34, tl.sum((h <= target).to(tl.int32), axis=0))
     tl.store(o + 35, tl.sum(holes, axis=0))
+    if COUNTS == 36:  # the V4 regional critic needs only columns 0 through 35
+        return
     tl.store(o + 36, tl.sum(depth, axis=0))
     tl.store(o + 37, tl.sum((holes > 0).to(tl.int32), axis=0))
     tl.store(o + 38, tl.sum(transitions, axis=0))
@@ -94,11 +96,12 @@ def _board_counts_kernel(masks, targets, out, COUNTS: tl.constexpr):
     tl.store(o + 45, _diversity(w_high - h, w < 15))
 
 
-def board_counts(masks: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+def board_counts(masks: torch.Tensor, targets: torch.Tensor, regional_only=False) -> torch.Tensor:
     """[n, 4096] int column masks and [n] targets on CUDA -> [n, COUNTS] int32."""
     masks = masks.to(torch.int32).contiguous()
     targets = targets.to(device=masks.device, dtype=torch.int32).contiguous()
-    out = torch.empty((len(masks), COUNTS), dtype=torch.int32, device=masks.device)
+    columns = 36 if regional_only else COUNTS
+    out = torch.empty((len(masks), columns), dtype=torch.int32, device=masks.device)
     if len(masks):
-        _board_counts_kernel[(len(masks),)](masks, targets, out, COUNTS=COUNTS, num_warps=8)
+        _board_counts_kernel[(len(masks),)](masks, targets, out, COUNTS=columns, num_warps=8)
     return out

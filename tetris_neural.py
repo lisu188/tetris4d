@@ -29,9 +29,9 @@ SCHEMA = 'tetris4d-column-policy-v1'
 CHANNELS, CONTEXT, FEATURES, COLUMNS = 34, 82, 96, 16
 # Per-candidate arrays (padded along the candidate axis when batched).
 CANDIDATE_FIELDS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta',
-                              'next_features'))
+                              'next_features', 'td_features'))
 # Architectures whose preparation includes V4 afterstate spatial descriptors.
-SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5')
+SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5', 'survival-afterstate-td')
 FEATURE_ARCHITECTURES = ('survival-feature-v3', *SPATIAL_ARCHITECTURES)
 NAMES = tuple(game.PIECE_NAMES)
 
@@ -278,6 +278,9 @@ def create_model(config: Config = Config()):
     if config.architecture == 'survival-feature-v3':
         from tetris_survival_v3 import SurvivalFeaturePolicy
         return SurvivalFeaturePolicy(config)
+    if config.architecture == 'survival-afterstate-td':
+        from tetris_afterstate_td import AfterstateTDPolicy
+        return AfterstateTDPolicy(config)
     if config.architecture == 'survival-afterstate-v5':
         from tetris_survival_v5 import SurvivalAfterstatePolicy
         return SurvivalAfterstatePolicy(config)
@@ -560,12 +563,18 @@ class NeuralAgent:
 
     def steps(self, state, target=1, candidates=None):
         started = time.perf_counter()
+        afterstate_td = self.model.config.architecture == 'survival-afterstate-td'
+        # The TD actor shortlist always starts from exhaustive screening, including GUI playback.
+        if afterstate_td:
+            candidates = 0
         prepared = yield from prepare_steps(state, target, self.model.config, candidates)
         if prepared is None:
             return None
         if self.model.config.architecture == 'survival-afterstate-v5':
             from tetris_survival_v5 import augment_prepared
             augment_prepared(prepared, state, self.device)
+        elif afterstate_td:
+            prepared = self.model.prepare_gameplay(prepared, state)
         before = time.perf_counter()
         requested_target = target
         target = int(prepared.arrays['targets'])
@@ -592,7 +601,9 @@ class NeuralAgent:
                                'teacher_prior': teacher_prior, 'critic_value': float(prediction['value'][0]),
                                'spatial_delta': (batch['spatial_delta'][0, index].detach().cpu().tolist()
                                                  if 'spatial_delta' in batch else None)}
-            if self.model.config.architecture == 'survival-afterstate-v5':
+            if afterstate_td:
+                self.last_trace['afterstate_value'] = score
+            elif self.model.config.architecture == 'survival-afterstate-v5':
                 self.last_trace['base_logit'] = float(prediction['base_logits'][0, index])
                 self.last_trace['residual'] = float(prediction['raw_logits'][0, index])
             elif self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
@@ -609,7 +620,8 @@ class NeuralAgent:
                              'target_recovered': target != requested_target,
                              'trace_captured': self.capture_traces is True, **self.metadata}
         return game.Decision(move, score, prepared.evaluations, (time.perf_counter() - started) * 1000,
-                             1, 1, candidates or self.model.config.candidates, True, 'neural', target, gain, prepared.fallback)
+                             1, 1, 0 if afterstate_td else candidates or self.model.config.candidates,
+                             not afterstate_td, 'neural', target, gain, prepared.fallback)
 
     def choose(self, *args, **kwargs):
         iterator = self.steps(*args, **kwargs)

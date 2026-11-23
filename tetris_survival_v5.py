@@ -97,7 +97,7 @@ def survival_features(masks):
                         *diversity), dim=1)
 
 
-def board_counts_reference(masks, targets):
+def board_counts_reference(masks, targets, regional_only=False):
     """Plain-torch reference for tetris_gpu_board_features.board_counts (same [n, 46] int layout)."""
     masks = masks.to(torch.int32)
     n = len(masks)
@@ -105,6 +105,10 @@ def board_counts_reference(masks, targets):
     bits = (masks[:, None, :] >> levels) & 1
     height = v4._bit_length16(masks)
     hole = (bits == 0) & (levels < height[:, None, :])
+    if regional_only:
+        return torch.cat((bits.sum(2), hole.sum(2), height.sum(1, keepdim=True), height.amax(1, keepdim=True),
+                          (height <= targets[:, None]).sum(1, keepdim=True),
+                          hole.sum((1, 2))[:, None]), dim=1).to(torch.int32)
     above = v4._bitcount16(masks[:, None, :] >> (levels + 1))
     holes = height - v4._bitcount16(masks)
     transitions = v4._bitcount16((masks ^ ((masks << 1) | 1)) & 0xFFFF)
@@ -130,7 +134,7 @@ def board_counts_reference(masks, targets):
 _KERNELS = None
 
 
-def board_counts(masks, targets):
+def board_counts(masks, targets, regional_only=False):
     """[n, 46] integer board statistics: the fused Triton kernel on CUDA, the torch reference otherwise."""
     global _KERNELS
     if masks.is_cuda:
@@ -141,8 +145,8 @@ def board_counts(masks, targets):
             except ImportError:  # Triton unavailable
                 _KERNELS = False
         if _KERNELS:
-            return _KERNELS.board_counts(masks, targets)
-    return board_counts_reference(masks, targets)
+            return _KERNELS.board_counts(masks, targets, regional_only)
+    return board_counts_reference(masks, targets, regional_only)
 
 
 def _popcount5(values):
@@ -180,12 +184,14 @@ def context_from_counts(counts, targets, piece_rows, piece_phase):
 
 
 def assemble(masks, targets, context, moves, counts=None):
-    """One feature row per board: [V4 pooled 266 | adjacency 18, survival 11, move 5 | context 82]."""
+    """V4 regional critic inputs when moves is None, or full V5 inputs with move features."""
     masks = masks.to(torch.int32)
     counts = board_counts(masks, targets) if counts is None else counts
     adjacency = v4.adjacency_statistics(masks, targets.to(torch.int32))
     pooled = torch.cat((pooled_from_counts(counts), adjacency.mean(dim=1).float(),
                         v4.regional_statistics(masks).float()), dim=1)
+    if moves is None:
+        return torch.cat((pooled, context.float()), dim=1)
     extras = torch.cat((adjacency.reshape(len(masks), -1).float(), survival_from_counts(counts), moves.float()), dim=1)
     return torch.cat((pooled, extras, context.float()), dim=1)
 
@@ -238,11 +244,13 @@ def next_state_features(boards, targets, specs, valid, states, move, chunk=1024)
 
     boards [n,4096] int, targets [n], specs [n,K,>=5] (rotation, x, y, w, z, ...), valid [n,K],
     states: the n Games (for piece one-hots), move [n,K,2] = (target_gain/16, teacher_score_delta/64)
-    taken from the V4 candidate features. Returns [n, K, FEATURES] float32, zero where invalid.
+    taken from the V4 candidate features. With move=None, compute only the V4 regional critic inputs.
+    Returns one float32 row per candidate, zero where invalid.
     """
     device = boards.device
     n, width = valid.shape
-    out = torch.zeros((n, width, FEATURES), dtype=torch.float32, device=device)
+    columns = V4_POOLED + neural.CONTEXT if move is None else FEATURES
+    out = torch.zeros((n, width, columns), dtype=torch.float32, device=device)
     rows = valid.bool().nonzero(as_tuple=False)
     if not len(rows):
         return out
@@ -270,8 +278,11 @@ def next_state_features(boards, targets, specs, valid, states, move, chunk=1024)
                 following = game.next_hyperlayer_target(tuple(board), int(after_targets[i]))
                 if following is not None:
                     after_targets[i] = following
-        counts = board_counts(after, after_targets)
+        counts = board_counts(after, after_targets, regional_only=move is None)
         context = context_from_counts(counts, after_targets, piece_rows[part], phase[part])
+        if move is None:
+            chunks.append(assemble(after, after_targets, context, None, counts))
+            continue
         piece_mask = mask[part]
         eroded = (full.gather(1, cells[part][..., 2].clamp(0, 15)) & piece_mask).sum(1)
         landing = (cells[part][..., 2] * piece_mask).sum(1).float() / piece_mask.sum(1).clamp_min(1)

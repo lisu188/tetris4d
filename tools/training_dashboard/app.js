@@ -62,9 +62,9 @@
     if(before)recordRows.unshift({...before,timestamp_utc:new Date(cut).toISOString(),record_pieces:before.pieces,record_hold:true});
     if(finite(maximum.active_max_pieces)&&stamp(maximum.active_observed_utc)!==null&&stamp(maximum.active_observed_utc)>=cut)recordRows.push({timestamp_utc:maximum.active_observed_utc,record_pieces:maximum.active_max_pieces,active_only:true});
     const observed=stamp(data.latest?.timestamp_utc);
-    $("maximum-chart").innerHTML=chart(recordRows,"record_pieces",{label:"PPO maximum survived pieces",step:true,holdTo:observed!==null&&observed>=cut?observed:null});
+    $("maximum-chart").innerHTML=chart(recordRows,"record_pieces",{label:"Maximum fresh-game survival",step:true,holdTo:observed!==null&&observed>=cut?observed:null});
     put("maximum-value",num(maximum.current_max_pieces));
-    put("maximum-detail",`Completed record ${num(maximum.completed_record_pieces)} · active ${num(maximum.active_max_pieces)} · ${num(maximum.completed_episodes)} completed PPO episodes`);
+    put("maximum-detail",`Completed record ${num(maximum.completed_record_pieces)} · active ${num(maximum.active_max_pieces)} · ${num(maximum.completed_episodes)} completed fresh episodes`);
     $("survival-chart").innerHTML=chart(episodes,"episode_pieces",{label:"Completed training episodes",line:false,rolling:true});
     const perClear=episodes.map(r=>({...r,placements_per_clear:finite(r.episode_pieces)&&finite(r.episode_clears)&&r.episode_clears>0?r.episode_pieces/r.episode_clears:null}));
     $("per-clear-chart").innerHTML=chart(perClear,"placements_per_clear",{label:"Placements per clear",line:false,rolling:true});
@@ -73,7 +73,7 @@
     const noClear=episodes.filter(r=>r.episode_clears===0).length;
     put("per-clear-detail",lastUpdate&&lastUpdate.clears>0?`Run average ${num(lastUpdate.placements)} placements ÷ ${num(lastUpdate.clears)} clears${noClear?` · ${num(noClear)} episodes without a clear omitted`:""}`:"Run average appears after the first clear");
     $("calibration-chart").innerHTML=chart(rows.filter(r=>["calibration_progress","calibration_game"].includes(r.event)),"calibration_game_pieces",{label:"Calibration observations",calibration:true});
-    $("progress-chart").innerHTML=chart(updates,"placements",{label:"PPO placements",xkey:"runner_updates"});
+    $("progress-chart").innerHTML=chart(updates,"placements",{label:"Training placements",xkey:"runner_updates"});
     $("reference-kl-chart").innerHTML=chart(updates,"final_reference_kl",{label:"Reference KL measurements",minYMax:0.0001});
     $("entropy-chart").innerHTML=chart(updates,"entropy",{label:"Entropy measurements"});
     $("exploration-chart").innerHTML=chart(updates.filter(r=>finite(r.lower_primary_probability)),"lower_primary_probability",{label:"Exploration measurements",percent:true,line:false});
@@ -95,7 +95,16 @@
     // Normal-start PPO episodes; danger starts (near-top-out library positions) are counted separately.
     const survival=data.maximum_survival||{},danger=survival.danger_start_episodes||0;
     const episodes=finite(survival.completed_episodes)?survival.completed_episodes:p.finished_episodes;
-    const phase=phases[data.phase]||phases.unknown;
+    const td=data.algorithm==="afterstate-td-lambda";
+    const phase=td&&data.phase==="training"
+      ? ["AFTERSTATE TD(λ)","Learning from played moves","The frozen actor proposes moves. The value head learns how long the game survives after each placement.",2]
+      : phases[data.phase]||phases.unknown;
+    $("td-signal").hidden=!td;
+    put("td-loss",num(latest.value_loss,6));
+    for(const id of ["kl-value","reference-kl-value","reference-kl-weight","critic-ev-value","saturation-value","exploration-value"])
+      $(id).parentElement.hidden=td;
+    $("calibration-chart").closest("article").hidden=td;
+    document.querySelector(".signal-note").hidden=td;
     put("phase-badge",phase[0]);put("phase-title",phase[1]);
     // Lockstep selection games and long checkpoints report only when they finish: say so instead of looking stalled.
     const quiet=stamp(latest.timestamp_utc)===null?0:(Date.now()-stamp(latest.timestamp_utc))/60000;
@@ -122,7 +131,7 @@
     const changed=latest.actor_changed_from_initial;
     put("actor-change",typeof changed==="boolean"?(changed?"Yes":"No"):"—");
     const calText=[cal.stage?`Stage: ${cal.stage.replaceAll("_"," ")}`:null,finite(cal.completed_games)?`${num(cal.completed_games)} completed`:null,finite(cal.censored_games)?`${num(cal.censored_games)} censored`:null,finite(cal.validation_mse)?`Validation MSE ${num(cal.validation_mse,3)}`:null].filter(Boolean);
-    put("calibration-detail",calText.length?calText.join(" · "):"Calibration observations are separate from PPO episodes.");
+    put("calibration-detail",calText.length?calText.join(" · "):"Calibration uses separate games.");
     $("selection-section").hidden=!finite(best.mean_pieces);
     $("selection-details").className="selection-details";
     $("selection-details").innerHTML=[[best.mean_pieces,"Mean placements"],[best.minimum_pieces,"Minimum placements"],[best.median_pieces,"Median placements"]].map(([v,label])=>`<div class="selection-metric">${num(v,1)}<span>${esc(label)}</span></div>`).join("");
