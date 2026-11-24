@@ -35,6 +35,7 @@ ROOT = Path(__file__).resolve().parent
 RUN_SCHEMA = 'tetris4d-overnight-survival-v1'
 REPLAY_SCHEMA = 'tetris4d-training-game-v1'
 REWARD_SCALE = 0.001
+DEFAULT_EPISODE_CAP = 32000
 
 
 def file_hash(path: Path) -> str:
@@ -545,7 +546,7 @@ class Trainer:
                 self.progress['clears'] += move.layers
                 self.prepared[i] = neural.prepare(episode.state, episode.target, self.model.config)
                 terminal[i] = self.prepared[i] is None
-                truncated[i] = episode.state.pieces >= self.args.pieces and not terminal[i]
+                truncated[i] = self.args.pieces > 0 and episode.state.pieces >= self.args.pieces and not terminal[i]
             rewards.append(np.full(self.args.envs, REWARD_SCALE, dtype=np.float32))
             with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
                 boards = torch.tensor([e.state.board for e in self.environments], dtype=torch.int32, device=self.device)
@@ -763,7 +764,8 @@ def arguments(argv=None):
     parser.add_argument('--envs', type=int, default=4)
     parser.add_argument('--rollout', type=int, default=64)
     parser.add_argument('--batch', type=int, default=16)
-    parser.add_argument('--pieces', type=int, default=32000)
+    parser.add_argument('--pieces', type=int, default=DEFAULT_EPISODE_CAP,
+                        help='Training episode cap in placements, 0 for unlimited')
     parser.add_argument('--seed', type=int, default=150000)
     parser.add_argument('--piece-set', choices=tuple(game.PIECE_SETS), default='expanded')
     parser.add_argument('--warmup-updates', type=int, default=128)
@@ -783,13 +785,13 @@ def arguments(argv=None):
     parser.add_argument('--record-max-mib', type=float, default=1024)
     parser.add_argument('--verify-game', type=Path)
     args = parser.parse_args(argv)
-    for key in ('hours', 'threads', 'envs', 'rollout', 'batch', 'pieces', 'lr', 'save_every', 'save_seconds',
+    for key in ('hours', 'threads', 'envs', 'rollout', 'batch', 'lr', 'save_every', 'save_seconds',
                 'eval_minutes', 'selection_pieces', 'record_every', 'record_max_mib'):
         value = getattr(args, key)
         if not math.isfinite(value) or value <= 0:
             parser.error(f'{key} must be finite and positive')
-    if args.warmup_updates < 0 or args.max_updates < 0:
-        parser.error('warmup-updates and max-updates must be nonnegative')
+    if args.pieces < 0 or args.warmup_updates < 0 or args.max_updates < 0:
+        parser.error('pieces, warmup-updates and max-updates must be nonnegative')
     if not 0 < args.gae_lambda <= 1 or not math.isfinite(args.gae_lambda):
         parser.error('gae-lambda must be in (0, 1]')
     if any(not math.isfinite(v) or v < 0 for v in (args.entropy, args.imitation)):

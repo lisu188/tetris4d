@@ -130,6 +130,23 @@ class TrainerHarness(unittest.TestCase):
 
 class TrainerTests(TrainerHarness):
 
+    def test_uncapped_rollouts_keep_playing_across_old_placement_limit(self):
+        trainer = self.trainer('--pieces', '0')
+        original = list(trainer.environments)
+        for episode in original:
+            episode.state.pieces = 31999
+        for _ in range(2):
+            rollout = trainer.rollout(False)
+            self.assertFalse(rollout.terminals.any())
+            self.assertFalse(rollout.truncations.any())
+        self.assertEqual([e.state.pieces for e in original], [32005, 32005])
+        self.assertTrue(all(a is b for a, b in zip(original, trainer.environments)))
+        self.assertEqual(trainer._gpu_prepare_active, self.device == 'cuda')
+
+    def test_negative_training_cap_is_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.arguments('--pieces', '-1')
+
     def test_learning_rate_moves_towards_the_kl_target_within_bounds(self):
         trainer = self.trainer()
         base, critic = trainer.args.lr, next(g['lr'] for g in trainer.optimizer.param_groups if g['name'] == 'critic')
