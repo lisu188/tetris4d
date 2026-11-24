@@ -520,7 +520,7 @@ def save_checkpoint(path, model, optimizer=None, progress=None, extra=None):
 
 
 def load_checkpoint(path, device, restore_rng=False):
-    checkpoint = torch.load(Path(path), map_location='cpu', weights_only=True)
+    checkpoint = torch.load(path, map_location='cpu', weights_only=True)
     if checkpoint.get('schema') != SCHEMA or checkpoint.get('pieces_sha256') != fingerprint():
         raise ValueError('Checkpoint schema or piece catalog does not match this engine')
     model = create_model(Config(**checkpoint['config']))

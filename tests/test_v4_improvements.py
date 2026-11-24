@@ -182,6 +182,79 @@ class TrainerTests(TrainerHarness):
 
 
 class RegionalCriticTests(TrainerHarness):
+    def test_calibrated_pretrained_model_survives_full_start_skip_and_resume(self):
+        source = self.trainer('--regional-critic').model
+        with torch.no_grad():
+            source.value[-1].weight.fill_(.25)
+            source.value[-1].bias.fill_(.5)
+        path = self.directory / 'calibrated.pt'
+        v4.neural.save_checkpoint(path, source, extra={'calibration': {'stage': 'passed', 'done': True}})
+        options = ('--regional-critic', '--pretrained', str(path))
+        default = self.trainer(*options)
+        self.assertEqual(default.model.value[-1].weight.count_nonzero().item(), 0)
+        self.assertEqual(default.model.value[-1].bias.count_nonzero().item(), 0)
+
+        options += ('--preserve-pretrained-critic',)
+        trainer = self.trainer(*options)
+        self.assertTrue(trainer.calibrate())
+        self.assertEqual(trainer.calibration['stage'], 'explicitly_skipped')
+        self.assertFalse(trainer.optimizer.state)
+        self.assertEqual(trainer.progress['updates'], 0)
+        self.assertEqual(trainer.model.config, source.config)
+        self.assertEqual(v4.v3.model_digest(trainer.model), v4.v3.model_digest(source))
+        trainer.update(trainer.rollout(False), False)
+        trained_digest = v4.v3.model_digest(trainer.model)
+        self.assertNotEqual(trained_digest, v4.v3.model_digest(source))
+        trainer.save('test_resume')
+        resumed = self.trainer(*options)
+        self.assertEqual(v4.v3.model_digest(resumed.model), trained_digest)
+        self.assertEqual(resumed.progress['runner_updates'], 1)
+        with self.assertRaisesRegex(ValueError, 'Run settings'):
+            self.trainer(*options[:-1])
+
+        fresh = self.trainer('--run-dir', str(self.directory / 'next'), '--regional-critic',
+                             '--pretrained', str(trainer.last), '--preserve-pretrained-critic')
+        self.assertEqual(v4.v3.model_digest(fresh.model), trained_digest)
+        self.assertEqual(fresh.progress['updates'], 0)
+
+    def test_preserving_a_critic_requires_matching_calibrated_weights_and_skip(self):
+        source = self.trainer().model
+        path = self.directory / 'source.pt'
+        with self.assertRaises(SystemExit):
+            self.arguments('--preserve-pretrained-critic')
+        with self.assertRaises(SystemExit):
+            self.arguments('--pretrained', str(path), '--preserve-pretrained-critic', '--calibration-games', '2')
+        for stage in ('failed', 'explicitly_skipped'):
+            v4.neural.save_checkpoint(path, source, extra={'calibration': {'stage': stage, 'done': True}})
+            with self.assertRaisesRegex(ValueError, 'calibrated V4'):
+                self.trainer('--pretrained', str(path), '--preserve-pretrained-critic')
+        v4.neural.save_checkpoint(path, source, extra={'calibration': {'stage': 'passed', 'done': True}})
+        with self.assertRaisesRegex(ValueError, 'matching policy'):
+            self.trainer('--pretrained', str(path), '--preserve-pretrained-critic', '--regional-critic')
+
+    def test_atomic_replacement_keeps_imported_weights_bound_to_recorded_hash(self):
+        model = self.trainer().model
+        path, replacement = self.directory / 'best.pt', self.directory / 'new-best.pt'
+        calibration = {'calibration': {'stage': 'passed', 'done': True}}
+        v4.neural.save_checkpoint(path, model, extra=calibration)
+        original_hash = v4.base.file_hash(path)
+        original_model = v4.v3.model_digest(model)
+        with torch.no_grad():
+            model.value[-1].bias.add_(1)
+        v4.neural.save_checkpoint(replacement, model, extra=calibration)
+        load = v4.neural.load_checkpoint
+
+        def rotate_and_load(stream, device):
+            replacement.replace(path)
+            return load(stream, device)
+
+        with patch.object(v4.neural, 'load_checkpoint', side_effect=rotate_and_load):
+            trainer = self.trainer('--pretrained', str(path), '--preserve-pretrained-critic')
+        self.assertNotEqual(v4.base.file_hash(path), original_hash)
+        self.assertEqual(trainer.signature['pretrained_sha256'], original_hash)
+        self.assertEqual(trainer.imported_checkpoint_sha256, original_hash)
+        self.assertEqual(v4.v3.model_digest(trainer.model), original_model)
+
     def test_regional_statistics_match_python_reference(self):
         from tetris_survival_v4 import regional_statistics
         rng = random.Random(5)
