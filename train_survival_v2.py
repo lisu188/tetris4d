@@ -1230,28 +1230,6 @@ def arguments(argv=None):
     return args
 
 
-def main(argv=None):
-    args = arguments(argv)
-    torch.set_num_threads(args.threads)
-    game.configure_backend(args.backend)
-    game.load_checkpoint(args.weights)
-    if args.verify_game:
-        print(json.dumps(base.verify_game(args.verify_game), indent=2))
-        return 0
-    try:
-        device = neural.device_for(args.device)
-        with device_lock(device, args.allow_concurrent) as competing, base.run_lock(args.run_dir), base.Budget(args.hours) as budget:
-            trainer = SurvivalTrainer(args, budget)
-            trainer.emit('resource_isolation', competing_trainers=competing, override=args.allow_concurrent)
-            trainer.run()
-        return 2 if budget.reason == 'calibration_failed' else 0
-    except KeyboardInterrupt:
-        print('Interrupted. Resume the v2 run from its last completed checkpoint.', file=sys.stderr)
-        return 130
-    except (ValueError, OSError, RuntimeError) as exc:
-        print(f'V2 training stopped: {exc}. Existing v1 checkpoints remain unchanged.', file=sys.stderr)
-        return 1
-
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    raise SystemExit('This trainer is retired. Use train_survival_v4.py for new runs, or the original revision to resume an older run.')

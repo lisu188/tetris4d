@@ -1209,55 +1209,13 @@ def smoke(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Optional GPU sigmoid policy: teacher data, imitation, A2C and paired evaluation.')
+    parser = argparse.ArgumentParser(description='Evaluate a saved policy or run a neural implementation smoke test.')
     parser.add_argument('--backend', choices=('auto', 'native', 'numpy', 'python'), default='auto')
     parser.add_argument('--weights', type=Path, default=ROOT / 'models/trained-sigmoid.json')
     parser.add_argument('--threads', type=int, default=4)
     sub = parser.add_subparsers(dest='command', required=True)
-    demo = sub.add_parser('collect')
-    demo.add_argument('--output', type=Path, default=ROOT / 'data/neural-demonstrations')
-    demo.add_argument('--games', type=int, default=8)
-    demo.add_argument('--validation-games', type=int, default=2)
-    demo.add_argument('--pieces', type=int, default=16000)
-    demo.add_argument('--seed', type=int, default=50000)
-    demo.add_argument('--stride', type=int, default=8)
-    demo.add_argument('--shard-size', type=int, default=128)
-    demo.add_argument('--shortlist', type=int, default=128)
-    demo.add_argument('--candidates', type=int, default=2048)
-    demo.add_argument('--chunk', type=int, default=256)
-    demo.add_argument('--gamma', type=float, default=.9995)
-    demo.add_argument('--aux-horizon', type=int, default=2048)
-    demo.add_argument('--unrestricted', action='store_true')
-    demo.add_argument('--piece-set', choices=tuple(game.PIECE_SETS), default='expanded')
-    fit = sub.add_parser('train')
-    fit.add_argument('--data', type=Path, default=ROOT / 'data/neural-demonstrations')
-    fit.add_argument('--width', type=int, default=32)
-    fit.add_argument('--blocks', type=int, default=3)
-    fit.add_argument('--chunk', type=int, default=256)
-    fit.add_argument('--accumulate', type=int, default=4)
-    fit.add_argument('--seed', type=int, default=811)
-    rl = sub.add_parser('finetune')
-    rl.add_argument('--checkpoint', type=Path, default=ROOT / 'models/neural-policy.pt')
-    rl.add_argument('--envs', type=int, default=4)
-    rl.add_argument('--rollout', type=int, default=64)
-    rl.add_argument('--pieces', type=int, default=32000)
-    rl.add_argument('--seed', type=int, default=80000)
-    rl.add_argument('--piece-set', choices=tuple(game.PIECE_SETS), default='expanded')
-    rl.add_argument('--gamma', type=float, default=.9995)
-    rl.add_argument('--gae-lambda', type=float, default=.999)
-    rl.add_argument('--entropy', type=float, default=.005)
-    rl.add_argument('--imitation', type=float, default=.05)
-    for child, filename, learning_rate in ((fit, 'neural-policy.pt', 3e-4), (rl, 'neural-rl.pt', 1e-4)):
-        child.add_argument('--output', type=Path, default=ROOT / 'models' / filename)
-        child.add_argument('--resume', type=Path)
-        child.add_argument('--updates', type=int, default=1000)
-        child.add_argument('--batch', type=int, default=16)
-        child.add_argument('--device', choices=('auto', 'cpu', 'cuda'), default='auto')
-        child.add_argument('--precision', choices=('fp32', 'bf16', 'fp16'), default='fp32')
-        child.add_argument('--lr', type=float, default=learning_rate)
-        child.add_argument('--save-every', type=int, default=10)
     test = sub.add_parser('evaluate')
-    test.add_argument('--checkpoint', type=Path, default=ROOT / 'models/neural-policy.pt')
+    test.add_argument('--checkpoint', type=Path, required=True)
     test.add_argument('--seeds', nargs='+', type=int, default=[70001, 70002, 70003, 70004])
     test.add_argument('--pieces', type=int, default=16000)
     test.add_argument('--piece-set', choices=tuple(game.PIECE_SETS), default='expanded')
@@ -1267,24 +1225,16 @@ def main(argv=None):
     quick.add_argument('--device', choices=('auto', 'cpu', 'cuda'), default='auto')
     quick.add_argument('--output', type=Path)
     args = parser.parse_args(argv)
-    for key in ('threads', 'games', 'pieces', 'stride', 'shard_size', 'aux_horizon', 'batch', 'updates', 'accumulate', 'save_every', 'envs', 'rollout'):
-        if hasattr(args, key) and getattr(args, key) < 1:
-            parser.error(f'{key} must be positive')
-    for key in ('gamma', 'gae_lambda'):
-        if hasattr(args, key) and not 0 < getattr(args, key) <= 1:
-            parser.error(f'{key} must be in (0, 1]')
-    if hasattr(args, 'validation_games') and args.validation_games < 1:
-        parser.error('At least one separate validation game is required')
-    for key in ('lr', 'entropy', 'imitation'):
-        if hasattr(args, key) and (not math.isfinite(getattr(args, key)) or getattr(args, key) < 0):
-            parser.error(f'{key} must be finite and nonnegative')
+    if args.threads < 1:
+        parser.error('--threads must be positive')
+    if args.command == 'evaluate' and args.pieces < 1:
+        parser.error('--pieces must be positive')
     torch.set_num_threads(args.threads)
     game.configure_backend(args.backend)
     game.load_checkpoint(args.weights)
     try:
-        result = {'collect': collect, 'train': train, 'finetune': finetune, 'evaluate': evaluate, 'smoke': smoke}[args.command](args)
-        if args.command != 'collect':
-            print(json.dumps(result, indent=2, allow_nan=False))
+        result = {'evaluate': evaluate, 'smoke': smoke}[args.command](args)
+        print(json.dumps(result, indent=2, allow_nan=False))
         return 0
     except (ValueError, OSError, RuntimeError) as error:
         print(f'Neural pipeline failed: {error}', file=sys.stderr)

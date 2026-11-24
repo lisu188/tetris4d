@@ -1,5 +1,7 @@
 # Fresh survival PPO V3
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/survival-v3.md) contains the commands below.
+
 V3 replaces the learned board encoder with fixed board and placement features.
 The actor and critic have independent parameters, so actor updates cannot change
 the critic's input representation. All 75,938 trainable parameters start afresh;

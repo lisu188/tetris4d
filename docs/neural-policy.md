@@ -1,5 +1,7 @@
 # Optional learned sigmoid policy
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/neural-policy.md) contains the commands below.
+
 This implements the GPU-capable model, data collector, imitation trainer, on-policy A2C fine-tuner, evaluation and GUI integration. It is not a pretrained winning agent. Normal launch still uses **Unlimited + sustained** and does not import PyTorch. No driver changes, downloads or training occur automatically.
 
 ## WSL commands

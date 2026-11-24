@@ -5,10 +5,10 @@ Train a sigmoid policy with PPO to maximize successful placements in a
 engine, native CPU scorer, Python/Tkinter interface, survival trainer, checkpoint
 comparison and a neuron-by-neuron audit.
 
-The supported training workflow is [survival PPO](docs/ppo-workflow.md).
-`train_survival_v2.py` calibrates the survival critic, trains with clipped PPO and
-selects checkpoints from completed games. A frozen model's measured survival,
-including comparison with the sustained planners, determines its playing strength.
+[Spatial V4 PPO](docs/ppo-workflow.md) is the supported learned policy training
+workflow. It trains the spatial actor and regional survival critic, then selects
+checkpoints from completed games. Compare frozen checkpoints on independent
+seeds before choosing a policy to play.
 
 ## Install and build
 
@@ -30,29 +30,21 @@ See [native builds and diagnostics](docs/native-backend.md).
 
 ## Train for survival
 
-Start a new eight-hour PPO run from the bundled bootstrap weights:
+Start an eight-hour continuation from a local, calibrated Spatial V4 checkpoint:
 
 ```bash
-.venv/bin/python -u train_survival_v2.py \
-  --hours 8 --run-dir runs/survival-ppo-v2 \
-  --checkpoint models/neural-rl.pt \
-  --device cuda --backend native --record-games --record-max-mib 128
+.venv/bin/python -u train_survival_v4.py \
+  --hours 8 --run-dir runs/survival-ppo-v4 \
+  --pretrained /path/to/calibrated-v4.pt --preserve-pretrained-critic \
+  --calibration-games 0 --allow-uncalibrated \
+  --device cuda --backend native --screening exhaustive \
+  --regional-critic --recover-target --fixed-lr --pieces 0 --selection-pieces 64000
 ```
 
-Use `--device cpu` where CUDA is unavailable. Calibration and selection are part
-of the time budget. Resume the same directory with the time remaining from the
-original deadline; a new invocation grants the specified hours again. Changed
-source or algorithm settings require a separate run.
-
-`models/neural-rl.pt` contains older A2C actor weights and is retained as a PPO
-bootstrap, rather than a newly trained PPO result. Transfer resets the critic
-because its previous clear-reward estimate has different units. The teacher
-checkpoint `models/trained-sigmoid.json` also remains a runtime input.
-
-For the current broader-exploration recipe, fresh seed ranges, calibration checks
-and bounded recording settings, use [the PPO workflow](docs/ppo-workflow.md) and
-[experiment details](docs/survival-longevity.md). The model has 62,485 parameters;
-training does not change placement physics.
+The [PPO workflow](docs/ppo-workflow.md) covers new initialization, calibration,
+resuming within a fixed deadline, and held-out evaluation. The bundled
+`models/trained-sigmoid.json` supplies the teacher scores used to prepare moves.
+Learned checkpoints are supplied as local files.
 
 Use the [live training dashboard](docs/training-dashboard.md) for local charts,
 calibration and PPO progress, and timestamped CSV/JSONL exports for later graphs.
@@ -64,7 +56,7 @@ optimizations and the optional device input cache.
 ```bash
 .venv/bin/python sparse_tetris_4d_optimized.py \
   --backend native \
-  --neural-checkpoint runs/survival-ppo-v2/best.pt --neural-device cuda
+  --neural-checkpoint runs/survival-ppo-v4/best.pt --neural-device cuda
 ```
 
 Start/Space begins playback. An explicit neural checkpoint activates that policy.
@@ -90,13 +82,13 @@ and [logging](docs/benchmark-logging.md).
 
 ## Compare frozen models
 
-Always supply checkpoint paths explicitly. This example evaluates the bootstrap
+Always supply checkpoint paths explicitly. This example evaluates the incumbent
 and a completed PPO checkpoint against both sustained baselines:
 
 ```bash
 .venv/bin/python tools/survival_experiments.py compare \
   --device cuda --backend native --threads 4 \
-  --checkpoints models/neural-rl.pt runs/survival-ppo-v2/best.pt \
+  --checkpoints /path/to/calibrated-v4.pt runs/survival-ppo-v4/best.pt \
   --seeds 960001 960003 960005 960007 --pieces 32000 \
   --modes greedy sampled --action-seeds 101 102 103 \
   --record-games --record-max-mib 128 \
@@ -119,15 +111,14 @@ responses from unproven semantic labels.
 
 ```bash
 .venv/bin/python sparse_tetris_4d_optimized.py --test --backend python
-.venv/bin/python tests/test_survival_v2.py
-.venv/bin/python tests/test_survival_longevity.py
-.venv/bin/python tests/test_survival_ppo.py
+.venv/bin/python tests/test_survival_v4.py
+.venv/bin/python tests/test_v4_improvements.py
 .venv/bin/python tests/test_native.py --trajectory-pieces 2600
 ```
 
-PPO imports shared network, replay and trainer infrastructure from
-`tetris_neural.py`, `train_overnight.py` and `train_survival.py`. Their compatibility
-tests remain relevant even though the public training workflow uses PPO v2.
+V4 uses the shared network, replay and PPO code exercised by the compatibility
+tests. The former trainer commands can be recovered with their original source
+revision for exact replay of historical experiments.
 
 ## Game rules and repository contents
 
@@ -138,7 +129,7 @@ gravity, wall kicks, hold, under-overhang slides or timed-input constraints.
 The expanded piece set has 15 shapes; `--piece-set classic` selects seven.
 
 The checkout keeps runtime source, tests and fixtures, small validation reports,
-the PPO bootstrap and teacher model. Historical training outputs, demonstrations
+the teacher model. Historical training outputs, demonstrations
 and benchmark logs are listed in the [archive catalog](validation/archive-manifest.json).
 Git history preserves their committed versions. Existing dirty and untracked
 local experiments are preserved separately; they can differ from the cataloged

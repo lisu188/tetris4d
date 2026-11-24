@@ -1,5 +1,7 @@
 # Trained shared-sigmoid checkpoint
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/training.md) contains the commands below.
+
 The previous model was untrained. This is the first actual gameplay-based training pass, not additional compression or a claim that all 73,218 logical connections were trained independently.
 
 ## Use the checkpoint

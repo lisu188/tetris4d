@@ -1,5 +1,7 @@
 # Survival policy experiment
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/survival-longevity.md) contains the commands below.
+
 This experiment trains for successful placements with the existing reward of
 0.001 per placement, gamma 1, and the audited survival PPO trainer. Completed
 selection games determine the best checkpoint. The sigmoid architecture still

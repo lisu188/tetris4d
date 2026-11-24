@@ -1,5 +1,7 @@
 # Survival-first PPO: weight-audit follow-up
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/survival-ppo.md) contains the commands below.
+
 Status: implementation and correctness checks, not a pretrained stronger policy. The committed model tensors, native C engine, rigid shapes, all 16 views, sigmoid architecture, and Unlimited/sustained GUI defaults are unchanged.
 
 ## Run under WSL

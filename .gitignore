@@ -23,6 +23,7 @@ venv/
 /logs/
 /models/*.jsonl
 /models/neural-policy.pt
+/models/neural-rl.pt
 /survival-ppo-inspection-*.pt
 /*.artifacts/
 /experiments/*.tar.gz

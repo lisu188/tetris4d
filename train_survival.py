@@ -252,25 +252,6 @@ def arguments(argv=None):
     return args
 
 
-def main(argv=None):
-    args = arguments(argv)
-    torch.set_num_threads(args.threads)
-    game.configure_backend(args.backend)
-    game.load_checkpoint(args.weights)
-    if args.verify_game:
-        print(json.dumps(base.verify_game(args.verify_game), indent=2))
-        return 0
-    try:
-        with base.run_lock(args.run_dir), base.Budget(args.hours) as budget:
-            SurvivalTrainer(args, budget).run()
-        return 0
-    except KeyboardInterrupt:
-        print('Forced interruption. Resume from the last completed checkpoint.', file=sys.stderr)
-        return 130
-    except (ValueError, OSError, RuntimeError) as error:
-        print(f'Survival training stopped: {error}\nExisting model files and best checkpoint remain unchanged.', file=sys.stderr)
-        return 1
-
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    raise SystemExit('This trainer is retired. Use train_survival_v4.py for new runs, or the original revision to resume an older run.')
