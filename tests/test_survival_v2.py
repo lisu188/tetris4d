@@ -299,6 +299,16 @@ class TrainerTests(RuntimeTests):
         self.assertEqual(before, v2.actor_digest(trainer.model))
         self.assertEqual(trainer.progress['runner_updates'], 0)
 
+    def test_uncapped_training_preserves_calibration_censoring(self):
+        trainer = self.trainer(self.args(calibration_games=1, calibration_validation_games=1,
+                                         allow_uncalibrated=False, pieces=0))
+        with patch.object(v2.base, 'DEFAULT_EPISODE_CAP', 2), contextlib.redirect_stdout(io.StringIO()):
+            self.assertFalse(trainer.calibrate())
+        rows = [json.loads(line) for line in (trainer.root / 'metrics.jsonl').read_text().splitlines()]
+        self.assertEqual([row['pieces'] for row in rows if row['event'] == 'calibration_game'], [2, 2])
+        self.assertEqual(trainer.calibration['censored_games'], 2)
+        self.assertEqual(trainer.calibration['train'], [])
+
     def synthetic_calibration(self, trainer):
         c = trainer.calibration
         c['game_index'] = trainer.args.calibration_games + trainer.args.calibration_validation_games

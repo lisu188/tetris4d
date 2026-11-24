@@ -606,6 +606,7 @@ class SurvivalTrainer(base.Trainer):
             self.emit('calibration_skipped', explicit=True)
             return True
         total = self.args.calibration_games + self.args.calibration_validation_games
+        calibration_cap = self.args.pieces or base.DEFAULT_EPISODE_CAP
         self.model.eval()
         while c['game_index'] < total:
             if self.budget.expired():
@@ -617,7 +618,7 @@ class SurvivalTrainer(base.Trainer):
                 c['pending'] = []
             episode = self.calibration_episode
             prepared = self.prepare_episode(episode)
-            while prepared is not None and episode.state.pieces < self.args.pieces and not self.budget.expired():
+            while prepared is not None and episode.state.pieces < calibration_cap and not self.budget.expired():
                 with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
                     output = self.model(neural.collate([prepared.arrays], self.device))
                     logp = self.policy_logp(output['logits'], torch.ones_like(output['logits'], dtype=torch.bool))
@@ -791,13 +792,13 @@ class SurvivalTrainer(base.Trainer):
                     self.prepared[i] = self.prepare_episode(episode)
                     timings['prepare_seconds'] += time.perf_counter() - started
                     terminal[i] = self.prepared[i] is None
-                    truncated[i] = episode.state.pieces >= self.args.pieces and not terminal[i]
             if self._gpu_prepare_active:
                 started = time.perf_counter()
                 self._prepared_gpu_batch = None
                 self._prepare_all()
                 timings['prepare_seconds'] += time.perf_counter() - started
                 terminal = np.asarray([p is None for p in self.prepared], dtype=np.bool_)
+            if self.args.pieces > 0:
                 truncated = np.asarray([e.state.pieces >= self.args.pieces and not terminal[i]
                                         for i, e in enumerate(self.environments)], dtype=np.bool_)
             capped = np.flatnonzero(truncated).tolist()
