@@ -232,6 +232,29 @@ class RegionalCriticTests(TrainerHarness):
         with self.assertRaisesRegex(ValueError, 'matching policy'):
             self.trainer('--pretrained', str(path), '--preserve-pretrained-critic', '--regional-critic')
 
+    def test_atomic_replacement_keeps_imported_weights_bound_to_recorded_hash(self):
+        model = self.trainer().model
+        path, replacement = self.directory / 'best.pt', self.directory / 'new-best.pt'
+        calibration = {'calibration': {'stage': 'passed', 'done': True}}
+        v4.neural.save_checkpoint(path, model, extra=calibration)
+        original_hash = v4.base.file_hash(path)
+        original_model = v4.v3.model_digest(model)
+        with torch.no_grad():
+            model.value[-1].bias.add_(1)
+        v4.neural.save_checkpoint(replacement, model, extra=calibration)
+        load = v4.neural.load_checkpoint
+
+        def rotate_and_load(stream, device):
+            replacement.replace(path)
+            return load(stream, device)
+
+        with patch.object(v4.neural, 'load_checkpoint', side_effect=rotate_and_load):
+            trainer = self.trainer('--pretrained', str(path), '--preserve-pretrained-critic')
+        self.assertNotEqual(v4.base.file_hash(path), original_hash)
+        self.assertEqual(trainer.signature['pretrained_sha256'], original_hash)
+        self.assertEqual(trainer.imported_checkpoint_sha256, original_hash)
+        self.assertEqual(v4.v3.model_digest(trainer.model), original_model)
+
     def test_regional_statistics_match_python_reference(self):
         from tetris_survival_v4 import regional_statistics
         rng = random.Random(5)

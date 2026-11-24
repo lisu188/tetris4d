@@ -39,10 +39,14 @@ DEFAULT_EPISODE_CAP = 32000
 
 
 def file_hash(path: Path) -> str:
-    digest = hashlib.sha256()
     with Path(path).open('rb') as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b''):
-            digest.update(block)
+        return stream_hash(stream)
+
+
+def stream_hash(stream) -> str:
+    digest = hashlib.sha256()
+    for block in iter(lambda: stream.read(1024 * 1024), b''):
+        digest.update(block)
     return digest.hexdigest()
 
 

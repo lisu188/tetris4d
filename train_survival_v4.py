@@ -152,8 +152,15 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         if self.args.pretrained is None:
             return neural.create_model(config).to(self.device)
         source = Path(self.args.pretrained)
-        loaded, checkpoint = neural.load_checkpoint(source, self.device)
         if self.args.preserve_pretrained_critic:
+            # Saved checkpoints are replaced atomically. Hash and load one open
+            # file so a concurrent replacement cannot change the imported model.
+            with source.open('rb') as stream:
+                imported_hash = base.stream_hash(stream)
+                if imported_hash != self.signature['pretrained_sha256']:
+                    raise ValueError('Pretrained checkpoint changed during initialization')
+                stream.seek(0)
+                loaded, checkpoint = neural.load_checkpoint(stream, self.device)
             extra = checkpoint['extra']
             calibration = extra.get('calibration', {})
             inherited = (calibration.get('stage') == 'explicitly_skipped' and
@@ -161,6 +168,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             if (loaded.config != config or calibration.get('done') is not True or
                     not (calibration.get('stage') == 'passed' or inherited)):
                 raise ValueError('Preserving the critic requires a matching policy and a calibrated V4 checkpoint')
+        else:
+            loaded, checkpoint = neural.load_checkpoint(source, self.device)
         # Screening only changes which placements are offered, never the weights, so a
         # sampled-mode pretrained actor may continue under exhaustive screening. A regional
         # critic changes only the critic input: the actor is copied, the critic starts fresh.
@@ -179,7 +188,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             raise ValueError('Pretrained V4 teacher weights differ from the runtime')
         if not all(bool(torch.isfinite(parameter).all()) for parameter in loaded.state_dict().values()):
             raise ValueError('Pretrained V4 contains non-finite weights')
-        self.imported_checkpoint_sha256 = base.file_hash(source)
+        self.imported_checkpoint_sha256 = (imported_hash if self.args.preserve_pretrained_critic
+                                          else base.file_hash(source))
         return loaded
 
     def prepare_episode(self, episode):
