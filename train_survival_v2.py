@@ -1197,7 +1197,6 @@ def arguments(argv=None):
     options, remaining = extra.parse_known_args(supplied)
     if '-h' in supplied or '--help' in supplied:
         extra.print_help()
-        print('V2: frozen-policy critic calibration, target recovery, teacher-residual policy, real PPO minibatches. Old runs remain separate.')
     args = base.arguments(['--run-dir', str(base.ROOT / 'runs/survival-ppo-v2'), '--rollout', '128', '--warmup-updates', '0'] + remaining)
     for key, value in vars(options).items():
         setattr(args, key, value)
