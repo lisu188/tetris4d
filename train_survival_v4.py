@@ -153,6 +153,14 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return neural.create_model(config).to(self.device)
         source = Path(self.args.pretrained)
         loaded, checkpoint = neural.load_checkpoint(source, self.device)
+        if self.args.preserve_pretrained_critic:
+            extra = checkpoint['extra']
+            calibration = extra.get('calibration', {})
+            inherited = (calibration.get('stage') == 'explicitly_skipped' and
+                         extra.get('signature', {}).get('preserve_pretrained_critic') is True)
+            if (loaded.config != config or calibration.get('done') is not True or
+                    not (calibration.get('stage') == 'passed' or inherited)):
+                raise ValueError('Preserving the critic requires a matching policy and a calibrated V4 checkpoint')
         # Screening only changes which placements are offered, never the weights, so a
         # sampled-mode pretrained actor may continue under exhaustive screening. A regional
         # critic changes only the critic input: the actor is copied, the critic starts fresh.
@@ -477,6 +485,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def training_signature(self):
         signature = super().training_signature()
+        if self.args.preserve_pretrained_critic:
+            signature['preserve_pretrained_critic'] = True
         signature.update(algorithm=ALGORITHM,
                          v4_trainer_sha256=base.file_hash(Path(__file__)),
                          spatial_architecture_sha256=base.file_hash(Path(__file__).with_name('tetris_survival_v4.py')),
@@ -530,6 +540,8 @@ def arguments(argv=None):
     supplied = list(sys.argv[1:] if argv is None else argv)
     extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     extra.add_argument('--pretrained', type=Path)
+    extra.add_argument('--preserve-pretrained-critic', action='store_true',
+                       help='Keep the complete calibrated V4 critic when explicitly skipping calibration')
     extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse', 'teacher-top'), default='teacher-random')
     extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
                        help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
@@ -568,6 +580,9 @@ def arguments(argv=None):
                          # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
                          '--envs', '32', '--rollout', '256', *gpu, *remaining])
     args.pretrained = options.pretrained
+    args.preserve_pretrained_critic = options.preserve_pretrained_critic
+    if args.preserve_pretrained_critic and (args.pretrained is None or args.calibration_games != 0):
+        extra.error('--preserve-pretrained-critic requires --pretrained, --calibration-games 0 and --allow-uncalibrated')
     args.shortlist_mode = options.shortlist_mode
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
     args.adaptive_lr = not options.fixed_lr

@@ -443,8 +443,9 @@ class Trainer:
                 inherited = int(initial_saved['progress'].get('updates', 0))
             else:
                 self.model = self.create_fresh_model()
-            self.model.value[-1].weight.data.zero_()
-            self.model.value[-1].bias.data.zero_()
+            if not getattr(args, 'preserve_pretrained_critic', False):
+                self.model.value[-1].weight.data.zero_()
+                self.model.value[-1].bias.data.zero_()
             self.progress = {'updates': inherited, 'runner_updates': 0, 'warmup_updates': 0,
                              'survival_updates': 0, 'placements': 0, 'clears': 0,
                              'finished_episodes': 0, 'mode': 'overnight-survival'}
