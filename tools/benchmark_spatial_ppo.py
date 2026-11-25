@@ -26,6 +26,24 @@ def fingerprint(values):
     return digest.hexdigest()
 
 
+def validate_preparation(row, envs, steps):
+    """A normal terminal/recovery row can use native preparation within a CUDA batch."""
+    prep = row['gpu_prepare']
+    if row['rollout_placements'] != envs * steps or not prep['enabled'] or prep.get('runtime_fallback'):
+        raise ValueError('Expected a complete rollout on the requested CUDA preparation backend')
+    stats = prep['preparations']
+    batches, environments = stats['batch_calls'], stats['environment_calls']
+    # The initial batch and each committed step prepare all environments. Multiple
+    # episode resets in one step can share one extra preparation before the next draw.
+    ends = row['terminal_transitions'] + row['truncated_transitions']
+    if not steps + 1 <= batches <= steps + 1 + ends or environments != envs * batches:
+        raise ValueError('CUDA preparation counters do not cover the full benchmark rollout')
+    fallbacks = stats['cpu_fallbacks']
+    per_environment = {'buried_target', 'full_target', 'clear_candidate', 'exhaustive_or_recovery'}
+    if (set(fallbacks) - per_environment or sum(fallbacks.values()) >= environments):
+        raise ValueError(f'Benchmark used reference-only preparation: {fallbacks}')
+
+
 def measure(args):
     sys.path.insert(0, str(args.source.resolve()))
     import torch
@@ -45,7 +63,8 @@ def measure(args):
         v4.game.load_checkpoint(options.weights)
         with v4.v2.device_lock(torch.device('cuda')), v4.base.Budget(1) as budget:
             trainer = v4.SurvivalTrainer(options, budget)
-            assert trainer.calibrate()
+            if not trainer.calibrate():
+                raise ValueError('Benchmark initialization failed calibration')
             options.rollout = 4
             trainer.update(trainer.rollout(False), False)
             options.rollout = 256
@@ -57,9 +76,7 @@ def measure(args):
             torch.cuda.synchronize()
             seconds = time.perf_counter() - start
             row = json.loads(trainer.metrics.read_text().splitlines()[-1])
-            prep = row['gpu_prepare']
-            if row['rollout_placements'] != 8192 or not prep['enabled'] or prep.get('runtime_fallback'):
-                raise ValueError('Expected a full 32 x 256 CUDA rollout')
+            validate_preparation(row, options.envs, options.rollout)
             if '--compact-rollout' in VARIANTS[args.variant] and row['rollout_cache'].get('storage') != 'fixed_features':
                 raise ValueError(f"Compact memory path fell back on this device: {row['rollout_cache']}")
             proof = {
@@ -73,7 +90,8 @@ def measure(args):
                 'kl': row['final_exact_kl'], 'stopped': row['kl_early_stop'], 'steps': row['optimizer_steps_this_rollout']}
             result = {'seed': args.seed, 'variant': args.variant, 'seconds': seconds,
                       'placements_per_second': 8192 / seconds, 'proof': proof, 'cache': row['rollout_cache'],
-                      'preparation': prep, 'terminals': row['terminal_transitions'], 'truncations': row['truncated_transitions'],
+                      'preparation': row['gpu_prepare'], 'terminals': row['terminal_transitions'],
+                      'truncations': row['truncated_transitions'],
                       'phases': row['phase_seconds'], 'peak_reserved_mib': row['peak_reserved_mib'],
                       'gpu': row['device'], 'torch': str(torch.__version__), 'cuda': torch.version.cuda,
                       'incumbent': trainer.imported_checkpoint_sha256,
@@ -102,9 +120,11 @@ def compare(args):
             subprocess.run(command, env=env, check=True)
             rows[name] = json.loads(path.read_text())
         for name, row in rows.items():
-            for key in ('seed', 'incumbent', 'gpu', 'torch', 'cuda'):
+            for key in ('seed', 'incumbent', 'gpu', 'torch', 'cuda', 'terminals', 'truncations'):
                 if row[key] != rows['reference'][key]:
                     raise ValueError(f'Benchmark inputs differ for {name}: {key}')
+            if row['preparation']['preparations'] != rows['reference']['preparation']['preparations']:
+                raise ValueError(f'Pair {pair+1} {name} preparation coverage differs from the reference')
             if row['proof'] != rows['reference']['proof']:
                 differences = [key for key in row['proof'] if row['proof'][key] != rows['reference']['proof'][key]]
                 raise ValueError(f'Pair {pair+1} {name} parity differs for {differences}')
@@ -130,6 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--source', type=Path, default=ROOT)
     args = parser.parse_args()
     if args.variant:
+        os.environ['TETRIS4D_GAME_LIBRARY'] = 'off'
         measure(args)
     else:
         compare(args)

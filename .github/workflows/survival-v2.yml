@@ -35,6 +35,7 @@ jobs:
       - run: python -B tests/test_exhaustive_screening.py
       - run: python -B tests/test_v4_improvements.py
       - run: python -B -m unittest discover -s tests -p test_spatial_curriculum.py
+      - run: python -B -m unittest discover -s tests -p test_spatial_ppo_benchmark.py
       - run: python -B tests/test_survival_v5.py
       - run: python -B tests/test_afterstate_td_model.py
       - run: python -B tests/test_evaluate_afterstate_td.py
