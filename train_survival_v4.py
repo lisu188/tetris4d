@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import argparse
 import copy
+import json
 import random
 from dataclasses import asdict, replace
 from pathlib import Path
 import sys
 import time
 
-import numpy as np
 import torch
 
 import train_survival_v3 as v3
@@ -49,6 +49,54 @@ def library_start_state(game_id, offset, root=None):
     raise ValueError(f'Game {game_id} has no placement {offset}')
 
 
+def replay_danger_positions(entry, wanted, root):
+    library = base.library
+    record = library.load(root / entry['file'])
+    meta = record.meta
+    identity = library.GameLibrary.game_id(meta['pieces_sha256'], meta['seed'], meta['piece_set'], record.moves)
+    if identity != entry['id'] or meta['seed'] != entry['seed'] or meta['piece_set'] != entry['piece_set']:
+        raise ValueError(f"Recorded game differs from its index entry {entry['id']}")
+    total = len(record.moves)
+    wanted = set(wanted)
+    found = {}
+    for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
+        if index in wanted:
+            snapshot = copy.deepcopy(state)
+            snapshot._library_log = None
+            library.ignore(snapshot)
+            found[index] = {'kind': 'library', 'game_id': entry['id'], 'offset': index,
+                            'remaining_recorded': total - index, 'state': snapshot, 'target': int(row[6])}
+            if len(found) == len(wanted):
+                return found
+    raise ValueError(f"Recorded game {entry['id']} lacks requested danger positions")
+
+
+def saved_danger_pool(run_dir):
+    # The checkpoint signature is verified again by the base trainer. Its small
+    # manifest normally lets us read the immutable IDs without loading weights twice.
+    last = run_dir / 'last.pt'
+    if not last.is_file():
+        return None
+    manifest = run_dir / 'manifest.json'
+    if manifest.is_file():
+        pairs = json.loads(manifest.read_text())['source_sha256']['danger_pool']
+    else:
+        pairs = torch.load(last, map_location='cpu', weights_only=True)['extra']['signature']['danger_pool']
+    if not pairs:
+        return []
+    root = library_root()
+    entries = {entry['id']: entry for entry in base.library.iter_index(root)}
+    wanted = {}
+    for game_id, offset in pairs:
+        wanted.setdefault(game_id, []).append(offset)
+    restored = {}
+    for game_id, offsets in wanted.items():
+        if game_id not in entries:
+            raise ValueError(f'Checkpoint danger game {game_id} is missing from the library')
+        restored[game_id] = replay_danger_positions(entries[game_id], offsets, root)
+    return [restored[game_id][offset] for game_id, offset in pairs]
+
+
 def build_danger_pool(args, root=None, *, exclude_game_ids=(), exclude_seeds=()):
     """Snapshots shortly before recorded top-outs (issue #32). Each game is replayed once;
     several offsets per game are captured, so the pool costs ~1 ms per replayed placement."""
@@ -63,24 +111,27 @@ def build_danger_pool(args, root=None, *, exclude_game_ids=(), exclude_seeds=())
     entries.sort(key=lambda e: e['id'])
     rng.shuffle(entries)
     pool = []
+    distinct = getattr(args, 'distinct_danger_seeds', False)
+    used_seeds = set()
     for entry in entries:
         if len(pool) >= args.danger_pool:
             break
+        if distinct and (entry.get('phase') != 'training' or entry['seed'] in used_seeds):
+            continue
         try:
-            record = library.load(root / entry['file'])
-            total = len(record.moves)
-            wanted = sorted({total - rng.randint(low, high) for _ in range(args.danger_per_game)})
-            for index, (state, _move, row) in enumerate(library.replay(record, verify=False)):
-                if index in wanted:
-                    snapshot = copy.deepcopy(state)
-                    snapshot._library_log = None
-                    library.ignore(snapshot)
-                    pool.append({'kind': 'library', 'game_id': entry['id'], 'offset': index,
-                                 'remaining_recorded': total - index, 'state': snapshot, 'target': int(row[6])})
-                if index >= wanted[-1]:
-                    break
+            total = entry['placements']
+            if distinct:
+                count = min(args.danger_per_game, args.danger_pool - len(pool))
+                wanted = sorted(total - distance for distance in rng.sample(range(low, high + 1), count))
+            else:
+                wanted = sorted({total - rng.randint(low, high) for _ in range(args.danger_per_game)})
+            found = replay_danger_positions(entry, wanted, root)
+            pool.extend(found[offset] for offset in wanted)
+            used_seeds.add(entry['seed'])
         except ValueError:
             continue  # recorded on a different engine/piece catalogue
+    if distinct and len(pool) < args.danger_pool:
+        raise ValueError('Insufficient distinct training seeds to fill the requested danger pool')
     return pool[:args.danger_pool]
 
 
@@ -96,7 +147,9 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         self.danger_pool, self._danger_starts = [], {}
         self._danger_rng = random.Random(args.seed + 3200)
         if getattr(args, 'danger_starts', 0) > 0:
-            self.danger_pool = build_danger_pool(args)
+            self.danger_pool = saved_danger_pool(args.run_dir)
+            if self.danger_pool is None:
+                self.danger_pool = build_danger_pool(args, exclude_seeds=args.selection_seeds)
             if not self.danger_pool:
                 raise ValueError('--danger-starts needs recorded top-out games in the game library')
         cache = {(p['game_id'], p['offset']): p for p in self.danger_pool}
@@ -112,12 +165,27 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         base.START_BUILDERS['library'] = rebuild
         super().__init__(args, budget)
 
+    def _next_danger_start(self):
+        if self.danger_pool and self._danger_rng.random() < self.args.danger_starts:
+            return self.danger_pool[self._danger_rng.randrange(len(self.danger_pool))]
+        return None
+
+    def restore_extra(self, saved):
+        super().restore_extra(saved)
+        if 'danger_rng' in saved['extra']:
+            self._danger_rng.setstate(saved['extra']['danger_rng'])
+        elif self.danger_pool:
+            # Older checkpoints omit this private stream. Advance it to the
+            # uninterrupted schedule for all episode IDs already allocated.
+            for _ in range(self.next_episode):
+                self._next_danger_start()
+
     def new_episode(self):
-        if not self.danger_pool or self._danger_rng.random() >= self.args.danger_starts:
+        chosen = self._next_danger_start()
+        if chosen is None:
             return super().new_episode()
         number = self.next_episode
         self.next_episode += 1
-        chosen = self.danger_pool[self._danger_rng.randrange(len(self.danger_pool))]
         state = copy.deepcopy(chosen['state'])
         base.library.ignore(state)
         start = {k: chosen[k] for k in ('kind', 'game_id', 'offset', 'remaining_recorded')}
@@ -192,6 +260,11 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                                           else base.file_hash(source))
         return loaded
 
+    def _new_gpu_preparer(self):
+        from tetris_gpu_simulation import GpuPreparer
+        options = {'group_exhaustive': True} if getattr(self.args, 'group_exhaustive', False) else {}
+        return GpuPreparer(self.model.config, self.device, **options)
+
     def prepare_episode(self, episode):
         """Calibration and selection games prepare single states on CUDA when enabled.
 
@@ -207,8 +280,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return super().prepare_episode(episode)
         try:
             if getattr(self, '_gpu_preparer', None) is None:
-                from tetris_gpu_simulation import GpuPreparer
-                self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+                self._gpu_preparer = self._new_gpu_preparer()
             result = self._gpu_preparer.prepare_batch([episode.state], [episode.target])
         except torch.OutOfMemoryError:
             torch.cuda.empty_cache()
@@ -234,8 +306,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             return
         if getattr(self, '_overlap_preparer', None) is None:
             from concurrent.futures import ThreadPoolExecutor
-            from tetris_gpu_simulation import GpuPreparer
-            self._overlap_preparer = GpuPreparer(self.model.config, self.device)
+            self._overlap_preparer = self._new_gpu_preparer()
             self._overlap_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='v4-prepare')
         states = [e.state for e in self.environments[:split]]
         targets = [e.target for e in self.environments[:split]]
@@ -250,10 +321,10 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         if not self._gpu_prepare_active or self._prepared_gpu_batch is not None:
             future.exception()  # drain; the full preparation below supersedes it
             return super()._prepare_all()
-        from tetris_gpu_simulation import GpuPreparer, merge_prepared_batches
+        from tetris_gpu_simulation import merge_prepared_batches
         try:
             if getattr(self, '_gpu_preparer', None) is None:
-                self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+                self._gpu_preparer = self._new_gpu_preparer()
             second = self._gpu_preparer.prepare_batch([e.state for e in self.environments[split:]],
                                                       [e.target for e in self.environments[split:]])
             first = future.result()
@@ -276,11 +347,10 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def _selection_preparer(self):
         if getattr(self, '_gpu_preparer', None) is None:
-            from tetris_gpu_simulation import GpuPreparer
-            self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+            self._gpu_preparer = self._new_gpu_preparer()
         return self._gpu_preparer
 
-    def lockstep_games(self, phase, choose, on_step=None):
+    def lockstep_games(self, phase, choose, on_step=None, *, greedy=False):
         """Play every selection seed at once: one batched CUDA preparation and one
         forward pass per step (issue #36). `choose(seed_indices, logits, logp)`
         returns one action per live row. Returns (episodes, reasons, seconds)."""
@@ -309,11 +379,15 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                     live.append(i)
             if live:
                 rows = [active[local] for local in result.environment_indices]
-                prediction = self.model(result.batch)
-                logp = self.policy_logp(prediction['logits'], result.batch['valid'])
-                if on_step is not None:
-                    on_step(rows, episodes, prediction)
-                actions = choose(rows, prediction['logits'], logp, episodes, result)
+                if greedy and on_step is None:
+                    logits = self.model.actor_logits(result.batch)
+                    actions = logits.argmax(-1)
+                else:
+                    prediction = self.model(result.batch)
+                    logp = self.policy_logp(prediction['logits'], result.batch['valid'])
+                    if on_step is not None:
+                        on_step(rows, episodes, prediction)
+                    actions = choose(rows, prediction['logits'], logp, episodes, result)
                 for i, candidate in zip(rows, result.selected_candidates(actions)):
                     base.apply_move(episodes[i], candidate, self.progress['updates'], phase_behaviour(phase))
             active = []
@@ -331,7 +405,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         recoveries = self.progress['target_recoveries']
         with base.preserve_rng(), torch.inference_mode():
             episodes, reasons, seconds = self.lockstep_games(
-                f'selection-{policy}', lambda rows, logits, logp, *_: logits.argmax(-1))
+                f'selection-{policy}', None, greedy=True)
         runs = []
         for episode, reason in zip(episodes, reasons):
             episode.stop_reason, episode.complete = reason, reason in ('top_out', 'planner_blocked', 'piece_limit')
@@ -359,7 +433,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         def record(rows, episodes, prediction):
             for row, i in enumerate(rows):
                 pieces = episodes[i].state.pieces
-                if pieces % 128 == 0 and len(samples[i]) < 256:
+                if pieces % v3.CRITIC_SAMPLE_STRIDE == 0:
                     samples[i].append((pieces, float(prediction['value'][row])))
 
         def sample(rows, logits, logp, *_):
@@ -372,12 +446,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         for i, (episode, reason) in enumerate(zip(episodes, reasons)):
             terminated = reason in ('top_out', 'planner_blocked')
             base.library.finish(episode.state, reason)
-            diagnostics = None
-            if terminated and samples[i]:
-                targets = np.asarray([(episode.state.pieces - piece) * base.REWARD_SCALE for piece, _ in samples[i]])
-                predicted = np.asarray([value for _, value in samples[i]])
-                diagnostics = v2.regression_metrics(predicted, targets)
-                diagnostics['mean_signed_error_pieces'] = float((predicted - targets).mean() * 1000)
+            diagnostics = v3.realized_critic_errors(samples[i], episode.state.pieces) if terminated else None
             report = {**episode.state.summary(), 'policy': 'sampled_neural', 'mode': 'sampled',
                       'action_seed': 2701 + seeds[i], 'stop_reason': reason,
                       'evaluation_complete': terminated or reason == 'piece_limit',
@@ -391,6 +460,9 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
                 'note': 'Frozen sampled-policy diagnostics; protected best is selected by separate greedy games.',
                 'lockstep': True}
+
+    def selection_ready(self):
+        return not self.args.defer_selection and super().selection_ready()
 
     def select(self):
         if self.selection_ready() and not self.budget.expired():
@@ -495,6 +567,13 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def training_signature(self):
         signature = super().training_signature()
+        if self.args.danger_starts:
+            signature.update(danger_pool_size=self.args.danger_pool, danger_per_game=self.args.danger_per_game,
+                             distinct_danger_seeds=self.args.distinct_danger_seeds)
+        if self.args.defer_selection:
+            signature['defer_selection'] = True
+        if getattr(self.args, 'group_exhaustive', False):
+            signature['group_exhaustive'] = True
         if self.args.preserve_pretrained_critic:
             signature['preserve_pretrained_critic'] = True
         signature.update(algorithm=ALGORITHM,
@@ -519,7 +598,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def checkpoint_metadata(self):
         values = super().checkpoint_metadata()
-        values.update(algorithm=self.algorithm, architecture=self.architecture,
+        values.update(algorithm=self.algorithm, architecture=self.architecture, danger_rng=self._danger_rng.getstate(),
                       fresh_random_trainable_weights=self.args.pretrained is None,
                       imported_pretrained_sha256=self.signature.get('pretrained_sha256'),
                       value_semantics='expected_current_policy_remaining_placements_times_0.001',
@@ -563,6 +642,10 @@ def arguments(argv=None):
     extra.add_argument('--danger-window', type=int, nargs=2, default=(500, 3000), metavar=('MIN', 'MAX'),
                        help='Start this many placements before the recorded top-out')
     extra.add_argument('--danger-pool', type=int, default=32, help='Number of distinct start states')
+    extra.add_argument('--distinct-danger-seeds', action='store_true',
+                       help='Fill the pool from distinct source seeds in completed training games')
+    extra.add_argument('--group-exhaustive', action='store_true',
+                       help='Group exhaustive CUDA preparation by per-piece candidate count')
     extra.add_argument('--danger-per-game', type=int, default=4, help='Start states taken from each replayed game')
     extra.add_argument('--afterstate-selection', action='store_true',
                        help='Also report afterstate-ranked selection games after each selection (issue #37)')
@@ -571,6 +654,8 @@ def arguments(argv=None):
     extra.add_argument('--overlap-prepare', action='store_true',
                        help='Overlap CPU move commits with CUDA preparation of the other half (issue #34). '
                             'Identical results; measured ~+1%% on an idle RTX 4060 Ti, so off by default')
+    extra.add_argument('--defer-selection', action='store_true',
+                       help='Train to the requested budget and evaluate frozen checkpoints separately')
     extra.add_argument('--sequential-selection', action='store_true',
                        help='Play selection games one at a time instead of in lockstep on CUDA (issue #36)')
     extra.add_argument('--fixed-lr', action='store_true',
@@ -591,6 +676,9 @@ def arguments(argv=None):
                          # 32 x 256 = 8,192 placements per update. Measured (exhaustive, shared GPU):
                          # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
                          '--envs', '32', '--rollout', '256', *gpu, *remaining])
+    args.defer_selection = options.defer_selection
+    args.group_exhaustive = options.group_exhaustive
+    args.distinct_danger_seeds = options.distinct_danger_seeds
     args.pretrained = options.pretrained
     args.preserve_pretrained_critic = options.preserve_pretrained_critic
     if args.preserve_pretrained_critic and (args.pretrained is None or args.calibration_games != 0):
@@ -609,6 +697,9 @@ def arguments(argv=None):
     if not 0 <= args.danger_starts < 1 or not 0 < args.danger_window[0] <= args.danger_window[1] \
             or min(args.danger_pool, args.danger_per_game) < 1:
         raise ValueError('--danger-starts must be in [0, 1) with a positive MIN <= MAX window')
+    available_offsets = args.danger_window[1] - args.danger_window[0] + 1
+    if args.distinct_danger_seeds and min(args.danger_pool, args.danger_per_game) > available_offsets:
+        raise ValueError('Danger window is too small for distinct offsets in each source game')
     args.adaptive_kl_target = options.adaptive_kl_target if options.adaptive_kl_target is not None else args.target_kl / 2
     args.adaptive_lr_range = options.adaptive_lr_range
     if args.adaptive_kl_target <= 0 or args.adaptive_kl_target > args.target_kl or args.adaptive_lr_range < 1:

@@ -18,6 +18,27 @@ base, neural, game = v2.base, v2.neural, v2.game
 ALGORITHM = 'survival-ppo-v3'
 
 
+CRITIC_SAMPLE_STRIDE = 128
+
+
+def realized_critic_errors(samples, final_pieces):
+    """Per-game residuals against realized survival, including late-game predictions."""
+    if not samples:
+        return None
+    distance = np.asarray([final_pieces - piece for piece, _ in samples])
+    predicted = np.asarray([value for _, value in samples])
+    targets = distance * base.REWARD_SCALE
+    result = v2.regression_metrics(predicted, targets)
+    errors = (predicted - targets) / base.REWARD_SCALE
+    result['mean_signed_error_pieces'] = float(errors.mean())
+    result['by_remaining_placements'] = {}
+    for label, mask in (('1-256', distance <= 256), ('257-2048', (distance > 256) & (distance <= 2048)),
+                        ('2049+', distance > 2048)):
+        result['by_remaining_placements'][label] = {
+            'samples': int(mask.sum()), 'mae_pieces': float(np.abs(errors[mask]).mean()) if mask.any() else None}
+    return result
+
+
 def model_digest(model):
     digest = hashlib.sha256()
     for name, value in sorted(model.state_dict().items()):
@@ -129,18 +150,13 @@ class SurvivalTrainer(v2.SurvivalTrainer):
                     batch = neural.collate([prepared.arrays], self.device)
                     prediction = self.model(batch)
                     logp = self.policy_logp(prediction['logits'], batch['valid'])
-                    if episode.state.pieces % 128 == 0 and len(samples) < 256:
+                    if episode.state.pieces % CRITIC_SAMPLE_STRIDE == 0:
                         samples.append((episode.state.pieces, float(prediction['value'][0])))
                     action = int(torch.multinomial(logp.exp(), 1, generator=generator).item())
                     base.apply_move(episode, prepared.options[action], self.progress['updates'], 'frozen_sampled_neural')
                 terminated = reason in ('top_out', 'planner_blocked')
                 base.library.finish(episode.state, reason)
-                diagnostics = None
-                if terminated and samples:
-                    targets = np.asarray([(episode.state.pieces - piece) * base.REWARD_SCALE for piece, _ in samples])
-                    predicted = np.asarray([value for _, value in samples])
-                    diagnostics = v2.regression_metrics(predicted, targets)
-                    diagnostics['mean_signed_error_pieces'] = float((predicted - targets).mean() * 1000)
+                diagnostics = realized_critic_errors(samples, episode.state.pieces) if terminated else None
                 report = {**episode.state.summary(), 'policy': 'sampled_neural', 'mode': 'sampled',
                           'action_seed': 2701 + seed, 'stop_reason': reason,
                           'evaluation_complete': terminated or reason == 'piece_limit',
@@ -161,7 +177,7 @@ class SurvivalTrainer(v2.SurvivalTrainer):
         self.save('started')
         if not self.calibrate():
             return self.save(self.budget.reason or 'calibration_incomplete')
-        if self.best_record is None and not self.budget.expired():
+        if self.best_record is None and self.selection_ready() and not self.budget.expired():
             self.save('initial_policy_calibrated')
             self.select()
         return base.Trainer.run(self)

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
@@ -48,14 +49,22 @@ int t4_validate_shapes(const int32_t *shapes, int count) {
     return 0;
 }
 
-int t4_features(const uint16_t *board, int32_t *heights, int32_t *counts, int32_t *totals) {
+static int board_features(const uint16_t *board, int32_t *heights, int32_t *counts, int32_t *totals,
+                          int32_t *height_differences) {
     if (!board || !heights || !counts || !totals) return -1;
     memset(counts, 0, 16 * sizeof(*counts));
+    if (height_differences) memset(height_differences, 0, (HEIGHT+1) * sizeof(*height_differences));
     int height_sum = 0, mass = 0;
     for (int i = 0; i < AREA; ++i) {
         unsigned m = board[i];
         int h = m ? 32 - __builtin_clz(m) : 0;
         heights[i] = h;
+        if (height_differences) {
+            /* Count each undirected X, Y and W edge once, after its other endpoint is ready. */
+            if (i & 15) height_differences[abs(h-heights[i-1])]++;
+            if (i & 240) height_differences[abs(h-heights[i-16])]++;
+            if (i >= 256) height_differences[abs(h-heights[i-256])]++;
+        }
         height_sum += h;
         unsigned v = m - ((m >> 1) & 0x5555u);
         v = (v & 0x3333u) + ((v >> 2) & 0x3333u);
@@ -69,6 +78,16 @@ int t4_features(const uint16_t *board, int32_t *heights, int32_t *counts, int32_
     totals[0] = height_sum;
     totals[1] = height_sum - mass;
     return 0;
+}
+
+int t4_features(const uint16_t *board, int32_t *heights, int32_t *counts, int32_t *totals) {
+    return board_features(board, heights, counts, totals, NULL);
+}
+
+int t4_board_features(const uint16_t *board, int32_t *heights, int32_t *counts, int32_t *totals,
+                      int32_t *height_differences) {
+    if (!height_differences) return -1;
+    return board_features(board, heights, counts, totals, height_differences);
 }
 
 int t4_buried(const uint16_t *board, int target) {

@@ -37,6 +37,35 @@ class SamplingContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requires CUDA"):
             gpu.GpuPreparer(device="cpu")
 
+    def test_merge_interleaved_and_empty_groups_with_ragged_shortlists(self):
+        def batch(indices, counts):
+            live = tuple(i for i, count in enumerate(counts) if count)
+            width = max(counts)
+            rows = torch.tensor([indices[i] for i in live], dtype=torch.int64)
+            valid = torch.arange(width)[None, :] < torch.tensor([counts[i] for i in live])[:, None]
+            scores = (rows[:, None] * 10 + torch.arange(width)).masked_fill(~valid, 0)
+            specs = torch.zeros((len(live), width, 6), dtype=torch.int32)
+            prepared = tuple(env if count else None for env, count in zip(indices, counts))
+            return indices, gpu.DevicePreparedBatch(
+                prepared, live, {"valid": valid, "targets": rows} if live else {}, rows,
+                tuple(str(i) for i in indices), tuple(indices), specs, scores)
+
+        groups = [batch([0, 3], [0, 0]), batch([1, 4], [2, 1]), batch([2], [3])]
+        merged = gpu._merge_prepared_groups(groups)
+        self.assertEqual(merged.prepared, (None, 1, 2, None, 4))
+        self.assertEqual(merged.environment_indices, (1, 2, 4))
+        self.assertEqual(merged.cpu_fallbacks, tuple(map(str, range(5))))
+        self.assertEqual(merged.targets, tuple(range(5)))
+        self.assertEqual(merged.teachers.tolist(), [1, 2, 4])
+        self.assertEqual(merged.batch["targets"].tolist(), [1, 2, 4])
+        self.assertEqual(merged.batch["valid"].sum(1).tolist(), [2, 3, 1])
+        self.assertEqual(merged._option_scores.tolist(), [[10, 11, 0], [20, 21, 22], [40, 0, 0]])
+        one = gpu._merge_prepared_groups([batch([0, 2], [0, 0]), batch([1, 3], [2, 1])])
+        self.assertEqual(one.environment_indices, (1, 3))
+        self.assertEqual(one.batch["targets"].tolist(), [1, 3])
+        empty = gpu._merge_prepared_groups([batch([0, 2], [0, 0]), batch([1], [0])])
+        self.assertEqual((empty.prepared, empty.environment_indices, empty.batch), ((None,) * 3, (), {}))
+
     def test_oversized_config_defers_device_tables(self):
         game.configure_backend("native")
         before = torch.cuda.is_initialized()
@@ -135,6 +164,41 @@ class CudaPreparationContractTests(unittest.TestCase):
         for state, piece in zip(states, game.PIECE_NAMES):
             state.current = piece
         self.compare(states, [1] * len(states), config)
+
+    def test_grouped_exhaustive_matches_dense_through_recovery_clears_and_terminal(self):
+        pieces = ["FORK", "I", "L", "HYPER", "CROSS", "I", "HOOK"]
+        states = [game.Game(9500 + i, "expanded") for i in range(len(pieces))]
+        for state, piece in zip(states, pieces):
+            state.current = piece
+        states[1].board = (0,) + (3,) * 4095      # vertical I clears two layers
+        states[3].board = (65535,) * 4096          # no live row in the inference batch
+        states[4].board = (0,) + (2,) * 4095       # preferred target is buried
+        states[5].board = (0,) + (65535,) * 4095   # only the I fitting the shaft is legal
+        targets = [1, 1, 1, 15, 0, 15, 1]
+        config = neural.Config(architecture="survival-spatial-v4", spatial_actor=True,
+                               recover_target=True, shortlist=17, screening="exhaustive")
+        preparer = gpu.GpuPreparer(config)
+        expected = preparer.prepare_batch(states, targets)
+        preparer.group_exhaustive = True
+        actual = preparer.prepare_batch(states, targets)
+        self.assertIsNone(actual.prepared[3])
+        self.assertNotEqual(actual.targets[4], targets[4])
+        self.assertLess(actual.candidate_counts[5], config.shortlist)
+        self.assertTrue(any(c.layers == 2 for c in actual.prepared[1].options))
+        for key in ("environment_indices", "targets", "cpu_fallbacks", "evaluations", "fallback", "candidate_counts"):
+            self.assertEqual(getattr(expected, key), getattr(actual, key), key)
+        self.assertTrue(torch.equal(actual.teachers, expected.teachers))
+        self.assertEqual(actual.batch.keys(), expected.batch.keys())
+        for key in actual.batch:
+            self.assertTrue(torch.equal(actual.batch[key], expected.batch[key]), key)
+        valid = expected.batch["valid"]
+        for key in ("_option_specs", "_option_scores"):
+            self.assertTrue(torch.equal(getattr(actual, key)[valid], getattr(expected, key)[valid]), key)
+        self.assertEqual(actual.selected_candidates(actual.teachers), expected.selected_candidates(expected.teachers))
+        preparer.prepare_batch(states[1:3], targets[1:3])
+        for row in actual.environment_indices:
+            for key in actual.records[row]:
+                self.assertTrue(torch.equal(actual.records[row][key], expected.records[row][key]), key)
 
     def test_layer_clears_scored_on_device_in_both_modes(self):
         states = [game.Game(9400 + i, "expanded") for i in range(3)]

@@ -290,12 +290,15 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         self.value = nn.Sequential(nn.LayerNorm(state_width), nn.Linear(state_width, 128), nn.SiLU(),
                                    nn.Linear(128, 64), nn.SiLU(), nn.Linear(64, 1))
 
-    def encode(self, boards, targets, context):
+    def _board_features(self, boards, targets):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
         parts = [spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4)), adjacency_statistics(boards, targets).mean(dim=1)]
         if self.config.regional_critic:
             parts.append(regional_statistics(boards).to(parts[0].dtype))
-        pooled = torch.cat(parts, dim=1)
+        return spatial, torch.cat(parts, dim=1)
+
+    def encode(self, boards, targets, context):
+        spatial, pooled = self._board_features(boards, targets)
         joined = torch.cat((pooled, context), dim=1)
         value = self.critic(joined)
         return spatial, pooled, value, value.new_empty((len(value), 0)), spatial
@@ -303,45 +306,76 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
     def rank_chunk(self, spatial, pooled, context, features, indices, column_mask,
                    spatial_delta, state_hidden=None):
         local = self.local_statistics(spatial, indices, column_mask)
+        if state_hidden is None:
+            state_hidden = self.actor_state(torch.cat((pooled[:, :2 * neural.CHANNELS], context), dim=1))
+        return self._rank_local(features, local, spatial_delta, state_hidden)
+
+    def _rank_local(self, features, local, spatial_delta, state_hidden):
         candidates = self.candidate(torch.cat((features, local), dim=-1))
         if self.config.spatial_actor:
             candidates = candidates + self.spatial_actor(spatial_delta * SPATIAL_DELTA_SCALE)
-        if state_hidden is None:
-            state_hidden = self.actor_state(torch.cat((pooled[:, :2 * neural.CHANNELS], context), dim=1))
         state = state_hidden[:, None].expand(-1, features.shape[1], -1)
         hidden = F.silu(self.rank1(torch.cat((state, candidates), dim=-1)))
         return self.rank_out(hidden).squeeze(-1), candidates, hidden
 
-    def _rank_candidates(self, batch, spatial, pooled, keep_hidden):
+    @staticmethod
+    def _validated_columns(batch):
         valid = batch['valid'].bool()
         column_mask = batch['column_mask'].bool() & valid[..., None]
         if not bool(valid.any(-1).all() & ((~valid) | column_mask.any(-1)).all()):
             raise ValueError('Every state needs a valid candidate with an affected column')
         if 'spatial_delta' not in batch or batch['spatial_delta'].shape[:2] != valid.shape:
             raise ValueError('V4 requires candidate afterstate spatial descriptors')
+        return column_mask
+
+    @torch.no_grad()
+    def fixed_inputs(self, batch):
+        """Detach only board/column statistics; every trainable layer still runs on each PPO pass."""
+        columns = self._validated_columns(batch)
+        spatial, pooled = self._board_features(batch['boards'], batch['targets'])
+        local = []
+        for start in range(0, columns.shape[1], self.config.chunk):
+            stop = start + self.config.chunk
+            local.append(self.local_statistics(spatial, batch['indices'][:, start:stop], columns[:, start:stop]))
+        fixed = {name: batch[name] for name in ('context', 'features', 'valid', 'spatial_delta', 'teacher_prior')
+                 if name in batch}
+        return {**fixed, 'pooled': pooled, 'local': local[0] if len(local) == 1 else torch.cat(local, 1)}
+
+    def _rank_candidates(self, batch, spatial, pooled, keep_hidden):
+        valid = batch['valid'].bool()
+        fixed = batch.get('local')
+        columns = self._validated_columns(batch) if fixed is None else None
         state_hidden = self.actor_state(torch.cat((pooled[:, :2 * neural.CHANNELS], batch['context']), dim=1))
         features = batch['features'].masked_fill(~valid[..., None], 0.)
         impacts = batch['spatial_delta'].masked_fill(~valid[..., None], 0.)
         scores, hidden = [], []
         for start in range(0, features.shape[1], self.config.chunk):
             stop = start + self.config.chunk
-            raw, _, h = self.rank_chunk(spatial, pooled, batch['context'], features[:, start:stop],
-                                        batch['indices'][:, start:stop], column_mask[:, start:stop],
-                                        impacts[:, start:stop], state_hidden)
+            local = (fixed[:, start:stop] if fixed is not None else
+                     self.local_statistics(spatial, batch['indices'][:, start:stop], columns[:, start:stop]))
+            raw, _, h = self._rank_local(features[:, start:stop], local, impacts[:, start:stop], state_hidden)
             scores.append(raw)
             if keep_hidden:
                 hidden.append(h)
         return torch.cat(scores, 1), torch.cat(hidden, 1) if keep_hidden else None
 
-    def raw_scores(self, batch):
-        spatial, pooled, value, completion, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
-        raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden=True)
+    def raw_scores(self, batch, *, keep_hidden=True):
+        if 'pooled' in batch:
+            spatial, pooled = None, batch['pooled']
+            value = self.critic(torch.cat((pooled, batch['context']), dim=1))
+            completion = value.new_empty((len(value), 0))
+        else:
+            spatial, pooled, value, completion, _ = self.encode(batch['boards'], batch['targets'], batch['context'])
+        raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden)
         return raw, hidden, pooled, value, completion
 
     def actor_logits(self, batch):
         """Rank candidates without computing the regional critic or retaining hidden activations."""
-        spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
-        pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
+        if 'pooled' in batch:
+            spatial, pooled = None, batch['pooled']
+        else:
+            spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
+            pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
         raw, _ = self._rank_candidates(batch, spatial, pooled, keep_hidden=False)
         return self._policy_logits(raw, batch)
 
@@ -359,7 +393,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
     def forward(self, batch, capture=False):
         if capture:
             raise NotImplementedError('V4 uses feature diagnostics rather than legacy CNN activations')
-        raw, _, pooled, value, completion = self.raw_scores(batch)
+        raw, _, pooled, value, completion = self.raw_scores(batch, keep_hidden=False)
         logits = self._policy_logits(raw, batch)
         return {'logits': logits, 'raw_logits': raw, 'value': value, 'completion': completion,
                 'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
