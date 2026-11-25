@@ -1,69 +1,50 @@
-# Survival PPO workflow
+# Spatial V4 PPO workflow
 
-`train_survival_v2.py` is the supported policy-training entrypoint. It optimizes
-successful placements before loss with reward 0.001 per placement and gamma 1.
-The architecture uses sigmoid activations and has 62,485 parameters at width 32
-with three encoder blocks. Completed selection games choose `best.pt`; optimizer
-progress or loss curves alone do not establish improved survival.
+`train_survival_v4.py` maximizes successful placements before loss with a reward
+of 0.001 per placement and gamma 1. The current model uses a spatial actor and a
+regional critic with 102,830 parameters. Completed greedy selection games choose
+`best.pt`. A separate paired evaluation compares the selected model with the
+frozen incumbent.
 
-## Inputs and compatibility
+## Inputs
 
-The small bundled `models/neural-rl.pt` checkpoint provides initial actor weights.
-Those weights originated in an earlier A2C clear-reward run. They are legitimate
-PPO initialization; PPO does not require actor weights trained with PPO. Importing
-them does not make that file a PPO-trained result. A new survival run reinitializes
-and calibrates its critic because expected remaining placements and discounted
-clears use different units.
-
-The trainer uses `models/trained-sigmoid.json` to construct candidate teacher
-features and priors. It imports the model and candidate code in `tetris_neural.py`,
-shared run/checkpoint/replay infrastructure in `train_overnight.py`, and PPO loss
-helpers in `train_survival.py`. These source modules remain necessary runtime
-dependencies. Their compatibility tests remain part of validation. Older training
-documents remain historical implementation references; the active workflow is PPO.
-
-Keep the imported checkpoint immutable and retain its SHA256. A stronger frozen
-incumbent from a completed comparison can replace the bootstrap path below.
-Changing policy mode or prior scale changes behavior even if every imported actor
-tensor is preserved; measure the converted policy separately.
+`models/trained-sigmoid.json` supplies candidate features and teacher logits.
+The learned checkpoint is a separate file. Use a calibrated Spatial V4
+checkpoint with the same screening, shortlist, policy mode, prior scale, target
+recovery and critic layout as the new run. Preserve its SHA-256 with the results.
+For a first checkpoint, see [V4 pretraining and calibration](survival-v4.md).
 
 ## Eight-hour experiment
 
 Install the neural requirements and build the native scorer as described in the
-[README](../README.md). CUDA is optional; use `--device cpu` for a CPU run. Begin
-in a new directory with enough free space for checkpoints, metrics and recordings.
+[README](../README.md). Begin in a new run directory. Use the recorded checkpoint
+configuration and fresh training and selection seed ranges. The command below
+uses the regional exhaustive teacher-prior configuration.
 
 ```bash
-.venv/bin/python -u train_survival_v2.py \
-  --hours 8 --run-dir runs/survival-longevity \
-  --checkpoint models/neural-rl.pt \
-  --device cuda --backend native --threads 4 --precision fp32 \
-  --policy-mode teacher-prior --teacher-prior-scale 0.125 \
-  --residual-scale 1 --preserve-initial-actor \
-  --gradient-clip-scope separate \
-  --imitation 0 --secondary-weight 0 --regret-weight 0 \
-  --warmup-updates 0 --rollout 512 \
-  --seed 250000 --calibration-seed 3300000 \
-  --selection-seeds 951001 951003 951005 951007 \
-  --pieces 32000 --selection-pieces 32000 \
-  --record-games --record-every 4 --record-max-mib 128
+.venv/bin/python -u train_survival_v4.py \
+  --hours 8 --run-dir runs/survival-ppo-v4 \
+  --pretrained /path/to/calibrated-v4.pt --preserve-pretrained-critic \
+  --calibration-games 0 --allow-uncalibrated \
+  --backend native --device cuda --screening exhaustive --regional-critic \
+  --recover-target --policy-mode teacher-prior --teacher-prior-scale 0.125 \
+  --fixed-lr --envs 32 --rollout 256 --pieces 0 --selection-pieces 64000 \
+  --seed 250000 --selection-seeds 951001 951003 951005 951007
 ```
 
-The `teacher-prior` experiment uses
-`logits = 0.125 * teacher_prior + actor_logits`. Its actor can overcome immediate
-teacher preferences. The bounded `teacher-residual` mode remains available; the
-new recipe is an experimental setting, rather than a proven strength improvement.
-See [the exploration and gradient changes](survival-longevity.md).
+`--preserve-pretrained-critic` imports an already calibrated head and starts with
+a fresh PPO optimizer. For a newly pretrained actor, omit `--preserve-pretrained-critic`,
+`--calibration-games 0` and `--allow-uncalibrated` to run survival critic
+calibration. Use `--device cpu` for CPU training. If enough top-out games are
+in the local library, `--danger-starts 0.25` starts a quarter of training
+episodes from recorded late-game positions.
 
-Calibration, initial-policy measurement and later selection consume the same
-eight-hour budget. The production calibration gate remains enabled. An
-uncalibrated smoke test belongs in a separate disposable run; do not transfer its
-weights into this experiment or bypass a failed production gate.
-
-The trainer saves `last.pt`, `previous.pt`, `best.pt` when selected, `summary.json`,
-`manifest.json`, `critic-calibration.json`, `metrics.jsonl` and recorded games.
-`best.pt` means best completed selection result in this run. It does not imply
-that the model beat an independently evaluated incumbent or sustained planner.
+Initial measurement, scheduled evaluation and checkpoint writing consume part
+of the eight-hour budget. `--pieces 0` lets training games continue through
+top-out. Development still uses the positive `--selection-pieces` cap. The run
+keeps `last.pt`, `previous.pt`, selected `best.pt`, a manifest, metrics and a
+summary. `best.pt` ranks complete development games and can still be the imported
+policy at update zero.
 
 ## Interrupt and resume
 
@@ -76,8 +57,7 @@ Each invocation grants its specified `--hours` anew. Record the original UTC
 deadline before starting; after interruption, resume with the remaining hours.
 For example, after two hours of an eight-hour allocation, use `--hours 6` with
 the same other arguments. Exact resume restores the saved actor, critic,
-optimizer, environment streams and calibration state; it does not import the
-bootstrap again. A settings change starts a new experiment in a new directory.
+optimizer, environment streams and calibration state from the latest save. A settings change starts a new experiment in a new directory.
 
 Diagnostics include actor/critic gradient norms, actor hashes, candidate-score
 variation, sigmoid saturation and teacher-objective deviations. These distinguish
@@ -144,17 +124,17 @@ compact validation evidence, frozen deliverables and any diagnostics needed to
 understand an unresolved failure.
 
 The compact checkout preserves engine/UI/native source, PPO dependencies,
-regression tests and fixtures, small validation reports, and the two required
-model inputs. In particular, `tests/fixtures/blocked-targets.json` remains a
+regression tests and fixtures, small validation reports, and the bundled
+teacher input. In particular, `tests/fixtures/blocked-targets.json` remains a
 recovery-regression fixture. Rebuilding it with
 `tools/build_recovery_fixtures.py` requires the corresponding archived recorded
 games; normal tests use the existing fixture without those runs.
 
-The [archive catalog](../validation/archive-manifest.json) records the source
-commit, path, Git blob ID and byte size for every removed tracked artifact. It
-describes the committed bytes, not newer dirty or untracked local experiments.
-Those original local files remain preserved separately. Removing index entries
-does not rewrite Git history or delete a live run.
+The [archive catalog](../validation/archive-manifest.json) lists the source
+commit, Git blob ID and byte size of historical tracked artifacts. The legacy A2C
+bootstrap at `models/neural-rl.pt` is recoverable from
+`23159fe8d860a13ab16b8d5b69f2abf868522c82` using the same Git command below.
+Use each superseded trainer's original revision and config for exact replay.
 
 Restore an exact historical blob into a new destination, never over a live run.
 For example, these commands recover the cataloged PPO checkpoint from its source

@@ -17,7 +17,6 @@ import sparse_tetris_4d_optimized as game
 import tetris_neural as neural
 import tetris_survival_v4 as v4
 import tetris_survival_v5 as v5
-import train_survival_v5 as trainer_v5
 
 _spec = importlib.util.spec_from_file_location('afterstate_ranking', ROOT / 'tools/afterstate_ranking.py')
 tool = importlib.util.module_from_spec(_spec)
@@ -227,55 +226,6 @@ class PolicyTests(unittest.TestCase):
                     torch.testing.assert_close(out['logits'][valid], base[valid] / temperature, rtol=0, atol=0)
                 self.assertTrue(bool(((scaled - base[valid]).abs() <= bound + 1e-5).all()))
                 self.assertTrue(bool(torch.isinf(out['logits'][~valid]).all()))
-
-
-class TrainerTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        torch.set_num_threads(1)
-        game.configure_backend('numpy')
-        game.load_checkpoint(ROOT / 'models/trained-sigmoid.json')
-
-    def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temporary.cleanup)
-        self.directory = Path(self.temporary.name)
-        self.source = v4_regional_model()
-        self.source_path = self.directory / 'source.pt'
-        neural.save_checkpoint(self.source_path, self.source)
-
-    def trainer(self, *extra):
-        args = trainer_v5.arguments([
-            '--no-gpu-defaults', '--run-dir', str(self.directory / 'run'), '--device', 'cpu', '--backend', 'numpy',
-            '--weights', str(ROOT / 'models/trained-sigmoid.json'), '--hours', '.1', '--threads', '1',
-            '--envs', '2', '--rollout', '3', '--batch', '2', '--optimizer-batch', '3', '--gradient-every', '100',
-            '--seed', '650000', '--selection-pieces', '3', '--recover-target', '--policy-mode', 'teacher-prior',
-            '--teacher-prior-scale', '.125', '--source-checkpoint', str(self.source_path), *extra])
-        return trainer_v5.SurvivalTrainer(args, trainer_v5.base.Budget(.1))
-
-    def test_fresh_update_resume_keeps_base_frozen_and_critic_seeded(self):
-        trainer = self.trainer()
-        model = trainer.model
-        for name, value in self.source.value.state_dict().items():
-            torch.testing.assert_close(model.value.main.state_dict()[name], value, rtol=0, atol=0)
-        optimized = {id(p) for group in trainer.optimizer.param_groups for p in group['params']}
-        self.assertFalse(any(id(p) in optimized for p in model.base.parameters()))
-        base_before = {k: v.clone() for k, v in model.base.state_dict().items()}
-        self.assertTrue(trainer.calibrate())
-        trainer.update(trainer.rollout(False), False)
-        for name, value in base_before.items():
-            torch.testing.assert_close(model.base.state_dict()[name], value, rtol=0, atol=0)
-        trainer.save('test_checkpoint')
-        resumed = self.trainer()
-        for name, value in model.state_dict().items():
-            torch.testing.assert_close(resumed.model.state_dict()[name], value, rtol=0, atol=0)
-        self.assertEqual(resumed.progress['runner_updates'], 1)
-
-    def test_selection_and_sampled_checks_run(self):
-        trainer = self.trainer('--selection-seeds', '910001')
-        trainer.calibrate()
-        self.assertTrue(trainer.evaluate_policy('neural')['complete'])
-        self.assertTrue(trainer.sampled_policy_check()['complete'])
 
 
 @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'CUDA probes require TETRIS4D_TEST_CUDA=1')

@@ -1,5 +1,7 @@
 # Survival training v2
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/survival-v2.md) contains the commands below.
+
 This implements the November 12 log-audit changes. It is a new experiment, not a claim that a learned policy has already beaten sustained. Native C, rigid physics, all 16 section views, Unlimited playback defaults, trained model files and committed historical runs are preserved.
 
 ## Start an eight-hour run in WSL

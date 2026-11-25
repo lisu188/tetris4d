@@ -23,7 +23,17 @@ def validate(args):
     torch.set_num_threads(1)
     game.configure_backend(args.backend)
     game.load_checkpoint(ROOT / 'models/trained-sigmoid.json')
-    source = ROOT / 'models/neural-rl.pt'
+    if args.checkpoint is not None:
+        return validate_checkpoint(args, args.checkpoint, 'supplied')
+    with tempfile.TemporaryDirectory() as directory:
+        source = Path(directory) / 'fixture.pt'
+        with base.preserve_rng():
+            torch.manual_seed(7)
+            neural.save_checkpoint(source, neural.ColumnPolicy(neural.Config()))
+        return validate_checkpoint(args, source, 'generated')
+
+
+def validate_checkpoint(args, source, checkpoint_kind):
     original = base.file_hash(source)
     model, checkpoint = neural.load_checkpoint(source, torch.device('cpu'))
     model.config = replace(model.config, policy_mode='teacher-residual', residual_scale=1., recover_target=False)
@@ -83,6 +93,7 @@ def validate(args):
         raise AssertionError('Original trained checkpoint was modified')
     result = {'passed': True, 'backend': game.BACKEND, 'device': 'cpu', 'torch': str(torch.__version__),
               'parameters': sum(p.numel() for p in model.parameters()), 'initial_checkpoint_sha256': original,
+              'initial_checkpoint_kind': checkpoint_kind,
               'source_checkpoint_unchanged': True, 'identical_teacher_choices': state.pieces,
               'clear_events': events, 'final_summary': state.summary(), 'action_digest': digest.hexdigest(),
               'full_model_optimizer_steps': optimizer_steps, 'elapsed_validation_seconds': time.perf_counter() - start,
@@ -97,6 +108,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--pieces', type=int, default=2600)
     parser.add_argument('--backend', choices=('auto', 'native', 'numpy', 'python'), default='auto')
+    parser.add_argument('--checkpoint', type=Path, help='Optional legacy V2 checkpoint for comparison with prior validation')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args(argv)
     if args.pieces < 1:

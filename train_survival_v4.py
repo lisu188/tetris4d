@@ -548,7 +548,7 @@ def gpu_defaults(supplied, disabled=False):
 
 def arguments(argv=None):
     supplied = list(sys.argv[1:] if argv is None else argv)
-    extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
+    extra = argparse.ArgumentParser(add_help=False, allow_abbrev=False, description='Spatial V4 PPO options')
     extra.add_argument('--pretrained', type=Path)
     extra.add_argument('--preserve-pretrained-critic', action='store_true',
                        help='Keep the complete calibrated V4 critic when explicitly skipping calibration')
@@ -582,6 +582,8 @@ def arguments(argv=None):
     extra.add_argument('--no-gpu-defaults', action='store_true',
                        help='Do not enable CUDA preparation, fused encoding, coalesced transfers and rollout caching')
     options, remaining = extra.parse_known_args(supplied)
+    if '-h' in supplied or '--help' in supplied:
+        extra.print_help()
     gpu = gpu_defaults(remaining, options.no_gpu_defaults)
     args = v3.arguments(['--run-dir', str(base.ROOT/'runs/survival-ppo-v4'),
                          '--gradient-clip-scope', 'separate',

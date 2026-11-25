@@ -1,5 +1,7 @@
 # One-command overnight survival training
 
+> Historical workflow. Use [Spatial V4 PPO](ppo-workflow.md) to train. The [archived source revision](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/overnight-survival.md) contains the commands below.
+
 Place `train_overnight.py` in the repository root beside `tetris_neural.py`. This is an additive runner: it does not replace the game, the existing neural module, your recorded results, your CUDA installation, or existing model files. Its interface was reviewed against `main` at `fa22032fac74fb2d508adc7547ca314260d9341c`.
 
 ## Run

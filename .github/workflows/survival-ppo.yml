@@ -26,7 +26,6 @@ jobs:
       - run: python tests/test_survival_ppo.py
       - run: python tests/test_overnight.py
       - run: python tests/test_neural.py
-      - run: python train_survival.py --help
       - name: Existing learned-activation GUI remains functional
         run: |
           bash .github/scripts/ensure-display.sh

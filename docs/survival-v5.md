@@ -1,4 +1,6 @@
-# Survival V5: a bounded next-state scorer on a frozen V4 actor
+# Archived Survival V5 checkpoints
+
+Survival V5 checkpoints combine a frozen V4 actor with a bounded next-state scorer. The archived experiment records the training settings and input requirements for reproducing existing checkpoints. [Original V5 protocol](https://github.com/lisu188/tetris4d/blob/23159fe8d860a13ab16b8d5b69f2abf868522c82/docs/survival-v5.md)
 
 ## Why
 Evidence from the V4 runs:
@@ -15,7 +17,7 @@ logits_c = (base_c + R * tanh(beta * (S(f(s'_c)) - mean_c S))) / tau
 ```
 - **`base`**: a frozen V4 actor. Its logits already include the teacher prior. It is excluded from the optimizer.
 - **`S`**: a scorer over exact next-state features `f(s')`. The piece stream is deterministic, so a candidate's afterstate is exactly the next state, including the current and next pieces.
-- **`R`** (`--residual-bound`): training can move a logit at most `R` nats from the base, so the drift that unlearned clears cannot happen. `tau` (`--policy-temperature`) sharpens sampled play.
+- **`R`** is the checkpoint’s maximum residual adjustment in nats before temperature scaling. `tau` sets the temperature for sampled play.
 - **Critic `V`**: uses the same features, with separate parameters.
 
 ## Features (`tetris_survival_v5.py`, 382 per state)
@@ -34,14 +36,6 @@ On CUDA, one Triton program per board (`tetris_gpu_board_features.py`) computes 
 
 `shortlist_mode='teacher-top'` keeps the teacher's best K candidates instead of 64 best plus 64 random.
 
-## Training (`train_survival_v5.py`)
-```
-python train_survival_v5.py --source-checkpoint V4_WITH_REGIONAL_CRITIC.pt \
-    --residual-bound R --policy-temperature TAU --afterstate-scale BETA [V4 options]
-```
-- The source must be a V4 checkpoint with a calibrated regional critic. A V4 run's checkpoint taken after calibration, before any PPO update, keeps the pretrained actor unchanged.
-- Defaults: fixed learning rate, calibration skipped (the critic is already calibrated), and every V4 option still applies (exhaustive screening, lockstep selection, danger starts).
-
 ## Benchmark (`tools/survival_benchmark.py`)
 Full games now reach the 30k caps, so policies are compared on survival from fixed near-top-out positions: recorded top-out games replayed to 500–3,000 placements before their end.
 
@@ -55,5 +49,4 @@ python tools/survival_benchmark.py SOURCE.pt --states 32 --cap 5000 \
 `tests/test_survival_v5.py` checks:
 - **Exactness:** pooled features vs `encode_columns`; the V5 critic at initialisation vs the V4 critic; survival features vs a plain-Python reference; next-state rows vs engine-materialised afterstates, including clears; count-based features vs the reference functions.
 - **Policy:** `teacher-top`; a zero bound replays the base exactly; the residual stays within the bound.
-- **Trainer:** update and resume with the base frozen.
 - **CUDA, opt-in:** kernel vs reference, device vs CPU rows, `teacher-top` parity, and zero-bound greedy replaying V4's choices.

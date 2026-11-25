@@ -806,25 +806,17 @@ def arguments(argv=None):
     return args
 
 
+
 def main(argv=None):
-    args = arguments(argv)
-    torch.set_num_threads(args.threads)
+    parser = argparse.ArgumentParser(description='Verify a legacy training replay. Use train_survival_v4.py to train.')
+    parser.add_argument('--verify-game', type=Path, required=True)
+    parser.add_argument('--backend', choices=('auto', 'native', 'numpy', 'python'), default='auto')
+    parser.add_argument('--weights', type=Path, default=ROOT / 'models/trained-sigmoid.json')
+    args = parser.parse_args(argv)
     game.configure_backend(args.backend)
     game.load_checkpoint(args.weights)
-    if args.verify_game:
-        print(json.dumps(verify_game(args.verify_game), indent=2))
-        return 0
-    try:
-        with run_lock(args.run_dir), Budget(args.hours) as budget:
-            trainer = Trainer(args, budget)
-            trainer.run()
-        return 0
-    except KeyboardInterrupt:
-        print('Forced interruption. The last completed checkpoint remains available.', file=sys.stderr)
-        return 130
-    except (ValueError, OSError, RuntimeError) as exc:
-        print(f'Overnight training stopped: {exc}\nNo existing best policy was automatically promoted or deleted.', file=sys.stderr)
-        return 1
+    print(json.dumps(verify_game(args.verify_game), indent=2))
+    return 0
 
 
 if __name__ == '__main__':
