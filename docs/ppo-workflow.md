@@ -75,6 +75,14 @@ positions each chosen game supplies. Selection seeds are excluded. With
 holdout games to a separate evaluator. Sampled selection records critic predictions
 every 128 placements to the game boundary and reports errors by remaining game length.
 
+On an RTX 4060 Ti, the median paired speedup was **1.70×** over five seeds.
+Median throughput rose from 230 to 388 placements per second. The reference
+reserved 4,198 MiB of GPU memory. The combined path reserved 2,248–2,616 MiB.
+These runs measured opening positions through placement 260. All selected
+actions, final boards, gradients, model parameters, Adam state, RNG and KL
+decisions matched. Per-option timings and memory measurements are in the
+[full-rollout validation](../validation/spatial-ppo-throughput.json).
+
 The matched curriculum runner reserves one GPU and compares 160 updates per arm
 (1,310,720 placements each). Its control uses four starts from each of eight training
 seeds. The second arm uses one start from each of 32 training seeds. Both use a
