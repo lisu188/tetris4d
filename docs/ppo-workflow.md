@@ -68,6 +68,13 @@ optimizer, KL and random-stream fingerprints. Use a fresh output directory.
   --output runs/spatial-ppo-benchmark
 ```
 
+For a paired run that exercises the memory guard, add `--workload boundaries`
+and use a new output directory. At a 744 MiB cache limit, the combined worker
+must retain raw records while CUDA preparation stays active. Two measured
+environments start on fixed boards. One must clear four layers on its first
+move and the other must recover its target from layer 12 to layer 15. Both
+moves and their resulting board hashes are checked against the reference.
+
 Use `--distinct-danger-seeds` to draw the requested number of start positions from
 training recordings with distinct source seeds. `--danger-per-game` controls how many
 positions each chosen game supplies. Selection seeds are excluded. With
