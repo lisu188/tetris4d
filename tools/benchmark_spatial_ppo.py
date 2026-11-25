@@ -116,6 +116,8 @@ def measure(args):
                 boundaries = boundary_episodes(v4, [e.number for e in trainer.environments[:2]])
                 trainer.environments[:2] = boundaries
                 trainer.prepared = trainer._prepared_gpu_batch = None
+                initial_clears = trainer.progress['clears']
+                initial_recoveries = trainer.progress['target_recoveries']
             torch.cuda.synchronize()
             torch.cuda.reset_peak_memory_stats()
             start = time.perf_counter()
@@ -142,7 +144,11 @@ def measure(args):
                 'rng': fingerprint([('cpu', torch.get_rng_state()), ('cuda', torch.cuda.get_rng_state())]),
                 'kl': row['final_exact_kl'], 'stopped': row['kl_early_stop'], 'steps': row['optimizer_steps_this_rollout']}
             if boundaries:
-                proof['boundaries'] = boundary_events(boundaries)
+                proof['boundaries'] = {**boundary_events(boundaries),
+                                       'measured_clears': row['clears'] - initial_clears,
+                                       'measured_target_recoveries': row['target_recoveries'] - initial_recoveries}
+                if proof['boundaries']['measured_clears'] < 4 or proof['boundaries']['measured_target_recoveries'] < 1:
+                    raise ValueError('Training telemetry did not count both measured boundary events')
             result = {'seed': args.seed, 'variant': args.variant, 'workload': args.workload, 'seconds': seconds,
                       'placements_per_second': 8192 / seconds, 'proof': proof, 'cache': row['rollout_cache'],
                       'preparation': row['gpu_prepare'], 'terminals': row['terminal_transitions'],
