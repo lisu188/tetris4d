@@ -50,7 +50,7 @@ The PPO initializer imports matching V4 weights but creates a new optimizer and 
 
 ## GPU training path
 
-V4 now trains on CUDA end to end. `train_survival_v4.py` enables `--gpu-prepare`, `--fused-encoding`, `--coalesce-transfers` and `--cache-rollout` (with `--device cuda --backend native`) whenever CUDA is available; pass `--no-gpu-defaults` or `--device cpu` to opt out.
+V4 uses CUDA for candidate preparation and PPO updates. `train_survival_v4.py` enables `--gpu-prepare`, `--fused-encoding`, `--coalesce-transfers` and `--cache-rollout` (with `--device cuda --backend native`) whenever CUDA is available; pass `--no-gpu-defaults` or `--device cpu` to opt out. Exhaustive FP32 CUDA runs also group exhaustive candidates, retain fixed PPO features and use actor-only KL. Each has an independent opt-out in the [PPO workflow](ppo-workflow.md).
 
 - Candidate afterstates are merged, layer-compacted and measured on device (`device_afterstate_descriptors`), so `--gpu-prepare` is supported. Exact CPU fallback rows skip the host afterstate pass; their descriptors are recomputed on device from the final options.
 - `tetris_gpu_spatial.py` holds fused Triton kernels for the adjacency statistics (one launch per call instead of ~100 tensor ops), used by preparation and by the critic encoder. Single-state V4 preparation fell from 12.6 ms to 4.5 ms and forward+selection sync from 7.3 ms to 2.0 ms on an RTX 4060 Ti.

@@ -1278,9 +1278,9 @@ def arguments(argv=None):
     extra.add_argument('--allow-uncalibrated', action='store_true')
     extra.add_argument('--allow-concurrent', action='store_true')
     extra.add_argument('--gradient-every', type=int, default=10)
-    extra.add_argument('--compact-rollout', action='store_true',
+    extra.add_argument('--compact-rollout', action=argparse.BooleanOptionalAction, default=False,
                        help='Retain fixed Spatial V4 board and local column features once for PPO')
-    extra.add_argument('--actor-only-kl', action='store_true',
+    extra.add_argument('--actor-only-kl', action=argparse.BooleanOptionalAction, default=False,
                        help='Use the Spatial V4 actor alone for exact policy-distribution checks')
     extra.add_argument('--cache-rollout', action='store_true', help='Cache immutable PPO rollout inputs on device for each update')
     extra.add_argument('--rollout-cache-mib', type=int, default=1024, help='Maximum rollout input cache MiB; allocation safely falls back before optimization')

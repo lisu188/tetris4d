@@ -75,6 +75,18 @@ class ArgumentTests(unittest.TestCase):
             self.assertEqual(v4.arguments([]).screening, 'exhaustive')
             self.assertEqual(v4.arguments(['--screening', 'sampled']).screening, 'sampled')
 
+    def test_cuda_optimizations_default_to_validated_fp32_exhaustive_path(self):
+        def flags(*args):
+            options = v4.arguments(list(args))
+            return options.group_exhaustive, options.compact_rollout, options.actor_only_kl
+        with patch.object(torch.cuda, 'is_available', return_value=True):
+            self.assertEqual(flags('--device', 'cuda'), (True, True, True))
+            for opts in (('--device', 'cpu'), ('--no-gpu-defaults',),
+                         ('--precision', 'bf16'), ('--precision', 'fp32', '--precision=bf16'), ('--screening', 'sampled')):
+                self.assertEqual(flags(*opts), (False, False, False))
+            self.assertEqual(flags('--no-group-exhaustive', '--no-compact-rollout'), (False, False, True))
+            self.assertEqual(flags('--no-actor-only-kl'), (True, True, False))
+
     def test_overlap_prepare_is_opt_in(self):
         self.assertFalse(v4.arguments(['--no-gpu-defaults']).overlap_prepare)
         self.assertTrue(v4.arguments(['--no-gpu-defaults', '--overlap-prepare']).overlap_prepare)

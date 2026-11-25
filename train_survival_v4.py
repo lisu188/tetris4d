@@ -612,7 +612,8 @@ GPU_FLAGS = ('--gpu-prepare', '--fused-encoding', '--coalesce-transfers', '--cac
 def gpu_defaults(supplied, disabled=False):
     """GPU-first defaults; explicit later arguments still override valued options."""
     def value(name):
-        for index, argument in enumerate(supplied):
+        for index in reversed(range(len(supplied))):
+            argument = supplied[index]
             if argument == name and index + 1 < len(supplied):
                 return supplied[index + 1]
             if argument.startswith(name + '='):
@@ -622,7 +623,10 @@ def gpu_defaults(supplied, disabled=False):
         return []
     if value('--backend') not in (None, 'native'):
         return []
-    return ['--device', 'cuda', '--backend', 'native', *GPU_FLAGS]
+    flags = ['--device', 'cuda', '--backend', 'native', *GPU_FLAGS]
+    if value('--precision') in (None, 'fp32') and value('--screening') in (None, 'exhaustive'):
+        flags.extend(('--compact-rollout', '--actor-only-kl'))
+    return flags
 
 
 def arguments(argv=None):
@@ -644,7 +648,7 @@ def arguments(argv=None):
     extra.add_argument('--danger-pool', type=int, default=32, help='Number of distinct start states')
     extra.add_argument('--distinct-danger-seeds', action='store_true',
                        help='Fill the pool from distinct source seeds in completed training games')
-    extra.add_argument('--group-exhaustive', action='store_true',
+    extra.add_argument('--group-exhaustive', action=argparse.BooleanOptionalAction, default=None,
                        help='Group exhaustive CUDA preparation by per-piece candidate count')
     extra.add_argument('--danger-per-game', type=int, default=4, help='Start states taken from each replayed game')
     extra.add_argument('--afterstate-selection', action='store_true',
@@ -665,11 +669,11 @@ def arguments(argv=None):
     extra.add_argument('--adaptive-lr-range', type=float, default=16.,
                        help='Actor learning rate stays within [lr / range, lr * range]')
     extra.add_argument('--no-gpu-defaults', action='store_true',
-                       help='Do not enable CUDA preparation, fused encoding, coalesced transfers and rollout caching')
+                       help='Disable automatic CUDA and PPO performance options')
     options, remaining = extra.parse_known_args(supplied)
     if '-h' in supplied or '--help' in supplied:
         extra.print_help()
-    gpu = gpu_defaults(remaining, options.no_gpu_defaults)
+    gpu = gpu_defaults(supplied, options.no_gpu_defaults)
     args = v3.arguments(['--run-dir', str(base.ROOT/'runs/survival-ppo-v4'),
                          '--gradient-clip-scope', 'separate',
                          '--selection-seeds', *map(str, SELECTION_SEEDS),
@@ -677,7 +681,6 @@ def arguments(argv=None):
                          # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
                          '--envs', '32', '--rollout', '256', *gpu, *remaining])
     args.defer_selection = options.defer_selection
-    args.group_exhaustive = options.group_exhaustive
     args.distinct_danger_seeds = options.distinct_danger_seeds
     args.pretrained = options.pretrained
     args.preserve_pretrained_critic = options.preserve_pretrained_critic
@@ -685,6 +688,8 @@ def arguments(argv=None):
         extra.error('--preserve-pretrained-critic requires --pretrained, --calibration-games 0 and --allow-uncalibrated')
     args.shortlist_mode = options.shortlist_mode
     args.screening = options.screening or ('exhaustive' if gpu else 'sampled')
+    args.group_exhaustive = (options.group_exhaustive if options.group_exhaustive is not None else
+                             bool(gpu and args.precision == 'fp32' and args.screening == 'exhaustive'))
     args.adaptive_lr = not options.fixed_lr
     args.lockstep_selection = not options.sequential_selection
     args.overlap_prepare = options.overlap_prepare

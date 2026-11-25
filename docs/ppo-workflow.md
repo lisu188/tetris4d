@@ -52,7 +52,9 @@ For exhaustive Spatial V4 FP32 training, `--group-exhaustive` batches pieces by 
 enumerated candidate count and restores environment order. `--compact-rollout` stores
 fixed board and local column descriptors during collection for reuse by PPO.
 `--actor-only-kl` evaluates policy logits during KL checks. Each option can be
-benchmarked independently. The compact buffer observes `--rollout-cache-mib` and the
+benchmarked independently. CUDA FP32 exhaustive training enables these three options
+by default. To compare individual paths, use `--no-group-exhaustive`,
+`--no-compact-rollout`, or `--no-actor-only-kl`. The compact buffer observes `--rollout-cache-mib` and the
 available CUDA memory limit. Update telemetry records its actual storage path.
 
 A complete benchmark needs the incumbent and two built checkouts, the reference and the
