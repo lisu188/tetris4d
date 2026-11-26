@@ -4,6 +4,7 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
+import statistics
 import time
 
 PAGE = Path(__file__).with_name('training_dashboard') / 'cross_survival.html'
@@ -90,18 +91,20 @@ def screening(label, player, plan, protocol, active, previous, *, ppo=False):
     natural=[r for r in games.values() if r['reason']=='top_out']
     decided=sum(r.get('decisions',{}).get('decisions',0) for r in [*games.values(),*live])
     changes=sum(r.get('decisions',{}).get('direct_weight_changes',0) for r in [*games.values(),*live])
-    accepted=receipt.get('complete') is True and len(natural)==len(seeds)
+    stopped = any(r['reason'] == 'target_or_no_move' for r in games.values()) or receipt.get('planner_blocked')
+    capped = any(r['reason'] == 'cap' for r in games.values()) or receipt.get('cap') or receipt.get('censored')
+    accepted = (receipt.get('complete') is True and receipt.get('cap') == 0 and not stopped and not capped and
+                len(natural) == len(seeds) and [r['seed'] for r in receipt['games']] == seeds)
     mean=sum(r['placements'] for r in natural)/len(natural) if accepted else None
-    status=('Complete' if accepted else 'Running' if active else 'Partial' if receipt or previous else 'Waiting')
+    status=('Controller stop' if stopped else 'Capped' if capped else 'Complete' if accepted else
+            'Running' if active else 'Partial' if receipt or previous else 'Waiting')
     if ppo:
-        completed = receipt.get('complete') is True and set(games) == set(seeds)
-        # All finished games, including planner stops, contribute to the runner's official score.
-        # Live snapshots contribute progress only. No values from qualification or holdout are read.
-        return dict(player=label, status='Complete' if completed else status, finished_games=len(games),
+        return dict(player=label, status=status, finished_games=len(games),
                     requested=len(seeds), natural_games=len(natural), active_snapshots=len(live),
                     live_range=[min(r['pieces'] for r in live), max(r['pieces'] for r in live)] if live else None,
-                    mean_placements=receipt['mean'] if completed else None,
-                    median_placements=receipt['median'] if completed else None, change_pct=None,
+                    mean_placements=mean,
+                    median_placements=statistics.median(r['placements'] for r in natural) if accepted else None,
+                    change_pct=None,
                     residual_changes=sum(r.get('decisions', {}).get('residual_changes', 0)
                                          for r in [*games.values(), *live]) if label.endswith('-residual') else None,
                     observed_moves=decided)
@@ -136,8 +139,9 @@ def public_view():
     for row in direct:
         if incumbent and row['mean_placements'] is not None:
             row['change_pct']=100*(row['mean_placements']/incumbent-1)
-    arms=[]; observations=[]; ppo_screening=[]
+    arms=[]; observations=[]; ppo_screening=[]; recipe_scores=[]
     for recipe in plan['recipes']:
+        completed_screens = []
         for seed in plan['training_seeds']:
             arm=f'{seed}-{recipe}'
             folder=ROOT/'training'/arm
@@ -161,6 +165,8 @@ def public_view():
             if incumbent and row['mean_placements'] is not None:
                 row['change_pct'] = 100 * (row['mean_placements'] / incumbent - 1)
             ppo_screening.append(row)
+            if row['status'] == 'Complete':
+                completed_screens.append(row)
             for step in (10,40,80):
                 receipt=read(ROOT/'weight-observations'/arm/f'{step:03}.json')
                 if not receipt or receipt.get('arm')!=arm or receipt.get('updates')!=step or not receipt.get('behavior'):
@@ -170,6 +176,10 @@ def public_view():
                     danger=groups['danger']['action_flips'],ordinary=groups['ordinary']['action_flips'],
                     cross_gain=g['cross_on_flips']['sum_delta'],actor_relative_l2=receipt['groups']['base_actor']['relative_l2'],
                     critic_relative_l2=receipt['groups']['critic']['relative_l2'],residual_changes=g['residual_argmax_changes']))
+        if len(completed_screens) == len(plan['training_seeds']) and completed_screens:
+            recipe_scores.append(dict(recipe=recipe,
+                mean=statistics.mean(r['mean_placements'] for r in completed_screens),
+                median=statistics.mean(r['median_placements'] for r in completed_screens)))
     # Expose only the official recommendation field after the runner freezes it.
     result=read(ROOT/'result.json') or {}
     completed=result.get('complete') is True and result.get('protocol')==protocol
@@ -197,7 +207,7 @@ def public_view():
         phase_text='Run stopped'
     return dict(run=ROOT.name,phase=phase_text,gpu_seconds=round(seconds),budget_hours=sum(plan['phase_hours'].values()),
                 updated_unix=int(now),screening_games=len(plan['screening']),target_updates=plan['updates'],
-                direct=direct,arms=arms,observations=observations,ppo_screening=ppo_screening,
+                direct=direct,arms=arms,observations=observations,ppo_screening=ppo_screening,recipe_scores=recipe_scores,
                 promotion=('Challenger promoted' if result.get('promoted') else 'Incumbent retained') if completed else None)
 
 

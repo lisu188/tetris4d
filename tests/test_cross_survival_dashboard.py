@@ -27,7 +27,7 @@ class ScreeningProgressTests(unittest.TestCase):
         self.write('direct-players.json', {'protocol': self.protocol, 'players': {'incumbent': incumbent}})
         self.write('training/72-residual/endpoint.json', dict(protocol=self.protocol, recipe='residual', seed=72,
                    updates=80, placements=655360, player=self.player))
-        self.write('screening/incumbent.json', dict(complete=True, protocol=self.protocol, requested_seeds=self.seeds,
+        self.write('screening/incumbent.json', dict(complete=True, cap=0, protocol=self.protocol, requested_seeds=self.seeds,
                    player=incumbent, games=[dict(seed=s, placements=40, reason='top_out') for s in self.seeds]))
         self.key = dict(policy='ppo', checkpoint=self.player['sha256'], weights='teacher', runtime={}, screening='exhaustive',
                         top_k=16, cap=0, greedy_actor='fixed-fp32-v1', batch_size=32, piece_set='expanded',
@@ -66,8 +66,8 @@ class ScreeningProgressTests(unittest.TestCase):
         self.assertIsNone(row['mean_placements'])
         self.assertIsNone(row['change_pct'])
         self.assertNotIn('987650', json.dumps(view))
-        second = dict(seed=103, placements=10, reason='target_or_no_move', decisions={'decisions': 10})
-        self.write('screening/72-residual.json', dict(protocol=self.protocol, complete=True, requested_seeds=self.seeds,
+        second = dict(seed=103, placements=10, reason='top_out', decisions={'decisions': 10})
+        self.write('screening/72-residual.json', dict(protocol=self.protocol, cap=0, complete=True, requested_seeds=self.seeds,
                    player=self.player, games=[row1, second], mean=20.0, median=20.0))
         self.write('gpu-time.json', [self.ledger('development', label, seconds=10), self.ledger('development', 'qualification/private')])
         self.write('qualification/private.json', {'sealed': 'DO NOT READ'})
@@ -81,10 +81,44 @@ class ScreeningProgressTests(unittest.TestCase):
         self.assertEqual(view['phase'], 'Sealed qualification')
         row = view['ppo_screening'][0]
         self.assertEqual((row['status'], row['finished_games'], row['natural_games'], row['active_snapshots']),
-                         ('Complete', 2, 1, 0))
+                         ('Complete', 2, 2, 0))
         self.assertEqual((row['mean_placements'], row['median_placements'], row['change_pct']), (20, 20, -50))
+        self.assertEqual(view['recipe_scores'], [dict(recipe='residual', mean=20, median=20)])
         self.assertFalse(any('qualification' in path.parts or '205' in path.name for path in requests))
         self.assertNotIn('DO NOT READ', json.dumps(view))
+
+    def test_nonphysical_finishes_do_not_score(self):
+        for reason, expected in [('target_or_no_move', 'Controller stop'), ('cap', 'Capped')]:
+            with self.subTest(reason=reason):
+                games = [dict(seed=101, placements=30, reason='top_out'), dict(seed=103, placements=10, reason=reason)]
+                self.write('screening/72-residual.json', dict(protocol=self.protocol, cap=0, complete=True,
+                           requested_seeds=self.seeds, player=self.player, games=games, mean=20, median=20))
+                view = dashboard.public_view()
+                row = view['ppo_screening'][0]
+                self.assertEqual((row['status'], row['finished_games'], row['natural_games']), (expected, 2, 1))
+                self.assertEqual((row['mean_placements'], row['median_placements'], row['change_pct']), (None, None, None))
+                self.assertEqual(view['recipe_scores'], [])
+
+    def test_recipe_scores_require_every_training_seed(self):
+        self.plan['training_seeds'].append(73)
+        self.seeds.append(105)
+        protocol = dashboard.digest(self.plan)
+        self.write('protocol.json', self.plan)
+        for name in ['direct-players.json', 'training/72-residual/endpoint.json']:
+            self.write(name, dict(json.loads((self.root / name).read_text()), protocol=protocol))
+        incumbent = json.loads((self.root / 'screening/incumbent.json').read_text())
+        incumbent['games'].append(dict(seed=105, placements=40, reason='top_out'))
+        self.write('screening/incumbent.json', dict(incumbent, protocol=protocol, requested_seeds=self.seeds))
+        def write_screen(training_seed, placements):
+            games = [dict(seed=s, placements=p, reason='top_out') for s, p in zip(self.seeds, placements)]
+            self.write(f'screening/{training_seed}-residual.json', dict(protocol=protocol, cap=0, complete=True,
+                       requested_seeds=self.seeds, player=self.player, games=games))
+        write_screen(72, [1, 4, 100])
+        self.assertEqual(dashboard.public_view()['recipe_scores'], [])
+        self.write('training/73-residual/endpoint.json', dict(protocol=protocol, recipe='residual', seed=73,
+                   updates=80, placements=655360, player=self.player))
+        write_screen(73, [10, 19, 52])
+        self.assertEqual(dashboard.public_view()['recipe_scores'], [dict(recipe='residual', mean=31, median=11.5)])
 
     def test_mismatched_endpoint_and_mismatched_cache_are_rejected(self):
         self.cache(101, True, dict(seed=101, pieces=1))

@@ -13,7 +13,7 @@
 <p id="promotion" hidden></p>
 <section><div class="section-title"><h2>Direct policy screening</h2></div><div class="table-wrap"><table aria-label="Direct policy screening"><thead><tr><th>Policy</th><th>Status</th><th>Natural games</th><th>Mean placements</th><th>vs. incumbent</th><th>Decisions changed</th></tr></thead><tbody id="screen"></tbody></table></div><p class="help">Means compare the same eight games after all reach top-out. Changed decisions compare each policy with its base actor on the same position.</p><p class="sub" id="partial" hidden></p></section>
 <section><div class="section-title"><h2>PPO training</h2></div><div class="table-wrap"><table aria-label="PPO training arms"><thead><tr><th>Recipe</th><th>Status</th><th>Training seed</th><th>Completed updates</th><th>Placements</th></tr></thead><tbody id="training"></tbody></table></div></section>
-<section><div class="section-title"><h2>PPO development screening</h2></div><div class="table-wrap"><table aria-label="PPO development screening"><thead><tr><th>Checkpoint</th><th>Status</th><th>Finished games</th><th>Saved live placements</th><th>Mean placements</th><th>Median placements</th><th>vs. incumbent</th><th>Residual changes</th></tr></thead><tbody id="ppo-screen"></tbody></table></div><p class="help">Each checkpoint plays the same eight development seeds to completion. Scores appear when the runner publishes all eight games. Saved live placements show the range across unfinished games.</p></section>
+<section><div class="section-title"><h2>PPO development screening</h2></div><div class="table-wrap"><table aria-label="PPO development screening"><thead><tr><th>Checkpoint</th><th>Status</th><th>Physical top-outs</th><th>Saved live placements</th><th>Mean placements</th><th>Median placements</th><th>vs. incumbent</th><th>Residual changes</th></tr></thead><tbody id="ppo-screen"></tbody></table></div><p class="help">Each checkpoint plays the same eight development seeds to completion. Scores appear after all eight games reach physical top-out. Saved live placements show the range across unfinished games.</p><p class="sub" id="recipe-scores" hidden></p></section>
 <section><div class="section-title"><h2>Checkpoint behavior</h2></div><p class="sub" id="pending">Waiting for an archived-board observation.</p><div id="obs-wrap" class="table-wrap" hidden><table aria-label="Checkpoint observations"><thead><tr><th>Arm</th><th>Update</th><th>Action flips / boards</th><th>Danger / ordinary flips</th><th>Δ CROSS landings on flips</th><th>Actor Δ L2</th><th>Critic Δ L2</th><th>Residual flips</th></tr></thead><tbody id="observations"></tbody></table></div><p class="help">Updates 10, 40 and 80 are compared with the incumbent on fixed archived boards. Weight changes are relative L2 distances.</p></section>
 <footer><a href="/api/run">Run data (JSON)</a></footer></main>
 <script>
@@ -38,11 +38,15 @@ function render(d){
  const partial=d.direct.filter(r=>r.active_snapshots).map(r=>{const [lo,hi]=r.live_range;return name(r.player)+' has '+r.active_snapshots+' saved games in progress at '+n(lo)+(hi===lo?'':'–'+n(hi))+' placements.'});
  elem('partial').textContent=partial.join(' ');elem('partial').hidden=!partial.length;
  fillTable('training',d.arms.map(a=>[a.recipe[0].toUpperCase()+a.recipe.slice(1),status(a.status),String(a.seed),a.updates+' / '+d.target_updates,n(a.placements)]));
- fillTable('ppo-screen',d.ppo_screening.map(r=>[r.player,status(r.status),r.finished_games+' / '+r.requested,
+ fillTable('ppo-screen',d.ppo_screening.map(r=>[r.player,status(r.status),r.natural_games+' / '+r.requested,
  r.live_range?r.active_snapshots+' games · '+n(r.live_range[0])+(r.live_range[0]===r.live_range[1]?'':'–'+n(r.live_range[1])):dash,
  r.mean_placements===null?dash:n(r.mean_placements),r.median_placements===null?dash:n(r.median_placements),
  r.change_pct===null?dash:[signed(r.change_pct,2)+'%',r.change_pct>0?'positive':r.change_pct<0?'negative':''],
  r.residual_changes===null||!r.observed_moves?dash:n(r.residual_changes)+' / '+n(r.observed_moves)]));
+ const scores=d.recipe_scores;
+ elem('recipe-scores').textContent=scores.map(r=>r.recipe+' · mean '+n(r.mean)+', average median '+n(r.median)).join(' | ');
+ if(scores.length)elem('recipe-scores').prepend('Across training seeds: ');
+ elem('recipe-scores').hidden=!scores.length;
  elem('obs-wrap').hidden=!d.observations.length;elem('pending').hidden=!!d.observations.length;
  fillTable('observations',d.observations.map(r=>[r.arm,r.update,r.flips+' / '+r.boards,r.danger+' / '+r.ordinary,signed(r.cross_gain,0),signed(r.actor_relative_l2*100,3)+'%',signed(r.critic_relative_l2*100,3)+'%',r.residual_changes===null?dash:r.residual_changes]));
  const pretty=new Date(d.updated_unix*1000).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
