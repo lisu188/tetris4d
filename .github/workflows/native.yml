@@ -26,6 +26,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-numpy.txt
       - run: python tools/build_native.py --cc ${{ matrix.compiler }}
+      - run: python tests/test_cross_wells.py
       - run: python tests/test_native.py --trajectory-pieces 2600
       - run: python sparse_tetris_4d_optimized.py --test --backend native
       - run: python sparse_tetris_4d_optimized.py --test --backend native --baseline
@@ -48,4 +49,5 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-numpy.txt
       - run: python tools/build_native.py --cc gcc --sanitize
+      - run: python tests/test_cross_wells.py
       - run: python tests/test_native.py

@@ -28,6 +28,26 @@ Use your platform's compatible PyTorch build for CUDA. On Ubuntu, install Tkinte
 with `sudo apt install python3-tk`; on Windows, include Tcl/Tk in the Python install.
 See [native builds and diagnostics](docs/native-backend.md).
 
+## Play to 100,000 placements
+
+The native `cross-wells` planner cleared 144 hyperlayers in 100,000 placements
+on seed 7 in the standard expanded game. All 100,000 hard drops replayed
+independently. Four additional seeds chosen before testing also reached the cap
+with a legal next move and 144 cleared layers each. The planner uses
+ordinary pieces to build landing sites where a CROSS can drop without trapping
+empty cells. It reads the current board and piece and needs no checkpoint.
+
+After building the native scorer, reproduce the run from an empty board:
+
+```bash
+.venv/bin/python sparse_tetris_4d_optimized.py --benchmark --backend native \
+  --policy cross-wells --piece-set expanded --seed 7 --games 1 --pieces 100000 \
+  --no-benchmark-log
+```
+
+For GUI playback, run `.venv/bin/python sparse_tetris_4d_optimized.py --policy cross-wells --seed 7`
+and press Space. [Survival results and replay fingerprints](validation/cross-wells-100k.json).
+
 ## Train for survival
 
 Start an eight-hour continuation from a local, calibrated Spatial V4 checkpoint:

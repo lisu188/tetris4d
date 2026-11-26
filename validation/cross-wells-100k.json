@@ -1,0 +1,107 @@
+{
+  "policy": "cross-wells",
+  "piece_set": "expanded",
+  "well": [
+    16,
+    16,
+    16,
+    16
+  ],
+  "sample_budget": 1536,
+  "policy_inputs": [
+    "board",
+    "current_piece",
+    "placements_so_far"
+  ],
+  "stopping_rule": "Start each game from empty. Stop at 100000 consecutive placements or physical top-out.",
+  "development_seed": 7,
+  "confirmation_seeds_fixed_before_play": [
+    12000001,
+    12000002,
+    12000003,
+    12000004
+  ],
+  "verification": "Each recorded placement was independently dropped one Z step at a time onto occupied cells. The replay reproduced drawn pieces, positions, cleared planes, cell counts, final board, and a legal next move.",
+  "digest_encoding": {
+    "moves_sha256": "SHA-256 of concatenated uint8 tuples (expanded piece index, rotation, x, y, w, z, cleared layers).",
+    "board_sha256": "SHA-256 of 4096 little-endian uint16 column masks in engine order."
+  },
+  "normal_benchmark": {
+    "seed": 7,
+    "placements_checked_against_development_trace": 100000,
+    "game_library_id": "bab2d48ff0b096e70d03f99d49e83dbada62dbd6123e3cc9ac70d4780c214648",
+    "stop_reason": "piece_limit"
+  },
+  "games": [
+    {
+      "seed": 7,
+      "placements": 100000,
+      "layers": 144,
+      "cells_placed": 599991,
+      "occupied_cells": 10167,
+      "peak_height_before_compaction": 7,
+      "final_max_height": 5,
+      "total_new_holes": 0,
+      "final_holes": 0,
+      "end_has_legal_move": true,
+      "board_sha256": "455670711eeb2113f8a6f52299c8c52bacf61b39bb6c6b40d41797a1c13f910d",
+      "moves_sha256": "51cc1c40c82e71b2b90c462044d3737911abf7dba357a10539b4aab9cf143bca"
+    },
+    {
+      "seed": 12000001,
+      "placements": 100000,
+      "layers": 144,
+      "cells_placed": 599986,
+      "occupied_cells": 10162,
+      "peak_height_before_compaction": 8,
+      "final_max_height": 5,
+      "total_new_holes": 3,
+      "final_holes": 0,
+      "end_has_legal_move": true,
+      "board_sha256": "2c8fbf15ecade0da5081c766d22a8cc455700935977d40d74ca37302220677b5",
+      "moves_sha256": "a061ef08983ec6f34094487d0ad09ddd5d542573969509ba81c7ff890f01d3f0"
+    },
+    {
+      "seed": 12000002,
+      "placements": 100000,
+      "layers": 144,
+      "cells_placed": 599996,
+      "occupied_cells": 10172,
+      "peak_height_before_compaction": 6,
+      "final_max_height": 5,
+      "total_new_holes": 0,
+      "final_holes": 0,
+      "end_has_legal_move": true,
+      "board_sha256": "ecf106a136f7a2bb52ee6911550ed9285a018384e6cf913d15966bfcb796b2aa",
+      "moves_sha256": "d80e9852fef52e891ceb2ec5072a2809009fb4db208ce48822fa654b4e164203"
+    },
+    {
+      "seed": 12000003,
+      "placements": 100000,
+      "layers": 144,
+      "cells_placed": 600004,
+      "occupied_cells": 10180,
+      "peak_height_before_compaction": 7,
+      "final_max_height": 5,
+      "total_new_holes": 2,
+      "final_holes": 0,
+      "end_has_legal_move": true,
+      "board_sha256": "6eba61e4e209a6a9719dd403af960464f07d86c239e03c15e6bc1630fbe31b5b",
+      "moves_sha256": "05a7f85c374d8e134b87c882ea9abc724321c760782d718082d1b9b44e81dd1e"
+    },
+    {
+      "seed": 12000004,
+      "placements": 100000,
+      "layers": 144,
+      "cells_placed": 599984,
+      "occupied_cells": 10160,
+      "peak_height_before_compaction": 8,
+      "final_max_height": 5,
+      "total_new_holes": 4,
+      "final_holes": 0,
+      "end_has_legal_move": true,
+      "board_sha256": "6b53fc6af7272832cb1c892507a24330b8364f7f9de0733320bf6c4f18a535f2",
+      "moves_sha256": "7d7d51d637edacfa695833f8853fa4fb9c37a09f11906a92ec024922ea61e9f6"
+    }
+  ]
+}

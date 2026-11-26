@@ -32,6 +32,7 @@ SIGMOID_THRESHOLD = 2.0
 ROUGHNESS_SCALE = 6.0
 DEFAULT_BEAM = 4
 DEFAULT_CANDIDATES = 2048
+CROSS_WELLS_CANDIDATES = 1536
 BATCH_SIZE = 512
 BACKEND = "auto"
 NEURAL_AGENT = None
@@ -905,6 +906,7 @@ def _load_native() -> bool:
         pointer, integer, real = ctypes.c_void_p, ctypes.c_int, ctypes.c_double
         signatures = {
             't4_capabilities': [],
+            't4_cross_wells': [pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer],
             't4_validate_shapes': [pointer, integer],
             't4_features': [pointer, pointer, pointer, pointer],
             't4_buried': [pointer, integer],
@@ -1378,6 +1380,47 @@ def choose_hyperlayer_move(*args, **kwargs) -> Decision | None:
 
 
 TARGET_POLICIES = ('hyperlayer', 'sustained', 'neural')
+
+
+def default_candidate_budget(policy: str) -> int:
+    return CROSS_WELLS_CANDIDATES if policy == 'cross-wells' else DEFAULT_CANDIDATES
+
+
+def choose_cross_wells_move(board: Board, piece: str, turn: int,
+                            budget: int = CROSS_WELLS_CANDIDATES) -> Decision | None:
+    """Reserve CROSS landing sites using only the board, current piece and turn."""
+    if piece not in SHAPES or type(turn) is not int or turn < 0:
+        raise ValueError('Expected a registered piece and a nonnegative turn.')
+    if type(budget) is not int or not 0 <= budget <= 2**31 - 1:
+        raise ValueError('Candidate budget must be a nonnegative 32-bit integer.')
+    if BACKEND == 'auto':
+        configure_backend()
+    if BACKEND != 'native':
+        raise ValueError('Cross-wells requires the native backend. Build it with python tools/build_native.py.')
+    started = time.perf_counter()
+    context = evaluate_board(board)
+    shapes = native_shapes(piece)
+    result = _NUMPY.empty(8, dtype=_NUMPY.int32)
+    found = _NATIVE.t4_cross_wells(context.native_board.ctypes.data, shapes.ctypes.data,
+                                   len(shapes), PIECE_NAMES.index(piece), turn & 0xffffffff,
+                                   budget, result.ctypes.data)
+    if found < 0:
+        _native_check(found)
+    if not found:
+        return None
+    rotation, x, y, w, z, _, _, evaluations = map(int, result)
+    move = make_move(board, piece, rotation, x, y, w)
+    if move is None or move.candidate.z != z:
+        raise AssertionError('CROSS well selection disagrees with rigid drop physics.')
+    return Decision(move, move.score, evaluations, (time.perf_counter() - started) * 1000,
+                    1, 1, budget, bool(budget and len(shapes) > 1), 'cross-wells')
+
+
+def cross_wells_decision_steps(board: Board, piece: str, turn: int, budget: int):
+    decision = choose_cross_wells_move(board, piece, turn, budget)
+    yield decision.evaluations if decision else 0
+    return decision
+
 
 FUTURE_HOLE_PENALTY = 4
 
@@ -2356,18 +2399,22 @@ PLAYBACK_SPEEDS = {'0.5/s': .5, '1/s': 1.0, '3/s': 3.0, '6/s': 6.0, '12/s': 12.0
 
 class TetrisApp:
     def __init__(self, root, seed: int = 7, depth: int = 2, beam: int = DEFAULT_BEAM,
-                 candidates: int = DEFAULT_CANDIDATES, piece_set: str = 'expanded',
+                 candidates: int | None = None, piece_set: str = 'expanded',
                  policy: str = 'sustained', target: int = 1, stop_after_clear: bool = False,
                  ui_fps: float = 30.0, frameskip: bool = True) -> None:
         import tkinter as tk
         from tkinter import ttk
-        self.root, self.beam, self.candidates = root, beam, candidates
+        self.root, self.beam = root, beam
+        self.automatic_budget = candidates is None
+        self.candidates = default_candidate_budget(policy) if candidates is None else candidates
         self.frame_pacer = FramePacer(ui_fps, frameskip)
         self._draw_id = None
         self._in_tick = False
         self._force_draw = False
-        if policy not in ('network', 'hyperlayer', 'sustained', 'neural'):
+        if policy not in ('network', 'hyperlayer', 'sustained', 'neural', 'cross-wells'):
             raise ValueError('Unknown planner policy.')
+        if policy == 'cross-wells' and configure_backend(BACKEND) != 'native':
+            raise ValueError('Cross-wells requires the native backend. Build it with python tools/build_native.py.')
         if policy == 'neural' and NEURAL_AGENT is None:
             raise ValueError('Neural policy requires a trained --neural-checkpoint.')
         target_layer_status(EMPTY_BOARD, target)
@@ -2500,7 +2547,12 @@ class TetrisApp:
         policy_row = ttk.Frame(outer, style='Tetris.TFrame')
         policy_row.grid(row=6, column=0, sticky='ew', pady=(0, 5))
         ttk.Label(policy_row, text='Planner:', style='Muted.Tetris.TLabel').pack(side='left')
-        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=('network', 'hyperlayer', 'sustained', 'neural') if NEURAL_AGENT is not None else ('network', 'hyperlayer', 'sustained'), state='readonly', width=12)
+        policies = ['network', 'hyperlayer', 'sustained']
+        if BACKEND == 'native':
+            policies.append('cross-wells')
+        if NEURAL_AGENT is not None:
+            policies.append('neural')
+        self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=policies, state='readonly', width=12)
         self.policy_box.pack(side='left', padx=6)
         self.policy_box.bind('<<ComboboxSelected>>', self.change_policy)
         ttk.Label(policy_row, text='Target Z:', style='Muted.Tetris.TLabel').pack(side='left')
@@ -2527,6 +2579,8 @@ class TetrisApp:
         self.draw(force=True)
 
     def change_policy(self, event=None) -> None:
+        if self.automatic_budget:
+            self.candidates = default_candidate_budget(self.policy.get())
         self.running = self.pending_step = self.goal_complete = False
         self.start_button.configure(text='Start')
         self.refresh_plan()
@@ -2634,7 +2688,7 @@ class TetrisApp:
         self.progress = 0
         self.evaluations = 0
         self.planner_blocked = ''
-        self.lookahead_button.configure(state='disabled' if self.policy.get() in TARGET_POLICIES else 'normal')
+        self.lookahead_button.configure(state='normal' if self.policy.get() == 'network' else 'disabled')
         self.target_box.configure(state='readonly' if self.policy.get() in TARGET_POLICIES else 'disabled')
         if self.goal_complete and not self.human.get():
             self.running = self.pending_step = False
@@ -2658,6 +2712,9 @@ class TetrisApp:
         else:
             if self.policy.get() == 'neural':
                 self.search = NEURAL_AGENT.steps(self.game, int(self.target.get()), self.candidates)
+            elif self.policy.get() == 'cross-wells':
+                self.search = cross_wells_decision_steps(self.game.board, self.game.current,
+                                                         self.game.pieces, self.candidates)
             elif self.policy.get() in TARGET_POLICIES:
                 self.search = (sustained_decision_steps if self.policy.get() == 'sustained' else hyperlayer_decision_steps)(self.game.board, self.game.current, int(self.target.get()),
                                                         self.candidates, self.game.pieces)
@@ -2837,6 +2894,8 @@ class TetrisApp:
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
             self.target_progress.set(f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · {behavior}')
+        elif self.policy.get() == 'cross-wells':
+            self.target_progress.set('Building and protecting CROSS landing sites')
         else:
             self.target_progress.set('Neural score with optional next-piece lookahead')
         self.well.draw(self.game, self.planned, self.progress, w, self.cutoff.get())
@@ -2872,7 +2931,8 @@ class TetrisApp:
         elif self.human.get():
             self.status.set('Human: arrows/WASD move X/Y · Q/E move W · 1–6 rotate XY/XZ/XW/YZ/YW/ZW · Shift reverses · Space/Enter drops · [ ] selects W view.')
         else:
-            mode = ('target planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() in TARGET_POLICIES else
+            mode = ('CROSS landing-site planner' if self.policy.get() == 'cross-wells' else
+                    'target planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() in TARGET_POLICIES else
                     f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}')
             pace = 'Unlimited · no animation delay' if self.speed.get() == 0 else f'{self.speed.get():g}/s animation'
             self.status.set(f'{"Running" if self.running else "Paused"} · {pace} · {mode} · Space start/pause · Enter step · [ ] W view · R restart. A clear needs 4,096 cells at one Z.')
@@ -3207,7 +3267,7 @@ def run_self_tests() -> dict:
 
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
              piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
-    if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural'):
+    if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural', 'cross-wells'):
         raise ValueError('Unknown policy.')
     target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
@@ -3219,11 +3279,13 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
     for _ in range(pieces):
         if game.game_over:
             break
-        if policy in ('network', 'hyperlayer', 'sustained', 'neural'):
+        if policy != 'random':
             if policy == 'neural':
                 if NEURAL_AGENT is None:
                     raise ValueError('Neural policy requires a trained --neural-checkpoint.')
                 decision = NEURAL_AGENT.choose(game, active_target, candidates)
+            elif policy == 'cross-wells':
+                decision = choose_cross_wells_move(game.board, game.current, game.pieces, candidates)
             elif policy in TARGET_POLICIES:
                 decision = (choose_sustained_move if policy == 'sustained' else choose_hyperlayer_move)(game.board, game.current, active_target, candidates, game.pieces)
             else:
@@ -3271,7 +3333,7 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
         stop_reason = 'top_out'
     result = game.summary()
     result.update(backend=BACKEND, policy=policy, capped=not game.game_over and game.pieces == pieces,
-                  piece_limit=pieces, depth=depth if policy == 'network' else 1 if policy in TARGET_POLICIES else None,
+                  piece_limit=pieces, depth=depth if policy == 'network' else None if policy == 'random' else 1,
                   beam=beam if policy == 'network' else None, candidates=candidates if policy != 'random' else 512,
                   target=target if policy in TARGET_POLICIES else None, active_target=active_target if policy in TARGET_POLICIES else None,
                   first_clear_piece=first_clear, clear_events=clear_events, stop_reason=stop_reason,
@@ -3290,7 +3352,8 @@ def launch_demo(args) -> int:
     except Exception as error:
         print(f'A desktop display is required: {error}. Use --test or --benchmark.', file=sys.stderr)
         return 2
-    app = TetrisApp(root, args.seed, args.depth, args.beam, args.candidates, args.piece_set, args.policy, args.target, args.stop_after_clear,
+    budget = None if args.automatic_budget and NEURAL_AGENT is None else args.candidates
+    app = TetrisApp(root, args.seed, args.depth, args.beam, budget, args.piece_set, args.policy, args.target, args.stop_after_clear,
                     args.ui_fps, not args.no_frameskip)
     if args.gui_smoke:
         def finish():
@@ -3340,8 +3403,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                          default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',
                          help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
     weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
-    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural'), default='sustained',
-                        help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
+    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural', 'cross-wells'), default='sustained',
+                        help='Select the move planner. Cross-wells reserves landing sites for CROSS pieces and requires native scoring.')
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
@@ -3351,8 +3414,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help='expanded: all 15 pieces; classic: original 7; 4d: only the 8 new shapes.')
     parser.add_argument('--depth', type=int, choices=(1, 2), default=2)
     parser.add_argument('--beam', type=int, default=DEFAULT_BEAM)
-    parser.add_argument('--candidates', type=int, default=DEFAULT_CANDIDATES,
-                        help='Candidate budget per board, stratified by orientation; 0 scans every origin/orientation.')
+    parser.add_argument('--candidates', type=int,
+                        help='Candidate budget per board. Defaults to 1536 for cross-wells or 2048 otherwise. Use 0 for exhaustive search.')
     parser.add_argument('--pieces', type=int, default=100)
     parser.add_argument('--games', type=int, default=3)
     parser.add_argument('--compare', action='store_true', help='Also test a random policy over sampled legal placements.')
@@ -3366,6 +3429,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     logs.add_argument('--benchmark-log', type=Path, help='Write local benchmark JSONL here; default: a unique file under logs/. Existing files are not overwritten.')
     logs.add_argument('--no-benchmark-log', action='store_true', help='Disable all benchmark logging and instrumentation for clean timing comparisons.')
     args = parser.parse_args(argv)
+    args.automatic_budget = args.candidates is None
+    if args.automatic_budget:
+        args.candidates = default_candidate_budget('neural' if args.neural_checkpoint else args.policy)
     if args.beam < 1 or args.candidates < 0 or args.pieces < 1 or args.games < 1:
         parser.error('beam, pieces and games must be positive; candidates must be nonnegative.')
     recorder = None
