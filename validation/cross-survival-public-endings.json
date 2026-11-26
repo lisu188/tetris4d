@@ -618,6 +618,81 @@
       "blocked_pieces": {
         "CROSS": 8
       }
+    },
+    "611000-anchored": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 36736,
+          "clears": 43,
+          "placed_cells": 220414,
+          "occupied_cells": 44286,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 35649,
+          "clears": 41,
+          "placed_cells": 213888,
+          "occupied_cells": 45952,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 23564,
+          "clears": 25,
+          "placed_cells": 141381,
+          "occupied_cells": 38981,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 31143,
+          "clears": 35,
+          "placed_cells": 186858,
+          "occupied_cells": 43498,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 45286,
+          "clears": 54,
+          "placed_cells": 271714,
+          "occupied_cells": 50530,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 50165,
+          "clears": 61,
+          "placed_cells": 300982,
+          "occupied_cells": 51126,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 46434,
+          "clears": 56,
+          "placed_cells": 278594,
+          "occupied_cells": 49218,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 35029,
+          "clears": 40,
+          "placed_cells": 210182,
+          "occupied_cells": 46342,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "409f671734e5db5ff35f44527f1e0d4aec050bc719738539b44ee19260e309a5",
+      "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+      "mean_terminal_cells": 46241.625,
+      "pooled_clears_per_1000": 1.167740110392558,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
     }
   },
   "snapshot_crosschecks": [
@@ -626,6 +701,12 @@
       "seed": 48200001,
       "placement": 8283,
       "occupied_cells": 8732
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200001,
+      "placement": 8672,
+      "occupied_cells": 11068
     },
     {
       "player": "612000-cold",
@@ -646,6 +727,12 @@
       "occupied_cells": 38585
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200001,
+      "placement": 33194,
+      "occupied_cells": 39421
+    },
+    {
       "player": "611000-cold",
       "seed": 48200001,
       "placement": 34004,
@@ -664,6 +751,12 @@
       "occupied_cells": 8738
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200003,
+      "placement": 8672,
+      "occupied_cells": 15177
+    },
+    {
       "player": "612000-cold",
       "seed": 48200003,
       "placement": 9311,
@@ -674,6 +767,12 @@
       "seed": 48200003,
       "placement": 10540,
       "occupied_cells": 18190
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200003,
+      "placement": 33194,
+      "occupied_cells": 39421
     },
     {
       "player": "611000-cold",
@@ -694,6 +793,12 @@
       "occupied_cells": 16938
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200005,
+      "placement": 8672,
+      "occupied_cells": 19260
+    },
+    {
       "player": "612000-cold",
       "seed": 48200005,
       "placement": 9311,
@@ -710,6 +815,12 @@
       "seed": 48200007,
       "placement": 8283,
       "occupied_cells": 12840
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200007,
+      "placement": 8672,
+      "occupied_cells": 19261
     },
     {
       "player": "612000-cold",
@@ -748,6 +859,12 @@
       "occupied_cells": 12829
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200009,
+      "placement": 8672,
+      "occupied_cells": 11068
+    },
+    {
       "player": "612000-cold",
       "seed": 48200009,
       "placement": 9311,
@@ -764,6 +881,12 @@
       "seed": 48200009,
       "placement": 33054,
       "occupied_cells": 38590
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200009,
+      "placement": 33194,
+      "occupied_cells": 39421
     },
     {
       "player": "611000-cold",
@@ -784,6 +907,12 @@
       "occupied_cells": 12831
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200011,
+      "placement": 8672,
+      "occupied_cells": 15165
+    },
+    {
       "player": "612000-cold",
       "seed": 48200011,
       "placement": 9311,
@@ -794,6 +923,12 @@
       "seed": 48200011,
       "placement": 10540,
       "occupied_cells": 14071
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200011,
+      "placement": 33194,
+      "occupied_cells": 35321
     },
     {
       "player": "611000-cold",
@@ -814,6 +949,12 @@
       "occupied_cells": 12829
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200013,
+      "placement": 8672,
+      "occupied_cells": 11082
+    },
+    {
       "player": "612000-cold",
       "seed": 48200013,
       "placement": 9311,
@@ -826,6 +967,12 @@
       "occupied_cells": 18181
     },
     {
+      "player": "611000-anchored",
+      "seed": 48200013,
+      "placement": 33194,
+      "occupied_cells": 35321
+    },
+    {
       "player": "612000-plain",
       "seed": 48200013,
       "placement": 34230,
@@ -836,6 +983,12 @@
       "seed": 48200015,
       "placement": 8283,
       "occupied_cells": 8745
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200015,
+      "placement": 8672,
+      "occupied_cells": 15166
     },
     {
       "player": "612000-cold",
@@ -854,6 +1007,12 @@
       "seed": 48200015,
       "placement": 33054,
       "occupied_cells": 34475
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200015,
+      "placement": 33194,
+      "occupied_cells": 39410
     },
     {
       "player": "611000-cold",

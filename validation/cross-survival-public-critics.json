@@ -1,0 +1,1757 @@
+{
+  "schema": "public-critic-lifetimes-v1",
+  "plan_sha256": "79879608511006755ee9c828d5011e300b8fb013a80d82a34d44429e9d1c6ed2",
+  "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "script_sha256": "0e13638d679c4648eef57379da2f05b2be2977461db76f3d042982d2b4870c4e",
+  "reward_scale": 0.001,
+  "scope": "For each board use its acting checkpoint and the fixed incumbent critic. Score through full V4 forward with the actual public context and resolved physical target. Cross-check returned critic input through the value head and repeat by direct board-feature evaluation. Target is the published GPU natural lifetime minus exact saved depth, in placements. Report by actor and nominal threshold: own/starting critic mean signed and absolute errors; also a leave-one-stream-out median of realized remaining lifetimes as a descriptive public comparator. No fitting or checkpoint mutation. Greedy evaluation differs from stochastic PPO; errors are deployment calibration only.",
+  "arms": {
+    "incumbent": {
+      "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "receipt_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 36696.875,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 19080.492877960205,
+            "bias": -19080.492877960205,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 19080.492877960205,
+            "bias": -19080.492877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 35488,
+            "mae": 7156.125,
+            "bias": -1208.875,
+            "underpredicted": 4
+          }
+        }
+      },
+      "missing": {},
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 31474,
+            "own": 17639.278411865234,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 36944
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 47315,
+            "own": 17691.997528076172,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 34032
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 34032,
+            "own": 17574.481964111328,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 36944
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 39273,
+            "own": 17609.760284423828,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 34032
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 29669,
+            "own": 17603.93714904785,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 36944
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 28812,
+            "own": 17597.904205322266,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 36944
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 46056,
+            "own": 17609.760284423828,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 34032
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 36944,
+            "own": 17603.93714904785,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 34032
+          }
+        ]
+      }
+    },
+    "611000-plain": {
+      "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "receipt_sha256": "444c4e7f64af53aaf3a81a357969a781660e38e80a7f6c360b68f805099b44b5",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 33227.5,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 24157.068252563477,
+            "mae": 12088.88648223877,
+            "bias": -9070.431747436523,
+            "underpredicted": 6
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 15822.617259979248,
+            "bias": -15611.117877960205,
+            "underpredicted": 7
+          },
+          "other_seed_median": {
+            "mean_prediction": 35392,
+            "mae": 8363.5,
+            "bias": 2164.5,
+            "underpredicted": 4
+          }
+        }
+      },
+      "missing": {},
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35548,
+            "own": 24187.591552734375,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 35236
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 16846,
+            "own": 24206.741333007812,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 35548
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 39161,
+            "own": 24099.773406982422,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 35236
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 19361,
+            "own": 24074.077606201172,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 35548
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35236,
+            "own": 24220.441818237305,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 35548
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 47868,
+            "own": 24173.40087890625,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 35236
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 43163,
+            "own": 24074.077606201172,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 35236
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 28637,
+            "own": 24220.441818237305,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 35548
+          }
+        ]
+      }
+    },
+    "612000-plain": {
+      "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "receipt_sha256": "923439f3a13fe1ad6fce68be793433bd4d1276576b3660844443af239472a699",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 48921.375,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 23389.52589035034,
+            "mae": 25531.84910964966,
+            "bias": -25531.84910964966,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 31304.992877960205,
+            "bias": -31304.992877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 49162.5,
+            "mae": 12611.875,
+            "bias": 241.125,
+            "underpredicted": 4
+          }
+        },
+        "8192": {
+          "games": 8,
+          "remaining_mean": 40638.375,
+          "offset_range": [
+            8283,
+            8283
+          ],
+          "own": {
+            "mean_prediction": 27685.42742729187,
+            "mae": 12952.94757270813,
+            "bias": -12952.94757270813,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 22807.902336120605,
+            "mae": 17830.472663879395,
+            "bias": -17830.472663879395,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 40879.5,
+            "mae": 12611.875,
+            "bias": 241.125,
+            "underpredicted": 4
+          }
+        },
+        "32768": {
+          "games": 7,
+          "remaining_mean": 17696.285714285714,
+          "offset_range": [
+            34230,
+            34230
+          ],
+          "own": {
+            "mean_prediction": 12931.698049817767,
+            "mae": 6767.8426104954315,
+            "bias": -4764.587664467947,
+            "underpredicted": 5
+          },
+          "incumbent": {
+            "mean_prediction": 16605.013029915946,
+            "mae": 6495.951061793736,
+            "bias": -1091.2726843697685,
+            "underpredicted": 4
+          },
+          "other_seed_median": {
+            "mean_prediction": 17708.285714285714,
+            "mae": 9954.57142857143,
+            "bias": 12.0,
+            "underpredicted": 4
+          }
+        }
+      },
+      "missing": {
+        "32768": {
+          "completed_below_threshold": [
+            48200005
+          ]
+        }
+      },
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 60856,
+            "own": 23424.53384399414,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 46139
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 57366,
+            "own": 23469.825744628906,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 46139
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 27887,
+            "own": 23281.92901611328,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 52186
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 46139,
+            "own": 23374.85122680664,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 52186
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 63631,
+            "own": 23394.487380981445,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 46139
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 52186,
+            "own": 23401.241302490234,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 46139
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 41040,
+            "own": 23374.85122680664,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 52186
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 42266,
+            "own": 23394.487380981445,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 52186
+          }
+        ],
+        "8192": [
+          {
+            "seed": 48200001,
+            "offset": 8283,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "ec6bb26d1006796988dfc444a016b7e16b2b6d0fc5c4b05faca95f4979003658",
+            "snapshot_sha256": "e88307335c2ec4740abb27f8add799b6f822df083da3712d52147b1f2bf783de",
+            "remaining": 52573,
+            "own": 30173.81477355957,
+            "incumbent": 23752.95639038086,
+            "other_seed_median": 37856
+          },
+          {
+            "seed": 48200003,
+            "offset": 8283,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "7e77ca4ba612fd0a61eaab5cf630af2e2966909d84f60846a09003bd7670ea3f",
+            "snapshot_sha256": "170c908650fbfa85ab957213807429d617c269b5424b9c102e64fccdc9471809",
+            "remaining": 49083,
+            "own": 30160.146713256836,
+            "incumbent": 23791.49627685547,
+            "other_seed_median": 37856
+          },
+          {
+            "seed": 48200005,
+            "offset": 8283,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "8ffc9865a81904413610634a9b14d3c615d25f2b0c397fe9d51ceb5b2f816359",
+            "snapshot_sha256": "462c6df2a837433700441f307b2f97232b9da1b53dcaddf79d35ec0342a763db",
+            "remaining": 19604,
+            "own": 19228.059768676758,
+            "incumbent": 18697.895050048828,
+            "other_seed_median": 43903
+          },
+          {
+            "seed": 48200007,
+            "offset": 8283,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "9569f89b1d3e079e8a892a52aba72085489d394938d81892e1cf875a522b9e58",
+            "snapshot_sha256": "e5fcf2dadc79512626cc38ccfe9ca54b590547c319e26d235eedc5252fc8fab1",
+            "remaining": 37856,
+            "own": 25407.203674316406,
+            "incumbent": 22111.19842529297,
+            "other_seed_median": 43903
+          },
+          {
+            "seed": 48200009,
+            "offset": 8283,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "d5774d77cde87ce0897d40fcbc3f5a8349b385f48cd844632d83ccf4c6feb87f",
+            "snapshot_sha256": "90d17a019cdb43cc8c4b3607d54e715573053a2c2af0aff816c073f3853d256a",
+            "remaining": 55348,
+            "own": 29148.479461669922,
+            "incumbent": 23635.68878173828,
+            "other_seed_median": 37856
+          },
+          {
+            "seed": 48200011,
+            "offset": 8283,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "c1365a2b531be797b7ed4664e563d3d4903fd4981a14d317d3fe8bc8a75c0ee5",
+            "snapshot_sha256": "81c0ca32346899f26d8133c68c06c3c4f4db48623af5f84dec8f4c41ff87138c",
+            "remaining": 43903,
+            "own": 27716.060638427734,
+            "incumbent": 22878.509521484375,
+            "other_seed_median": 37856
+          },
+          {
+            "seed": 48200013,
+            "offset": 8283,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "cbfc3cc3118e56eaf6f6529ff8d016e88f28684b62716b512a91a5f81f48a5fc",
+            "snapshot_sha256": "0021f8b998607411f63dff1af81847c547dc1c862b6e85a30c015424aa6be00a",
+            "remaining": 32757,
+            "own": 29435.667037963867,
+            "incumbent": 23798.553466796875,
+            "other_seed_median": 43903
+          },
+          {
+            "seed": 48200015,
+            "offset": 8283,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "6b303a3ee86176aa5664f160225b677b6723436a1ed3238378c637d46893e583",
+            "snapshot_sha256": "ddd05422218e2dd3e4a465edd974ab086a4383404d28e24462339bec28b5ea9d",
+            "remaining": 33983,
+            "own": 30213.987350463867,
+            "incumbent": 23796.920776367188,
+            "other_seed_median": 43903
+          }
+        ],
+        "32768": [
+          {
+            "seed": 48200001,
+            "offset": 34230,
+            "target": 8,
+            "scoring_target": 8,
+            "board_sha256": "652910d4fcc0deea8562483c8e7912171e58611db775d69db0894f33d92a6e92",
+            "snapshot_sha256": "f5f59644e0cb5f8edf63240a99f0f7c3983865bb58f1fdb215600d81c027a4bc",
+            "remaining": 26626,
+            "own": 15656.135559082031,
+            "incumbent": 17813.86947631836,
+            "other_seed_median": 14932.5
+          },
+          {
+            "seed": 48200003,
+            "offset": 34230,
+            "target": 8,
+            "scoring_target": 8,
+            "board_sha256": "f9cd36ec3e5fad5684395199a0ef31a4bab266b65780c5d5211decbaffb90d7a",
+            "snapshot_sha256": "3728ee3f70989e46bc8a5c3a1ea52052dc8935ea8b3f0da47fc4dbf2388227a8",
+            "remaining": 23136,
+            "own": 16104.372024536133,
+            "incumbent": 18200.145721435547,
+            "other_seed_median": 14932.5
+          },
+          {
+            "seed": 48200007,
+            "offset": 34230,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "639281f7229c58fb08b55dcd6bcaf68dff332d79bde04260503201c3e582ce49",
+            "snapshot_sha256": "7b7da4986b34ff695753b8e2b56b4bfaa4ca3af7bd60f45d18b3859ce3372460",
+            "remaining": 11909,
+            "own": 7109.383106231689,
+            "incumbent": 14227.177619934082,
+            "other_seed_median": 20546.0
+          },
+          {
+            "seed": 48200009,
+            "offset": 34230,
+            "target": 8,
+            "scoring_target": 8,
+            "board_sha256": "b43271cb1fcd5545891c4cd2defd49c2392207195f161c9ee59c4015a12e947d",
+            "snapshot_sha256": "5a619f6190be888b066f736b24ce8cf877e930f5be3f0f9d910ef4f3b07f7712",
+            "remaining": 29401,
+            "own": 16149.879455566406,
+            "incumbent": 18166.763305664062,
+            "other_seed_median": 14932.5
+          },
+          {
+            "seed": 48200011,
+            "offset": 34230,
+            "target": 9,
+            "scoring_target": 9,
+            "board_sha256": "b2ab4ee51134c007b971d56c6cc7a074f4aaf1f1d721383f5fda7aa4835bfef8",
+            "snapshot_sha256": "c34ed0d80b3394ff124085f8cf3936a25739917edb74138675985f59b471a654",
+            "remaining": 17956,
+            "own": 13644.723892211914,
+            "incumbent": 16382.938385009766,
+            "other_seed_median": 17522.5
+          },
+          {
+            "seed": 48200013,
+            "offset": 34230,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "1cd7ce01362861146effaa759a338a4be8517ccc97221ef42b1faf0227296572",
+            "snapshot_sha256": "57c9f10989ab120bee126c4472c309d28de625d933080ff7bd4ce78b86c0b678",
+            "remaining": 6810,
+            "own": 9784.531593322754,
+            "incumbent": 15212.72087097168,
+            "other_seed_median": 20546.0
+          },
+          {
+            "seed": 48200015,
+            "offset": 34230,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "61d7fb2465fd92cd36fa7a32c90e0415010f3a86fbbe4976398f7e0d88b7400d",
+            "snapshot_sha256": "b75cf50b6398c66e09a5a1d487727038b53a99c3c9b2e1bd85394b870bb931dc",
+            "remaining": 8036,
+            "own": 12072.860717773438,
+            "incumbent": 16231.475830078125,
+            "other_seed_median": 20546.0
+          }
+        ]
+      }
+    },
+    "611000-cold": {
+      "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "receipt_sha256": "49c94521b0706a28ec2e866fa132ede0de5077cd74455941478ddab5966707a7",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 39207.75,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 23724.815130233765,
+            "mae": 15482.934869766235,
+            "bias": -15482.934869766235,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 21591.367877960205,
+            "bias": -21591.367877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 36841.5,
+            "mae": 6524.75,
+            "bias": -2366.25,
+            "underpredicted": 4
+          }
+        },
+        "8192": {
+          "games": 8,
+          "remaining_mean": 28667.75,
+          "offset_range": [
+            10540,
+            10540
+          ],
+          "own": {
+            "mean_prediction": 29208.41121673584,
+            "mae": 5627.372264862061,
+            "bias": 540.6612167358398,
+            "underpredicted": 3
+          },
+          "incumbent": {
+            "mean_prediction": 22439.205646514893,
+            "mae": 6228.544353485107,
+            "bias": -6228.544353485107,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 26301.5,
+            "mae": 6524.75,
+            "bias": -2366.25,
+            "underpredicted": 4
+          }
+        },
+        "32768": {
+          "games": 6,
+          "remaining_mean": 7466.833333333333,
+          "offset_range": [
+            34004,
+            34004
+          ],
+          "own": {
+            "mean_prediction": 13988.141854604086,
+            "mae": 6521.308521270752,
+            "bias": 6521.308521270752,
+            "underpredicted": 0
+          },
+          "incumbent": {
+            "mean_prediction": 14839.970270792643,
+            "mae": 7373.13693745931,
+            "bias": 7373.13693745931,
+            "underpredicted": 0
+          },
+          "other_seed_median": {
+            "mean_prediction": 7525.5,
+            "mae": 8688,
+            "bias": 58.666666666666664,
+            "underpredicted": 3
+          }
+        }
+      },
+      "missing": {
+        "32768": {
+          "completed_without_eligible_snapshot": [
+            48200005
+          ],
+          "completed_below_threshold": [
+            48200013
+          ]
+        }
+      },
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 46246,
+            "own": 23757.427215576172,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 35632
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 45008,
+            "own": 23781.25,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 35632
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 32830,
+            "own": 23681.928634643555,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 38051
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35632,
+            "own": 23677.217483520508,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 38051
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 38051,
+            "own": 23754.161834716797,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 35632
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35101,
+            "own": 23715.15655517578,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 38051
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 32007,
+            "own": 23677.217483520508,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 38051
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 48787,
+            "own": 23754.161834716797,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 35632
+          }
+        ],
+        "8192": [
+          {
+            "seed": 48200001,
+            "offset": 10540,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "ec392914ddbdf0ba111b1d3d1a2f02bb4baf848c7ea44438b2fd2891d6780248",
+            "snapshot_sha256": "65366a696aa3fc02995a168e9611e3f100cec2ecbc423b67e9e54ed44f24507d",
+            "remaining": 35706,
+            "own": 29068.370819091797,
+            "incumbent": 21613.792419433594,
+            "other_seed_median": 25092
+          },
+          {
+            "seed": 48200003,
+            "offset": 10540,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "cdb523b8d4c183b0d0df932fa6dee3ee25f3b2f2259a093e344b749b45a29ab2",
+            "snapshot_sha256": "701dfbba24c05b0d6ca467b5148679fbe934bb6f97b5d195b9b4588fd060a2a8",
+            "remaining": 34468,
+            "own": 28941.482543945312,
+            "incumbent": 21638.343811035156,
+            "other_seed_median": 25092
+          },
+          {
+            "seed": 48200005,
+            "offset": 10540,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "37aba88a2e1f623176a8a671cfcbadd370829b769e642550c8cb22df8d972994",
+            "snapshot_sha256": "8bc8ce58333eea5e2e4ebd2cfe6f5384aa7b6b66b104050162d8bfa12eb38265",
+            "remaining": 22290,
+            "own": 28156.1279296875,
+            "incumbent": 21270.206451416016,
+            "other_seed_median": 27511
+          },
+          {
+            "seed": 48200007,
+            "offset": 10540,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "f867e163d1855d345f3ccddafe8a0c5f19a710d22320c9ff02e4b6e67542b62b",
+            "snapshot_sha256": "6035d5e6b73f205efac44558d0a8bf09f31e9db3b96462791d5494cc3534bf05",
+            "remaining": 25092,
+            "own": 29987.37335205078,
+            "incumbent": 23783.54263305664,
+            "other_seed_median": 27511
+          },
+          {
+            "seed": 48200009,
+            "offset": 10540,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "4482a7cda8a61c34ce5790e6de504bf5d432669bbd8e2a7f42be937165044771",
+            "snapshot_sha256": "7f2312387f6374cff64af2983e70d50beabed0fcf039cb9ba61ec66dce835543",
+            "remaining": 27511,
+            "own": 30099.336624145508,
+            "incumbent": 23829.708099365234,
+            "other_seed_median": 25092
+          },
+          {
+            "seed": 48200011,
+            "offset": 10540,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "338e217f342bf85b17cb5d9c8d7334c6c1a82e95d22bc2b83a3307b5efaa6484",
+            "snapshot_sha256": "1f703001c54357e625bbdf32fcc5a6555fbb9c7bd6572db088fe5009e764a057",
+            "remaining": 24561,
+            "own": 29679.847717285156,
+            "incumbent": 23122.562408447266,
+            "other_seed_median": 27511
+          },
+          {
+            "seed": 48200013,
+            "offset": 10540,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "7eaa40acbc8b82b8bb7c67d4da20c9703f048031bf78dd8b09984ff3f0219ff9",
+            "snapshot_sha256": "ebd711d790404ee276d94b19c437f6d0eb8b3839349c8dd66fbefbf36f9bb557",
+            "remaining": 21467,
+            "own": 27670.448303222656,
+            "incumbent": 20633.724212646484,
+            "other_seed_median": 27511
+          },
+          {
+            "seed": 48200015,
+            "offset": 10540,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "e95de5f334f02949afd589acd269dba373e36585d54225b7f9502696df630046",
+            "snapshot_sha256": "cd7672ded01a834997afa32dcacc516b992dedbfa21f38407df8ab32b7865640",
+            "remaining": 38247,
+            "own": 30064.302444458008,
+            "incumbent": 23621.76513671875,
+            "other_seed_median": 25092
+          }
+        ],
+        "32768": [
+          {
+            "seed": 48200001,
+            "offset": 34004,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "e8f2020c1749e657b9791f03c97293f5a8fa736bc339dfa7311926a7b41b3a0c",
+            "snapshot_sha256": "e12fceaeaa628a5c30df4b7d55a8861ded251bee904926c45ec8717a108a890e",
+            "remaining": 12242,
+            "own": 14668.096542358398,
+            "incumbent": 14646.450996398926,
+            "other_seed_median": 4047
+          },
+          {
+            "seed": 48200003,
+            "offset": 34004,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "c905270cea9ab1d1c054d0d8d0199ac055eeb5d25ce200ff4b50ec844227257d",
+            "snapshot_sha256": "af6413dee84fe9a922b558b14bac6a744be71ae2c561006a6aaf7e09a3af90b6",
+            "remaining": 11004,
+            "own": 16771.093368530273,
+            "incumbent": 15295.889854431152,
+            "other_seed_median": 4047
+          },
+          {
+            "seed": 48200007,
+            "offset": 34004,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "e14f7eb818b2d840de563ade9a626247ae99deb96e84dcef39455fe97fe18b67",
+            "snapshot_sha256": "a882b3fbcecab5a50fad993523e1b2f47539dc2e4837ef43e38b0ebd2474bfa3",
+            "remaining": 1628,
+            "own": 12867.98095703125,
+            "incumbent": 15292.427062988281,
+            "other_seed_median": 11004
+          },
+          {
+            "seed": 48200009,
+            "offset": 34004,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "ef65fd44f641f1b951e28b18e344471bcc7b49e16720c5a0f933ac414789b3fa",
+            "snapshot_sha256": "bb95d0948dab4181d7fbbcb39630eb2cc730fbfd4c2b0895308c0a6f6e0f44c5",
+            "remaining": 4047,
+            "own": 14657.281875610352,
+            "incumbent": 15683.416366577148,
+            "other_seed_median": 11004
+          },
+          {
+            "seed": 48200011,
+            "offset": 34004,
+            "target": 13,
+            "scoring_target": 13,
+            "board_sha256": "1fc90c6063c92f2c9d0d5e2893ef12421aa543f870f0413f58069b8e4ac67021",
+            "snapshot_sha256": "5c54df1b7d2e643dfb0f255485729f0dfc08395ed67c685223129f586fafdb74",
+            "remaining": 1097,
+            "own": 5566.136360168457,
+            "incumbent": 11382.913589477539,
+            "other_seed_median": 11004
+          },
+          {
+            "seed": 48200015,
+            "offset": 34004,
+            "target": 9,
+            "scoring_target": 9,
+            "board_sha256": "b93d25d6dd5467807f9d80016de6e8052da7f1502d86f2eac864eaca4b33c77c",
+            "snapshot_sha256": "68122c3ef918e6e47cbb263cbdf2d96ed4fd6f34508986baa326cf28c517a7fb",
+            "remaining": 14783,
+            "own": 19398.26202392578,
+            "incumbent": 16738.723754882812,
+            "other_seed_median": 4047
+          }
+        ]
+      }
+    },
+    "612000-cold": {
+      "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "receipt_sha256": "536e26e4f51a1aa219316a63d8168797009fb3c42a66defc91672fb55fec2478",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 38833.625,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 23306.639909744263,
+            "mae": 15526.985090255737,
+            "bias": -15526.985090255737,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 21217.242877960205,
+            "bias": -21217.242877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 37391.5,
+            "mae": 10996.875,
+            "bias": -1442.125,
+            "underpredicted": 4
+          }
+        },
+        "8192": {
+          "games": 8,
+          "remaining_mean": 29522.625,
+          "offset_range": [
+            9311,
+            9311
+          ],
+          "own": {
+            "mean_prediction": 26419.501543045044,
+            "mae": 5829.616895675659,
+            "bias": -3103.123456954956,
+            "underpredicted": 5
+          },
+          "incumbent": {
+            "mean_prediction": 22030.322790145874,
+            "mae": 8091.021997451782,
+            "bias": -7492.302209854126,
+            "underpredicted": 7
+          },
+          "other_seed_median": {
+            "mean_prediction": 28080.5,
+            "mae": 10996.875,
+            "bias": -1442.125,
+            "underpredicted": 4
+          }
+        },
+        "32768": {
+          "games": 4,
+          "remaining_mean": 12542,
+          "offset_range": [
+            33054,
+            33054
+          ],
+          "own": {
+            "mean_prediction": 16481.8594455719,
+            "mae": 4729.784917831421,
+            "bias": 3939.8594455718994,
+            "underpredicted": 1
+          },
+          "incumbent": {
+            "mean_prediction": 16308.825492858887,
+            "mae": 3827.19686126709,
+            "bias": 3766.8254928588867,
+            "underpredicted": 1
+          },
+          "other_seed_median": {
+            "mean_prediction": 11367.5,
+            "mae": 6309.5,
+            "bias": -1174.5,
+            "underpredicted": 2
+          }
+        }
+      },
+      "missing": {
+        "32768": {
+          "completed_below_threshold": [
+            48200003,
+            48200005,
+            48200013
+          ],
+          "completed_without_eligible_snapshot": [
+            48200011
+          ]
+        }
+      },
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 41930,
+            "own": 23332.263946533203,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 33157
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 30386,
+            "own": 23361.73439025879,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 41626
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 32613,
+            "own": 23266.345977783203,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 41626
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 41626,
+            "own": 23250.60272216797,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 33157
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 46913,
+            "own": 23354.341506958008,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 33157
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 33157,
+            "own": 23282.886505126953,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 41626
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 32129,
+            "own": 23250.60272216797,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 41626
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 51915,
+            "own": 23354.341506958008,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 33157
+          }
+        ],
+        "8192": [
+          {
+            "seed": 48200001,
+            "offset": 9311,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "a0b554c0546970f94f981383cbd5a79b7237a084eb774acab4855d9fe21b2267",
+            "snapshot_sha256": "b63a77c0e016a3d307369a58aee4e5ed2eb152d11731544a2178495957f40ecc",
+            "remaining": 32619,
+            "own": 27883.975982666016,
+            "incumbent": 23101.558685302734,
+            "other_seed_median": 23846
+          },
+          {
+            "seed": 48200003,
+            "offset": 9311,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "7613f4491a51603cfcffcd2ccd618e589e4ec71a4ceb12a35856a54b95f10f45",
+            "snapshot_sha256": "558400eb93b055f949e820e965b8c20edd7b22c9e02f0439549f050c3ca5c35d",
+            "remaining": 21075,
+            "own": 27280.338287353516,
+            "incumbent": 23469.879150390625,
+            "other_seed_median": 32315
+          },
+          {
+            "seed": 48200005,
+            "offset": 9311,
+            "target": 6,
+            "scoring_target": 6,
+            "board_sha256": "9499250ea8cd3ecb8e87caa5aa9574b8f51ca81f8046c2d704253940d3b9f3a8",
+            "snapshot_sha256": "944dd7ab574b63a40dffedba4bf8723215dba0c769b7889aa8153f3a010aa199",
+            "remaining": 23302,
+            "own": 21042.774200439453,
+            "incumbent": 19019.8974609375,
+            "other_seed_median": 32315
+          },
+          {
+            "seed": 48200007,
+            "offset": 9311,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "9d2ac6fb8a2e06b7c5e8fe72f7e7227b4c29036fe8e0344e45a7b3126faed006",
+            "snapshot_sha256": "cdbaba12dd4759e8fc415f6def40398d758915beb4aa2d000f1e7d1125b1ae36",
+            "remaining": 32315,
+            "own": 27385.528564453125,
+            "incumbent": 23461.658477783203,
+            "other_seed_median": 23846
+          },
+          {
+            "seed": 48200009,
+            "offset": 9311,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "dccb429cb0ca11a5480198cd0dde7a817171b5249329bc75e634fd8e74eecd7b",
+            "snapshot_sha256": "3ab6d4ee8152abce41c8340040513b49772f2d64248262a828c562ac962d2409",
+            "remaining": 37602,
+            "own": 26656.944274902344,
+            "incumbent": 21706.695556640625,
+            "other_seed_median": 23846
+          },
+          {
+            "seed": 48200011,
+            "offset": 9311,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "10c63ec0c828632ea0c010e914865472d8c4756624a61c8a5abc40cd112b8548",
+            "snapshot_sha256": "7ada3fc5f795732c75a35ee69b0a17336f93cd5da72893981e7919d1d5e345b3",
+            "remaining": 23846,
+            "own": 24193.18199157715,
+            "incumbent": 20841.21322631836,
+            "other_seed_median": 32315
+          },
+          {
+            "seed": 48200013,
+            "offset": 9311,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "6dc5841286fc8c5f78cdee68fbb2ccee26b7e08cd15bc0de9002953706cbb0db",
+            "snapshot_sha256": "8e671e654ebd9ba06265d2774d2bbb6869e1fa7fdc21dab887981fa860da0bfa",
+            "remaining": 22818,
+            "own": 27171.45347595215,
+            "incumbent": 20220.407485961914,
+            "other_seed_median": 32315
+          },
+          {
+            "seed": 48200015,
+            "offset": 9311,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "578d0ea06c6ebbd6f91970b9d0f2a314389ace416d9ca61a8de858e0657bb876",
+            "snapshot_sha256": "7507bd29c7ccec641b34d65272a5f40b8d010a745071ee09d705f1cf0788c01b",
+            "remaining": 42604,
+            "own": 29741.8155670166,
+            "incumbent": 24421.27227783203,
+            "other_seed_median": 23846
+          }
+        ],
+        "32768": [
+          {
+            "seed": 48200001,
+            "offset": 33054,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "d60bcc0b74976e0663743039096e0649cb7b4d8166c4a75e3c0ce639c4bbc305",
+            "snapshot_sha256": "08f6299aa327071588d12be012499e80b292251be3675bb4a4248e4d708a05cd",
+            "remaining": 8876,
+            "own": 17077.957153320312,
+            "incumbent": 16255.727767944336,
+            "other_seed_median": 13859
+          },
+          {
+            "seed": 48200007,
+            "offset": 33054,
+            "target": 9,
+            "scoring_target": 9,
+            "board_sha256": "e9a9b10ab5d776332c9debd4df5b972c72d18c0159070077e39c2e590fd721f6",
+            "snapshot_sha256": "2808915b79e0cc0b38b5b5c773470f6622c5cf0620fb590a55031301a0243f30",
+            "remaining": 8572,
+            "own": 16075.668334960938,
+            "incumbent": 16098.245620727539,
+            "other_seed_median": 13859
+          },
+          {
+            "seed": 48200009,
+            "offset": 33054,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "0289f3be5c5729ef373f0f23ab56bb5a0fe036bc755afc3fc8a99c85657ceaed",
+            "snapshot_sha256": "5bc07119d5b8c18cdd87d02ff65808cd71285d353d62733b0486f6e7b14d2aeb",
+            "remaining": 13859,
+            "own": 12279.149055480957,
+            "incumbent": 14141.071319580078,
+            "other_seed_median": 8876
+          },
+          {
+            "seed": 48200015,
+            "offset": 33054,
+            "target": 8,
+            "scoring_target": 8,
+            "board_sha256": "f2d3dc99da832f416f4cf49b2120650dc96ce0835f6978fca4a23e8d0ffa180d",
+            "snapshot_sha256": "3b2b5fee3030cb794692d832dcf0d658cac9cb715785059cc13d8621c00b7307",
+            "remaining": 18861,
+            "own": 20494.66323852539,
+            "incumbent": 18740.257263183594,
+            "other_seed_median": 8876
+          }
+        ]
+      }
+    },
+    "611000-anchored": {
+      "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+      "receipt_sha256": "409f671734e5db5ff35f44527f1e0d4aec050bc719738539b44ee19260e309a5",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 38000.75,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 21924.148082733154,
+            "mae": 16076.601917266846,
+            "bias": -16076.601917266846,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 20384.367877960205,
+            "bias": -20384.367877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 36192.5,
+            "mae": 7198,
+            "bias": -1808.25,
+            "underpredicted": 4
+          }
+        },
+        "8192": {
+          "games": 8,
+          "remaining_mean": 29328.75,
+          "offset_range": [
+            8672,
+            8672
+          ],
+          "own": {
+            "mean_prediction": 27363.37447166443,
+            "mae": 5864.948774337769,
+            "bias": -1965.3755283355713,
+            "underpredicted": 3
+          },
+          "incumbent": {
+            "mean_prediction": 21664.443016052246,
+            "mae": 9378.301536560059,
+            "bias": -7664.306983947754,
+            "underpredicted": 7
+          },
+          "other_seed_median": {
+            "mean_prediction": 27520.5,
+            "mae": 7198,
+            "bias": -1808.25,
+            "underpredicted": 4
+          }
+        },
+        "32768": {
+          "games": 6,
+          "remaining_mean": 8355.833333333334,
+          "offset_range": [
+            33194,
+            33194
+          ],
+          "own": {
+            "mean_prediction": 11146.861990292868,
+            "mae": 3637.371773084005,
+            "bias": 2791.0286569595337,
+            "underpredicted": 2
+          },
+          "incumbent": {
+            "mean_prediction": 14138.637860616049,
+            "mae": 6537.243021647136,
+            "bias": 5782.804527282715,
+            "underpredicted": 1
+          },
+          "other_seed_median": {
+            "mean_prediction": 7817,
+            "mae": 10020.166666666666,
+            "bias": -538.8333333333334,
+            "underpredicted": 3
+          }
+        }
+      },
+      "missing": {
+        "32768": {
+          "completed_below_threshold": [
+            48200005,
+            48200007
+          ]
+        }
+      },
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 36736,
+            "own": 21973.323822021484,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 35649
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35649,
+            "own": 22001.94549560547,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 36736
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 23564,
+            "own": 21842.811584472656,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 36736
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 31143,
+            "own": 21836.910247802734,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 36736
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 45286,
+            "own": 21980.632781982422,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 35649
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 50165,
+            "own": 21940.017700195312,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 35649
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 46434,
+            "own": 21836.910247802734,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 35649
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 35029,
+            "own": 21980.632781982422,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 36736
+          }
+        ],
+        "8192": [
+          {
+            "seed": 48200001,
+            "offset": 8672,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "fa3ae2a531c6d18965a37d4f992bfbab1e0bc8d18b176c38d6d53b303f2a95fd",
+            "snapshot_sha256": "ba187cfdfcd12a12651cdd55c8f741a3dfdc7ba2a599c640c576cc457d6005e5",
+            "remaining": 28064,
+            "own": 28849.205017089844,
+            "incumbent": 24012.187957763672,
+            "other_seed_median": 26977
+          },
+          {
+            "seed": 48200003,
+            "offset": 8672,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "40b43d8f143d660d223fcd2e6ae9446abf5e060b78bc536770d213cbe154b1c6",
+            "snapshot_sha256": "d3543ca68cf423517ef542e6f38ae6def11d4f812a364808e26046c9d43dcf0c",
+            "remaining": 26977,
+            "own": 27758.304595947266,
+            "incumbent": 20877.87628173828,
+            "other_seed_median": 28064
+          },
+          {
+            "seed": 48200005,
+            "offset": 8672,
+            "target": 6,
+            "scoring_target": 6,
+            "board_sha256": "70abe3ac1bb0f51f02933ae1e1401ff02486f0665cf1c328c6718a955ba19a4a",
+            "snapshot_sha256": "312f6862953074be47fcced2ffae5a9a6ec529124085267ec89fd262b975d3b5",
+            "remaining": 14892,
+            "own": 25844.84100341797,
+            "incumbent": 21747.97821044922,
+            "other_seed_median": 28064
+          },
+          {
+            "seed": 48200007,
+            "offset": 8672,
+            "target": 6,
+            "scoring_target": 6,
+            "board_sha256": "e513d05d021e450dce885f585d8ff955dac3ac41b8d1810cd89741246010d851",
+            "snapshot_sha256": "35f3a9fb7957dfe527a74b806744874bf4c1ec5e7f4a86fb7a87b2e1803bd86d",
+            "remaining": 22471,
+            "own": 25039.27230834961,
+            "incumbent": 18845.600128173828,
+            "other_seed_median": 28064
+          },
+          {
+            "seed": 48200009,
+            "offset": 8672,
+            "target": 2,
+            "scoring_target": 2,
+            "board_sha256": "eec16dd8e1a7db7541a8789707bc8e270a3f225c476453c863bbe60c3ed0e1cb",
+            "snapshot_sha256": "224e65b6521891981c05c22e1d8832f4a03b3681c215a3829ec5afcc99de223f",
+            "remaining": 36614,
+            "own": 28862.02621459961,
+            "incumbent": 24017.40264892578,
+            "other_seed_median": 26977
+          },
+          {
+            "seed": 48200011,
+            "offset": 8672,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "0c7572179d8f7a650da51b4ffb922b41919f6534f1422af6719e208ff7eded84",
+            "snapshot_sha256": "6b03a9815eef168a32ec0a179df3422c5bd5e364132fcb7f793e75aaca966e67",
+            "remaining": 41493,
+            "own": 27091.079711914062,
+            "incumbent": 21145.679473876953,
+            "other_seed_median": 26977
+          },
+          {
+            "seed": 48200013,
+            "offset": 8672,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "dd475e4ff26569c289a7f3ae44b5bdf02d7d8c0c2b33eb54b83671086ba3157c",
+            "snapshot_sha256": "edddb06befa3a89d044ec4cfa8b67581d8410fde053f0fe769667f668b50473a",
+            "remaining": 37762,
+            "own": 28594.59686279297,
+            "incumbent": 23355.121612548828,
+            "other_seed_median": 26977
+          },
+          {
+            "seed": 48200015,
+            "offset": 8672,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "8c005076c7fd152e544f993164d3cbb03fef2a660fa6af61ba8466d60d2eebd7",
+            "snapshot_sha256": "c1956053e80498428f3f2c0893582df5a9800086a02f813fe34c5c1f85fe7ef9",
+            "remaining": 26357,
+            "own": 26867.6700592041,
+            "incumbent": 19313.697814941406,
+            "other_seed_median": 28064
+          }
+        ],
+        "32768": [
+          {
+            "seed": 48200001,
+            "offset": 33194,
+            "target": 13,
+            "scoring_target": 13,
+            "board_sha256": "ab8e3fb0b47bebfc2b8a7162c708e407b438c3477ab0af84e9c2ab8fc1a017d5",
+            "snapshot_sha256": "b4fa4be4c08f667d10f64913645034acc4a87b2e19575e43020aa2214c826b07",
+            "remaining": 3542,
+            "own": 3487.6692295074463,
+            "incumbent": 13308.030128479004,
+            "other_seed_median": 12092
+          },
+          {
+            "seed": 48200003,
+            "offset": 33194,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "bc843b391981e678f400484cb717cf03e411067f499d8250fa5caa4c5e6789a2",
+            "snapshot_sha256": "4a184dc07b1028a47397253e9962b8ac4c656191305ca2fefecb784b290190a6",
+            "remaining": 2455,
+            "own": 12283.2670211792,
+            "incumbent": 13916.986465454102,
+            "other_seed_median": 12092
+          },
+          {
+            "seed": 48200009,
+            "offset": 33194,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "301f6b27e902b3787c35e97a50e208f4538e95a37260f49b8724e51466c13bbd",
+            "snapshot_sha256": "5f59b71fcd1f6fb5388f47f7e93585c2cb4345b258515b2b294026fc3485936f",
+            "remaining": 12092,
+            "own": 15318.612098693848,
+            "incumbent": 16296.035766601562,
+            "other_seed_median": 3542
+          },
+          {
+            "seed": 48200011,
+            "offset": 33194,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "b0c5a8bee157228e0b76a95475bb3a1cd66d0e506c46ab23e4b83be28f2b5285",
+            "snapshot_sha256": "498ee62d3df6fb84ed726533c14d64da3d0681d591069d600737af7a8bfd9f0c",
+            "remaining": 16971,
+            "own": 14486.30142211914,
+            "incumbent": 14707.684516906738,
+            "other_seed_median": 3542
+          },
+          {
+            "seed": 48200013,
+            "offset": 33194,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "b3bb74a16a3aaf6e2865ade67c3d6c0d9cca53767a464d4654a2eadee4cc0394",
+            "snapshot_sha256": "9e9976085ad968a36cfcca4ff13dd84a971176ceeeb29f24f2727212335e0495",
+            "remaining": 13240,
+            "own": 15649.566650390625,
+            "incumbent": 15989.57633972168,
+            "other_seed_median": 3542
+          },
+          {
+            "seed": 48200015,
+            "offset": 33194,
+            "target": 13,
+            "scoring_target": 13,
+            "board_sha256": "75d704aa468f49c6ea2e53b765182e9cf53be98293245628281676b6bd2d9daa",
+            "snapshot_sha256": "2d851044044ab60973224b2206d4b86bed334e6d98a1df29680e0cfb8bd22c58",
+            "remaining": 1835,
+            "own": 5655.755519866943,
+            "incumbent": 10613.513946533203,
+            "other_seed_median": 12092
+          }
+        ]
+      }
+    }
+  },
+  "frozen_design": {
+    "schema": "public-critic-lifetimes-v1",
+    "time_unix": 1795709235.3794787,
+    "protocol_file_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+    "capture_sha256": "961602bcb7de71b9052519299abf30300862656ff1eaea0ca8cc43eeb719f3d9",
+    "seeds": [
+      48200001,
+      48200003,
+      48200005,
+      48200007,
+      48200009,
+      48200011,
+      48200013,
+      48200015
+    ],
+    "public_players": [
+      "incumbent",
+      "611000-plain",
+      "612000-plain",
+      "611000-cold",
+      "612000-cold",
+      "611000-anchored",
+      "612000-anchored",
+      "611000-residual",
+      "612000-residual"
+    ],
+    "frozen_before_reading_predictions": true,
+    "endpoints": "Only final published eight-seed greedy screens to physical top-out. Genesis for every seed and every actual retained threshold board; record gaps and condition late comparisons on observed survivors. Same threshold, different absolute depths possible. Do not use rolling terminal observations or sealed draws.",
+    "scoring": "For each board use its acting checkpoint and the fixed incumbent critic. Score through full V4 forward with the actual public context and resolved physical target. Cross-check returned critic input through the value head and repeat by direct board-feature evaluation. Target is the published GPU natural lifetime minus exact saved depth, in placements. Report by actor and nominal threshold: own/starting critic mean signed and absolute errors; also a leave-one-stream-out median of realized remaining lifetimes as a descriptive public comparator. No fitting or checkpoint mutation. Greedy evaluation differs from stochastic PPO; errors are deployment calibration only."
+  },
+  "snapshot_availability": "The opening board is reconstructable from the public seed for every player. The milestone observer began after 611000-plain completed. Earlier direct players have no milestone captures. Milestones include only observed survivors. Realized placements come from the official GPU screen; value predictions use the frozen models on the saved pre-action boards on CPU."
+}
