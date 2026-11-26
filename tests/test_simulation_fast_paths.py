@@ -2,6 +2,7 @@ import dataclasses
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
@@ -20,6 +21,22 @@ class SimulationFastPathsTests(unittest.TestCase):
         if game.configure_backend('native') != 'native' or not hasattr(game._NATIVE, 't4_checked_apply'):
             self.skipTest('Build the current native extension to test staged simulation')
         game.set_simulation_fast_paths()
+
+    def test_local_shortlist_override_survives_target_recovery(self):
+        state = game.Game(11)
+        state.current = 'I'
+        state.board = (2,) + (0,) * (game.AREA - 1)
+        config = neural.Config(screening='exhaustive', shortlist=4, shortlist_mode='teacher-top', recover_target=True)
+        with patch.object(neural, '_native_shortlist', wraps=neural._native_shortlist) as shortlist:
+            local = neural.prepare(state, 0, config, two_stage=True)
+            shortlist.assert_called_once()
+            self.assertFalse(game.TWO_STAGE_EXHAUSTIVE)
+            shortlist.reset_mock()
+            dense = neural.prepare(state, 0, config)
+            shortlist.assert_not_called()
+        self.assertEqual(int(local.arrays['targets']), 1)
+        self.assertEqual(local.options, dense.options)
+        np.testing.assert_array_equal(local.arrays['teacher_prior'], dense.arrays['teacher_prior'])
 
     def test_native_shortlist_ties_anchored_clear_and_recovery(self):
         boards = [

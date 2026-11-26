@@ -94,13 +94,17 @@ class GeometryTests(unittest.TestCase):
         context = game.evaluate_board(state.board)
         options = [game.score_candidate(context, 'I', 0, k, 0, 0) for k in range(2)]
         config = neural.Config(architecture='survival-spatial-v4', protect_target=False)
-        def choose(logits):
-            with patch.object(cross, '_visible_replies', return_value=(options[0],)), patch.object(
-                    cross, 'candidate_cross_counts', side_effect=[(1, np.array([0])), (1, np.array([1]))]):
-                return cross.preview_choice(state, 1, options, logits, config)
-        self.assertEqual(choose([1., .9]), 1)
-        self.assertEqual(choose([1., .5]), 0)
-        self.assertEqual(choose([float(cross.MOBILITY_VALUES[1]), 0.]), 0)
+        def choose(logits, second_reply_origins=1):
+            with patch.object(cross, '_visible_replies', return_value=(options[0],)) as replies, patch.object(
+                    cross, 'candidate_cross_counts', side_effect=[(1, np.array([0])), (1, np.array([second_reply_origins]))]):
+                choice = cross.preview_choice(state, 1, options, logits, config)
+                return choice, replies.call_count
+        self.assertEqual(choose([1., .9]), (1, 2))
+        self.assertEqual(choose([1., .5]), (0, 2))
+        self.assertEqual(choose([float(cross.MOBILITY_VALUES[1]), 0.]), (0, 2))
+        # A best possible tie needs no reply search. Any remaining headroom still requires one.
+        self.assertEqual(choose([1., 0.], 16), (0, 1))
+        self.assertEqual(choose([1., .001], 16), (1, 2))
 
     def test_uncapped_terminal_and_live_target_block_have_distinct_reasons(self):
         state = game.Game(37)

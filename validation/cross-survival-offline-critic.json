@@ -1,0 +1,413 @@
+{
+  "schema": "cross-survival-offline-critic-v1",
+  "authority": "CPU-only exploratory fit on historical observations; no candidate, checkpoint, optimizer, training run or evaluation policy changed.",
+  "provenance": {
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "incumbent_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "donor_checkpoint_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+    "plain_611000_endpoint_checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+    "frozen_plan_content_sha256": "fb51403eef72348a3329b562a6b46ae5c825809ba52957a6a528c7825f226904",
+    "frozen_plan_file_sha256": "5938aa5e0cad436d6996b185269e5cc1bfef2468661723aa45100643f989af49",
+    "result_file_sha256": "12ca134a76ac68c3521f933d406c688e01b494fc0a3821f320cc501985a7f47d",
+    "research_script_sha256": "bb81f8d291dddab119f361bfab79e2a835be0eb85b0ad12a4cd859e2f5037734",
+    "pilot_files_sha256": {
+      "root.json": "3b7c645b497b5220239b05c0b1067498dda80f50950f637d41e77aa705295a66",
+      "rollouts.jsonl": "408c5b0f1301de4d12e5699e5a0cc046b73326e4b06a544dd601c9b808d8adff",
+      "pilot.py": "c5ca4dc12d2e5ae64154d0dbba1f12925d03fdffa2f1bd5b324e5d927ebd2e72"
+    },
+    "other_input_files_sha256": {
+      "cross-survival-24h/live-critic-frozen-rollout-pilot.json": "2cd6af08500712f539e4e9ffcc9cba82827b03056b1ccfe0b37e36b0307eba20",
+      "cross-survival-24h/live-actor-archive-080.json": "cef3ba514cc44dbaa288a3d77a2717ae72638cc55e5021f8bc77b0cffde19715",
+      "cross-survival-24h/sustained-preview-archived-pairs.json": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+      "cross-survival-24h/critic-gate.json": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+      "cross-survival-24h/protocol.json": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+      "cross-survival-24h/runtime-revision.txt": "7315537135b0030ec000bec5087cd6549b6529ebb60caa1d0baeb10eb1c132f5",
+      "cross-survival-24h/training/611000-plain/endpoint.json": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5"
+    },
+    "calibration_per_game_sha256_by_temperature": {
+      "1.0": {
+        "48100001": "b799f10065dada7f083b040a6ba4cee6d339eb0caa83e0f9648f7e56a14b56c0",
+        "48100003": "30b72b9fc20fd2cecaad0cc01bb5e76fc64795aabb4a0219b86ddc2a47ff12f8",
+        "48100005": "e5e4940db371aa0620860bda4551bd93ad583a5ee349799b18168281dc8f6120",
+        "48100007": "598decb50a83e34cf7d2b6b4621bbb00bf74870f601c2ace4d6fce7e71b9ef10",
+        "48100009": "e18f5e7fb0f5bb8077b180105f5b41f67fd7c549a9bdc154d441738a52d2ee66",
+        "48100011": "78277245b7908a8cb55267bc07f967a2d3ab6e2f8417e2a0d3ec8a4d5aeacb1c",
+        "48100013": "bcf144380f396dfab09534f150b5a4a0562c19d7de9c142b3bdb510e8ee06274",
+        "48100015": "ee06a6d81d546b3c9cbe195e27546b51bb82c75b3d4e2a6d3a0a097996c99a79"
+      },
+      "0.25": {
+        "48100001": "66ab9159bbedb201fea31f138f56719c408fcb07f338d0e7a63c7b2297057875",
+        "48100003": "9c35c1e168167e830a5410901486cb1dcd9d331ff40323cfbd763287e33ed99b",
+        "48100005": "23855ee6e59281bfdf16451b647e64d4ac9b32263397709a7b2b3b33e35aaba4",
+        "48100007": "668073072ca9515615356a792c82cc91c76568b64141a37412f7681c63f1eabb",
+        "48100009": "a55d1fe04a2f7a3769b49deb33d966e7373924680110639ec0eea177cb8c89e8",
+        "48100011": "963c801c5369d337b5541bf8935c0af88ab5f99db468e08b98553f6e55ac80ba",
+        "48100013": "246be4f8852fd85c660434ace41ffd6b9bc7fc5ee2e73de444fec3380dc786ce",
+        "48100015": "550f292a59b37357f83b38e3aaad116616c7a9867dd39b6a10a6b578067d0461"
+      }
+    },
+    "curriculum_sha256": {
+      "old_control": "1fb059e416dc215b23d768db313a2af13e88fcb881063f96c1e98c985d747397",
+      "old_diverse": "8ab55c57d385ccd6f2d00a993ccd0905a5721edf0c876a1ec064c888e870b2c4",
+      "611000": "0f8f1f533e49dd325eab12ffb56a22e045ad3030089607c9eeb893914db857ee",
+      "612000": "f53c3c5960020b7a5d8470d45cbadc3ab255acc1940681fd8f801c813d7e0aa0"
+    }
+  },
+  "split": {
+    "salt": "fixed-offline-aux-survival-calibration-v1",
+    "assignment": "12 distinct greedy test streams were selected by salted SHA-256 from 25 eligible historical training streams outside both historical and both current danger curricula. The remaining 25 training streams form the greedy fit set. Four calibration fit streams and four test streams each supply two temperatures. All five groups below are mutually seed-disjoint. Registered qualification and holdout streams were excluded.",
+    "greedy_train": [
+      300004,
+      300010,
+      300020,
+      300038,
+      300048,
+      300100,
+      300104,
+      300114,
+      300116,
+      300120,
+      300126,
+      300132,
+      300144,
+      300148,
+      300194,
+      300226,
+      300228,
+      300230,
+      300236,
+      300240,
+      300278,
+      300298,
+      300476,
+      300548,
+      300568
+    ],
+    "greedy_test": [
+      300078,
+      300326,
+      300108,
+      300530,
+      300056,
+      300384,
+      300172,
+      300134,
+      300066,
+      300252,
+      300034,
+      300478
+    ],
+    "calibration_train": [
+      48100001,
+      48100003,
+      48100005,
+      48100015
+    ],
+    "calibration_test": [
+      48100011,
+      48100013,
+      48100007,
+      48100009
+    ],
+    "external_frozen_endpoint_greedy": [
+      300122,
+      300264,
+      300322,
+      300460,
+      300576,
+      500000
+    ]
+  },
+  "labels": {
+    "reward_units": "Remaining placements from a pre-action state. Original and donor critic outputs were multiplied by 1000. The historical greedy pilot includes the forced first incumbent argmax and then follows the unchanged incumbent.",
+    "greedy": "42 historical training-origin roots across 37 streams; 26 top-outs and 16 genuine administrative caps at 3000. A cap means at least 3000.",
+    "sampled": "16 physically complete sampled-incumbent games on eight shared piece streams, one game per temperature on each stream. Samples every 128 placements. No artificial censoring.",
+    "counts": {
+      "greedy": {
+        "fit": {
+          "states": 30,
+          "streams": 25,
+          "physical_top_out_labeled_states": 17,
+          "right_censored_states": 13
+        },
+        "test": {
+          "states": 12,
+          "streams": 12,
+          "physical_top_out_labeled_states": 9,
+          "right_censored_states": 3
+        }
+      },
+      "sampled_T1": {
+        "fit": {
+          "states": 711,
+          "streams": 4,
+          "physical_top_out_labeled_states": 711,
+          "right_censored_states": 0
+        },
+        "test": {
+          "states": 785,
+          "streams": 4,
+          "physical_top_out_labeled_states": 785,
+          "right_censored_states": 0
+        }
+      },
+      "sampled_T025": {
+        "fit": {
+          "states": 1139,
+          "streams": 4,
+          "physical_top_out_labeled_states": 1139,
+          "right_censored_states": 0
+        },
+        "test": {
+          "states": 1294,
+          "streams": 4,
+          "physical_top_out_labeled_states": 1294,
+          "right_censored_states": 0
+        }
+      }
+    }
+  },
+  "fit": {
+    "inputs": [
+      "log1p(original incumbent critic in placements)",
+      "log1p(historical donor critic in placements)",
+      "sampled at T1 indicator",
+      "sampled at T.25 indicator"
+    ],
+    "model": "Fixed-scale log-logistic AFT on log1p(remaining placements), one intercept, two log-critic slopes standardized on weighted fit data, two fixed public behavior-mode offsets. Logistic scale 1; ridge .01 on four nonintercept coefficients. Point prediction max(0,expm1(location)), conditional median. No age, remaining recorded life, later board, or terminal indicator enters prediction.",
+    "weighting": "Equal total weight per training modality (greedy, T1, T.25), then equal by stream within modality, then root/sampled-placement within stream. The exact-only fit removes genuinely capped rows and reweights remaining strata by this same rule. Feature centering/scaling shared across both fits and computed from all train inputs only.",
+    "reference_methods": [
+      "original incumbent scalar",
+      "historical donor scalar"
+    ],
+    "feature_means": [
+      9.660558047364884,
+      8.638063044503461
+    ],
+    "feature_stds": [
+      0.24265955596880345,
+      1.9455648774321546
+    ],
+    "standardized_coefficients_intercept_then_inputs": {
+      "exact_only": [
+        8.469415037312903,
+        0.5790694014384128,
+        0.6569806111738805,
+        0.07591003343145199,
+        0.3289584039704288
+      ],
+      "censor_aware": [
+        9.193849330207994,
+        0.34054725444801,
+        0.9967485423625208,
+        -0.6489075877890751,
+        -0.4284197193864106
+      ]
+    }
+  },
+  "scoring": {
+    "unit": "Placements. Average over sampled positions within stream, then over streams, separately per behavior mode. A lower value is better for the error and shortfall columns.",
+    "primary": "The greedy restricted_3000_mae compares min(prediction, 3000) with min(observed lifetime, 3000) on all 12 test streams. mae_exact uses only top-outs; cap_known_shortfall averages max(0, 3000 - point_prediction) over genuinely censored test roots.",
+    "bands": "Sampled calibration first_quarter_mae uses positions before one quarter of true game length; last512_mae uses exact remaining lifetime at most 512. The evaluation bands are descriptive and do not enter predictions."
+  },
+  "held_out_metrics": {
+    "greedy": {
+      "incumbent": {
+        "mae_exact": 12191.879,
+        "cap_known_shortfall": 0.0,
+        "restricted_3000_mae": 1055.917,
+        "last512_mae": 11753.374,
+        "capped_below_observed_n": 0
+      },
+      "donor": {
+        "mae_exact": 927.222,
+        "cap_known_shortfall": 792.764,
+        "restricted_3000_mae": 893.607,
+        "last512_mae": 438.714,
+        "capped_below_observed_n": 2
+      },
+      "exact_only": {
+        "mae_exact": 708.843,
+        "cap_known_shortfall": 724.249,
+        "restricted_3000_mae": 680.065,
+        "last512_mae": 50.983,
+        "capped_below_observed_n": 1
+      },
+      "censor_aware": {
+        "mae_exact": 1569.03,
+        "cap_known_shortfall": 404.765,
+        "restricted_3000_mae": 713.032,
+        "last512_mae": 46.236,
+        "capped_below_observed_n": 1
+      }
+    },
+    "sampled_T1": {
+      "incumbent": {
+        "mae_exact": 6115.01,
+        "restricted_3000_mae": 180.734,
+        "last512_mae": 10131.467,
+        "first_quarter_mae": 1845.179,
+        "capped_below_observed_n": 0
+      },
+      "donor": {
+        "mae_exact": 9072.758,
+        "restricted_3000_mae": 92.825,
+        "last512_mae": 470.701,
+        "first_quarter_mae": 12747.713,
+        "capped_below_observed_n": 0
+      },
+      "exact_only": {
+        "mae_exact": 1192.892,
+        "restricted_3000_mae": 85.368,
+        "last512_mae": 686.594,
+        "first_quarter_mae": 1949.63,
+        "capped_below_observed_n": 0
+      },
+      "censor_aware": {
+        "mae_exact": 1378.024,
+        "restricted_3000_mae": 98.267,
+        "last512_mae": 717.765,
+        "first_quarter_mae": 1815.872,
+        "capped_below_observed_n": 0
+      }
+    },
+    "sampled_T025": {
+      "incumbent": {
+        "mae_exact": 7525.868,
+        "restricted_3000_mae": 107.982,
+        "last512_mae": 10931.687,
+        "first_quarter_mae": 13419.201,
+        "capped_below_observed_n": 0
+      },
+      "donor": {
+        "mae_exact": 4368.944,
+        "restricted_3000_mae": 85.047,
+        "last512_mae": 2369.254,
+        "first_quarter_mae": 3184.925,
+        "capped_below_observed_n": 0
+      },
+      "exact_only": {
+        "mae_exact": 3421.72,
+        "restricted_3000_mae": 83.27,
+        "last512_mae": 2034.218,
+        "first_quarter_mae": 6077.661,
+        "capped_below_observed_n": 0
+      },
+      "censor_aware": {
+        "mae_exact": 3889.086,
+        "restricted_3000_mae": 92.551,
+        "last512_mae": 2427.331,
+        "first_quarter_mae": 8261.393,
+        "capped_below_observed_n": 0
+      }
+    }
+  },
+  "primary_censor_aware_minus_exact_only": {
+    "mean_absolute_error_difference": 32.967,
+    "paired_percentile_95": [
+      -263.077,
+      328.195
+    ],
+    "better_streams": 4,
+    "test_streams": 12,
+    "bootstrap_resamples": 2000,
+    "bootstrap_seed": 20261126
+  },
+  "censored_test_predictions": [
+    {
+      "seed": 300066,
+      "lower_bound": 3000,
+      "exact_only": 827.253,
+      "censor_aware": 1785.704
+    },
+    {
+      "seed": 300078,
+      "lower_bound": 3000,
+      "exact_only": 3376.643,
+      "censor_aware": 8250.213
+    },
+    {
+      "seed": 300134,
+      "lower_bound": 3000,
+      "exact_only": 3521.026,
+      "censor_aware": 6730.857
+    }
+  ],
+  "external_greedy_transport": {
+    "seed_unit": "One preselected danger board per stream. Both players start at the same six boards with matched piece streams. All 12 continuations reached physical top-out.",
+    "seeds": [
+      300122,
+      300264,
+      300322,
+      300460,
+      300576,
+      500000
+    ],
+    "arms": {
+      "incumbent": {
+        "seed_order": [
+          300322,
+          300460,
+          300264,
+          300576,
+          500000,
+          300122
+        ],
+        "remaining_placements": [
+          200,
+          448,
+          215,
+          608,
+          232,
+          239
+        ],
+        "mae": {
+          "incumbent": 11090.103,
+          "donor": 264.53,
+          "exact_only": 146.545,
+          "censor_aware": 242.135,
+          "U80_current_head": 197.81
+        }
+      },
+      "trained": {
+        "seed_order": [
+          300322,
+          300460,
+          300264,
+          300576,
+          500000,
+          300122
+        ],
+        "remaining_placements": [
+          169,
+          466,
+          255,
+          608,
+          263,
+          239
+        ],
+        "mae": {
+          "incumbent": 11080.437,
+          "donor": 274.197,
+          "exact_only": 136.878,
+          "censor_aware": 225.856,
+          "U80_current_head": 201.706
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Greedy test roots are selected historical danger positions and include only three genuinely capped games. Results estimate error on the recorded streams. They do not test policy survival or represent fresh-game starts.",
+    "Both calibration temperatures repeat the same four test streams. Their 2079 test positions belong to eight games, so positions are correlated. Genuine censoring is confined to the greedy pilot.",
+    "Earlier aggregate archive results were known. The methods, hash-based split and scoring were frozen before the offline fit. The fixed-scale survival model uses two pre-existing critic forecasts and a behavior flag.",
+    "The six separate update-80 continuations are on-policy labels for that frozen endpoint, all from late-game roots. Current-policy PPO episode summaries from changing training actors supplied no matched per-state predictions and were excluded."
+  ],
+  "hardware": {
+    "cpu": [
+      6
+    ],
+    "nice": 15,
+    "gpu": false
+  },
+  "elapsed_seconds": 43.336
+}

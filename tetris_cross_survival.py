@@ -113,7 +113,7 @@ def _visible_replies(state, target, after, current, config):
         following = game.next_hyperlayer_target(after, target)
         if following is not None:
             target = following
-    prepared = neural.prepare(view, target, config)
+    prepared = neural.prepare(view, target, config, two_stage=True)
     if prepared is None:
         return ()
     order = np.argsort(-prepared.arrays['teacher_prior'], kind='stable')
@@ -200,7 +200,11 @@ def preview_choice(state, target, options, logits, config, normalized_after=None
     reply_config = replace(config, architecture='survival-feature-v3', screening='exhaustive',
                            shortlist=4, shortlist_mode='teacher-top', cross_residual=False, cross_weight=0.)
     best, best_key = candidates[0][0], None
+    max_reply_bonus = float(MOBILITY_VALUES[16])
     for i, action, board in candidates[:16]:
+        # Later logits can only fall, and the earlier action wins an exact tie.
+        if best_key is not None and float(logits[i]) + max_reply_bonus <= best_key:
+            break
         replies = _visible_replies(state, target, board, action, reply_config)
         reply_count = int(candidate_cross_counts(board, replies)[1].max()) if replies else -1
         reply_bonus = float(MOBILITY_VALUES[min(reply_count, 16)]) if replies else 0.

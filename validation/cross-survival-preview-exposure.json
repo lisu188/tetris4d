@@ -1,0 +1,281 @@
+{
+  "schema": "incumbent-archived-preview-exposure-v1",
+  "scope": "All uniquely indexed greedy selection recordings from the source directory and optimizer step of the incumbent checkpoint. These past selection streams are disjoint from the current experiment. Each recorded game stopped at its 32,000-piece limit.",
+  "endpoint": "For each recorded action count whether the registered preview rule would trigger: legal CROSS origins on the afterstate at most eight or the visible next piece physically has no legal move. The existence of recorded subsequent placements proves the visible piece was playable; explicitly verify the final capped board. Count when the cheap ordinary-afterstate witness already proves no search (with and without supplied normalized exact after-count) and count concurrently triggered lanes in the aligned group of eight games. Distinguish afterstate exposure from an intervening policy trajectory or a GPU speed measurement.",
+  "provenance": "Reproduce the archived final board and all physically valid moves, plus CPU 32x128 incumbent-greedy argmax checks at six fixed offsets per stream.",
+  "runtime": "2306f06403e72999bae05b84aa18055db052caa9",
+  "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "original_update": 4480,
+  "sources": {
+    "incumbent-selection-exposure-plan.json": "f75293e7b58172fabc16f213fe11b453a1fc0e05e91b5b8b644c566749773955",
+    "incumbent-selection-exposure.json": "ae82ae74cf12af55f38c6b0142541550d2478723591312dccd530daf73498f24",
+    "measure_incumbent_preview_exposure.py": "41d60d56cd68855dcaa52e6cc85b7ecc23914d8531b29981de195c8426c6d9f4"
+  },
+  "archive_index_sha256": "c24d7865c60c890d5672d927cc7691d9d69f5754b5ac14b4c4e392a8d55730a0",
+  "registered_protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+  "argmax_check_offsets": [
+    0,
+    127,
+    4095,
+    15999,
+    24575,
+    31999
+  ],
+  "argmax_agreements": 48,
+  "argmax_comparisons": 48,
+  "quarter_placements": 8000,
+  "games": [
+    {
+      "seed": 910001,
+      "game_id": "666c5e7de7828382b8c14a8d33f5a3c9f5fc0c50817fe8016ab4a87399f6e2bb",
+      "recording_sha256": "f54a39e3e6f7bc9e5de5b53af45245a663ffc74bed61a7f418bd5653132b786d",
+      "final_board_sha256": "10ae09cd622db6dcc95bd2176f00093974d7fb3e577a8aa6fe35ebfaf76f70d9",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2743,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910003,
+      "game_id": "34ba995a296dd42e46b97848f0309748c1c146c554a5e84ac82c09a8e35eacf4",
+      "recording_sha256": "a56bfdce61014d77afee2bf2a1619d2d358e101e575902d226f833179fc5e311",
+      "final_board_sha256": "b6cf10b6ed48637a3bfa64438732f8d1e899775717ebd32e5543b33e8700d056",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2731,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910005,
+      "game_id": "ca3689e5be2b6ee785345c0dff329f74676dff19c2120391d04f0838b1f95098",
+      "recording_sha256": "21852a4ff5fa3cc81709df98bdea5306d4539f4b1b082e7596c964580e89bb0a",
+      "final_board_sha256": "457c52e4d967438b43840bff338586fa592184c9448420f271c12bf7cb4527a4",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2720,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910007,
+      "game_id": "e030262fd22cfdb41520a1290df0ffdc00f2c8c2da25d08e79534e9e2c6aaa8f",
+      "recording_sha256": "10a8f9b9bf850a74d9b83657f5de7a91bc201b5d04f748729dbab2f28750999a",
+      "final_board_sha256": "5ba056db894c41e1a640473ea7891f18a7570184e9d475886843aa1fc84a4830",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 1366,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910009,
+      "game_id": "78811bd405cb4fa7fdd265ab0859be8168e1f08855b07486be64a824f1ddf17f",
+      "recording_sha256": "613574e7f59fbb8ca8362bc905c76af8529cae56ad8196a89dcda3ed8e9d4039",
+      "final_board_sha256": "bfd66279acfde8c3032abca231b17d3d17847e9b4699c4e1067f12a133398e65",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2732,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910011,
+      "game_id": "d7e77cb2f4cc11a3edf588c59cb5014dccbda282f2c9cdfe8ec1ca37daaf5ad9",
+      "recording_sha256": "103b38dbd72f9e2f5a22d424233958f8e769ae330785603d6296b8c0a5c6c848",
+      "final_board_sha256": "996a6f10c68788a6f9e433ae4b40f89eb427ca2008b3b38af541ef781a511b5c",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 1,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        122
+      ],
+      "trigger_boundaries": [
+        {
+          "offset_after": 29713,
+          "enters": true,
+          "origins": 8
+        },
+        {
+          "offset_after": 29740,
+          "enters": false,
+          "origins": 1784
+        },
+        {
+          "offset_after": 30596,
+          "enters": true,
+          "origins": 8
+        },
+        {
+          "offset_after": 30621,
+          "enters": false,
+          "origins": 1296
+        },
+        {
+          "offset_after": 31277,
+          "enters": true,
+          "origins": 8
+        },
+        {
+          "offset_after": 31326,
+          "enters": false,
+          "origins": 1431
+        },
+        {
+          "offset_after": 31980,
+          "enters": true,
+          "origins": 8
+        }
+      ]
+    },
+    {
+      "seed": 910013,
+      "game_id": "7d5578b30ecc147a81ee300c98e5635678bb572cd04b7ba54dc054d2898ec95b",
+      "recording_sha256": "82b25e90fcc864fbd17081003023153a36e783d098bcf0ae9f16688b1d9c3abc",
+      "final_board_sha256": "6c368fb4aace4b38b218ebd3cacb7cc312a6cc375b191753d0e8606bf1a0de1c",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2729,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    },
+    {
+      "seed": 910015,
+      "game_id": "dd3915abdc50464af60c3fe016f50ffa0bd82c0d72746d59d17bd3a73888bd26",
+      "recording_sha256": "bab9eeaf8808275ac1f858903d89875739c74ea3119819abd05b32f25d28cf02",
+      "final_board_sha256": "8509d397cd5d5719606e6daae88a4d7a5be0722b3f0706525fa16b75e0488336",
+      "placements": 32000,
+      "stop_reason": "piece_limit",
+      "min_afterstate_origins": 2743,
+      "trigger_count_by_quarter": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "trigger_boundaries": []
+    }
+  ],
+  "counts": {
+    "decisions": 256000,
+    "at_most_8": 122,
+    "at_most_16": 269,
+    "ordinary_plain": 253542,
+    "ordinary_with_count": 255502,
+    "uncertified_plain_no_trigger": 2336,
+    "uncertified_count_no_trigger": 376,
+    "clears": 299
+  },
+  "totals_by_quarter": [
+    {
+      "decisions": 64000,
+      "at_most_8": 0,
+      "at_most_16": 0,
+      "ordinary_plain": 63933,
+      "ordinary_with_count": 63933,
+      "uncertified_plain_no_trigger": 67,
+      "uncertified_count_no_trigger": 67,
+      "clears": 67
+    },
+    {
+      "decisions": 64000,
+      "at_most_8": 0,
+      "at_most_16": 0,
+      "ordinary_plain": 63924,
+      "ordinary_with_count": 63924,
+      "uncertified_plain_no_trigger": 76,
+      "uncertified_count_no_trigger": 76,
+      "clears": 76
+    },
+    {
+      "decisions": 64000,
+      "at_most_8": 0,
+      "at_most_16": 0,
+      "ordinary_plain": 63922,
+      "ordinary_with_count": 63922,
+      "uncertified_plain_no_trigger": 78,
+      "uncertified_count_no_trigger": 78,
+      "clears": 78
+    },
+    {
+      "decisions": 64000,
+      "at_most_8": 122,
+      "at_most_16": 269,
+      "ordinary_plain": 61763,
+      "ordinary_with_count": 63723,
+      "uncertified_plain_no_trigger": 2115,
+      "uncertified_count_no_trigger": 155,
+      "clears": 78
+    }
+  ],
+  "aligned_eight_game_lane_counts": {
+    "would_trigger": {
+      "0": 31878,
+      "1": 122,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0
+    },
+    "plain_witness_failed": {
+      "0": 29565,
+      "1": 2412,
+      "2": 23,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0
+    },
+    "known_count_witness_failed": {
+      "0": 31506,
+      "1": 490,
+      "2": 4,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0
+    }
+  },
+  "limitations": "Recorded incumbent-prefix exposures. A hypothetical first override can change all subsequent boards. Each of these historical games was capped at 32,000. No claim on the uncapped tail, a changed policy or device wall time."
+}

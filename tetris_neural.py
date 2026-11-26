@@ -378,7 +378,7 @@ def _native_shortlist(state, target, config, context, status):
     return options, keys, evaluations
 
 
-def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
+def _prepare_steps(state, target: int, config: Config, candidates: int | None = None, *, two_stage: bool | None = None):
     budget = config.screening_budget if candidates is None else candidates
     if type(budget) is not int or budget < 0:
         raise ValueError('Invalid candidate budget')
@@ -387,7 +387,9 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
         return None
     context = game.evaluate_board(state.board)
     piece = state.current
-    if (game.TWO_STAGE_EXHAUSTIVE and not budget and game.BACKEND == 'native'
+    if two_stage is None:
+        two_stage = game.TWO_STAGE_EXHAUSTIVE
+    if (two_stage and not budget and game.BACKEND == 'native'
             and hasattr(game._NATIVE, 't4_exhaustive_primary') and config.shortlist_mode != 'diverse'):
         options, keys, evaluations = yield from _native_shortlist(state, target, config, context, status)
         fallback = False
@@ -499,8 +501,8 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     return Prepared(arrays, options, teacher, evaluations, fallback)
 
 
-def prepare_steps(state, target: int, config: Config, candidates: int | None = None):
-    prepared = yield from _prepare_steps(state, target, config, candidates)
+def prepare_steps(state, target: int, config: Config, candidates: int | None = None, *, two_stage: bool | None = None):
+    prepared = yield from _prepare_steps(state, target, config, candidates, two_stage=two_stage)
     if prepared is not None or not config.recover_target or not config.protect_target:
         return prepared
     if state.game_over or not game.has_legal_move(state.board, state.current):
@@ -511,7 +513,7 @@ def prepare_steps(state, target: int, config: Config, candidates: int | None = N
         status = game.target_layer_status(state.board, alternative)
         if status.buried or status.filled == game.AREA:
             continue
-        prepared = yield from _prepare_steps(state, alternative, config, candidates)
+        prepared = yield from _prepare_steps(state, alternative, config, candidates, two_stage=two_stage)
         if prepared is not None:
             return prepared
     return None

@@ -101,8 +101,11 @@ def main():
     report = {'schema': 'cross-preview-latency-v1', 'checkpoint_sha256': ev.base.file_hash(args.checkpoint),
               'weights_sha256': ev.base.file_hash(args.weights), 'cross_weight': args.cross_weight,
               'two_stage': args.two_stage, 'headless': args.headless, 'torch': str(torch.__version__),
+              'visible_reply_shortlist': ('native two-stage' if game.BACKEND == 'native'
+                                         and hasattr(game._NATIVE, 't4_exhaustive_primary') else 'dense'),
               'scope': 'Single game, batch=1, CPU threads=1. From prepare through checked commit, '
-                       'device synchronized. Every position and mode runs once to warm before timed pass.',
+                       'device synchronized. The two_stage flag controls outer candidate preparation. '
+                       'Every position and mode runs once to warm before timed pass.',
               'positions': [[rid, step, cross.cross_count(s.board)] for rid, step, s, _ in pool], 'modes': []}
     for device in args.devices:
         model = ev.load_model(args.checkpoint, device)

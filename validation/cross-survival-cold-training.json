@@ -1,0 +1,362 @@
+{
+  "schema": "spatial-v4-cross-survival-cold-training-v1",
+  "scope": "Training and fixed archived-board diagnostics for the matched 611000 plain and cold arms. Natural survival strength requires game evaluation. The second cold replicate had not reached a published milestone at the source-report cutoff.",
+  "provenance": {
+    "host_run_directory": "survival-training.artifacts/cross-survival-24h",
+    "host_report": "plain-cold-on-policy.json",
+    "host_report_sha256": "062ea78d6c9b9bb4952d77a002e4117c61b9f1464f63d647aa25817d162b23e4",
+    "analysis_script": "compare-on-policy-temperature.py",
+    "analysis_script_sha256": "fec1480bb6383c4c4bbd0f5a0300f60bccdb85f67c86664b769f63e0b1ccd210",
+    "protocol_canonical_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+    "frozen_runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "rank_fixture_sha256": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "incumbent_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "common_settings_excluding_temperature_sha256": "e26365b65ca5af81c35bf0c925ddb8fcf37d5b3d60d464450628c29243ad0c9b"
+  },
+  "runtime": {
+    "training_gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "training_torch": "2.14.1+cu130",
+    "training_cuda": "13.0",
+    "training_precision": "fp32",
+    "archived_inference": "Single CPU thread, FP32, original candidate order, width 128."
+  },
+  "setup": {
+    "seed": 611000,
+    "initialization": "Identical actor and critic; fresh PPO optimizers. Stored training signatures at this seed differ only in behavior temperature.",
+    "temperature": {
+      "plain": 1.0,
+      "cold": 0.25
+    },
+    "placements_per_update": 8192,
+    "ppo_epochs": 2,
+    "optimizer_batch": 256,
+    "clip_ratio": 0.1,
+    "target_kl": 0.01,
+    "actor_lr": 5e-05,
+    "critic_lr": 0.0003,
+    "entropy_coefficient": 0.001
+  },
+  "training_prefixes": {
+    "columns": ["placements", "entropy_nats", "clip_fraction", "mean_final_exact_kl", "optimizer_steps", "kl_stops", "terminal_free_updates", "fresh_placements", "fresh_top_outs", "library_placements", "library_top_outs", "truncations"],
+    "plain": {
+      "10": [81920, 3.7816519, 0.0203369, 0.000974731, 640, 0, 7, 68827, 0, 13093, 4, 0],
+      "40": [327680, 3.5170885, 0.0271173, 0.001194631, 2519, 1, 32, 305327, 0, 22353, 10, 0],
+      "80": [655360, 3.4489142, 0.0295434, 0.001243218, 5079, 1, 70, 633007, 2, 22353, 10, 0]
+    },
+    "cold": {
+      "10": [81920, 2.7935225, 0.0670105, 0.001630826, 640, 0, 8, 67905, 0, 14015, 3, 0],
+      "40": [327680, 2.4607187, 0.0713679, 0.002166462, 2465, 2, 32, 295264, 0, 32416, 9, 0],
+      "80": [655360, 2.2409448, 0.0766783, 0.001989239, 5025, 2, 71, 614800, 0, 40560, 10, 0]
+    },
+    "definitions": "Cumulative through update. Entropy is current masked categorical entropy during optimization in nats, averaged by optimized examples. Clip fraction is the share of sampled-action ratios outside 0.9–1.1, weighted the same way. Ratios use old and current probabilities at the same temperature, including the teacher prior. Final KL is mean full-rollout KL(old || current) after each update. Stops also test the most recent optimized block. Each update permits 64 optimizer steps."
+  },
+  "greedy_action_pairs": {
+    "fixture": "40 positions from 10 archived training games; 20 danger with at most 512 recorded placements remaining and 20 ordinary. Each count compares deterministic argmax choices on the same shortlist. CROSS deltas are summed exact legal origins after each selected placement relative to the incumbent.",
+    "columns": ["both_keep", "only_plain_changes", "only_cold_changes", "both_choose_same_alternative", "both_choose_different_alternatives", "raw_cross_delta_plain", "raw_cross_delta_cold"],
+    "milestones": {
+      "10": {"all": [26, 6, 3, 0, 5, -1, -4], "ordinary": [11, 2, 2, 0, 5, 0, 0], "danger": [15, 4, 1, 0, 0, -1, -4]},
+      "40": {"all": [25, 8, 1, 2, 4, -5, -1], "ordinary": [11, 4, 0, 2, 3, 0, 0], "danger": [14, 4, 1, 0, 1, -5, -1]},
+      "80": {"all": [20, 9, 3, 2, 6, -8, 0], "ordinary": [9, 6, 1, 0, 4, 0, 0], "danger": [11, 3, 2, 2, 2, -8, 0]}
+    }
+  },
+  "same_board_temperature": {
+    "columns": ["mean_entropy_T1", "mean_greedy_probability_T1", "mean_entropy_T0.25", "mean_greedy_probability_T0.25"],
+    "boards": 40,
+    "unchanged_greedy_choices_per_actor": 40,
+    "comparison": "Apply both temperatures to the identical frozen logits on each position. Probability is the mass on the single deterministic greedy action.",
+    "actors": {
+      "incumbent": {"all": [3.0881538, 0.2283884, 1.5101245, 0.5380992], "ordinary": [3.1979612, 0.1936996, 1.8788277, 0.4193365], "danger": [2.9783463, 0.2630772, 1.1414213, 0.6568619]},
+      "plain": {"all": [3.1734267, 0.2070173, 1.5389681, 0.5360995], "ordinary": [3.2915068, 0.1741118, 1.8245099, 0.4496681], "danger": [3.0553466, 0.2399228, 1.2534263, 0.622531]},
+      "cold": {"all": [3.3114398, 0.1742869, 1.8017348, 0.4736167], "ordinary": [3.3083117, 0.1707688, 1.9317898, 0.4255911], "danger": [3.3145679, 0.177805, 1.6716799, 0.5216422]}
+    }
+  },
+  "endpoint_weights_and_margins": {
+    "plain": {
+      "relative_l2_from_incumbent": {"base_actor": 0.0313973, "critic": 0.1815806, "candidate": 0.0336618, "spatial": 0.0883479, "rank_output": 0.0264735},
+      "greedy_top_two_margin_medians_incumbent_then_endpoint": {"all": [0.189878, 0.1990242], "ordinary": [0.0727627, 0.1505334], "danger": [0.3198097, 0.2877031]}
+    },
+    "cold": {
+      "relative_l2_from_incumbent": {"base_actor": 0.0300874, "critic": 0.1869049, "candidate": 0.0259484, "spatial": 0.0559659, "rank_output": 0.0982204},
+      "greedy_top_two_margin_medians_incumbent_then_endpoint": {"all": [0.189878, 0.1756033], "ordinary": [0.0727627, 0.1579528], "danger": [0.3198097, 0.1901827]}
+    }
+  },
+  "publication_identities": {
+    "plain": {
+      "10": {
+        "checkpoint_sha256": "9e61262f162d38cf9f46cf8d67b8d6e469553726d9bf2aa54915d8ade6a8a4fc",
+        "observation_sha256": "7137f1464b8435b0020a0bc26a245da298bdc0d26bae84ba7f3b441d79d09ace",
+        "matched_metrics_prefix_sha256": "b3b4f7b312cdab5ece6d74a2a3032c9c9822af09c95b8d3429abe1cb5f15e4d9"
+      },
+      "40": {
+        "checkpoint_sha256": "c4b1bba4dd71aef32ea4c96a4e5cf5b0e628443726a146514e2774a90c8616c1",
+        "observation_sha256": "d4b44bd26d4f02da694ab5a41f9e1d69d2764c998852ac195f35ada75400826c",
+        "matched_metrics_prefix_sha256": "8faa4e81ab2ae28d226547a269174f6d37756ddde76795d811eae0d88ec59c47"
+      },
+      "80": {
+        "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+        "observation_sha256": "850cb0845a99b0b9da263c1062b64cdb9057fbc5b2f6cef55330f0085075cf3c",
+        "matched_metrics_prefix_sha256": "5d2eb79e1acde5a59145abe5be015a60171c126d78900c59acfb3d9c48abc5f5",
+        "endpoint_sha256": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5",
+        "manifest_sha256": "3dee4404c7453c85ff89f04c6b2114c75674d79868ded8fb4b4fb1e9128203a0"
+      }
+    },
+    "cold": {
+      "10": {
+        "checkpoint_sha256": "082e755aa6e50b4b788562d28c6c7b9e3217aef2da4d7ff92d8919d442034ca2",
+        "observation_sha256": "ce2f1338f3ac294e998b0e4bc148c202cfe3f905422fb421ec16fda56d7c4b13",
+        "matched_metrics_prefix_sha256": "eb2c5f9aff17f726e8cec8542f70d09b2cf7151f0c59e8854fce9ec94d0416b4"
+      },
+      "40": {
+        "checkpoint_sha256": "0339f25aa7194f988cef25ddfb36378294047505d2d3f922c551c1a6963b8eac",
+        "observation_sha256": "184601527765eab5739145a81ce8b6eab886aa3ae72f324b8e1107599bef9ba1",
+        "matched_metrics_prefix_sha256": "fbfbe5f94c21cd0fcd82568e9b4b16f82fd7a678f65a5371eeb768bdfb9dbed2"
+      },
+      "80": {
+        "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+        "observation_sha256": "5217e0d0aabc28bd5c312d375442df89286ced82da4b381d2426f15c5398d40b",
+        "matched_metrics_prefix_sha256": "9d0945b5b1d0af94888a2c39bed55c6575a681dc4707c70ea56527ce9afc53af",
+        "endpoint_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+        "manifest_sha256": "f09d2de0105fb59e7a61df745032e1f453efed03832687671e925354dfa6a932"
+      }
+    }
+  },
+  "incumbent_margin_strata": {
+    "source": "611000-margin-strata.json",
+    "source_sha256": "41150566c6e15a2445331200c066cc074db4b6e11690a4bd3e79a44104588e4a",
+    "frozen_plan_sha256": "e676db18aede2d0f45ef4ae82b2e2c29ba40a5a222d6c90626a54bceb5d1c815",
+    "cutoff_raw_incumbent_top_two_margin": 0.1,
+    "common_boards_at_most_then_above": [15, 25],
+    "one_hash_selected_board_per_stream_at_most_then_above": [5, 5],
+    "count_definition": "Each pair counts changed greedy moves relative to the original incumbent on the fixed set in the two indicated strata. The one-board-per-stream sensitivity uses the prespecified ten coordinates.",
+    "correction": "For the registered bounded 0.05*tanh correction, a pair can close by at most 0.10 before rounding when the base and shortlist are unchanged. The archived FP32 rounding check protects all 25 larger gaps. The unbounded plain and cold arms can change moves in either stratum.",
+    "protected_after_fp32_rounding": 25,
+    "smallest_fp32_protected_incumbent_margin": 0.10519695281982422,
+    "roles": {
+      "plain": {"10": {"common": [10, 1], "one_per_stream": [3, 0]}, "40": {"common": [7, 7], "one_per_stream": [2, 1]}, "80": {"common": [11, 6], "one_per_stream": [4, 1]}},
+      "cold": {"10": {"common": [8, 0], "one_per_stream": [4, 0]}, "40": {"common": [4, 3], "one_per_stream": [1, 1]}, "80": {"common": [5, 6], "one_per_stream": [1, 1]}}
+    }
+  },
+  "archived_critic_pilot_common_subset": {
+    "source": "all-endpoint-archived-critic.json",
+    "observer_script_sha256": "495286579c2f2ef5d113aeb93eb8e08abada5c2a4147553840fa53da65c70c0d",
+    "critic_input_sha256": "ba3fc32b3c5bcc2584bd3e0d2ce03a4809e24ff3abffae5a8adfdad2291a926a",
+    "subset": "disjoint_historical_and_both_current",
+    "common_roots": 33,
+    "distinct_streams": 29,
+    "known_top_outs": 22,
+    "known_streams": 21,
+    "censored_at_3000": 11,
+    "censored_streams": 11,
+    "label": "Predictions in placements for the same historical incumbent rank-0 continuation at each original archived root. Top-out MAE uses exact lengths. For censored roots only survival through 3000 is known. A prediction strictly below 3000 violates this observed lower bound. These critic diagnostics score the historical continuation.",
+    "subset_hash_format": "SHA-256 of compact, sorted-key JSON with checkpoint_sha256, critic_tensor_sha256, subset and rows. Each row is [position, board_sha256, label_reason, survived, prediction] in source subset order. Predictions come from predictions_in_root_order at the same position.",
+    "endpoints": {
+      "plain": {
+        "stable_subset_sha256": "b37d73eb3a7dfb989f0b00a40311ffdb58e849a124241ab561026067865b5df0",
+        "critic_tensor_sha256": "fe4c7ae590c0b052fe400f46b5eff0cc39e5ba052856e1498caf0d1800732273",
+        "known_top_out_mae_placements": 784.2746637517756,
+        "censored_lower_bound_violations": 4,
+        "mean_shortfall_across_all_censored": 858.9874496459961
+      },
+      "cold": {
+        "stable_subset_sha256": "61e34c99c0fe7c3e5d11bde1d5acdc6a7cb2c656ed419ed5494bed62c9964ae9",
+        "critic_tensor_sha256": "e16fd44fa21784cbe8effbb42169bf11feff45b99a90cde0162ee4cc7591b98d",
+        "known_top_out_mae_placements": 2788.6034102006392,
+        "censored_lower_bound_violations": 1,
+        "mean_shortfall_across_all_censored": 5.925692471590909
+      }
+    }
+  },
+  "matched_hardware_window": {
+    "updates_inclusive": [24, 32],
+    "placements_per_arm": 73728,
+    "window": "Monotonic training event time for 9 complete updates. Device-wide nvidia-smi utilization samples roughly every 2 seconds. Preparation is inclusive host wall time and can include CUDA synchronization. The cold window performed fewer optimizer steps.",
+    "arms": {
+      "611000-plain": {
+        "source": "hardware-profile/611000-plain.json",
+        "source_sha256": "ae8ab15742dcfe9e242ce5b353f29dc5f58c6b2b2d1c53f683bd67c86cd770e8",
+        "placements_per_second": 485.01421156437215,
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "median_device_utilization_pct": 35.0,
+        "device_samples": 76,
+        "preparation_fraction_elapsed": 0.45996036931010564
+      },
+      "612000-plain": {
+        "source": "hardware-profile/612000-plain.json",
+        "source_sha256": "23ab38f4600e8c875341a8fda8766d14b3d66841d4b043c6208e3f53160e724a",
+        "placements_per_second": 483.39037871790777,
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "median_device_utilization_pct": 35.0,
+        "device_samples": 72,
+        "preparation_fraction_elapsed": 0.45691830052151033
+      },
+      "611000-cold": {
+        "source": "hardware-profile/611000-cold.json",
+        "source_sha256": "26baf0a50f128d867b34c0a8ca4924f99dd54457ca59d6801ce523889c64d10d",
+        "placements_per_second": 500.3144234233345,
+        "optimizer_steps": 481,
+        "kl_stops": 2,
+        "median_device_utilization_pct": 35.0,
+        "device_samples": 69,
+        "preparation_fraction_elapsed": 0.4827493646565765
+      }
+    }
+  },
+  "rank_output_endpoint_interventions": {
+    "scope": "CPU FP32 interventions on the two seed-611000 update-80 endpoints. Forty prespecified archived training states share identical valid candidates and frozen input features. Each original choice and top-two margin reproduced its independently recorded endpoint result. These are local move effects; full-game outcomes were not measured.",
+    "provenance": {
+      "host_report": "cold-rank-611000-reversion.json",
+      "host_report_sha256": "724d93436acf935a065488c66386b49360ef9f89aa66025ae7718fbdcb5f3b95",
+      "analysis_script": "cold_rank_intervene.py",
+      "analysis_script_sha256": "f9a4b173e0f34fc82ace044622871c799951b3dd8a8f002b3b80d91c92b2d4d7",
+      "frozen_plan_sha256": "cec4c4eec8e784c6926ef9978f6d064abaae07394ed1c3a0454d7d020b1183d5",
+      "fixture_manifest_sha256": "8bb5bb633c197b38255f7391a9655ad8b0bfe7d4443cb2a42c72931f33a4e8aa",
+      "checkpoint_sha256": {
+        "cold": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+        "plain": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819"
+      }
+    },
+    "seed": 611000,
+    "update": 80,
+    "positions": 40,
+    "ordinary": 20,
+    "danger": 20,
+    "initial_disagreements": 18,
+    "rank_vector_parameters": 64,
+    "coefficient": {
+      "parameter": "rank_out.weight[0,24]",
+      "selection": "Largest absolute cold minus plain difference across the 64 weight coordinates before fixture inference; earliest index breaks ties.",
+      "ties": 1,
+      "incumbent": 0.052722327411174774,
+      "plain": 0.051719654351472855,
+      "cold": 0.04472178593277931,
+      "max_absolute_endpoint_difference": 0.0069978684186935425,
+      "mechanism": "The direct contribution to each candidate logit is residual_scale times the coefficient change times hidden feature 24; residual_scale is 1 for both endpoints."
+    },
+    "bias": {
+      "parameter": "rank_out.bias[0]",
+      "incumbent": 0.15029126405715942,
+      "plain": 0.15704183280467987,
+      "cold": 0.16561618447303772,
+      "mechanism": "The bias adds the same raw score to each candidate; finite FP32 arithmetic can change differences at rounding scale."
+    },
+    "fraction_squared_rank_output_change_from_incumbent_in_vector": {
+      "cold": 0.8760175596158735,
+      "plain": 0.6688506669671529
+    },
+    "result_columns": [
+      "changed_from_recipient",
+      "restored_donor_choice",
+      "new_donor_disagreement",
+      "redirected_to_third_choice",
+      "post_swap_donor_disagreements",
+      "median_top_two_margin_delta",
+      "min_top_two_margin_delta",
+      "max_top_two_margin_delta"
+    ],
+    "interventions": {
+      "cold_receives_plain": {
+        "rows": {
+          "all_weights": [
+            3,
+            1,
+            1,
+            1,
+            18,
+            0.01368605,
+            -0.02732182,
+            0.39507294
+          ],
+          "bias_only": [
+            0,
+            0,
+            0,
+            0,
+            18,
+            0.0,
+            -1.91e-06,
+            1.2e-07
+          ],
+          "weights_and_bias": [
+            3,
+            1,
+            1,
+            1,
+            18,
+            0.01368605,
+            -0.02732182,
+            0.39507484
+          ],
+          "largest_coefficient": [
+            0,
+            0,
+            0,
+            0,
+            18,
+            0.00022578,
+            -0.00098109,
+            0.01593018
+          ]
+        },
+        "vector_changed_boards_by_stratum": {
+          "ordinary": 1,
+          "danger": 2
+        },
+        "scalar_max_abs_valid_logit_change": 0.10029220581054688,
+        "scalar_max_abs_error_vs_delta_weight_times_hidden": 1.498829677348823e-05
+      },
+      "plain_receives_cold": {
+        "rows": {
+          "all_weights": [
+            2,
+            2,
+            0,
+            0,
+            16,
+            -0.01338464,
+            -0.48553848,
+            0.0370537
+          ],
+          "bias_only": [
+            0,
+            0,
+            0,
+            0,
+            18,
+            0.0,
+            -4.8e-07,
+            4.8e-07
+          ],
+          "weights_and_bias": [
+            2,
+            2,
+            0,
+            0,
+            16,
+            -0.01338464,
+            -0.48553658,
+            0.03705373
+          ],
+          "largest_coefficient": [
+            0,
+            0,
+            0,
+            0,
+            18,
+            -0.00045085,
+            -0.02091599,
+            0.00184417
+          ]
+        },
+        "vector_changed_boards_by_stratum": {
+          "ordinary": 1,
+          "danger": 1
+        },
+        "scalar_max_abs_valid_logit_change": 0.10291290283203125,
+        "scalar_max_abs_error_vs_delta_weight_times_hidden": 1.5380395555819604e-05
+      }
+    }
+  }
+}
