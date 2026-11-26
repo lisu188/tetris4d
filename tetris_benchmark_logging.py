@@ -84,6 +84,9 @@ class BenchmarkLog:
         self.games = {}
         self.game_serial = 0
         self.settings = dict(settings or {})
+        agent = getattr(game, 'NEURAL_AGENT', None)
+        if self.settings.get('policy') == 'neural' and agent is not None:
+            self.settings['neural'] = agent.metadata
         self.max_bytes, self.backups = max(256, int(max_bytes)), max(0, int(backups))
         stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')
         root = Path(game.__file__).resolve().parent

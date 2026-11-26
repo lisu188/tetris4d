@@ -3448,8 +3448,6 @@ def start_benchmark_logging(args):
     settings = {key: getattr(args, key) for key in ('seed', 'piece_set', 'policy', 'target', 'depth',
                  'beam', 'candidates', 'stop_after_clear', 'backend')}
     settings['mode'] = 'benchmark' if args.benchmark else 'gui'
-    if NEURAL_AGENT is not None:
-        settings['neural'] = NEURAL_AGENT.metadata
     settings.update(ui_fps=args.ui_fps, frameskip=not args.no_frameskip)
     if args.benchmark:
         settings.update(pieces=args.pieces, games=args.games)
