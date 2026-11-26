@@ -888,5 +888,107 @@
       "seed_audit_sha256": "0b2edf0e53c9a4b600f10d82ae97a61c2e5dd43edb70d5295644223fcbfa48d7",
       "launch_verification_sha256": "e83248d05eedd2dd7e9cd452e71a65bfed00aff17fa448a92f95db1f0e21a703"
     }
+  },
+  "individual_learned_weights": {
+    "coordinates": {
+      "candidate_encoder": {
+        "name": "candidate.1.weight",
+        "index": [
+          32,
+          45
+        ],
+        "flat_index": 5293,
+        "shape": [
+          128,
+          164
+        ],
+        "incumbent": -0.11556641012430191,
+        "trained": -0.10048960149288177,
+        "signed_change": 0.015076808631420135,
+        "absolute_change": 0.015076808631420135,
+        "tied_maxima": 1,
+        "group_size": 29704
+      },
+      "final_ranker": {
+        "name": "rank_out.bias",
+        "index": [
+          0
+        ],
+        "flat_index": 0,
+        "shape": [
+          1
+        ],
+        "incumbent": 0.15029126405715942,
+        "trained": 0.15821225941181183,
+        "signed_change": 0.007920995354652405,
+        "absolute_change": 0.007920995354652405,
+        "tied_maxima": 1,
+        "group_size": 65
+      }
+    },
+    "original_weights": {
+      "incumbent": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+      "612000-plain": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed"
+    },
+    "coordinate_receipt_sha256": "39131bd0940fabc04aa4dd056546e5ed5f8c5cd9366b0c5fc80ec6722335a57b",
+    "rule_sha256": "ec6e625891cf84c34795a72790b36f3796ed2b15dad5d92326b8c91041527d42",
+    "source_sha256": "35a96430e7918547b9f787607e794956f9c02a69985a0070345d4c8aa447082d",
+    "variants": {
+      "candidate_encoder": {
+        "base_actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "actor_sha256": "eefe9040de7d1a720d10f1a94149239c3e77047cb4bc38e26dfd02897aa6e5c3",
+        "differing_weights": 1
+      },
+      "final_ranker": {
+        "base_actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "actor_sha256": "068fefbb136bc449479e6a5e3bcd032c21f1f94805b981d849c4beda674cea9b",
+        "differing_weights": 1
+      },
+      "whole_candidate": {
+        "prior_block": "candidate",
+        "actor_sha256": "32589e116579b8dbb54232c15b1fcd5564632dd379a75ddd7cd61500fbee1671"
+      },
+      "whole_final_ranker": {
+        "prior_block": "rank_output",
+        "actor_sha256": "cb49e12a7b83af4db656a23956ab8b3b782d7675ee5182ca07cef4a677b2549b"
+      }
+    },
+    "valid_logits": 1920,
+    "precision": "FP32 production 32x128 fixed shapes; scalar differences measured in FP64 from exact FP32 outputs.",
+    "limitations": "Conditional public snapshots at two partly repeated milestones. Single-coordinate sensitivity of these two displacement-selected scalars. No survival measurement or other scalar ranking.",
+    "receipt_sha256": "1fdecb9e31eb898e120c49bb0d2c61fcfd7e12542691c352e3e062aafc17c513",
+    "snapshot_count": 15,
+    "seed_count": 8,
+    "paired_with": "612000-plain",
+    "results": {
+      "candidate_encoder": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.015560150146484375,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.0071868896484375,
+        "max_abs_top2_margin_change": 0.004384040832519531
+      },
+      "final_ranker": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.0079345703125,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.007127285003662109,
+        "max_abs_top2_margin_change": 1.1920928955078125e-07
+      },
+      "whole_candidate": {
+        "changed_choices": 12,
+        "max_abs_valid_logit_shift": 3.0371856689453125,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.013304710388183594,
+        "max_abs_top2_margin_change": 1.3496928215026855
+      },
+      "whole_final_ranker": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.3251171112060547,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.002853870391845703,
+        "max_abs_top2_margin_change": 0.013561129570007324
+      }
+    }
   }
 }
