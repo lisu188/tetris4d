@@ -3464,6 +3464,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural'), default='sustained',
                         help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
+    parser.add_argument('--two-stage-exhaustive', action='store_true',
+                        help='Use exact two-stage native CPU screening for exhaustive neural gameplay.')
     parser.add_argument('--neural-preview-search', action='store_true', help='Use one visible piece of survival lookahead with a spatial V4 checkpoint.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
@@ -3493,6 +3495,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     recorder = None
     try:
         configure_backend(args.backend)
+        if args.two_stage_exhaustive and (args.neural_checkpoint is None or BACKEND != 'native'
+                                          or not hasattr(_NATIVE, 't4_exhaustive_primary')):
+            raise ValueError('--two-stage-exhaustive requires a neural checkpoint and the built native scorer.')
+        set_simulation_fast_paths(two_stage=args.two_stage_exhaustive)
         if args.baseline:
             configure_network(BASELINE_PARAMETERS, {'method': 'none', 'description': 'Untrained inherited heuristic coefficients.'})
         else:
@@ -3506,6 +3512,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                                        preview_search=args.neural_preview_search)
             config = NEURAL_AGENT.model.config
             budget = NEURAL_AGENT.candidate_budget
+            if args.two_stage_exhaustive and budget != 0:
+                raise ValueError('--two-stage-exhaustive requires exhaustive candidate screening.')
             if args.candidates not in (DEFAULT_CANDIDATES, config.candidates, budget):
                 raise ValueError('Neural checkpoint requires its saved candidate budget.')
             args.candidates = budget

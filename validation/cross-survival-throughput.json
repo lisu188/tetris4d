@@ -167,7 +167,10 @@
         "p95_ms": 60.78901914999997,
         "triggers": 8
       }
-    ]
+    ],
+    "cross_weight": 0.5,
+    "two_stage": true,
+    "headless": true
   },
   "reference_cache_smoke": {
     "schema": "real-cuda-v4-frozen-reference-cache-v1",
@@ -215,5 +218,52 @@
     "diagnostic_kl_with_cache": 0.001883884659036994,
     "diagnostic_kl_without_cache": 0.001883884659036994,
     "seconds": 44.13478371500969
+  },
+  "cpu_gameplay_ablation": {
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. Every position and mode runs once to warm before timed pass.",
+    "positions": 12,
+    "cross_weight": 0.5,
+    "same_actions_and_triggers": true,
+    "modes": {
+      "reference": {
+        "sha256": "7bc080c2419a1d2433e66aaa51c1e2668407e9345a7ad84a1b075f1165328024",
+        "two_stage": false,
+        "headless": false,
+        "greedy": {
+          "p50_ms": 269.0647525,
+          "p95_ms": 1446.6095837499993
+        },
+        "lookahead": {
+          "p50_ms": 779.4752685,
+          "p95_ms": 3880.7528272999975
+        }
+      },
+      "renderable": {
+        "sha256": "6400c1df18afb439ef5fab2562d251f8f77eebacb85c9ec11c504fd77ecc12bf",
+        "two_stage": true,
+        "headless": false,
+        "greedy": {
+          "p50_ms": 46.276386,
+          "p95_ms": 73.52612794999999
+        },
+        "lookahead": {
+          "p50_ms": 69.37284,
+          "p95_ms": 141.42778214999993
+        }
+      },
+      "fast": {
+        "sha256": "b7e95d78d0d9dd05c88af3d14ea83fe5d78ce985f2df5a855b91485c30cf8669",
+        "two_stage": true,
+        "headless": true,
+        "greedy": {
+          "p50_ms": 51.348817499999996,
+          "p95_ms": 63.80417369999999
+        },
+        "lookahead": {
+          "p50_ms": 66.52908,
+          "p95_ms": 117.90356964999997
+        }
+      }
+    }
   }
 }
