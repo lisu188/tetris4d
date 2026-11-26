@@ -80,10 +80,8 @@ def _board_kernel(boards, heights, counts, contexts, scores, statistics,
     tl.store(contexts + env * CONTEXT + 78, holes.to(tl.float32) / 65536)
     tl.store(contexts + env * CONTEXT + 79, mass.to(tl.float32) / 65536)
     tl.store(contexts + env * CONTEXT + 80, maximum.to(tl.float32) / 16)
-    tl.store(statistics + env * 4, filled)
-    tl.store(statistics + env * 4 + 1, buried)
-    tl.store(statistics + env * 4 + 2, height_sum)
-    tl.store(statistics + env * 4 + 3, holes)
+    tl.store(statistics + env * 2, filled)
+    tl.store(statistics + env * 2 + 1, buried)
 
 
 @triton.jit
@@ -250,8 +248,8 @@ def _summary_kernel(valid, clears, statistics, counts, piece_ids, sample_counts,
     cleared = tl.load(clears + env * CANDIDATES + row, row < CANDIDATES, 0)
     tl.store(summary + env * 5, tl.sum(good.to(tl.int32), 0))
     tl.store(summary + env * 5 + 1, tl.max((good & (cleared != 0)).to(tl.int32), 0))
-    tl.store(summary + env * 5 + 2, tl.load(statistics + env * 4 + 1))
-    filled = tl.load(statistics + env * 4)
+    tl.store(summary + env * 5 + 2, tl.load(statistics + env * 2 + 1))
+    filled = tl.load(statistics + env * 2)
     tl.store(summary + env * 5 + 3, filled)
     piece = tl.load(piece_ids + env)
     evaluations = tl.load(sample_counts + piece) + tl.where(piece == 0, 4096 - filled, 0)
@@ -623,7 +621,7 @@ class GpuPreparer:
         context = self._device(contexts)
         heights = torch.empty((n, 4096), dtype=torch.int32, device=self.device)
         counts = torch.empty((n, 16), dtype=torch.int32, device=self.device)
-        statistics = torch.empty((n, 4), dtype=torch.int32, device=self.device)
+        statistics = torch.empty((n, 2), dtype=torch.int32, device=self.device)
         board_scores = torch.empty(n, dtype=torch.float64, device=self.device)
         _board_kernel[(n,)](boards, heights, counts, context, board_scores, statistics,
                             device_targets, self.weights, self.ticks_low, self.ticks_high,

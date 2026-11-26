@@ -147,7 +147,6 @@ def paired(values, reference, seed=0):
 
 
 def tune(args):
-    device = torch.device('cuda')
     start = game.load_checkpoint(args.weights)
     baseline = dict(start['parameters'])
     out = Path(args.output_dir)
