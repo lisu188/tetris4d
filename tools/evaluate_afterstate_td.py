@@ -269,7 +269,8 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
                     choice = preview_choice(state, int(prepared.arrays['targets']), prepared.options,
                                             logits[0].detach().cpu().numpy(), config,
                                             prepared.arrays['cross_mobility'][:, 1] if 'cross_mobility' in prepared.arrays else None,
-                                            decision_stats[index] if decision_stats is not None else None)
+                                            decision_stats[index] if decision_stats is not None else None,
+                                            rescue_only=preview_search == 'rescue-only')
                 else:
                     choice = int(logits.argmax(1).item())
             moves[index] = (int(prepared.arrays['targets']), prepared.options[choice])
@@ -307,7 +308,8 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
                 decision_stats[i][change_key] = int(data[0, -1])
             choice = preview_choice(states[i], target, options, data[:, 7], model.config,
                                     data[:, 8] if 'cross_mobility' in batch else None,
-                                    decision_stats[i] if decision_stats is not None else None)
+                                    decision_stats[i] if decision_stats is not None else None,
+                                    rescue_only=preview_search == 'rescue-only')
             moves[i] = target, options[choice]
         return moves
     if scoring:
@@ -512,7 +514,8 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
     if group_exhaustive:
         identity['group_exhaustive'] = True
     if preview_search:
-        identity['preview_search'] = 'one-visible-cross-8-16x4-v1'
+        identity['preview_search'] = ('one-visible-physical-rescue-v1' if preview_search == 'rescue-only'
+                                      else 'one-visible-cross-8-16x4-v1')
     if two_stage:
         identity['two_stage'] = True
     if headless:
@@ -623,7 +626,7 @@ def evaluate(args, device, budget, runtime):
               'runtime': runtime, 'checkpoints': hashes, 'weights_sha256': weights_hash, 'top_k': TOP_K,
               'selection_sha256': base.file_hash(args.selection) if args.selection else None,
               'screening': 'exhaustive', 'policy_tie_order': list(POLICY_ORDER), 'stages': [], 'clock': 'lockstep elapsed wall seconds per seed'}
-    report['options'] = {key: bool(getattr(args, key, False)) for key in
+    report['options'] = {key: getattr(args, key, False) for key in
                          ('preview_search', 'two_stage', 'headless', 'group_exhaustive')}
     names = list(paths)
     for cap in dict.fromkeys((args.cap, args.max_cap)):
@@ -635,7 +638,7 @@ def evaluate(args, device, budget, runtime):
                 if getattr(args, key, False):
                     options[key] = True
             if name == 'ppo' and getattr(args, 'preview_search', False):
-                options['preview_search'] = True
+                options['preview_search'] = args.preview_search
             stage[name] = evaluate_checkpoint(paths[name], hashes[name], name, seeds, cap, split,
                                               device, budget, runtime, weights_hash, args.cache_dir, **options)
             base.durable_json(args.output, report)
@@ -675,7 +678,10 @@ def main(argv=None):
     evaluation.add_argument('--selection', type=Path)
     evaluation.add_argument('--cap', type=int, default=64000)
     evaluation.add_argument('--max-cap', type=int, default=128000)
-    evaluation.add_argument('--preview-search', action='store_true', help='Use one visible piece for PPO survival planning')
+    preview = evaluation.add_mutually_exclusive_group()
+    preview.add_argument('--preview-search', action='store_true', help='Use one visible piece for PPO survival planning')
+    preview.add_argument('--rescue-only', dest='preview_search', action='store_const', const='rescue-only',
+                         help='Keep the PPO move whenever the visible next piece still fits.')
     evaluation.add_argument('--two-stage', action='store_true')
     evaluation.add_argument('--group-exhaustive', action='store_true')
     evaluation.add_argument('--headless', action='store_true')
@@ -696,7 +702,7 @@ def main(argv=None):
     if args.action == 'evaluate' and args.cap == 0:
         args.max_cap = 0
     if args.action == 'evaluate' and args.preview_search and not args.ppo:
-        parser.error('--preview-search requires --ppo')
+        parser.error('visible-piece planning requires --ppo')
     args.cache_dir = args.cache_dir or args.output.parent/'evaluation-cache'
     args.output.parent.mkdir(parents=True, exist_ok=True)
     device = torch.device('cuda')

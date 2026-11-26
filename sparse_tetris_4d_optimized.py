@@ -3466,7 +3466,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
     parser.add_argument('--two-stage-exhaustive', action='store_true',
                         help='Use exact two-stage native CPU screening for exhaustive neural gameplay.')
-    parser.add_argument('--neural-preview-search', action='store_true', help='Use one visible piece of survival lookahead with a spatial V4 checkpoint.')
+    preview = parser.add_mutually_exclusive_group()
+    preview.add_argument('--neural-preview-search', action='store_true', help='Use one visible piece of survival lookahead with a spatial V4 checkpoint.')
+    preview.add_argument('--neural-rescue-only', dest='neural_preview_search', action='store_const', const='rescue-only',
+                         help='Override a spatial V4 move only if it would block the visible next piece and another shortlisted move leaves a landing.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
     parser.add_argument('--stop-after-clear', action='store_true', help='Pause autoplay or stop benchmarks after the first clear; disabled by default.')

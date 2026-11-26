@@ -155,13 +155,14 @@ def _ordinary_afterstate(board, action, preview, normalized_count):
                                      for witness in _preview_witnesses(preview))
 
 
-def preview_choice(state, target, options, logits, config, normalized_after=None, stats=None):
+def preview_choice(state, target, options, logits, config, normalized_after=None, stats=None, *, rescue_only=False):
     """Return a shortlist index. The physical rescue scan covers every retained action.
 
     Outside immediate danger and the <=8 afterstate frontier, preserve the actor's choice.
     Within the frontier add the best normalized CROSS mobility of four teacher replies
     to the original actor logit. Break ties by the actor ordering.
-    Prioritize physical preview survival; keep the greedy move if all actions lose immediately.
+    Rescue-only keeps every physically safe greedy move and takes the first safe alternative
+    in actor order on an immediate loss. Both modes keep greedy if all actions lose immediately.
     """
     order = np.argsort(-np.asarray(logits)[:len(options)], kind='stable')
     greedy = int(order[0])
@@ -174,7 +175,7 @@ def preview_choice(state, target, options, logits, config, normalized_after=None
     count = _after_count(state.board, chosen, centers, before)
     first_board = _after_board(state.board, chosen)
     alive = count > 0 if state.next_piece == 'CROSS' else visible_piece_fits(first_board, state.next_piece)
-    if alive and count > PREVIEW_THRESHOLD:
+    if alive and (rescue_only or count > PREVIEW_THRESHOLD):
         return greedy
     if stats is not None:
         stats['planner_triggers'] = 1
@@ -190,6 +191,10 @@ def preview_choice(state, target, options, logits, config, normalized_after=None
         else:
             playable = visible_piece_fits(board, state.next_piece)
         if playable:
+            if rescue_only:
+                if stats is not None:
+                    stats.update(immediate_rescues=1, planner_overrides=1)
+                return i
             candidates.append((i, action, board))
     if not candidates:
         return greedy

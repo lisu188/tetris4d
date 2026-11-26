@@ -91,6 +91,7 @@ def main():
     parser.add_argument('--cross-weight', type=float, default=.5)
     parser.add_argument('--two-stage', action='store_true')
     parser.add_argument('--headless', action='store_true')
+    parser.add_argument('--rescue-only', action='store_true', help='Also measure physical rescue without reply scoring.')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     torch.set_num_threads(1)
@@ -115,7 +116,8 @@ def main():
         if device == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
             prep = GpuPreparer(model.config, device, two_stage=args.two_stage, group_exhaustive=True)
-        for preview in (False, True):
+        modes = (False, True, 'rescue-only') if args.rescue_only else (False, True)
+        for preview in modes:
             measure(model, device, prep, pool, preview)
             row = measure(model, device, prep, pool, preview)
             report['modes'].append(row)

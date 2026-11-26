@@ -87,6 +87,32 @@ class GeometryTests(unittest.TestCase):
                                  'planner_overrides': 1})
         self.assertEqual(cross.preview_choice(state, 1, [kills] * 4, [4, 3, 2, 1], config), 0)
 
+    def test_rescue_only_keeps_safe_greedy_and_takes_first_safe_tie_on_terminal_move(self):
+        state = game.Game(37)
+        ev.base.library.ignore(state)
+        state.current, state.next_piece, state.board = 'I', 'CROSS', frontier()
+        state.stream = object()
+        context = game.evaluate_board(state.board)
+        kills = game.score_candidate(context, 'I', 2, 7, 7, 7)
+        safe = [game.score_candidate(context, 'I', 0, x, 0, 0) for x in (0, 1)]
+        for candidate, expected in ((kills, False), (safe[0], True), (safe[1], True)):
+            self.assertEqual(game.has_legal_move(game.materialize_move(state.board, candidate).board,
+                                                 state.next_piece), expected)
+        options = [kills] * 126 + safe
+        config = neural.Config(architecture='survival-spatial-v4', protect_target=False)
+        with patch.object(cross, '_visible_replies', side_effect=AssertionError('Unexpected reply scoring')):
+            stats = {}
+            self.assertEqual(cross.preview_choice(state, 1, options, [1.] * 126 + [0., 0.],
+                                                  config, stats=stats, rescue_only=True), 126)
+            self.assertEqual(stats, dict(planner_triggers=1, immediate_losses=1,
+                                         immediate_rescues=1, planner_overrides=1))
+            stats = {}
+            self.assertEqual(cross.preview_choice(state, 1, safe, [0., 1.], config,
+                                                  stats=stats, rescue_only=True), 1)
+            self.assertEqual(stats, {})
+            self.assertEqual(cross.preview_choice(state, 1, [kills] * 2, [0., 1.],
+                                                  config, rescue_only=True), 1)
+
     def test_reply_bonus_uses_normalized_mobility_and_actor_order_ties(self):
         state = game.Game(37)
         ev.base.library.ignore(state)
@@ -173,10 +199,10 @@ class GeometryTests(unittest.TestCase):
                 calls += 1
                 return calls > 3
 
-            def run(budget, cache):
+            def run(budget, cache, preview_search=True):
                 with patch.object(ev, 'load_model', return_value=model):
                     return ev.evaluate_checkpoint(checkpoint, sha, 'ppo', [41], 5, 'test', 'cpu', budget,
-                                                  {}, 'teacher', cache, ppo_batch_size=1, preview_search=True)
+                                                  {}, 'teacher', cache, ppo_batch_size=1, preview_search=preview_search)
             partial = run(SimpleNamespace(expired=interrupt), root / 'resumed')
             self.assertFalse(partial['complete'])
             active = next((root / 'resumed').rglob('41.partial.json'))
@@ -191,6 +217,9 @@ class GeometryTests(unittest.TestCase):
                 self.assertEqual(resumed[key], full[key])
             self.assertEqual(resumed['move_latency']['samples'], 5)
             self.assertTrue(active.with_name('41.json').is_file())
+            for mode in (False, 'rescue-only'):
+                self.assertTrue(run(never, root / 'resumed', mode)['complete'])
+            self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 3)
 
     @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'requires coordinated CUDA slot')
     def test_cuda_exact_delta_clears_padded_and_fused_feature_contract(self):

@@ -608,7 +608,7 @@ class NeuralAgent:
         self.model.eval()
         self.preview_search = preview_search
         config = self.model.config
-        self.exhaustive = (preview_search or config.architecture in AFTERSTATE_TD_ARCHITECTURES or
+        self.exhaustive = (bool(preview_search) or config.architecture in AFTERSTATE_TD_ARCHITECTURES or
                            (config.architecture == 'survival-spatial-v4' and config.screening == 'exhaustive'))
         self.candidate_budget = 0 if self.exhaustive else config.candidates
         if preview_search and self.model.config.architecture != 'survival-spatial-v4':
@@ -654,7 +654,8 @@ class NeuralAgent:
                 from tetris_cross_survival import preview_choice
                 index = preview_choice(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
                                        self.model.config, prepared.arrays['cross_mobility'][:, 1]
-                                       if 'cross_mobility' in prepared.arrays else None)
+                                       if 'cross_mobility' in prepared.arrays else None,
+                                       rescue_only=self.preview_search == 'rescue-only')
             score = float(prediction['logits'][0, index].item())
             trace_info = {'logit': score, 'piece': state.current, 'piece_number': state.pieces + 1,
                           'shortlist': len(prepared.options), 'selected': index}
