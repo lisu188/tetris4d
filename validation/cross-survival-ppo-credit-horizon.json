@@ -550,5 +550,193 @@
     "scope": "Both arms start from the calibrated incumbent and see the same two six-placement trajectories. One optimizer update exercises the CLI, collector, credit calculation, update and checkpoint. This is a functional test; it does not estimate survival gains or GPU speed.",
     "receipt_name": "gae-horizon-trainer-smoke.json",
     "receipt_sha256": "f90495cdb947fee6b0a666652c21206fc8e1a6bfbf5a86dd9d07fbdc1051d5e7"
+  },
+  "all_eight_registered_endpoints": {
+    "local_receipt": "final-terminal-coverage.json",
+    "receipt_sha256": "4d3a8612fa11a9ebb8bebd29826cb198c30d8903d18340644356a317ecca1544",
+    "script_sha256": "65138aba04887567b5dacb5224b2107cce40e7c542dcb21e4adb826c1234b2b6",
+    "scope": "All eight completed training arms. Physical episode_end events indexed by their absolute placement on the environment lane and checked against the enclosing optimizer update. Counts raw advantages reached by observed terminal TD errors, with horizons aligned to original lane time, verifying by direct enumeration.",
+    "total": {
+      "updates": 640,
+      "placements": 5242880,
+      "terminal_events": 97,
+      "fresh_terminals": 6,
+      "zero_terminal_updates": 557,
+      "covered": {
+        "256": 13395,
+        "512": 27475
+      }
+    },
+    "arms": {
+      "611000-anchored": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 9,
+        "terminal_sources": {
+          "zero_terminal_updates": 72,
+          "library": 9
+        },
+        "covered": {
+          "256": {
+            "library": 1250,
+            "total": 1250
+          },
+          "512": {
+            "library": 3042,
+            "total": 3042
+          }
+        },
+        "metrics_sha256": "8b9832d2f2a635f80c98b8e00b7738a5f6d3e552b75f4a45c515bbd39df80be5"
+      },
+      "611000-cold": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 10,
+        "terminal_sources": {
+          "zero_terminal_updates": 71,
+          "library": 10
+        },
+        "covered": {
+          "256": {
+            "library": 1413,
+            "total": 1413
+          },
+          "512": {
+            "library": 3205,
+            "total": 3205
+          }
+        },
+        "metrics_sha256": "20ca9c2d9afdd5059ead2fb199b803424739a0f035ec4bfcef224d4573d44599"
+      },
+      "611000-plain": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 12,
+        "terminal_sources": {
+          "zero_terminal_updates": 70,
+          "library": 10,
+          "fresh": 2
+        },
+        "covered": {
+          "256": {
+            "library": 1135,
+            "fresh": 377,
+            "total": 1512
+          },
+          "512": {
+            "library": 2671,
+            "fresh": 633,
+            "total": 3304
+          }
+        },
+        "metrics_sha256": "8ec95ce8310080138240065dd978ecec323d9664317768dd7f7aa2c1ac8d541c"
+      },
+      "611000-residual": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 12,
+        "terminal_sources": {
+          "zero_terminal_updates": 69,
+          "library": 10,
+          "fresh": 2
+        },
+        "covered": {
+          "256": {
+            "library": 1117,
+            "fresh": 298,
+            "total": 1415
+          },
+          "512": {
+            "library": 2909,
+            "fresh": 810,
+            "total": 3719
+          }
+        },
+        "metrics_sha256": "01b51ac484151a0eb2686c47afdde385d26109ddcb8f3ae014964c6b794f160f"
+      },
+      "612000-anchored": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 13,
+        "terminal_sources": {
+          "zero_terminal_updates": 68,
+          "library": 13
+        },
+        "covered": {
+          "256": {
+            "library": 2117,
+            "total": 2117
+          },
+          "512": {
+            "library": 3653,
+            "total": 3653
+          }
+        },
+        "metrics_sha256": "1d04737728534759969e84ac3bbde4f9f954c032b8a61e25eb08188a83218788"
+      },
+      "612000-cold": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 13,
+        "terminal_sources": {
+          "zero_terminal_updates": 69,
+          "library": 13
+        },
+        "covered": {
+          "256": {
+            "library": 1825,
+            "total": 1825
+          },
+          "512": {
+            "library": 3361,
+            "total": 3361
+          }
+        },
+        "metrics_sha256": "fbc1ac7c5c57ff945fc36ba6321dafea3ce7c5ed9cd11474cf472c6afe60b53e"
+      },
+      "612000-plain": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 15,
+        "terminal_sources": {
+          "zero_terminal_updates": 68,
+          "library": 13,
+          "fresh": 2
+        },
+        "covered": {
+          "256": {
+            "library": 1946,
+            "fresh": 278,
+            "total": 2224
+          },
+          "512": {
+            "library": 2970,
+            "fresh": 534,
+            "total": 3504
+          }
+        },
+        "metrics_sha256": "14bfe9e9005ae78f1958015564253bb354f872ad7d81ea28f0ad53794eb3e75d"
+      },
+      "612000-residual": {
+        "updates": 80,
+        "placements": 655360,
+        "terminal_events": 13,
+        "terminal_sources": {
+          "zero_terminal_updates": 70,
+          "library": 13
+        },
+        "covered": {
+          "256": {
+            "library": 1639,
+            "total": 1639
+          },
+          "512": {
+            "library": 3687,
+            "total": 3687
+          }
+        },
+        "metrics_sha256": "24ef699d76c6429fc755833c69f2fc0c045e47198650ea1e6dfca39a9295162c"
+      }
+    }
   }
 }

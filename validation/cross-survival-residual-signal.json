@@ -308,6 +308,104 @@
             "without_output_bias": 115
           }
         ]
+      },
+      "80": {
+        "local_receipt": "612000-residual-signal-080.json",
+        "receipt_sha256": "4b1c0195faf70b9199e263a56b2d74e656ac004262545199176f34eeaf648dd0",
+        "checkpoint_sha256": "161bafd3240cbee5261d76ae5eb1a402587701f8c693501b0589d0567ff04d27",
+        "observer_sha256": "eaa806fca4a2a6bdae35136e6e93e9a2182da114ef50389b774c4dbccc799c47",
+        "summary": {
+          "registered_changes": 1,
+          "fixed_candidate_boards": 40,
+          "valid_candidates": 5028,
+          "different_at_virtual_post_tanh_multiplier": {
+            "1": 1,
+            "4": 2,
+            "16": 2,
+            "64": 2,
+            "256": 5
+          },
+          "residual_size": {
+            "min": -0.03770708665251732,
+            "median": 0.0017994600348174572,
+            "mean": -0.0032007394312270248,
+            "max": 0.004750476684421301
+          },
+          "within_board_range": {
+            "min": 0.0006090225651860237,
+            "median": 0.011593828443437815,
+            "mean": 0.012057118330267258,
+            "max": 0.028734972700476646
+          },
+          "boards_where_range_can_bridge_base_margin": 2,
+          "different_from_registered_with_largest_coefficient_removed": 0,
+          "different_from_registered_with_output_bias_removed": 0,
+          "saturation_above_95pct_bound": 0,
+          "largest_final_weight": {
+            "name": "cross_head.2.weight[0,19]",
+            "value": -0.014240017160773277,
+            "output_bias": 0.013444623909890652,
+            "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+          }
+        },
+        "changed_boards": [
+          {
+            "stream": 300538,
+            "offset": 659,
+            "group": "ordinary",
+            "candidates": 128,
+            "base_greedy": 30,
+            "base_margin": 9.5367431640625e-06,
+            "residual_min": -0.018940787762403488,
+            "residual_max": 0.002580283908173442,
+            "range": 0.021521070972085,
+            "scaled_choices": {
+              "1": 115,
+              "4": 115,
+              "16": 115,
+              "64": 115,
+              "256": 115
+            },
+            "without_largest_coefficient": 115,
+            "without_output_bias": 115
+          }
+        ],
+        "publication_verification": {
+          "first_pinned_checkpoint_sha256": "eecc38f3be31b2655ffdc0be5da8fa9b006c8f1d5ad592487819dbdaf22053c5",
+          "first_pinned_manifest_sha256": "61f1a3fb5c2e219deec34a857d6073367ed722aa135a94c6af21094cfc987746",
+          "endpoint_sha256": "8385d863fdc1f82e4278cffc0fd83632f3c2f58b6624e7952ab8dee1cfadd24b",
+          "full_model_tensor_sha256": "fa2cf3b873d26c24e97377240c4a7374406c54047990a3f148e3fadef88b569a",
+          "model_tensors": 27,
+          "previous_publication": {
+            "checkpoint_sha256": "eecc38f3be31b2655ffdc0be5da8fa9b006c8f1d5ad592487819dbdaf22053c5",
+            "update": 80,
+            "all_model_tensors_bitwise_equal": true
+          },
+          "logged_update_80_publications": [
+            {
+              "utc": "2026-11-26T14:30:27Z",
+              "checkpoint_sha256": "eecc38f3be31b2655ffdc0be5da8fa9b006c8f1d5ad592487819dbdaf22053c5"
+            },
+            {
+              "utc": "2026-11-26T14:30:31Z",
+              "checkpoint_sha256": "161bafd3240cbee5261d76ae5eb1a402587701f8c693501b0589d0567ff04d27"
+            }
+          ],
+          "independent_observation_sha256": "eaa806fca4a2a6bdae35136e6e93e9a2182da114ef50389b774c4dbccc799c47",
+          "independent_observer_script_sha256": "0c7a35bd2008e38153dd5729e222a577704f644d31f0859c23dca7273976bed7",
+          "fixture_code_sha256": "8b53954eaea424655cdcf16caceaedf0a1f02c6e5c1a90abd99c274b535068fb",
+          "input_rank_fixture_sha256": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+          "parent_audit_script_sha256": "896f7623f9904d8365141e528210e3273d25ae18a55c17d856878b62df7f27bd",
+          "watcher_script_sha256": "1b3218841d11f50f629e0c2b67484056f8aa6e179e7e64cca3b5c5f25e6230e9",
+          "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+          "independent_rows_verified": 40,
+          "base_parameters_unchanged": 49141,
+          "per_group_registered_choices": {
+            "all": 1,
+            "danger": 0,
+            "ordinary": 1
+          }
+        }
       }
     }
   }
