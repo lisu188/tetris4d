@@ -214,5 +214,486 @@
         "mean_fraction_using_donor": 0.03695256945333049
       }
     }
+  },
+  "stage_and_behavior": {
+    "schema": "matched-calibration-critic-stage-errors-v1",
+    "units": "remaining completed placements; signed error = forecast minus realized remaining (length - offset)",
+    "limits": "Eight paired random streams, one stochastic rollout per seed and temperature. Eight distinct greedy streams. Matching stream IDs/opening observations does not match later boards. Forecast error uses a single realized continuation, not a state-specific expected value, and retrospective bands cannot be used as live risk features. No lifetime cap, sampled only predecision frames at stride 128.",
+    "evidence": {
+      "cache_file_sha256": {
+        "0.25": {
+          "48100001": "66ab9159bbedb201fea31f138f56719c408fcb07f338d0e7a63c7b2297057875",
+          "48100003": "9c35c1e168167e830a5410901486cb1dcd9d331ff40323cfbd763287e33ed99b",
+          "48100005": "23855ee6e59281bfdf16451b647e64d4ac9b32263397709a7b2b3b33e35aaba4",
+          "48100007": "668073072ca9515615356a792c82cc91c76568b64141a37412f7681c63f1eabb",
+          "48100009": "a55d1fe04a2f7a3769b49deb33d966e7373924680110639ec0eea177cb8c89e8",
+          "48100011": "963c801c5369d337b5541bf8935c0af88ab5f99db468e08b98553f6e55ac80ba",
+          "48100013": "246be4f8852fd85c660434ace41ffd6b9bc7fc5ee2e73de444fec3380dc786ce",
+          "48100015": "550f292a59b37357f83b38e3aaad116616c7a9867dd39b6a10a6b578067d0461"
+        },
+        "1.0": {
+          "48100001": "b799f10065dada7f083b040a6ba4cee6d339eb0caa83e0f9648f7e56a14b56c0",
+          "48100003": "30b72b9fc20fd2cecaad0cc01bb5e76fc64795aabb4a0219b86ddc2a47ff12f8",
+          "48100005": "e5e4940db371aa0620860bda4551bd93ad583a5ee349799b18168281dc8f6120",
+          "48100007": "598decb50a83e34cf7d2b6b4621bbb00bf74870f601c2ace4d6fce7e71b9ef10",
+          "48100009": "e18f5e7fb0f5bb8077b180105f5b41f67fd7c549a9bdc154d441738a52d2ee66",
+          "48100011": "78277245b7908a8cb55267bc07f967a2d3ab6e2f8417e2a0d3ec8a4d5aeacb1c",
+          "48100013": "bcf144380f396dfab09534f150b5a4a0562c19d7de9c142b3bdb510e8ee06274",
+          "48100015": "ee06a6d81d546b3c9cbe195e27546b51bb82c75b3d4e2a6d3a0a097996c99a79"
+        }
+      },
+      "calibration_data": "Every terminal row keeps placement, clears, terminal piece/reason and all strided incumbent and donor scalars. No action list, game trajectory, per-sample board or terminal board was retained by the actual driver. Active recovery entries were unlinked on completion; its game library was disabled.",
+      "calibration_driver_sha256": "f65114c1cc2035f3a11e9d88616d749e5a43d58ec6fbe64b19ccdd8ac653d3f6",
+      "calibration_sampling_source": "calibration-driver/tools/calibrate_cross_critics.py:75-80,103-151; torch.multinomial softmax(raw incumbent logits/T), per-seed CUDA generator seed+2701, unchanged head before each 128th placement. Incumbent/donor values on shared incumbent board features, reward scale .001. Expanded piece streams seeded per game, one advance per commit.",
+      "checkpoints": {
+        "donor": {
+          "path": "spatial-ppo-improvements/experiment/control/last.pt",
+          "sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8"
+        },
+        "incumbent": {
+          "path": "v4-enhanced-run/ppo/best.pt",
+          "sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9"
+        }
+      },
+      "gate_file_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+      "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+      "public_incumbent_opening_arm_canonical_sha256": "3e9d8f9a2480388f2c7e11fd37b39752ce3d0fe12385fa7b3bfae11aa20d6d75",
+      "public_incumbent_screen_file_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "public_measurement_source_sha256": "0e13638d679c4648eef57379da2f05b2be2977461db76f3d042982d2b4870c4e",
+      "runtime_files_sha256_verified": {
+        "evaluate_afterstate_td.py": "6e347fbc35f06c34f3d147aa66306ece76b73769a53a85afeaa5bdeb8f87b6b5",
+        "libtetris4d_native.so": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+        "sparse_tetris_4d_optimized.py": "8e4db008a170f4e91e6316f6d2fd9868260c5a6d376951c458ca1556f0cc434a",
+        "tetris_afterstate_td.py": "b9d1e9b219d62030c9b6dd2794d7a1153e76f6a82b68f0227d2d13ed533204e7",
+        "tetris_game_library.py": "8bc5ea4056d4a78cd7830a422a419124554462249c86c1bd3170cb1b1f8072bc",
+        "tetris_gpu_board_features.py": "2ae29d48dc3948ecaad9c7bd9470eb9d4ca3cf2f9be7dcee907aa444091726ed",
+        "tetris_gpu_encoding.py": "04fa826a37d843d022fe88d74eb32769c155790b6254bec9ce6e5f8a3ff28a72",
+        "tetris_gpu_simulation.py": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+        "tetris_gpu_spatial.py": "8a9e16bc5e3a08f3dc527c294f0bee3b340f8dfbb9328a19396af0f6ee4ed9e0",
+        "tetris_neural.py": "7b17ba11a00de24e8d52e468e3805b05d9f6bfe535d15b678ad91806314b81c8",
+        "tetris_survival_v3.py": "6e1950c9bac50f099b56db0394231c1df44c3e662191c63e872ff343376fc6e7",
+        "tetris_survival_v4.py": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+        "tetris_survival_v5.py": "a23a5dce38b23615f07d499281c4cada023684ef3fedbd71a3829d382da8bcdd",
+        "train_overnight.py": "224c1f88cb3c48602d42073819ccdf2c2c4cb16c14c879a31476c1301ee36887",
+        "train_survival_v4.py": "0869d4af9e1d10015a7c930f58e6b00cf5b784df689b96af7cc8e2984c0d3dc1"
+      },
+      "script_sha256": "61a2fabeee0d95a64872556127ab08e8f66492ae98639c46a071486a6f555f33"
+    },
+    "calibration_pairs": [
+      {
+        "seed": 48100001,
+        "shared_opening_forecast": 17611.68359375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -8852.943,
+              -2684.002,
+              2558.261,
+              7957.193
+            ],
+            "clears": 38,
+            "lifetime": 33224,
+            "samples": 260,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              1707.729,
+              5387.611,
+              8537.57,
+              9965.428
+            ],
+            "clears": 23,
+            "lifetime": 22784,
+            "samples": 178,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100003,
+        "shared_opening_forecast": 17599.47265625,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -11199.704,
+              -3941.75,
+              2713.522,
+              7954.982
+            ],
+            "clears": 46,
+            "lifetime": 39444,
+            "samples": 309,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              36.593,
+              2954.179,
+              5616.967,
+              9155.828
+            ],
+            "clears": 26,
+            "lifetime": 24847,
+            "samples": 195,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100005,
+        "shared_opening_forecast": 17634.048828125,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -8086.931,
+              -408.784,
+              5803.902,
+              9346.211
+            ],
+            "clears": 40,
+            "lifetime": 34986,
+            "samples": 274,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              846.267,
+              3893.334,
+              7170.321,
+              10137.025
+            ],
+            "clears": 24,
+            "lifetime": 23264,
+            "samples": 182,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100007,
+        "shared_opening_forecast": 17601.53515625,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -18225.631,
+              -8392.897,
+              126.637,
+              8046.059
+            ],
+            "clears": 58,
+            "lifetime": 48185,
+            "samples": 377,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              1054.844,
+              4798.605,
+              7815.741,
+              10371.394
+            ],
+            "clears": 24,
+            "lifetime": 23463,
+            "samples": 184,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100009,
+        "shared_opening_forecast": 17596.1171875,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -14478.663,
+              -5788.187,
+              1784.616,
+              7993.408
+            ],
+            "clears": 50,
+            "lifetime": 42228,
+            "samples": 330,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              -834.236,
+              3867.491,
+              7066.951,
+              10044.564
+            ],
+            "clears": 27,
+            "lifetime": 25673,
+            "samples": 201,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100011,
+        "shared_opening_forecast": 17611.427734375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -9748.188,
+              -1951.895,
+              4996.33,
+              10294.088
+            ],
+            "clears": 43,
+            "lifetime": 37460,
+            "samples": 293,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              2349.519,
+              6123.576,
+              8825.127,
+              10606.019
+            ],
+            "clears": 23,
+            "lifetime": 22952,
+            "samples": 180,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100013,
+        "shared_opening_forecast": 17675.9375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -11224.323,
+              -3780.271,
+              2745.559,
+              8053.118
+            ],
+            "clears": 43,
+            "lifetime": 37600,
+            "samples": 294,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              -1690.622,
+              3208.578,
+              7436.396,
+              10378.063
+            ],
+            "clears": 30,
+            "lifetime": 28127,
+            "samples": 220,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100015,
+        "shared_opening_forecast": 17640.03125,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -10725.539,
+              -3155.669,
+              3691.217,
+              8933.719
+            ],
+            "clears": 44,
+            "lifetime": 37765,
+            "samples": 296,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              5084.538,
+              7643.914,
+              10264.142,
+              11226.508
+            ],
+            "clears": 19,
+            "lifetime": 19866,
+            "samples": 156,
+            "terminal_piece": "CROSS"
+          }
+        }
+      }
+    ],
+    "greedy_public_openings": {
+      "scope": "Different eight development streams. CPU-scored predecision genesis; uncapped GPU greedy lifetime from published screen. No matched-temperature estimate of a greedy effect.",
+      "seeds": [
+        48200001,
+        48200003,
+        48200005,
+        48200007,
+        48200009,
+        48200011,
+        48200013,
+        48200015
+      ],
+      "summary": {
+        "actual": 36696.875,
+        "bias": -19080.492877960205,
+        "forecast": 17616.382122039795,
+        "games": 8,
+        "games_mean_under_forecast": 8,
+        "mae": 19080.492877960205,
+        "samples": 8
+      }
+    },
+    "receipt_sha256": "b3a08c88095b2ac36549a7f009479f4afb586b08b3821dcc99ea930ab3703c43",
+    "stage_definitions": {
+      "opening": "age 0",
+      "both_alive_nonopening_common_ages": "identical positive placement offsets on the same stream where both games are still alive; their boards and actions can differ.",
+      "last_512": "1 to 512 actual remaining"
+    },
+    "stages": {
+      "0.25": {
+        "opening": {
+          "actual": 38861.5,
+          "bias": -21240.21826171875,
+          "forecast": 17621.28173828125,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 21240.21826171875,
+          "samples": 8
+        },
+        "both_alive_nonopening_common_ages": {
+          "actual": 26893.5,
+          "bias": -5969.40379472983,
+          "forecast": 20924.09620527017,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 6949.399016648501,
+          "samples": 1488
+        },
+        "last_512": {
+          "actual": 253.5,
+          "bias": 10509.508056640625,
+          "forecast": 10763.008056640625,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 10509.508056640625,
+          "samples": 32
+        }
+      },
+      "1.0": {
+        "opening": {
+          "actual": 23872,
+          "bias": -6250.71826171875,
+          "forecast": 17621.28173828125,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 6250.71826171875,
+          "samples": 8
+        },
+        "both_alive_nonopening_common_ages": {
+          "actual": 11904,
+          "bias": 6027.726129026089,
+          "forecast": 17931.72612902609,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 6216.2063048066975,
+          "samples": 1488
+        },
+        "last_512": {
+          "actual": 256,
+          "bias": 10048.406799316406,
+          "forecast": 10304.406799316406,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 10048.406799316406,
+          "samples": 32
+        }
+      }
+    },
+    "matched_cold_minus_warm": {
+      "opening": {
+        "colder_larger_absolute_error": 8,
+        "games": 8,
+        "mean": {
+          "actual": 14989.5,
+          "bias": -14989.5,
+          "forecast": 0.0,
+          "mae": 14989.5
+        },
+        "range": {
+          "actual": [
+            9473,
+            24722
+          ],
+          "bias": [
+            -24722.0,
+            -9473.0
+          ],
+          "forecast": [
+            0.0,
+            0.0
+          ],
+          "mae": [
+            9473.0,
+            24722.0
+          ]
+        }
+      },
+      "both_alive_nonopening_common_ages": {
+        "colder_larger_absolute_error": 4,
+        "games": 8,
+        "mean": {
+          "actual": 14989.5,
+          "bias": -11997.12992375592,
+          "forecast": 2992.3700762440812,
+          "mae": 733.1927118418038
+        },
+        "range": {
+          "actual": [
+            9473,
+            24722
+          ],
+          "bias": [
+            -19577.598387337774,
+            -7524.6991162379145
+          ],
+          "forecast": [
+            335.3113248146183,
+            5144.40161266223
+          ],
+          "mae": [
+            -2066.127047631049,
+            7396.0491109545765
+          ]
+        }
+      },
+      "last_512": {
+        "colder_larger_absolute_error": 6,
+        "games": 8,
+        "mean": {
+          "actual": -2.5,
+          "bias": 461.10125732421875,
+          "forecast": 458.60125732421875,
+          "mae": 461.10125732421875
+        },
+        "range": {
+          "actual": [
+            -56,
+            44
+          ],
+          "bias": [
+            -981.857177734375,
+            2195.220947265625
+          ],
+          "forecast": [
+            -1037.857177734375,
+            2213.220947265625
+          ],
+          "mae": [
+            -981.857177734375,
+            2195.220947265625
+          ]
+        }
+      }
+    }
   }
 }

@@ -1753,5 +1753,341 @@
     "endpoints": "Only final published eight-seed greedy screens to physical top-out. Genesis for every seed and every actual retained threshold board; record gaps and condition late comparisons on observed survivors. Same threshold, different absolute depths possible. Do not use rolling terminal observations or sealed draws.",
     "scoring": "For each board use its acting checkpoint and the fixed incumbent critic. Score through full V4 forward with the actual public context and resolved physical target. Cross-check returned critic input through the value head and repeat by direct board-feature evaluation. Target is the published GPU natural lifetime minus exact saved depth, in placements. Report by actor and nominal threshold: own/starting critic mean signed and absolute errors; also a leave-one-stream-out median of realized remaining lifetimes as a descriptive public comparator. No fitting or checkpoint mutation. Greedy evaluation differs from stochastic PPO; errors are deployment calibration only."
   },
-  "snapshot_availability": "The opening board is reconstructable from the public seed for every player. The milestone observer began after 611000-plain completed. Earlier direct players have no milestone captures. Milestones include only observed survivors. Realized placements come from the official GPU screen; value predictions use the frozen models on the saved pre-action boards on CPU."
+  "snapshot_availability": "The opening board is reconstructable from the public seed for every player. The milestone observer began after 611000-plain completed. Earlier direct players have no milestone captures. Milestones include only observed survivors. Realized placements come from the official GPU screen; value predictions use the frozen models on the saved pre-action boards on CPU.",
+  "cross_milestone_check": {
+    "scope": "Post hoc diagnostic on saved greedy policy segments. Delta is placements elapsed plus later value minus earlier value for the same board stream and fixed critic. An expectation under stochastic training need not equal an individual greedy outcome. Later segments condition on survival to both milestones.",
+    "arms": {
+      "612000-plain": {
+        "opening-8192": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 8283,
+              "delta": 15032.28092956543
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 8283,
+              "delta": 14973.32096862793
+            },
+            {
+              "seed": 48200005,
+              "elapsed": 8283,
+              "delta": 4229.130752563477
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 8283,
+              "delta": 10315.352447509766
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 8283,
+              "delta": 14036.992080688477
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 8283,
+              "delta": 12597.8193359375
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 8283,
+              "delta": 14343.815811157227
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 8283,
+              "delta": 15102.499969482422
+            }
+          ],
+          "mean_delta": 12578.901536941528,
+          "positive": 8
+        },
+        "8192-32768": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 25947,
+              "delta": 11429.320785522461
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 25947,
+              "delta": 11891.225311279297
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 25947,
+              "delta": 7649.179431915283
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 25947,
+              "delta": 12948.399993896484
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 25947,
+              "delta": 11875.66325378418
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 25947,
+              "delta": 6295.864555358887
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 25947,
+              "delta": 7805.87336730957
+            }
+          ],
+          "mean_delta": 9985.075242723737,
+          "positive": 7
+        }
+      },
+      "611000-cold": {
+        "opening-8192": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 10540,
+              "delta": 15850.943603515625
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 10540,
+              "delta": 15700.232543945312
+            },
+            {
+              "seed": 48200005,
+              "elapsed": 10540,
+              "delta": 15014.199295043945
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 10540,
+              "delta": 16850.155868530273
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 10540,
+              "delta": 16885.17478942871
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 10540,
+              "delta": 16504.691162109375
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 10540,
+              "delta": 14533.230819702148
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 10540,
+              "delta": 16850.14060974121
+            }
+          ],
+          "mean_delta": 16023.596086502075,
+          "positive": 8
+        },
+        "8192-32768": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 23464,
+              "delta": 9063.725723266602
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 23464,
+              "delta": 11293.610824584961
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 23464,
+              "delta": 6344.607604980469
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 23464,
+              "delta": 8021.945251464844
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 23464,
+              "delta": -649.7113571166992
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 23464,
+              "delta": 12797.959579467773
+            }
+          ],
+          "mean_delta": 7812.022937774658,
+          "positive": 5
+        }
+      },
+      "612000-cold": {
+        "opening-8192": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 9311,
+              "delta": 13862.712036132812
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 9311,
+              "delta": 13229.603897094727
+            },
+            {
+              "seed": 48200005,
+              "elapsed": 9311,
+              "delta": 7087.42822265625
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 9311,
+              "delta": 13445.925842285156
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 9311,
+              "delta": 12613.602767944336
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 9311,
+              "delta": 10221.295486450195
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 9311,
+              "delta": 13231.85075378418
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 9311,
+              "delta": 15698.474060058594
+            }
+          ],
+          "mean_delta": 12423.861633300781,
+          "positive": 8
+        },
+        "8192-32768": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 23743,
+              "delta": 12936.981170654297
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 23743,
+              "delta": 12433.139770507812
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 23743,
+              "delta": 9365.204780578613
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 23743,
+              "delta": 14495.847671508789
+            }
+          ],
+          "mean_delta": 12307.793348312378,
+          "positive": 4
+        }
+      },
+      "611000-anchored": {
+        "opening-8192": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 8672,
+              "delta": 15547.88119506836
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 8672,
+              "delta": 14428.359100341797
+            },
+            {
+              "seed": 48200005,
+              "elapsed": 8672,
+              "delta": 12674.029418945312
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 8672,
+              "delta": 11874.362060546875
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 8672,
+              "delta": 15553.393432617188
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 8672,
+              "delta": 13823.06201171875
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 8672,
+              "delta": 15429.686614990234
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 8672,
+              "delta": 13559.03727722168
+            }
+          ],
+          "mean_delta": 14111.226388931274,
+          "positive": 8
+        },
+        "8192-32768": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 24522,
+              "delta": -839.5357875823975
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 24522,
+              "delta": 9046.962425231934
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 24522,
+              "delta": 10978.585884094238
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 24522,
+              "delta": 11917.221710205078
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 24522,
+              "delta": 11576.969787597656
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 24522,
+              "delta": 3310.085460662842
+            }
+          ],
+          "mean_delta": 7665.048246701558,
+          "positive": 5
+        }
+      }
+    }
+  }
 }

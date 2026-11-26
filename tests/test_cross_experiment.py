@@ -135,6 +135,77 @@ with m.exclusive_session(p,m.ev.base.Budget(1)):
         self.assertEqual([label for split, label in calls if split == 'holdout'], ['incumbent', primary])
         self.assertEqual(len(set(run.EVALUATION)), len(run.EVALUATION))
 
+    def test_ppo_screen_timeout_omits_entire_family_and_qualifies_cached_players(self):
+        players = {label: run.player('/unused', label) for label in ('incumbent', 'weight-1')}
+        first, second = (f'{seed}-plain' for seed in run.TRAIN)
+        plan = dict(runtime='fixture', teacher='teacher', greedy_enabled=dict(two_stage=False, headless=False))
+
+        def train(out, incumbent, donor, plan, seed, recipe, stop):
+            return run.player('/unused', f'{seed}-{recipe}')
+
+        with tempfile.TemporaryDirectory() as tmp, patch.object(run, 'direct_players', return_value=players), \
+                patch.object(run, 'train_arm', side_effect=train), \
+                patch.object(run.ev, 'load_model', side_effect=AssertionError('unexpected fresh evaluation')):
+            out = Path(tmp)
+            # Every development reservation is exhausted. Valid per-seed caches can still be read.
+            run.base.durable_json(out / 'gpu-time.json', [dict(phase='development', seconds=16 * 3600)])
+
+            def cache(label, seeds, length):
+                actor = label.removesuffix('-lookahead')
+                identity = dict(policy='ppo', checkpoint=actor, weights='teacher', runtime='fixture',
+                                screening='exhaustive', top_k=run.ev.TOP_K, cap=0,
+                                greedy_actor='fixed-fp32-v1', batch_size=run.BATCH, piece_set='expanded',
+                                group_exhaustive=True)
+                if label.endswith('-lookahead'):
+                    identity['preview_search'] = 'one-visible-cross-8-16x4-v1'
+                root = out / 'evaluation-cache' / run.ev.digest(identity)
+                for seed in seeds:
+                    run.ev.write_cache(root / f'{seed}.json', dict(identity, seed=seed),
+                                       dict(seed=seed, placements=length, clears=0, reason='top_out'))
+
+            for label, value in (('incumbent', 100), ('weight-1', 110), ('incumbent-lookahead', 105),
+                                 ('weight-1-lookahead', 101), (first, 900)):
+                cache(label, run.SCREEN, value)
+            cache(second, run.SCREEN[:-1], 1000)
+            for label, value in (('incumbent', 120), ('weight-1', 110), ('incumbent-lookahead', 115)):
+                cache(label, run.QUALIFY, value)
+            self.assertEqual(run.run(out, None, None, plan, 'cpu', run.base.Budget(1)), 'complete')
+            screened = run.ev.read_json(out / 'screened.json')
+            self.assertEqual(screened['omitted'], {'PPO': f'PPO screening incomplete at {second}'})
+            self.assertIsNone(screened['recipe'])
+            self.assertEqual(screened['recipe_scores'], {})
+            self.assertEqual(screened['fast'], 'weight-1')
+            selected = run.ev.read_json(out / 'selected.json')
+            self.assertEqual(selected['name'], 'incumbent')
+            self.assertEqual(set(selected['qualification']), {'incumbent', 'weight-1', 'incumbent-lookahead'})
+            self.assertEqual(run.ev.read_json(out / 'qualification/incumbent.json')['seeds'], list(run.QUALIFY))
+            self.assertFalse(run.ev.read_json(out / 'result.json')['all_workloads_complete'])
+            self.assertFalse((out / 'holdout').exists())
+
+    def test_ppo_screen_signal_or_absolute_deadline_stops_before_qualification(self):
+        for reason in ('signal_15', 'time_budget'):
+            with self.subTest(reason=reason), tempfile.TemporaryDirectory() as tmp:
+                stop = run.base.Budget(1)
+                players = {'incumbent': run.player('/unused', 'incumbent')}
+                arm = f'{run.TRAIN[0]}-{run.RECIPES[0]}'
+
+                def score(out, plan, label, candidate, seeds, split, phase, device, stop):
+                    if label == 'incumbent':
+                        return dict(complete=True, mean=1, median=1)
+                    self.assertEqual((label, split), (arm, 'screening'))
+                    stop.reason = reason
+                    if reason == 'time_budget':
+                        stop.deadline = 0
+                    return dict(complete=False)
+
+                with patch.object(run, 'direct_players', return_value=players), \
+                        patch.object(run, 'train_arm', return_value=run.player('/unused', 'ppo')), \
+                        patch.object(run, 'evaluate', side_effect=score):
+                    self.assertEqual(run.run(Path(tmp), None, None, {}, 'cpu', stop),
+                                     f'PPO screening incomplete at {arm}')
+                self.assertEqual(stop.reason, reason)
+                self.assertFalse((Path(tmp) / 'budget-skips.json').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

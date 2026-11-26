@@ -3,6 +3,7 @@
 import argparse
 from collections import Counter
 from dataclasses import replace
+from itertools import product
 import os
 from pathlib import Path
 import statistics
@@ -339,17 +340,20 @@ def run(out, incumbent, donor, plan, device, stop):
     recipes = {}
     winner = None
     if 'PPO' not in omitted:
-        for recipe in RECIPES:
-            for seed in TRAIN:
-                label = f'{seed}-{recipe}'
-                screen[label] = score(label, SCREEN, 'screening', 'development')
-                if not screen[label]['complete']:
-                    return f'PPO screening incomplete at {label}'
-        recipes = {
-            r: {k: statistics.mean(screen[f'{s}-{r}'][k] for s in TRAIN) for k in ('mean', 'median')}
-            for r in RECIPES
-        }
-        winner = best(RECIPES, recipes)
+        for recipe, seed in product(RECIPES, TRAIN):
+            label = f'{seed}-{recipe}'
+            screen[label] = score(label, SCREEN, 'screening', 'development')
+            if not screen[label]['complete']:
+                reason = f'PPO screening incomplete at {label}'
+                if skip_timed_family('PPO', reason):
+                    break
+                return reason
+        else:
+            recipes = {
+                r: {k: statistics.mean(screen[f'{s}-{r}'][k] for s in TRAIN) for k in ('mean', 'median')}
+                for r in RECIPES
+            }
+            winner = best(RECIPES, recipes)
     if not screen.get('incumbent', {}).get('complete'):
         screen['incumbent'] = score('incumbent', SCREEN, 'screening', 'development')
         if not screen['incumbent']['complete']:
