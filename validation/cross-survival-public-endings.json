@@ -1007,35 +1007,53 @@
         "public_end_matches": true
       },
       "612000-plain": {
-        "status": "running",
+        "status": "complete",
         "registration_sha256": "60460d2d429d0752d08dad9cd8b4227cf8928939a388b75bf6299a319ad732ef",
         "scope": "Uncapped CPU replay of public GPU snapshot",
         "arm": "612000-plain",
         "seed": 48200013,
-        "placements": 43702,
-        "clears": 52,
-        "wall_seconds": 851.8662949969876,
-        "loss_events": 3,
+        "placements": 45330,
+        "clears": 54,
+        "wall_seconds": 982.1648187420215,
+        "loss_events": 6,
         "last_origin_loss": {
-          "placement": 43329,
+          "placement": 45327,
           "before": 1,
           "after": 0,
           "chosen": {
             "piece": "CROSS",
             "rotation": 0,
-            "x": 7,
-            "y": 4,
-            "w": 8,
+            "x": 2,
+            "y": 6,
+            "w": 5,
             "z": 13,
             "layers": 0,
-            "score": -37318.6479267961
+            "score": -36675.560226463356
           },
           "shortlist": 1,
           "saving_actions": 0,
           "best_saving_action": null,
-          "bag_visible": "HOOK"
+          "bag_visible": "NOVA"
         },
-        "published_endpoint_diverged": true,
+        "blocked_piece": "CROSS",
+        "terminal_board_sha256": "58ebe17d0ae6e87fee445836e0efbfbc153fda091c79b0b53ec283c2b7c6d984",
+        "terminal_requested_target": 14,
+        "terminal_selected_target": 14,
+        "terminal_options": 128,
+        "terminal_saving_actions": 0,
+        "terminal_cross_before": 0,
+        "terminal_chosen": {
+          "piece": "C",
+          "rotation": 59,
+          "x": 2,
+          "y": 13,
+          "w": 14,
+          "z": 14,
+          "layers": 0,
+          "score": -36684.00927157359
+        },
+        "public_end_matches": false,
+        "receipt_sha256": "b1215437d3691eb4e756666c167fc92b5670df698ec13f4b335d4b4749d0915b",
         "interpretation": "CPU replay started from the same saved board at 34230. Its lifetime exceeded the official GPU endpoint of 41040. No later official board or action trace is available on this seed to identify the first differing decision or its cause."
       }
     },
