@@ -657,6 +657,8 @@ class NeuralAgent:
             from tetris_cross_survival import mobility_features
             prepared.arrays['cross_mobility'] = mobility_features(state.board, prepared.options)
         batch = collate([prepared.arrays], self.device)
+        outside = None
+        rescue_stats = {}
         with torch.inference_mode():
             prediction = self.model(batch, capture=self.capture_traces is True)
             if not bool(torch.isfinite(prediction['logits'][0][batch['valid'][0]]).all()):
@@ -665,6 +667,12 @@ class NeuralAgent:
                 from tetris_cross_survival import preserve_last_cross
                 choices, _, _ = preserve_last_cross(prediction['logits'], batch['valid'], batch['cross_mobility'])
                 index = int(choices.item())
+            elif self.preview_search == 'exhaustive-rescue':
+                from tetris_cross_survival import rescue_decision
+                index, outside = rescue_decision(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
+                                                 self.model.config, prepared.arrays['cross_mobility'][:, 1]
+                                                 if 'cross_mobility' in prepared.arrays else None,
+                                                 rescue_stats, exhaustive=True)
             elif self.preview_search:
                 from tetris_cross_survival import preview_choice
                 index = preview_choice(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
@@ -673,7 +681,7 @@ class NeuralAgent:
                                        rescue_only=self.preview_search == 'rescue-only')
             else:
                 index = int(prediction['logits'][0].argmax().item())
-            score = float(prediction['logits'][0, index].item())
+            score = float(prediction['logits'][0, index].item()) if outside is None else None
             trace_info = {'logit': score, 'piece': state.current, 'piece_number': state.pieces + 1,
                           'shortlist': len(prepared.options), 'selected': index}
             if self.capture_traces is True:
@@ -681,10 +689,14 @@ class NeuralAgent:
             elif self.capture_traces == 'lazy':
                 self.pending_trace = (prepared.arrays, trace_info)
         inferred = time.perf_counter()
-        candidate = prepared.options[index]
+        candidate = prepared.options[index] if outside is None else outside
         move = game.materialize_move(state.board, candidate)
         gain, _, _ = game.sustained_candidate_metrics(state.board, candidate, target)
-        if self.model.config.architecture in FEATURE_ARCHITECTURES:
+        if outside is not None:
+            self.last_trace = {'feature_inspector': True, **trace_info, 'outside_action': asdict(outside),
+                               'actor_score': None, 'teacher_prior': None, 'spatial_delta': None,
+                               'critic_value': float(prediction['value'][0])}
+        elif self.model.config.architecture in FEATURE_ARCHITECTURES:
             teacher_prior = float(batch['teacher_prior'][0, index]) if 'teacher_prior' in batch else 0.
             self.last_trace = {'feature_inspector': True, **trace_info,
                                'teacher_prior': teacher_prior, 'critic_value': float(prediction['value'][0]),
@@ -709,10 +721,11 @@ class NeuralAgent:
                              'teacher_agreement': index == prepared.teacher,
                              'requested_target': requested_target, 'active_target': target,
                              'target_recovered': target != requested_target,
-                             'trace_captured': self.capture_traces is True, **self.metadata}
+                             'trace_captured': self.capture_traces is True, **self.metadata, **rescue_stats}
         return game.Decision(move, score, prepared.evaluations, (time.perf_counter() - started) * 1000,
                              1, 1, self.model.config.screening_budget if candidates is None else candidates,
-                             bool(self.model.config.screening_budget if candidates is None else candidates), 'neural', target, gain, prepared.fallback)
+                             bool(self.model.config.screening_budget if candidates is None else candidates), 'neural', target, gain,
+                             prepared.fallback or outside is not None)
 
     def choose(self, *args, **kwargs):
         iterator = self.steps(*args, **kwargs)

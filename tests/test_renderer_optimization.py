@@ -89,6 +89,14 @@ class RendererTests(unittest.TestCase):
                         self.assertEqual(ast.dump(fn), ast.dump(candidate), method)
             else:
                 candidate = copy.deepcopy(new[name])
+                if name == 'Decision':
+                    # A physical rescue outside the actor shortlist has no search score.
+                    for definition, annotation in ((node, 'float'), (candidate, 'float | None')):
+                        fields = [field for field in definition.body if isinstance(field, ast.AnnAssign)
+                                  and isinstance(field.target, ast.Name) and field.target.id == 'search_score']
+                        expected = ast.parse(f'search_score: {annotation}').body[0]
+                        self.assertEqual([ast.dump(field) for field in fields], [ast.dump(expected)])
+                        fields[0].annotation = ast.parse('float', mode='eval').body
                 if name == '_load_native':
                     # Extend the historical ABI at the exact binding point. The global AST
                     # comparison still checks every old signature, capability check and call.

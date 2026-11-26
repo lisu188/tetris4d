@@ -116,18 +116,75 @@ def _shape_windows(shape):
     return tuple(windows)
 
 
+def _legal_origins(grid, shape):
+    windows = _shape_windows(shape)
+    slices, limit = windows[0]
+    valid = grid[slices] < limit
+    for slices, limit in windows[1:]:
+        valid &= grid[slices] < limit
+    return valid
+
+
 def visible_piece_fits(board, piece):
     """All physical rotations and origins using packed column masks, including buried targets."""
     grid = np.asarray(board, dtype=np.int32).reshape(16, 16, 16)
-    for shape in game.SHAPES[piece]:
-        windows = _shape_windows(shape)
-        slices, limit = windows[0]
-        valid = grid[slices] < limit
-        for slices, limit in windows[1:]:
-            valid &= grid[slices] < limit
-        if valid.any():
-            return True
-    return False
+    return any(_legal_origins(grid, shape).any() for shape in game.SHAPES[piece])
+
+
+def _possible_clearing_specs(context, piece):
+    """Align a cell with one known hole in each layer the piece could complete."""
+    holes = []
+    for z, filled in enumerate(context.fill_counts):
+        missing = game.AREA - filled
+        if 0 < missing <= game.PIECE_SIZES[piece]:
+            col = next(i for i, mask in enumerate(context.board) if not mask & (1 << z))
+            holes.append((z, missing, *game.column_coordinates(col)))
+    if not holes:
+        return
+    for rotation, shape in enumerate(game.SHAPES[piece]):
+        origins = set()
+        levels = dict(shape.levels)
+        sx, sy, sz, sw = shape.extents
+        for z, missing, hx, hy, hw in holes:
+            for dx, dy, dz, dw in shape.cells:
+                if levels[dz] != missing or not 0 <= z - dz <= game.HEIGHT - sz:
+                    continue
+                x, y, w = hx - dx, hy - dy, hw - dw
+                if 0 <= x <= game.WIDTH - sx and 0 <= y <= game.DEPTH - sy and 0 <= w <= game.FOURTH - sw:
+                    origins.add((w, y, x))
+        for w, y, x in sorted(origins):
+            yield rotation, x, y, w
+
+
+def _legal_specs(board, piece):
+    grid = np.asarray(board, dtype=np.int32).reshape(16, 16, 16)
+    for rotation, shape in enumerate(game.SHAPES[piece]):
+        for w, y, x in np.argwhere(_legal_origins(grid, shape)):
+            yield rotation, int(x), int(y), int(w)
+
+
+def outside_shortlist_rescue(board: game.Board, current: str, visible: str, failed_shortlist) -> game.Candidate | None:
+    """Return the first outside drop that admits the visible piece, or None.
+
+    Call only after every retained option has failed. Ties use the engine's exhaustive
+    physical order (rotation, w, y, x). Without a clear, column heights can only rise.
+    If the preview already has no landing, alignment with a missing cell is necessary
+    for a clear. Each proposed origin still has to pass the ordinary gravity and score
+    checks, then the exact visible-piece test on the compacted board.
+    """
+    context = game.evaluate_board(board)
+    excluded = {(a.rotation, a.x, a.y, a.w) for a in failed_shortlist}
+    must_clear = not visible_piece_fits(board, visible)
+    specs = _possible_clearing_specs(context, current) if must_clear else _legal_specs(board, current)
+    for spec in specs:
+        if spec in excluded:
+            continue
+        action = game.score_candidate(context, current, *spec)
+        if action is None or (must_clear and not action.layers):
+            continue
+        if visible_piece_fits(_after_board(board, action), visible):
+            return action
+    return None
 
 
 def _visible_replies(state, target, after, current, config):
@@ -182,6 +239,22 @@ def _ordinary_afterstate(board, action, preview, normalized_count):
         return False
     return preview == 'CROSS' or any(all(raised.get(col, board[col]) < limit for col, limit in witness)
                                      for witness in _preview_witnesses(preview))
+
+
+def rescue_decision(state, target, options, logits, config, normalized_after=None, stats=None, *, exhaustive=False):
+    """Return a retained index or an outside pose when every retained move immediately loses."""
+    step = {}
+    index = preview_choice(state, target, options, logits, config, normalized_after, step, rescue_only=True)
+    candidate = None
+    if exhaustive and step.get('immediate_losses') and not step.get('immediate_rescues'):
+        step['outside_rescue_searches'] = 1
+        candidate = outside_shortlist_rescue(state.board, state.current, state.next_piece, options)
+        if candidate is not None:
+            index = None
+            step.update(outside_rescues=1, immediate_rescues=1, planner_overrides=1)
+    if stats is not None:
+        stats.update(step)
+    return index, candidate
 
 
 def preview_choice(state, target, options, logits, config, normalized_after=None, stats=None, *, rescue_only=False):

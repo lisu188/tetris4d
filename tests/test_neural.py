@@ -12,7 +12,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -218,6 +218,68 @@ class NeuralTests(unittest.TestCase):
                         self.assertEqual(cross.cross_count(state.board), int(expected > 0))
                         library.ignore(state)
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+
+    def test_exhaustive_rescue_uses_outside_action_without_a_shortlist_score(self):
+        import tetris_cross_survival as cross
+        from tetris_survival_v4 import FeatureView
+        state = game.Game(7)
+        board = [1 << 14] * game.AREA
+        for offset in cross.NEIGHBORS:
+            board[game.column_index(7, 7, 7) + offset] = 1 << 11
+        state.board, state.current, state.next_piece = tuple(board), 'O', 'CROSS'
+        rotation = next(i for i, shape in enumerate(game.SHAPES['O']) if shape.extents == (2, 2, 1, 1))
+        risk, safe = (rotation, 7, 7, 7), (rotation, 1, 1, 1)
+        alternative = game.score_candidate(game.evaluate_board(state.board), state.current, *safe)
+        config = n.Config(architecture='survival-spatial-v4', shortlist=2, candidates=2,
+                          protect_target=False, policy_mode='teacher-prior', residual_scale=0., teacher_prior_scale=0.)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(game, 'TWO_STAGE_EXHAUSTIVE', False):
+            path = Path(tmp)/'policy.pt'
+            n.save_checkpoint(path, n.create_model(config), progress={'updates': 1})
+            agent = n.NeuralAgent(path, 'cpu', preview_search='exhaustive-rescue')
+            self.assertEqual(agent.candidate_budget, 0)
+            with patch.object(game, 'specifications', return_value=[risk]), \
+                 patch.object(cross, 'outside_shortlist_rescue', return_value=alternative) as search:
+                decision = agent.choose(state, 15)
+                search.assert_called_once()
+            self.assertEqual(decision.move.candidate, alternative)
+            self.assertIsNone(decision.search_score)
+            self.assertTrue(decision.exhaustive_fallback)
+            self.assertEqual(agent.last_metrics['outside_rescues'], 1)
+            trace = agent.get_trace()
+            self.assertEqual(trace['outside_action'], asdict(alternative))
+            for key in ('selected', 'logit', 'actor_score', 'teacher_prior', 'spatial_delta'):
+                self.assertIsNone(trace[key])
+            inspector = object.__new__(FeatureView)
+            inspector.agent, inspector.tabs, inspector.display = agent, Mock(), Mock()
+            inspector.tabs.index.return_value = 0
+            inspector.update(decision.move)
+            self.assertIn('actor did not score', inspector.display.insert.call_args.args[1])
+            with patch.object(game, 'specifications', return_value=[risk, safe]), \
+                 patch.object(cross, 'outside_shortlist_rescue') as search:
+                shortlisted = agent.choose(state, 15)
+                search.assert_not_called()
+            self.assertEqual(shortlisted.move.candidate, alternative)
+            self.assertEqual(agent.get_trace()['selected'], 1)
+            self.assertIsNotNone(shortlisted.search_score)
+            with patch.object(game, 'specifications', return_value=[risk]), \
+                 patch.object(cross, 'outside_shortlist_rescue', return_value=None):
+                no_rescue = agent.choose(state, 15)
+            self.assertEqual(agent.get_trace()['selected'], 0)
+            self.assertIsNotNone(no_rescue.search_score)
+
+    def test_exhaustive_rescue_cli_exclusivity_and_recording_identity(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(game.main(['--neural-exhaustive-rescue']), 1)
+            with self.assertRaises(SystemExit):
+                game.main(['--neural-rescue-only', '--neural-exhaustive-rescue'])
+        state, recording = object(), Mock()
+        metadata = {'preview_search': 'exhaustive-rescue', 'checkpoint_sha256': 'abc'}
+        with patch.object(game, 'NEURAL_AGENT', SimpleNamespace(metadata=metadata)), patch.object(game, '_RECORDING', recording):
+            game._annotate_neural_move(state, 5)
+            recording.annotate.assert_called_with(state, behavior='neural/abc/preview=exhaustive-rescue', target=5)
+            metadata['cross_weight_override'] = 4.
+            game._annotate_neural_move(state, 5)
+            recording.annotate.assert_called_with(state, behavior='neural/abc/cross_weight=4.0/preview=exhaustive-rescue', target=5)
 
     def test_cross_weight_override_validates_checkpoint_and_config(self):
         with contextlib.redirect_stderr(io.StringIO()) as error:

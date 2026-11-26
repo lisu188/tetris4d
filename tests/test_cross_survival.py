@@ -102,6 +102,35 @@ class GeometryTests(unittest.TestCase):
                                              preview_search='preserve-last-cross'), {0: (1, 'safe')})
         geometry.assert_called_once_with(board, options)
 
+    def test_exhaustive_rescue_returns_an_outside_candidate_through_both_preparers(self):
+        torch.set_num_threads(1)
+        model = neural.create_model(neural.Config(architecture='survival-spatial-v4', shortlist=2, protect_target=False))
+        state = game.Game(37)
+        ev.base.library.ignore(state)
+        state.board, state.current, state.next_piece = frontier(), 'I', 'CROSS'
+        failed = game.score_candidate(game.evaluate_board(state.board), 'I', 2, 7, 7, 7)
+        self.assertFalse(game.has_legal_move(game.materialize_move(state.board, failed).board, 'CROSS'))
+        arrays = {'targets': np.asarray(1)}
+        prepared = SimpleNamespace(arrays=arrays, options=(failed,))
+        batch = {'valid': torch.tensor([[True]])}
+        device_result = SimpleNamespace(
+            batch=batch, environment_indices=[0], targets=[1], prepared=[prepared],
+            _option_specs=torch.tensor([[[failed.rotation, failed.x, failed.y, failed.w, failed.z, failed.layers]]]),
+            _option_scores=torch.tensor([[failed.score]], dtype=torch.float64))
+        device_preparer = SimpleNamespace(prepare_batch=lambda *args: device_result)
+        chosen = []
+        with patch.object(neural, 'prepare', return_value=prepared), patch.object(neural, 'collate', return_value=batch), \
+             patch.object(ev, '_fixed_actor_logits', return_value=torch.tensor([[0.]])):
+            for preparer in (None, device_preparer):
+                stats = {0: {}}
+                _, candidate = ev.select_moves(model, [state], [1], False, 'cpu', preparer, 1,
+                                               preview_search='exhaustive-rescue', decision_stats=stats)[0]
+                self.assertNotEqual(candidate, failed)
+                self.assertTrue(game.has_legal_move(game.materialize_move(state.board, candidate).board, 'CROSS'))
+                self.assertEqual((stats[0]['outside_rescue_searches'], stats[0]['outside_rescues']), (1, 1))
+                chosen.append(candidate)
+        self.assertEqual(chosen[0], chosen[1])
+
     def test_exact_absolute_count_including_boundaries_and_bit_thresholds(self):
         board = frontier()
         self.assertEqual(cross.cross_count(game.EMPTY_BOARD), 14**3)
@@ -425,20 +454,58 @@ class GeometryTests(unittest.TestCase):
                 self.assertEqual(resumed[key], full[key])
             self.assertEqual(resumed['move_latency']['samples'], 5)
             self.assertTrue(active.with_name('41.json').is_file())
-            for mode in (False, 'rescue-only', 'preserve-last-cross'):
+            for mode in (False, 'rescue-only', 'exhaustive-rescue', 'preserve-last-cross'):
                 result = run(never, root / 'resumed', mode)
                 self.assertTrue(result['complete'])
-                self.assertEqual('paired_greedy' in result['games'][0], mode == 'rescue-only')
+                self.assertEqual('paired_greedy' in result['games'][0], mode in ('rescue-only', 'exhaustive-rescue'))
+                self.assertEqual('paired_shortlist_rescue' in result['games'][0], mode == 'exhaustive-rescue')
+                self.assertEqual('outside_rescues' in result['decision_counts'], mode == 'exhaustive-rescue')
                 self.assertEqual('last_cross_overrides' in result['decision_counts'], mode == 'preserve-last-cross')
-                if mode == 'rescue-only':
+                if mode in ('rescue-only', 'exhaustive-rescue'):
                     self.assertEqual(result['games'][0]['paired_greedy'],
                                      dict(placements=5, reason='cap', physical_top_out=False))
                     with patch.object(ev, 'load_model', side_effect=AssertionError('Completed game must be cached')):
                         cached = ev.evaluate_checkpoint(checkpoint, sha, 'ppo', [41], 5, 'test', 'cpu', never, {},
                                                         'teacher', root / 'resumed', ppo_batch_size=1,
-                                                        preview_search='rescue-only')
+                                                        preview_search=mode)
                     self.assertEqual(result['games'], cached['games'])
-            self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 4)
+            self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 5)
+
+    def test_outside_rescue_paired_endpoints_survive_pause_after_first_override(self):
+        model = neural.create_model(neural.Config(architecture='survival-spatial-v4', protect_target=False))
+        state = game.Game(37)
+        ev.base.library.ignore(state)
+        state.board, state.current, state.next_piece = frontier(), 'I', 'CROSS'
+        state.stream.bag = ['I']
+        start = ev._snapshot(state, 1, 0.)
+
+        def select(model, states, targets, scoring, device, preparer, preview_search=False, decision_stats=None):
+            s = states[0]
+            spec = (2, 7, 7, 7) if s.current == 'I' else (0, 6, 6, 6)
+            move = game.score_candidate(game.evaluate_board(s.board), s.current, *spec)
+            self.assertIsNotNone(move)
+            _, outside = cross.rescue_decision(s, targets[0], [move], [0.], model.config, stats=decision_stats[0],
+                                               exhaustive=preview_search == 'exhaustive-rescue')
+            return {0: (targets[0], outside or move)}
+
+        def run(snapshot, mode, **kwargs):
+            with patch.object(ev, 'select_moves', side_effect=select):
+                return ev.evaluate_fresh(model, [37], policy='ppo', cap=2, device='cpu',
+                                         partials={37: snapshot}, preview_search=mode, **kwargs)
+
+        baseline = run(start, 'rescue-only')['games'][0]
+        saved = []
+        run(start, 'exhaustive-rescue', on_partial=saved.append, stop_requested=iter((False, True)).__next__)
+        self.assertEqual((saved[0]['first_greedy_loss_placement'], saved[0]['first_shortlist_rescue_loss_placement']), (1, 1))
+        full, resumed = (run(p, 'exhaustive-rescue')['games'][0] for p in (start, saved[0]))
+        self.assertEqual((baseline['reason'], baseline['placements']), ('top_out', 1))
+        for row in (full, resumed):
+            self.assertEqual(row['placements'], 2)
+            self.assertEqual(row['paired_shortlist_rescue'], dict(placements=1, reason='top_out', physical_top_out=True))
+            self.assertEqual(row['paired_greedy'], row['paired_shortlist_rescue'])
+            self.assertEqual(row['decisions']['outside_rescues'], 1)
+        with self.assertRaisesRegex(ValueError, 'paired shortlist_rescue loss'):
+            run({k: v for k, v in saved[0].items() if k != 'first_shortlist_rescue_loss_placement'}, 'exhaustive-rescue')
 
     @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'requires coordinated CUDA slot')
     def test_cuda_exact_delta_clears_padded_and_fused_feature_contract(self):

@@ -842,7 +842,7 @@ def has_legal_move(board: Board, piece: str) -> bool:
 @dataclass(frozen=True, slots=True)
 class Decision:
     move: Move
-    search_score: float
+    search_score: float | None
     evaluations: int
     milliseconds: float
     depth: int
@@ -3324,8 +3324,11 @@ def run_self_tests() -> dict:
 
 def _annotate_neural_move(state, target):
     metadata = NEURAL_AGENT.metadata
-    if 'cross_weight_override' in metadata and _RECORDING is not None and _RECORDING.active() is not None:
-        behavior = f"neural/{metadata['checkpoint_sha256']}/cross_weight={metadata['cross_weight_override']}"
+    record_variant = 'cross_weight_override' in metadata or metadata.get('preview_search') == 'exhaustive-rescue'
+    if record_variant and _RECORDING is not None and _RECORDING.active() is not None:
+        behavior = f"neural/{metadata['checkpoint_sha256']}"
+        if 'cross_weight_override' in metadata:
+            behavior += f"/cross_weight={metadata['cross_weight_override']}"
         if metadata['preview_search']:
             behavior += f"/preview={metadata['preview_search']}"
         _RECORDING.annotate(state, behavior=behavior, target=target)
@@ -3485,6 +3488,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     preview.add_argument('--neural-preview-search', action='store_true', help='Use one visible piece of survival lookahead with a spatial V4 checkpoint.')
     preview.add_argument('--neural-rescue-only', dest='neural_preview_search', action='store_const', const='rescue-only',
                          help='Override a spatial V4 move only if it would block the visible next piece and another shortlisted move leaves a landing.')
+    preview.add_argument('--neural-exhaustive-rescue', dest='neural_preview_search', action='store_const', const='exhaustive-rescue',
+                         help='Use visible-piece rescue and check other legal placements if the entire V4 shortlist would block the next piece.')
     preview.add_argument('--neural-preserve-last-cross', dest='neural_preview_search', action='store_const', const='preserve-last-cross',
                          help='Keep an existing CROSS landing when a shortlisted move can preserve one.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')

@@ -160,6 +160,7 @@ DECISION_COUNTERS = ('decisions', 'planner_triggers', 'immediate_losses', 'immed
                      'planner_overrides', 'direct_weight_changes', 'residual_changes')
 # Count the base choice losing an existing CROSS landing, and the subset avoided by the guard.
 LAST_CROSS_COUNTERS = ('last_cross_losses', 'last_cross_overrides')
+OUTSIDE_COUNTERS = ('outside_rescue_searches', 'outside_rescues')
 LATENCY_SCOPE = ('Wall time from batched preparation through the last game commit in the lockstep, '
                  'including CPU and device work and warmup. One sample per committed game move. '
                  'Nearest-rank percentiles at 0.1 ms resolution.')
@@ -190,7 +191,7 @@ def summarize(rows, seeds, policy, cap):
     for row in rows:
         latency.update(row.get('batch_latency_histogram_0p1ms', {}))
         counters.update(row.get('decisions', {}))
-    keys = DECISION_COUNTERS + tuple(k for k in LAST_CROSS_COUNTERS if k in counters)
+    keys = DECISION_COUNTERS + tuple(k for k in LAST_CROSS_COUNTERS + OUTSIDE_COUNTERS if k in counters)
     return {'policy': policy, 'cap': cap, 'decision_counts': {k: counters[k] for k in keys},
             'move_latency': _latency(latency), 'complete': len(rows) == len(seeds),
             'requested_seeds': list(seeds), 'seeds': [r['seed'] for r in rows],
@@ -238,7 +239,7 @@ class _HostOptions:
 
 def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_size=None, preview_search=False, decision_stats=None):
     """Map live batch indices to their (recovered target, chosen placement)."""
-    from tetris_cross_survival import mobility_features, preserve_last_cross, preview_choice
+    from tetris_cross_survival import mobility_features, preserve_last_cross, preview_choice, rescue_decision
     guard = preview_search == 'preserve-last-cross'
     if preview_search and (scoring or model.config.architecture != 'survival-spatial-v4'):
         raise ValueError('The selected move mode requires a spatial V4 actor')
@@ -251,6 +252,14 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
         if compare:
             return model.actor_logits(batch, return_base=True)
         return model(batch)['logits']
+
+    def preview_move(state, target, options, logits, mobility, stats):
+        if preview_search == 'exhaustive-rescue':
+            index, outside = rescue_decision(state, target, options, logits, model.config, mobility, stats, exhaustive=True)
+            return outside if outside is not None else options[index]
+        index = preview_choice(state, target, options, logits, model.config, mobility, stats,
+                               rescue_only=preview_search == 'rescue-only')
+        return options[index]
 
     if preparer is None:
         moves = {}
@@ -278,11 +287,11 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
                     if decision_stats is not None:
                         decision_stats[index].update(last_cross_losses=int(threat.item()), last_cross_overrides=int(override.item()))
                 elif preview_search:
-                    choice = preview_choice(state, int(prepared.arrays['targets']), prepared.options,
-                                            logits[0].detach().cpu().numpy(), config,
-                                            prepared.arrays['cross_mobility'][:, 1] if 'cross_mobility' in prepared.arrays else None,
-                                            decision_stats[index] if decision_stats is not None else None,
-                                            rescue_only=preview_search == 'rescue-only')
+                    target = int(prepared.arrays['targets'])
+                    mobility = prepared.arrays['cross_mobility'][:, 1] if 'cross_mobility' in prepared.arrays else None
+                    moves[index] = target, preview_move(state, target, prepared.options, logits[0].detach().cpu().numpy(),
+                                                        mobility, decision_stats[index] if decision_stats is not None else None)
+                    continue
                 else:
                     choice = int(logits.argmax(1).item())
             moves[index] = (int(prepared.arrays['targets']), prepared.options[choice])
@@ -340,11 +349,9 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
             target = int(result.targets[i])
             if compare:
                 decision_stats[i][change_key] = int(data[0, -1])
-            choice = preview_choice(states[i], target, options, data[:, 7], model.config,
-                                    data[:, 8] if 'cross_mobility' in batch else None,
-                                    decision_stats[i] if decision_stats is not None else None,
-                                    rescue_only=preview_search == 'rescue-only')
-            moves[i] = target, options[choice]
+            moves[i] = target, preview_move(states[i], target, options, data[:, 7],
+                                            data[:, 8] if 'cross_mobility' in batch else None,
+                                            decision_stats[i] if decision_stats is not None else None)
         return moves
     if scoring:
         pool = model.prepare_device(result, states)
@@ -391,6 +398,14 @@ def _paired_greedy(placements, reason, first_loss, cap):
     return {'placements': first_loss, 'reason': 'cap' if first_loss == cap else 'top_out', 'physical_top_out': True}
 
 
+def _paired_loss_counters(mode):
+    if mode == 'exhaustive-rescue':
+        return (('greedy', 'immediate_losses'), ('shortlist_rescue', 'outside_rescue_searches'))
+    if mode == 'rescue-only':
+        return (('greedy', 'immediate_losses'),)
+    return ()
+
+
 @torch.inference_mode()
 def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=None,
                    stop_requested=None, on_finish=None, ppo_batch_size=None, group_exhaustive=False,
@@ -428,21 +443,23 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         capacity = ppo_batch_size or len(seeds)
         targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds[:capacity])
         elapsed = dict.fromkeys(seeds, 0.)
-        rescue_only = preview_search == 'rescue-only'
+        paired_counters = _paired_loss_counters(preview_search)
         counters = DECISION_COUNTERS + (LAST_CROSS_COUNTERS if preview_search == 'preserve-last-cross' else ())
-        first_greedy_loss = {}
+        if preview_search == 'exhaustive-rescue':
+            counters += OUTSIDE_COUNTERS
+        first_losses = {}
         decisions = {s: Counter() for s in seeds}
         latency = {s: Counter() for s in seeds}
         for seed, data in (partials or {}).items():
             targets[seed], elapsed[seed] = _resume(states[seed], data)
             decisions[seed].update(data.get('decisions', {}))
-            if rescue_only:
-                first = data.get('first_greedy_loss_placement')
-                if ((first is not None) != bool(decisions[seed]['immediate_losses']) or
+            for player, counter in paired_counters:
+                first = data.get(f'first_{player}_loss_placement')
+                if ((first is not None) != bool(decisions[seed][counter]) or
                         (first is not None and (type(first) is not int or not 1 <= first <= states[seed].pieces))):
-                    raise ValueError(f'Invalid paired greedy loss in partial for seed {seed}')
+                    raise ValueError(f'Invalid paired {player} loss in partial for seed {seed}')
                 if first is not None:
-                    first_greedy_loss[seed] = first
+                    first_losses[seed, player] = first
             latency[seed].update(data.get('batch_latency_histogram_0p1ms', {}))
         entered = dict.fromkeys(live, began)
         next_seed = len(live)
@@ -454,8 +471,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                     if state.pieces:
                         snapshot = _snapshot(state, targets[seed], elapsed[seed] + time.monotonic() - entered[seed])
                         snapshot.update(decisions=dict(decisions[seed]), batch_latency_histogram_0p1ms=dict(latency[seed]))
-                        if rescue_only:
-                            snapshot['first_greedy_loss_placement'] = first_greedy_loss.get(seed)
+                        for player, _ in paired_counters:
+                            snapshot[f'first_{player}_loss_placement'] = first_losses.get((seed, player))
                         on_partial(snapshot)
         while live:
             if (deadline is not None and time.monotonic() >= deadline) or (stop_requested and stop_requested()):
@@ -493,8 +510,9 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 seed = live[i]
                 decisions[seed].update(stats[i])
                 decisions[seed]['decisions'] += 1
-                if rescue_only and stats[i].get('immediate_losses'):
-                    first_greedy_loss.setdefault(seed, states[seed].pieces)
+                for player, counter in paired_counters:
+                    if stats[i].get(counter):
+                        first_losses.setdefault((seed, player), states[seed].pieces)
                 if not preview_search or preview_search == 'preserve-last-cross':
                     decisions[seed]['immediate_losses'] += int(states[seed].game_over)
                 latency[seed][tenths] += 1
@@ -516,8 +534,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                         candidate=asdict(move.candidate), requested_target=requested_targets[i],
                         selected_target=moves[i][0], blocked_piece=state.current,
                         after_board_sha256=hashlib.sha256(after).hexdigest())
-                if rescue_only:
-                    row['paired_greedy'] = _paired_greedy(state.pieces, reason, first_greedy_loss.get(seed), cap)
+                for player, _ in paired_counters:
+                    row[f'paired_{player}'] = _paired_greedy(state.pieces, reason, first_losses.get((seed, player)), cap)
                 rows[seed] = row
                 if on_finish:
                     on_finish(row)
@@ -583,6 +601,8 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
         identity['group_exhaustive'] = True
     if preview_search == 'preserve-last-cross':
         identity['move_guard'] = 'preserve-existing-cross-landing-v1'
+    elif preview_search == 'exhaustive-rescue':
+        identity['preview_search'] = 'one-visible-exhaustive-rescue-paired-v1'
     elif preview_search:
         identity['preview_search'] = ('one-visible-physical-rescue-paired-v2' if preview_search == 'rescue-only'
                                       else 'one-visible-cross-8-16x4-v1')
@@ -597,14 +617,14 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
                 or row['reason'] not in ('cap', 'top_out', 'target_or_no_move')
                 or (row['reason'] == 'cap') != bool(cap and row['placements'] == cap)):
             raise ValueError(f'Invalid completed evaluation for seed {seed}')
-        if preview_search == 'rescue-only':
-            paired = row.get('paired_greedy', {})
+        for player, counter in _paired_loss_counters(preview_search):
+            paired = row.get(f'paired_{player}', {})
             n = paired.get('placements')
-            losses = row['decisions']['immediate_losses']
+            losses = row['decisions'][counter]
             if (type(n) is not int or type(paired.get('physical_top_out')) is not bool
                     or not 0 <= n <= row['placements'] or (losses and not n)
                     or paired != _paired_greedy(row['placements'], row['reason'], n if losses else None, cap)):
-                raise ValueError(f'Invalid paired greedy evaluation for seed {seed}')
+                raise ValueError(f'Invalid paired {player} evaluation for seed {seed}')
 
     def record(row):
         validate(row, row['seed'])
@@ -760,6 +780,8 @@ def main(argv=None):
     preview.add_argument('--preview-search', action='store_true', help='Use one visible piece for PPO survival planning')
     preview.add_argument('--rescue-only', dest='preview_search', action='store_const', const='rescue-only',
                          help='Keep the PPO move whenever the visible next piece still fits.')
+    preview.add_argument('--exhaustive-rescue', dest='preview_search', action='store_const', const='exhaustive-rescue',
+                         help='Search remaining physical poses when every shortlisted move blocks the visible piece.')
     preview.add_argument('--preserve-last-cross', dest='preview_search', action='store_const', const='preserve-last-cross',
                          help='Keep an existing CROSS landing when a shortlisted move can preserve one.')
     evaluation.add_argument('--two-stage', action='store_true')

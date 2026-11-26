@@ -523,6 +523,14 @@ class FeatureView:
         trace = self.agent.get_trace()
         if not trace or not trace.get('feature_inspector'):
             content = 'No feature-policy decision recorded yet.'
+        elif 'outside_action' in trace:
+            action = trace['outside_action']
+            content = (f"Move {trace['piece_number']} / {trace['piece']}\n"
+                       f"Physical rescue outside the {trace['shortlist']}-move actor shortlist\n"
+                       f"Rotation {action['rotation']} at X={action['x']} Y={action['y']} "
+                       f"Z={action['z']} W={action['w']}\n"
+                       "The actor did not score this placement.\n"
+                       f"Pre-move critic value {trace['critic_value']:.6g}")
         else:
             config = self.agent.model.config
             raw = trace.get('actor_score')
