@@ -601,6 +601,24 @@ class GpuPreparer:
         ordered = torch.where(choices < 0, width, choices).sort(dim=1).values
         return torch.where(ordered == width, -1, ordered)
 
+    def _final_shortlist(self, ranked, valid, counts, summaries, states, references, shortlist):
+        first = ranked[:, :shortlist]
+        # A successful two-stage screen has already selected its seeded random slots.
+        if ranked.shape[1] == shortlist or self.config.shortlist_mode == "teacher-top":
+            return first
+        half = max(1, shortlist // 2)
+        top = first[:, :half]
+        top_mask = torch.zeros_like(valid)
+        top_mask.scatter_(1, top, True)
+        rest_rank = torch.cumsum(valid & ~top_mask, dim=1, dtype=torch.int64)
+        positions = np.zeros((len(states), shortlist - half), dtype=np.int32)
+        for env, (number, *_) in enumerate(summaries):
+            if number > shortlist and env not in references:
+                rng = random.Random(states[env].seed * 8191 + states[env].pieces)
+                positions[env] = rng.sample(range(number - half), shortlist - half)
+        exploration = torch.searchsorted(rest_rank, self._device(positions) + 1)
+        return torch.where(counts[:, None] <= shortlist, first, torch.cat((top, exploration), dim=1))
+
     def _spatial_arrays(self, boards, targets, piece_ids, option_specs, valid):
         from tetris_survival_v4 import device_afterstate_descriptors
         specs = option_specs.long()
@@ -790,25 +808,10 @@ class GpuPreparer:
         by_score = torch.argsort(scores, dim=1, descending=True, stable=True)
         by_primary = torch.argsort(primary.gather(1, by_score), dim=1, descending=True, stable=True)
         ranked = by_score.gather(1, by_primary)
-        half = max(1, shortlist // 2)
-        top = ranked[:, :half]
-        top_mask = torch.zeros_like(valid)
-        top_mask.scatter_(1, top, True)
-        rest_mask = valid & ~top_mask
-        positions = np.zeros((n, shortlist - half), dtype=np.int64)
-        for env, (number, *_rest) in enumerate(summaries):
-            if number > shortlist and env not in references and self.config.shortlist_mode != "teacher-top":
-                rng = random.Random(states[env].seed * 8191 + states[env].pieces)
-                positions[env] = rng.sample(range(number - half), shortlist - half)
-        rest_rank = torch.cumsum(rest_mask.to(torch.int32), dim=1)
-        exploration = torch.searchsorted(rest_rank.contiguous(), self._device(positions).to(torch.int32) + 1)
-        chosen = torch.cat((top, exploration), dim=1)
-        raw_count = self._device(np.asarray([s[0] for s in summaries], dtype=np.int64))
-        first = ranked[:, :shortlist]
-        chosen = first if self.config.shortlist_mode == "teacher-top" else torch.where((raw_count <= shortlist)[:, None], first, chosen)
-        padding = torch.arange(shortlist, device=self.device)[None, :] >= self._device(np.asarray(lengths, dtype=np.int64))[:, None]
-        chosen = torch.where(padding, candidates, chosen).sort(dim=1).values
+        chosen = self._final_shortlist(ranked, valid, summary[:, 0], summaries, states, references, shortlist)
         length_tensor = self._device(np.asarray(lengths, dtype=np.int32))
+        padding = torch.arange(shortlist, device=self.device)[None, :] >= length_tensor[:, None]
+        chosen = torch.where(padding, candidates, chosen).sort(dim=1).values
         features = torch.empty((n, shortlist, neural.FEATURES), dtype=torch.float32, device=self.device)
         indices = torch.empty((n, shortlist, neural.COLUMNS), dtype=torch.int64, device=self.device)
         column_mask = torch.empty((n, shortlist, neural.COLUMNS), dtype=torch.bool, device=self.device)

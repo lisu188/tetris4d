@@ -91,6 +91,48 @@ class SamplingContractTests(unittest.TestCase):
                         expected = sorted(chosen) + [-1] * (shortlist - len(chosen))
                         self.assertEqual(actual[i].tolist(), expected, f"lane {i}")
 
+    def test_final_shortlist_preserves_sampling_and_rng_for_dense_and_packed_rows(self):
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        shortlist = 5
+        states = [game.Game(3700 + i) for i in range(5)]
+        python_rng = random.getstate()
+        numpy_rng = np.random.get_state()
+        torch_rng = torch.get_rng_state()
+        bag_rng = [s.stream.rng.getstate() for s in states]
+        for width in (shortlist, 17):
+            valid = torch.zeros((len(states), width), dtype=torch.bool)
+            for i, ids in enumerate(((), (1,), range(5), range(0, width, 2), range(width))):
+                valid[i, list(ids)] = True
+            # Shuffle the teacher ranking relative to original IDs, keeping invalid entries last.
+            priorities = (torch.arange(width) * 3 % 7).expand_as(valid).masked_fill(~valid, -1)
+            ranked = priorities.argsort(dim=1, descending=True, stable=True)
+            counts = valid.sum(1, dtype=torch.int32)
+            summaries = [[count] for count in counts.tolist()]
+            references = {4: None}
+            for mode in ("teacher-top", "teacher-random"):
+                preparer.config = SimpleNamespace(shortlist_mode=mode)
+                chosen = preparer._final_shortlist(ranked, valid, counts, summaries, states,
+                                                   references, shortlist)
+                if width == shortlist or mode == "teacher-top":
+                    self.assertEqual(chosen.data_ptr(), ranked.data_ptr())
+                for i, state in enumerate(states):
+                    n = summaries[i][0]
+                    expected = ranked[i, :shortlist].tolist()
+                    if n > shortlist and mode == "teacher-random":
+                        keep = max(1, shortlist // 2)
+                        teachers = expected[:keep]
+                        rest = [j for j in range(width) if valid[i, j] and j not in teachers]
+                        # Recovery rows use placeholder indices pending native replacement.
+                        sampled = ([rest[0]] * (shortlist - keep) if i in references else
+                                   random.Random(state.seed * 8191 + state.pieces).sample(rest, shortlist - keep))
+                        expected = teachers + sampled
+                    self.assertEqual(chosen[i].tolist(), expected)
+        self.assertEqual(random.getstate(), python_rng)
+        np.testing.assert_equal(np.random.get_state(), numpy_rng)
+        self.assertTrue(torch.equal(torch.get_rng_state(), torch_rng))
+        self.assertEqual([s.stream.rng.getstate() for s in states], bag_rng)
+
     def test_merge_interleaved_and_empty_groups_with_ragged_shortlists(self):
         def batch(indices, counts):
             live = tuple(i for i, count in enumerate(counts) if count)
