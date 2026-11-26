@@ -94,9 +94,11 @@ Move commit (#35): commit time is dominated by Python-side conversions and valid
 
 Throughput (#34): exhaustive, 32 environments, idle RTX 4060 Ti: ~335 placements/s, up from ~195 in the first V4 GPU run. `--overlap-prepare` prepares half the environments in a worker thread while the main thread commits the other half. Rollouts are bit-identical (CUDA test), but the gain is only ~1%: both threads compete for the GIL. It is therefore off by default.
 
-Afterstate ranking (#37): `tetris_survival_v4.afterstate_values` builds afterstate boards and critic contexts on the device. A CPU test checks it bit-for-bit against `neural.state_context`. `--afterstate-selection` (with `--afterstate-top-k`) also reports afterstate-ranked selection games. This is report-only: checkpoint selection is unchanged. On the first V4 run's best checkpoint, afterstate ranking scored 19,472 vs 14,325 placements for the greedy actor (8/8 seeds).
+The optional V4 afterstate comparison ranks the actor’s top candidates by their mean critic value over the next previews allowed by the public bag. The current piece and visible preview are known. Once both have been drawn from a bag, every remaining piece is equally likely. At a refill every shape in the active piece set is possible. The evaluator encodes each successor board once and scores the critic separately for each possible preview. Pass `--afterstate-selection` and `--afterstate-top-k` to report these games during training. The greedy actor selects checkpoints.
 
-Afterstate experiment (#37): `tools/afterstate_ranking.py CHECKPOINT` plays matched lockstep games, choosing either the actor's greedy move or the actor top-k candidate whose afterstate the critic values highest. It uses the batched device path; `--cpu-reference` keeps the original CPU path.
+The historical #37 comparison reported 19,472 placements for afterstate ranking and 14,325 for the greedy actor across eight seeds. That comparison supplied the simulator’s actual hidden draw to the critic. New reports identify the public calculation as `public-bag-mean`. Archived V5 and TD checkpoints use the original realized-successor features for replay.
+
+Run `tools/afterstate_ranking.py CHECKPOINT` for matched actor and public-bag critic games. Use `--cpu-reference` to recompute each possible successor independently.
 
 ## Historical measurements (not reproduced)
 

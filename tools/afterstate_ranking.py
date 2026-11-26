@@ -2,8 +2,8 @@
 """Issue #37 experiment: choose moves by the critic's value of each afterstate.
 
 For every step, the actor's top-k shortlisted candidates are placed on a copy of
-the board, and the critic scores the resulting state (board, target and the next
-piece, which the deterministic stream already fixes). Policies played in lockstep
+the board. The critic scores the successor once per possible next preview and
+averages those predictions under the public bag distribution. Policies played in lockstep
 on the same seeds:
 
   actor       greedy argmax of the trained policy logits (the selection policy)
@@ -34,7 +34,7 @@ import train_overnight as base  # noqa: E402
 game = neural.game
 
 
-def afterstate(state, target, candidate):
+def afterstate(state, target, candidate, upcoming=None):
     """(proxy state, target) after placing `candidate`; nothing is committed."""
     after, layers = game.clear_layers(game.merge_rigid_piece(state.board, game.placed_cells(candidate), candidate.piece))
     if layers:
@@ -42,7 +42,8 @@ def afterstate(state, target, candidate):
         target = following if following is not None else target
     counts = dict(state.piece_counts)
     counts[candidate.piece] += 1
-    upcoming = copy.deepcopy(state.stream).pop()
+    if upcoming is None:  # Realized successor used to replay archived V5 and TD features.
+        upcoming = copy.deepcopy(state.stream).pop()
     proxy = SimpleNamespace(board=after, piece_set=state.piece_set, pieces=state.pieces + 1,
                             current=state.next_piece, next_piece=upcoming, piece_counts=counts)
     return proxy, target
@@ -53,6 +54,16 @@ def afterstate_values(model, device, proxies):
     targets = torch.tensor([t for _, t in proxies], device=device)
     context = torch.from_numpy(np.stack([neural.state_context(p, t) for p, t in proxies])).to(device)
     return model.encode(boards, targets, context)[2].float()
+
+
+def public_reference_values(model, device, state, target, candidates):
+    if not candidates:
+        return torch.empty(0, dtype=torch.float64, device=device)
+    predictions = []
+    for upcoming in v4.public_afterstate_previews(state):
+        proxies = [afterstate(state, target, c, upcoming) for c in candidates]
+        predictions.append(afterstate_values(model, device, proxies))
+    return torch.stack(predictions).double().mean(dim=0)
 
 
 def play(model, device, seeds, policy, top_k, cap, preparer, cpu_reference=False):
@@ -84,7 +95,7 @@ def play(model, device, seeds, policy, top_k, cap, preparer, cpu_reference=False
                     indices.append(valid)
                     options.append([pool[a] for a in valid])
                 if cpu_reference:
-                    values = [afterstate_values(model, device, [afterstate(states[i], targets[i], c) for c in cands])
+                    values = [public_reference_values(model, device, states[i], targets[i], cands)
                               for i, cands in zip(rows, options)]
                 else:
                     values = v4.afterstate_values(model, [states[i] for i in rows], [targets[i] for i in rows], options)
@@ -138,7 +149,7 @@ def main(argv=None):
     model.eval()
     from tetris_gpu_simulation import GpuPreparer
     preparer = GpuPreparer(model.config, device)
-    report = {'schema': 'tetris4d-afterstate-ranking-v1', 'checkpoint': str(args.checkpoint),
+    report = {'schema': 'tetris4d-afterstate-ranking-v2', 'preview_policy': 'public-bag-mean', 'checkpoint': str(args.checkpoint),
               'checkpoint_sha256': base.file_hash(args.checkpoint), 'seeds': args.seeds, 'top_k': args.top_k,
               'piece_cap': args.pieces, 'screening': model.config.screening, 'results': []}
     with torch.inference_mode():

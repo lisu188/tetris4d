@@ -4,6 +4,7 @@ import os
 import random
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -303,7 +304,29 @@ class RegionalCriticTests(TrainerHarness):
         self.assertEqual(trainer.progress['runner_updates'], 1)
 
 
+class PublicAfterstate(SimpleNamespace):
+    @property
+    def stream(self):
+        raise AssertionError('The afterstate decision accessed an unrevealed draw')
+
+
 class AfterstateTests(TrainerHarness):
+    def test_public_previews_at_bag_boundaries(self):
+        from tetris_survival_v4 import public_afterstate_previews
+
+        for piece_set in ('classic', 'expanded', '4d'):
+            names = game.PIECE_SETS[piece_set]
+            n = len(names)
+            sequence = names + (names[-1],) + names[:-1]
+            cases = ((0, names[2:]), (n - 3, (names[-1],)), (n - 2, names),
+                     (n - 1, names[:-1]), (n, names[1:-1]))
+            for placed, expected in cases:
+                with self.subTest(piece_set=piece_set, placed=placed):
+                    state = PublicAfterstate(piece_set=piece_set, pieces=placed,
+                                             current=sequence[placed], next_piece=sequence[placed + 1],
+                                             piece_counts={p: sequence[:placed].count(p) for p in game.PIECE_NAMES})
+                    self.assertEqual(public_afterstate_previews(state), expected)
+
     def test_batched_afterstates_match_the_cpu_reference_exactly(self):
         import importlib.util
         from tetris_survival_v4 import afterstate_values, afterstate_boards, device_afterstate_context, \
@@ -312,26 +335,41 @@ class AfterstateTests(TrainerHarness):
         tool = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(tool)
         model = self.trainer('--regional-critic').model.eval()
-        states, targets = [], []
+        # The uncalibrated trainer initializes a constant critic. Exercise the mean
+        # with an output head that actually distinguishes different preview inputs.
+        with torch.no_grad():
+            weight = model.value[-1].weight
+            weight.copy_(torch.linspace(-.25, .25, weight.numel()).reshape_as(weight))
+            model.value[-1].bias.zero_()
+        states, targets, histories = [], [], []
         for seed, moves in ((501, 40), (503, 90)):
             state, target = game.Game(seed, 'expanded'), 1
+            history = []
             for _ in range(moves):
+                history.append(state.current)
                 state.commit(game.choose_sustained_move(state.board, state.current, target, 64, state.pieces).move)
             states.append(state)
             targets.append(target)
+            histories.append(history)
         clearing = game.Game(505, 'expanded')
         clearing.current, clearing.board = 'I', (0,) + (3,) * (game.AREA - 1)
         states.append(clearing)
         targets.append(5)
+        histories.append([])
         config = v4.neural.Config(candidates=4096, shortlist=24, protect_target=False, recover_target=False)
         options = [list(v4.neural.prepare(s, t, config).options) for s, t in zip(states, targets)]
         options[-1].append(game.make_move(clearing.board, 'I', next(r for r, sh in enumerate(game.SHAPES['I'])
                                                                     if sh.extents[2] == 4), 0, 0, 0).candidate)
         self.assertTrue(any(c.layers for c in options[-1]))
+        states = [PublicAfterstate(board=s.board, current=s.current, next_piece=s.next_piece, pieces=s.pieces,
+                                   piece_set=s.piece_set, piece_counts=s.piece_counts) for s in states]
         expected_values = []
-        for state, target, cands in zip(states, targets, options):
-            proxies = [tool.afterstate(state, target, c) for c in cands]
-            boards = torch.tensor([p.board for p, _ in proxies], dtype=torch.int32)
+        for state, target, cands, history in zip(states, targets, options, histories):
+            names = game.PIECE_SETS[state.piece_set]
+            dealt = history + [state.current, state.next_piece]
+            partial = len(dealt) % len(names)
+            used = set(dealt[-partial:]) if partial else set()
+            upcoming = [name for name in names if name not in used]
             cells = [game.placed_cells(c) for c in cands]
             width = max(map(len, cells))
             cell_tensor = torch.zeros((len(cands), width, 4), dtype=torch.int64)
@@ -340,17 +378,40 @@ class AfterstateTests(TrainerHarness):
                 cell_tensor[row, :len(placed)] = torch.tensor(placed)
                 mask[row, :len(placed)] = True
             after = afterstate_boards(torch.tensor([state.board] * len(cands), dtype=torch.int32), cell_tensor, mask)
-            torch.testing.assert_close(after, boards, rtol=0, atol=0)
-            row, phase = afterstate_piece_features(state)
-            context = device_afterstate_context(after, torch.tensor([t for _, t in proxies]),
-                                                torch.tensor([row] * len(cands)), torch.tensor([phase] * len(cands)))
-            reference = torch.from_numpy(np.stack([v4.neural.state_context(p, t) for p, t in proxies]))
-            torch.testing.assert_close(context, reference, rtol=0, atol=0)
-            with torch.no_grad():
-                expected_values.append(model.encode(boards, torch.tensor([t for _, t in proxies]), reference)[2].float())
-        actual = afterstate_values(model, states, targets, options, chunk=5)
-        for got, want in zip(actual, expected_values):
-            torch.testing.assert_close(got, want, rtol=1e-6, atol=1e-6)
+            predictions = []
+            for name in upcoming:
+                proxies = [tool.afterstate(state, target, c, upcoming=name) for c in cands]
+                boards = torch.tensor([p.board for p, _ in proxies], dtype=torch.int32)
+                next_targets = torch.tensor([t for _, t in proxies])
+                torch.testing.assert_close(after, boards, rtol=0, atol=0)
+                row, phase = afterstate_piece_features(state, upcoming=name)
+                context = device_afterstate_context(after, next_targets,
+                                                    torch.tensor([row] * len(cands)), torch.tensor([phase] * len(cands)))
+                reference = torch.from_numpy(np.stack([v4.neural.state_context(p, t) for p, t in proxies]))
+                torch.testing.assert_close(context, reference, rtol=0, atol=0)
+                with torch.no_grad():
+                    predictions.append(model.encode(boards, next_targets, reference)[2].double())
+            predictions = torch.stack(predictions)
+            self.assertGreater((predictions.max(0).values - predictions.min(0).values).max().item(), 1e-5)
+            expected_values.append(predictions.mean(0))
+        with torch.no_grad():
+            tool_values = tool.public_reference_values(model, 'cpu', states[0], targets[0], options[0])
+        torch.testing.assert_close(tool_values, expected_values[0], rtol=0, atol=0)
+
+        actual = afterstate_values(model, states + states[:1], targets + targets[:1], options + [[]], chunk=5)
+        empty_values = afterstate_values(model, states, targets, [[] for _ in states])
+        tool_empty = tool.public_reference_values(model, 'cpu', states[0], targets[0], [])
+        for empty in [tool_empty, actual[-1], *empty_values]:
+            self.assertEqual(empty.shape, (0,))
+            self.assertEqual(empty.dtype, torch.float64)
+        for got, want in zip(actual[:-1], expected_values, strict=True):
+            torch.testing.assert_close(got, want, rtol=0, atol=0)
+
+        pair = options[0][:2]
+        single = afterstate_values(model, [states[0]], [targets[0]], [pair])[0]
+        grouped = afterstate_values(model, [states[1], states[0]], [targets[1], targets[0]],
+                                    [options[1][:3], pair])[-1]
+        torch.testing.assert_close(grouped, single, rtol=0, atol=0)
 
 
 class DangerStartTests(TrainerHarness):

@@ -222,15 +222,26 @@ def device_afterstate_context(after, targets, piece_rows, piece_phase):
     return torch.cat((piece_rows.double(), fill, buried, glob), dim=1).float()
 
 
-def afterstate_piece_features(state):
-    """(one-hot row, phase) of the state reached after placing state.current."""
+def public_afterstate_previews(state):
+    """Equally likely draws after the two visible pieces, in piece-set order."""
+    names = neural.game.PIECE_SETS[state.piece_set]
+    completed, used = divmod(state.pieces + 2, len(names))
+    if not used:
+        return tuple(names)
+    return tuple(name for name in names
+                 if state.piece_counts[name] + (name == state.current) + (name == state.next_piece) == completed)
+
+
+def afterstate_piece_features(state, upcoming=None):
+    """Successor one-hots and phase. Archived policies use the realized draw."""
     game = neural.game
     names = game.PIECE_SETS[state.piece_set]
     counts = dict(state.piece_counts)
     counts[state.current] += 1
     pieces = state.pieces + 1
     completed = pieces // len(names)
-    upcoming = copy.deepcopy(state.stream).pop()  # the stream does not depend on the move
+    if upcoming is None:
+        upcoming = copy.deepcopy(state.stream).pop()
     row = ([float(n == state.next_piece) for n in neural.NAMES] + [float(n == upcoming) for n in neural.NAMES]
            + [float(n in names and counts[n] == completed) for n in neural.NAMES])
     return row, (pieces % len(names)) / len(names)
@@ -238,7 +249,7 @@ def afterstate_piece_features(state):
 
 @torch.no_grad()
 def afterstate_values(model, states, targets, candidates, chunk=64):
-    """Critic value of every candidate's afterstate (issue #37), batched on the model's device.
+    """Mean critic value of every candidate over the possible public-bag draws.
 
     states: Games; targets: their target layers; candidates: one list of game.Candidate per
     state. Returns one 1-D float tensor of values per state.
@@ -248,7 +259,7 @@ def afterstate_values(model, states, targets, candidates, chunk=64):
     owners = [s for s, options in enumerate(candidates) for _ in options]
     flat = [c for options in candidates for c in options]
     if not flat:
-        return [torch.empty(0, device=device) for _ in states]
+        return [torch.empty(0, device=device, dtype=torch.float64) for _ in states]
     width = max(len(game.SHAPES[c.piece][c.rotation].cells) for c in flat)
     cells = torch.zeros((len(flat), width, 4), dtype=torch.int64)
     mask = torch.zeros((len(flat), width), dtype=torch.bool)
@@ -267,14 +278,30 @@ def afterstate_values(model, states, targets, candidates, chunk=64):
             following = game.next_hyperlayer_target(tuple(board), after_targets[row])
             if following is not None:
                 after_targets[row] = following
-    features = [afterstate_piece_features(s) for s in states]
+    previews = [public_afterstate_previews(s) for s in states]
+    features = [afterstate_piece_features(s, names[0]) for s, names in zip(states, previews)]
     piece_rows = torch.tensor([features[o][0] for o in owners], dtype=torch.float64, device=device)
     phase = torch.tensor([features[o][1] for o in owners], dtype=torch.float64, device=device)
     target_tensor = torch.tensor(after_targets, device=device)
     context = device_afterstate_context(after, target_tensor, piece_rows, phase)
-    values = torch.cat([model.encode(after[i:i + chunk], target_tensor[i:i + chunk], context[i:i + chunk])[2].float()
+    # Only the upcoming-piece one-hot varies. Share each board encoding across
+    # the possible draws, then average the nonlinear critic's individual values.
+    pooled = torch.cat([model._board_features(after[i:i + chunk], target_tensor[i:i + chunk])[1]
                         for i in range(0, len(flat), chunk)])
-    return list(values.split([len(options) for options in candidates]))
+    inputs = torch.cat((pooled, context), dim=1)
+    begin = pooled.shape[1] + len(neural.NAMES)
+    values = []
+    # Keep one game's candidate rows together for each draw. Changing the
+    # linear-layer batch shape can flip FP32 near ties when peers join or leave.
+    for rows, names in zip(inputs.split([len(options) for options in candidates]), previews):
+        total = torch.zeros(len(rows), dtype=torch.float64, device=device)
+        if len(rows):
+            for name in names:
+                rows[:, begin:begin + len(neural.NAMES)].zero_()
+                rows[:, begin + neural.NAMES.index(name)] = 1
+                total += model.critic(rows).double()
+        values.append(total / len(names))
+    return values
 
 
 class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
@@ -290,12 +317,15 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         self.value = nn.Sequential(nn.LayerNorm(state_width), nn.Linear(state_width, 128), nn.SiLU(),
                                    nn.Linear(128, 64), nn.SiLU(), nn.Linear(64, 1))
 
-    def encode(self, boards, targets, context):
+    def _board_features(self, boards, targets):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
         parts = [spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4)), adjacency_statistics(boards, targets).mean(dim=1)]
         if self.config.regional_critic:
             parts.append(regional_statistics(boards).to(parts[0].dtype))
-        pooled = torch.cat(parts, dim=1)
+        return spatial, torch.cat(parts, dim=1)
+
+    def encode(self, boards, targets, context):
+        spatial, pooled = self._board_features(boards, targets)
         joined = torch.cat((pooled, context), dim=1)
         value = self.critic(joined)
         return spatial, pooled, value, value.new_empty((len(value), 0)), spatial
