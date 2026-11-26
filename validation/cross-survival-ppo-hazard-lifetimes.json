@@ -292,5 +292,281 @@
       "final_board_sha256": ["0152903d54392248515c01fad660cf8354dc0ee610ee49f180a669fb2cf49805", "282db9ccd5cf80b9fdfb09066b81cdf6a300148d85f2bea69ce474d2a1f29b17", "d61c9023b9471dcc661753ecdbf30c9068db7c2f38fa9b2233f10aed31c14adb", "3d639254b6393378299b183b18769223b356131fcbb9576cd8cdcbb212994543", "9da2dd6af1de2896123f00454726677b99a56af090f684f5c5493abf35973331"]
     }
   ],
-  "caveats": ["The six hazard-conditioned roots were used in previous diagnostics and provide six matched piece streams. The 30 deterministic continuations share those streams.", "Results quantify greedy survival conditional on archived roots and a single future stream per root. They do not estimate mean survival under fresh starts or provide a promotion decision.", "Higher agreement of critic values with own-policy lifetimes on these six roots does not establish that the associated actor improved survival."]
+  "caveats": ["The six hazard-conditioned roots were used in previous diagnostics and provide six matched piece streams. The 30 deterministic continuations share those streams.", "Results quantify greedy survival conditional on archived roots and a single future stream per root. They do not estimate mean survival under fresh starts or provide a promotion decision.", "Higher agreement of critic values with own-policy lifetimes on these six roots does not establish that the associated actor improved survival."],
+  "matched_anchored_endpoints": {
+    "receipt": "seven-ppo-hazard-summary.json",
+    "receipt_sha256": "8d367aad74819e87d99f5238d58e1a0a194f1e4964686b1a7941b5b3d4513b94",
+    "coordinate_digest": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+    "source_sha256": {
+      "four-ppo-hazard-results.json": "6e046cdb87687d3ebc0fa421832f530331c27ca59d421d185a3f15da9a67a41d",
+      "611000-anchored-six-hazard-plan.json": "199b6a4826f3f0847d5c4881d2e117507f22430bf2a0cb5e8a011430ae21b17a",
+      "611000-anchored-six-hazard-results.json": "07e1644e0c21ed8ced977717a27e5414963352473b3cf9a25b80ecabcd074451",
+      "612000-anchored-six-hazard-plan.json": "cf6aed0de865aeb8558492f7ebc834605c317f8736a1fb56ea7f63220b58cd7d",
+      "612000-anchored-six-hazard-results.json": "2aea8ea63510b5cdc3ba4e1e6a8f8af5403ad31b0fd2712759565bd503ce57e4",
+      "612000-anchored-update80-publications.json": "bea770b320c0e4b2d37d87db9e2c9940d45c80891fb73cd06c0e703e585abab8"
+    },
+    "summary": {
+      "611000-anchored": {
+        "physical": 6,
+        "censored": 0,
+        "mean_observed": 322.6666666666667,
+        "mean_status": "exact",
+        "model_own_action_critic_mae_completed": 2488.4444376627603
+      },
+      "612000-anchored": {
+        "physical": 6,
+        "censored": 0,
+        "mean_observed": 315.6666666666667,
+        "mean_status": "exact",
+        "model_own_action_critic_mae_completed": 267.2913718223572
+      }
+    },
+    "six_paired_roots": [
+      {
+        "seed": 300322,
+        "incumbent": 200,
+        "611000-anchored": {
+          "remaining": 200,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 1291.3197021484375,
+          "critic_placements": 1491.3197021484375,
+          "first_move": [
+            55,
+            0,
+            2,
+            2,
+            13
+          ],
+          "board_sha256": "b3c869fca0e75696af547c98a7536808e6c896312f85041b32d7fb2526f5d833",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "piece_prefix_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47",
+          "best_rank": 1,
+          "worst_rank": 1
+        },
+        "612000-anchored": {
+          "remaining": 200,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -196.2510805130005,
+          "critic_placements": 3.7489194869995117,
+          "first_move": [
+            55,
+            0,
+            2,
+            2,
+            13
+          ],
+          "board_sha256": "c82b389fb79aaa97ae483d098c859016013e2798ad2b702b5c6e486d120f4ae8",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "piece_prefix_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47",
+          "best_rank": 1,
+          "worst_rank": 1
+        }
+      },
+      {
+        "seed": 300460,
+        "incumbent": 448,
+        "611000-anchored": {
+          "remaining": 466,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 3888.474609375,
+          "critic_placements": 4354.474609375,
+          "first_move": [
+            2,
+            13,
+            14,
+            5,
+            8
+          ],
+          "board_sha256": "39142eaaa17fbe597ed20ff0bab60220035768cfbde03a6b05a61ec09bd401ac",
+          "stream_sha256": "49027e0792010e9a8b191d0158a453c9d245772c39241012d9f352b8b4c730bd",
+          "piece_prefix_sha256": "b11114795cdeda87d00e5136fc8eb70ec9d5c55892ac996877205009462a2821",
+          "best_rank": 2,
+          "worst_rank": 2
+        },
+        "612000-anchored": {
+          "remaining": 412,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -330.8845748901367,
+          "critic_placements": 81.11542510986328,
+          "first_move": [
+            2,
+            13,
+            14,
+            5,
+            8
+          ],
+          "board_sha256": "c7fdd66bf9799bc508a70e9ad176ffe5f77f2a71962e4a1eeb92838393fa8568",
+          "stream_sha256": "5575b8d187a59c63040930ccd6c0f8a8c1f1dbeed5f935db388bb59e3876377e",
+          "piece_prefix_sha256": "240a731408f2963f9a146580d0042c17ac35acce7991fb1cd8cbd856c4352e63",
+          "best_rank": 6,
+          "worst_rank": 6
+        }
+      },
+      {
+        "seed": 300264,
+        "incumbent": 215,
+        "611000-anchored": {
+          "remaining": 206,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 1982.640625,
+          "critic_placements": 2188.640625,
+          "first_move": [
+            78,
+            8,
+            8,
+            11,
+            13
+          ],
+          "board_sha256": "44a6bd5479550e5ede36fa5af08d5c0c08dca5def85ad270001ec80a1a0e0ec2",
+          "stream_sha256": "7e572f972084a43557ec0c22b5838e09532a0506f2a345b07794ee0c9413f387",
+          "piece_prefix_sha256": "9710d7a8c2b5281c1b362d3509a993eefc8416313b1b250bcb8dc45c053f555b",
+          "best_rank": 3,
+          "worst_rank": 3
+        },
+        "612000-anchored": {
+          "remaining": 191,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -162.61647033691406,
+          "critic_placements": 28.383529663085938,
+          "first_move": [
+            78,
+            8,
+            8,
+            11,
+            13
+          ],
+          "board_sha256": "63be14af21b9c27f6761333ff1af6ecc174d51bce38533a4994a52054c9c6606",
+          "stream_sha256": "2cab3d933826471933d9e893e2c7041c2f54b991fcc73cbf52302647ace623e4",
+          "piece_prefix_sha256": "908470ad0db6b97bd72f54cb845ee3aa2cbc2be8071e83d5438f69601d654477",
+          "best_rank": 6,
+          "worst_rank": 6
+        }
+      },
+      {
+        "seed": 300576,
+        "incumbent": 608,
+        "611000-anchored": {
+          "remaining": 593,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 3156.094482421875,
+          "critic_placements": 3749.094482421875,
+          "first_move": [
+            72,
+            1,
+            0,
+            7,
+            12
+          ],
+          "board_sha256": "fbfe895a8a0bea2aa77b5ce8e924c32c61da9246bc983155e5c438be8f8df28d",
+          "stream_sha256": "b42c1b1cd106d52bddf6c1214ab37b5e48bdf85e84c18a83e3acb6604df3a00c",
+          "piece_prefix_sha256": "c0abdcdeed05eee1bbbda8961f4ef45d9078c1087be296ba4ab3b25d276c87c0",
+          "best_rank": 6,
+          "worst_rank": 6
+        },
+        "612000-anchored": {
+          "remaining": 630,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -544.8402481079102,
+          "critic_placements": 85.15975189208984,
+          "first_move": [
+            72,
+            1,
+            0,
+            7,
+            12
+          ],
+          "board_sha256": "e24befa0989024b1ab465d6891636f153d36c833b4a028599fd49f743cfe8003",
+          "stream_sha256": "fe65185952d84839356d4216ca8b2d924e90f68286c24dbfd59a87d71ba19a05",
+          "piece_prefix_sha256": "b836fc78e17620a5637086b7b281a2db58a3933b123997da6625e0ff659d2a2f",
+          "best_rank": 1,
+          "worst_rank": 1
+        }
+      },
+      {
+        "seed": 500000,
+        "incumbent": 232,
+        "611000-anchored": {
+          "remaining": 232,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 2496.459716796875,
+          "critic_placements": 2728.459716796875,
+          "first_move": [
+            3,
+            3,
+            6,
+            5,
+            13
+          ],
+          "board_sha256": "160303022e64c5b14614e880a0ec929100b5c647f4c46c2b7ba0dd7484fea82c",
+          "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+          "piece_prefix_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d",
+          "best_rank": 3,
+          "worst_rank": 3
+        },
+        "612000-anchored": {
+          "remaining": 222,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -177.07798385620117,
+          "critic_placements": 44.92201614379883,
+          "first_move": [
+            3,
+            3,
+            6,
+            5,
+            13
+          ],
+          "board_sha256": "6dcbd6934a4a8efc203eb7227111da62a3cb2bd8aa661006a05d95e34603cfc2",
+          "stream_sha256": "4b24bae456b2bc9479500e8c9e569a1cf4b5857dc22f25c751cf908d987d8f51",
+          "piece_prefix_sha256": "60ec85fe1d75d4f9818f86362880602b0da08b261354e827e54fa3b736b7df8a",
+          "best_rank": 5,
+          "worst_rank": 5
+        }
+      },
+      {
+        "seed": 300122,
+        "incumbent": 239,
+        "611000-anchored": {
+          "remaining": 239,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 2115.677490234375,
+          "critic_placements": 2354.677490234375,
+          "first_move": [
+            41,
+            4,
+            6,
+            13,
+            11
+          ],
+          "board_sha256": "55016abac9cb598d13a910af5da4a55ac2f8a0863849fc0d8ea487bc5ee3f1eb",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "piece_prefix_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+          "best_rank": 2,
+          "worst_rank": 2
+        },
+        "612000-anchored": {
+          "remaining": 239,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -192.07787322998047,
+          "critic_placements": 46.92212677001953,
+          "first_move": [
+            41,
+            4,
+            6,
+            13,
+            11
+          ],
+          "board_sha256": "b18efe11f04a0187aebfc45f049418f5289030042db2e0ecf4a68486aa333f7e",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "piece_prefix_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+          "best_rank": 2,
+          "worst_rank": 2
+        }
+      }
+    ],
+    "duplicate_update80_publication_verification": {
+      "name": "612000-anchored-update80-publications.json",
+      "sha256": "bea770b320c0e4b2d37d87db9e2c9940d45c80891fb73cd06c0e703e585abab8",
+      "identical_model_parameters": 23
+    }
+  }
 }

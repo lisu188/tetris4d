@@ -27,6 +27,78 @@ class GeometryTests(unittest.TestCase):
     def setUp(self):
         game.configure_backend('numpy')
 
+    def test_last_cross_tensor_uses_valid_moves_and_stable_actor_order(self):
+        # Each row covers a different guard outcome; the padding has the highest score and positive mobility.
+        logits = torch.tensor([[12., 8., 8., 99.]]).repeat(6, 1)
+        valid = torch.tensor([[True, True, True, False]]).repeat(6, 1)
+        valid[-1] = False
+        before = torch.tensor([1., 1., 1., 0., 1., 0.])[:, None].expand_as(logits)
+        after = torch.tensor([[0., 1., 1., 1.], [0., 0., 1., 1.], [0., 0., 0., 1.],
+                              [0., 1., 0., 1.], [1., 0., 1., 1.], [0., 1., 1., 1.]])
+        choice, threats, overrides = cross.preserve_last_cross(logits, valid, torch.stack((before, after), -1))
+        self.assertEqual(choice.tolist(), [1, 2, 0, 0, 0, -1])
+        self.assertEqual(threats.tolist(), [True, True, True, False, False, False])
+        self.assertEqual(overrides.tolist(), [True, True, False, False, False, False])
+
+    def test_last_cross_device_path_uses_only_selected_metadata(self):
+        # No state, next piece, RNG or candidate shortlist is accessible on the host in this path.
+        model = neural.create_model(neural.Config(architecture='survival-spatial-v4', shortlist=4))
+        batch = dict(valid=torch.tensor([[1, 1, 0, 0]], dtype=torch.bool),
+                     cross_mobility=torch.tensor([[[1., 0.], [1., 1.], [0., 1.], [0., 1.]]]))
+        result = SimpleNamespace(batch=batch, environment_indices=(1,), targets=[0, 3],
+                                 selected_metadata=lambda a: torch.tensor([[int(a.item()), 0., 0., 0., 0., 0., 0.]]),
+                                 candidates_from_metadata=lambda rows: [int(r[0]) for r in rows])
+        prep = SimpleNamespace(prepare_batch=lambda states, targets: result)
+        stats = {1: {}}
+        with patch.object(ev, '_fixed_actor_logits', return_value=torch.tensor([[8., 3., 90., 80.]])):
+            moves = ev.select_moves(model, [object(), object()], [0, 3], False, 'cpu', prep, 2,
+                                    preview_search='preserve-last-cross', decision_stats=stats)
+        self.assertEqual(moves, {1: (3, 1)})
+        self.assertEqual(stats[1], dict(last_cross_losses=1, last_cross_overrides=1))
+        result.selected_candidates = lambda a: [int(a.item())]
+        with patch.object(ev, '_fixed_actor_logits', return_value=torch.tensor([[8., 3., 90., 80.]])):
+            self.assertEqual(ev.select_moves(model, [object(), object()], [0, 3], False, 'cpu', prep, 2,
+                                             preview_search='preserve-last-cross'), moves)
+
+    def test_last_cross_gameplay_preserves_scoring_config_and_uses_exhaustive_shortlist(self):
+        state = game.Game(36)
+        config = neural.Config(architecture='survival-spatial-v4', candidates=48, shortlist=4, protect_target=False)
+        model = neural.create_model(config)
+        saved = dict(progress={'updates': 1}, teacher_parameters=game.network_parameters(), status='test')
+        with tempfile.NamedTemporaryFile() as checkpoint, patch.object(neural, 'load_checkpoint', return_value=(model, saved)):
+            agent = neural.NeuralAgent(checkpoint.name, 'cpu', preview_search='preserve-last-cross')
+        self.assertEqual(agent.candidate_budget, 0)
+        prepared = neural.prepare(state, 1, config)
+        self.assertNotIn('cross_mobility', prepared.arrays)
+        def prepared_steps(*args):
+            self.assertIs(args[2], config)
+            self.assertEqual(args[3], 0)
+            yield from ()
+            return prepared
+        prediction = dict(logits=torch.tensor([[3., 2., 1., 0.]]), value=torch.zeros(1))
+        with patch.object(neural, 'prepare_steps', side_effect=prepared_steps), patch.object(model, 'forward', return_value=prediction), \
+             patch.object(cross, 'mobility_features', return_value=np.asarray([[1, 0], [1, 1], [1, 1], [1, 0]], np.float32)), \
+             patch.object(cross, 'preview_choice', side_effect=AssertionError('guard cannot inspect preview')):
+            chosen = agent.choose(state)
+        self.assertEqual(chosen.move, game.materialize_move(state.board, prepared.options[1]))
+        self.assertIs(model.config, config)
+
+    def test_last_cross_custom_preparer_uses_actual_board_and_shortlist(self):
+        model = neural.create_model(neural.Config(architecture='survival-spatial-v4', shortlist=4))
+        board = frontier()
+        # A custom preparer omitted mobility. The fallback uses only the public board and real options.
+        state = SimpleNamespace(board=board)
+        options = ('greedy', 'safe')
+        result = SimpleNamespace(batch={'valid': torch.tensor([[True, True, False, False]])},
+                                 environment_indices=(0,), targets=[1], prepared=[SimpleNamespace(options=options)],
+                                 selected_candidates=lambda a: [options[int(a.item())]])
+        preparer = SimpleNamespace(prepare_batch=lambda states, targets: result)
+        with patch.object(cross, 'mobility_features', return_value=np.asarray([[1, 0], [1, 1]], np.float32)) as geometry, \
+             patch.object(ev, '_fixed_actor_logits', return_value=torch.tensor([[2., 1., 99., 99.]])):
+            self.assertEqual(ev.select_moves(model, [state], [1], False, 'cpu', preparer, 1,
+                                             preview_search='preserve-last-cross'), {0: (1, 'safe')})
+        geometry.assert_called_once_with(board, options)
+
     def test_exact_absolute_count_including_boundaries_and_bit_thresholds(self):
         board = frontier()
         self.assertEqual(cross.cross_count(game.EMPTY_BOARD), 14**3)
@@ -272,10 +344,11 @@ class GeometryTests(unittest.TestCase):
                 self.assertEqual(resumed[key], full[key])
             self.assertEqual(resumed['move_latency']['samples'], 5)
             self.assertTrue(active.with_name('41.json').is_file())
-            for mode in (False, 'rescue-only'):
+            for mode in (False, 'rescue-only', 'preserve-last-cross'):
                 result = run(never, root / 'resumed', mode)
                 self.assertTrue(result['complete'])
                 self.assertEqual('paired_greedy' in result['games'][0], mode == 'rescue-only')
+                self.assertEqual('last_cross_overrides' in result['decision_counts'], mode == 'preserve-last-cross')
                 if mode == 'rescue-only':
                     self.assertEqual(result['games'][0]['paired_greedy'],
                                      dict(placements=5, reason='cap', physical_top_out=False))
@@ -284,7 +357,7 @@ class GeometryTests(unittest.TestCase):
                                                         'teacher', root / 'resumed', ppo_batch_size=1,
                                                         preview_search='rescue-only')
                     self.assertEqual(result['games'], cached['games'])
-            self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 3)
+            self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 4)
 
     @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'requires coordinated CUDA slot')
     def test_cuda_exact_delta_clears_padded_and_fused_feature_contract(self):

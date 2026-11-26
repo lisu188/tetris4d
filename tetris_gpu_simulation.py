@@ -448,8 +448,9 @@ class DevicePreparedBatch:
 class GpuPreparer:
     """Per-call owned output tensors; retained rollout records remain valid."""
 
-    def __init__(self, config=None, device="cuda", *, group_exhaustive=False, two_stage=False):
+    def __init__(self, config=None, device="cuda", *, group_exhaustive=False, two_stage=False, require_cross_mobility=False):
         self.config = neural.Config() if config is None else config
+        self.require_cross_mobility = require_cross_mobility
         self.device = torch.device(device)
         if self.device.type != "cuda":
             raise ValueError("GpuPreparer requires CUDA")
@@ -619,6 +620,11 @@ class GpuPreparer:
             return DevicePreparedBatch(
                 references, (), {}, torch.empty(0, dtype=torch.int64, device=self.device),
                 (reason,) * len(states), targets)
+        if self.require_cross_mobility and not (self.config.cross_weight or self.config.cross_residual):
+            from tetris_cross_survival import mobility_features
+            for env in envs:
+                reference = references[env]
+                reference.arrays['cross_mobility'] = mobility_features(states[env].board, reference.options)
         batch = neural.collate([references[i].arrays for i in envs], self.device)
         maximum = batch["features"].shape[1]
         integers = np.zeros((len(envs), maximum, 6), dtype=np.int32)
@@ -845,7 +851,7 @@ class GpuPreparer:
             option_specs[env, :len(p.options)].copy_(self._device(np.asarray(
                 [(c.rotation, c.x, c.y, c.w, c.z, c.layers) for c in p.options], dtype=np.int32)))
             option_scores[env, :len(p.options)].copy_(self._device(np.asarray([c.score for c in p.options], dtype=np.float64)))
-        if self.config.cross_weight or self.config.cross_residual:
+        if self.require_cross_mobility or self.config.cross_weight or self.config.cross_residual:
             from tetris_cross_survival import MOBILITY_VALUES
             from tetris_gpu_cross import candidate_counts
             before, after = candidate_counts(boards, option_specs, device_pieces, self.shapes,

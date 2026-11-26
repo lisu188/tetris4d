@@ -1,0 +1,184 @@
+{
+  "schema": "bounded-cross-residual-choice-signal-v1",
+  "scope": "All shared noncritic weights and all valid/padded base logits match the incumbent bitwise. Mask valid shortlist, compute .05*tanh(raw) before FP32 logit addition. Multipliers alter only this exact correction in memory. Largest output coefficient by absolute weight; bias tested separately. No survival test or online change.",
+  "initialization_sha256": "d40c990b50e8b051665c76a67244cc61880d3b57dd2f46edf8f69eb5e5cfbe85",
+  "fixture_sha256": "8bb5bb633c197b38255f7391a9655ad8b0bfe7d4443cb2a42c72931f33a4e8aa",
+  "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "base_actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+  "updates": {
+    "10": {
+      "local_receipt": "611000-residual-signal-010.json",
+      "receipt_sha256": "b7b2eebbd71d279b1a7c7e13187c910557a3d4f8e7c667cffb2500b18a1ada06",
+      "checkpoint_sha256": "eb68209d776955bc72dae7a0062f7fc4916be648aa0f7373e1952f3af07a6b58",
+      "observer_sha256": "015dc2a00fc0522855b515854fb1dc3fb99073ae971cbf1d178e4f48a844f89f",
+      "summary": {
+        "registered_changes": 0,
+        "fixed_candidate_boards": 40,
+        "valid_candidates": 5028,
+        "different_at_virtual_post_tanh_multiplier": {
+          "1": 0,
+          "4": 0,
+          "16": 0,
+          "64": 0,
+          "256": 0
+        },
+        "residual_size": {
+          "min": -4.134793198318221e-05,
+          "median": 0.0004608398303389549,
+          "mean": 0.0005671657194436523,
+          "max": 0.0017781847855076194
+        },
+        "within_board_range": {
+          "min": 7.606664439663291e-05,
+          "median": 0.000335842021740973,
+          "mean": 0.0003645150856755208,
+          "max": 0.0008581033907830715
+        },
+        "boards_where_range_can_bridge_base_margin": 1,
+        "different_from_registered_with_largest_coefficient_removed": 0,
+        "different_from_registered_with_output_bias_removed": 0,
+        "saturation_above_95pct_bound": 0,
+        "largest_final_weight": {
+          "name": "cross_head.2.weight[0,19]",
+          "value": 0.002325725741684437,
+          "output_bias": -0.0019641690887510777,
+          "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+        }
+      }
+    },
+    "40": {
+      "local_receipt": "611000-residual-signal-040.json",
+      "receipt_sha256": "24d84f0c319658a222b1fd977c7bd02fd35ce9fa5f6da36db29b2def18815f79",
+      "checkpoint_sha256": "445409d720b50605fcd4bade8a7e6ef1bde2b0aa2fb2f582c79a1c81fa813733",
+      "observer_sha256": "ce7292ea6619e9e62807ff5d63fc77b2ce4d9f4a78e1fd058420d14fbcf22160",
+      "summary": {
+        "registered_changes": 0,
+        "fixed_candidate_boards": 40,
+        "valid_candidates": 5028,
+        "different_at_virtual_post_tanh_multiplier": {
+          "1": 0,
+          "4": 0,
+          "16": 0,
+          "64": 1,
+          "256": 2
+        },
+        "residual_size": {
+          "min": -0.009976577945053577,
+          "median": 0.0007336126000154763,
+          "mean": -8.970260219881092e-05,
+          "max": 0.0019122593803331256
+        },
+        "within_board_range": {
+          "min": 0.00018595077563077211,
+          "median": 0.002146025886759162,
+          "mean": 0.0027339042033418083,
+          "max": 0.009006946347653866
+        },
+        "boards_where_range_can_bridge_base_margin": 1,
+        "different_from_registered_with_largest_coefficient_removed": 0,
+        "different_from_registered_with_output_bias_removed": 0,
+        "saturation_above_95pct_bound": 0,
+        "largest_final_weight": {
+          "name": "cross_head.2.weight[0,27]",
+          "value": -0.007220260798931122,
+          "output_bias": -0.001230179681442678,
+          "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+        }
+      }
+    },
+    "80": {
+      "local_receipt": "611000-residual-signal-080.json",
+      "receipt_sha256": "898dd61543bf8c308953919eafdd507fa45a36e3d5949c9cea2400e674a36ff5",
+      "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+      "observer_sha256": "fa4113c9e3d16cd6d0b651cf86b559735e705f654cc92f7fddafbbda6a5a0141",
+      "summary": {
+        "registered_changes": 0,
+        "fixed_candidate_boards": 40,
+        "valid_candidates": 5028,
+        "different_at_virtual_post_tanh_multiplier": {
+          "1": 0,
+          "4": 0,
+          "16": 1,
+          "64": 1,
+          "256": 3
+        },
+        "residual_size": {
+          "min": -0.02797558717429638,
+          "median": -0.0014432115131057799,
+          "mean": -0.003161474025682649,
+          "max": 0.0009759198292158544
+        },
+        "within_board_range": {
+          "min": 0.0007528194109909236,
+          "median": 0.003688242519274354,
+          "mean": 0.0057712686277227475,
+          "max": 0.023429084569215775
+        },
+        "boards_where_range_can_bridge_base_margin": 2,
+        "different_from_registered_with_largest_coefficient_removed": 0,
+        "different_from_registered_with_output_bias_removed": 0,
+        "saturation_above_95pct_bound": 0,
+        "largest_final_weight": {
+          "name": "cross_head.2.weight[0,25]",
+          "value": -0.017791181802749634,
+          "output_bias": 0.0021160230971872807,
+          "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+        }
+      },
+      "publication_verification": {
+        "endpoint_sha256": "d5cf5a5aeb4d6539f8180a7abe234cdb0dfa90e5c01db5773275bdbb971439d5",
+        "endpoint_checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+        "independent_observation_sha256": "fa4113c9e3d16cd6d0b651cf86b559735e705f654cc92f7fddafbbda6a5a0141",
+        "manifest_sha256": "58858900ac1e30aef5817ad22f0e6a3626a074b2ce889819e059627169cd1eb8",
+        "earliest_pinned": {
+          "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+          "manifest_sha256": "58858900ac1e30aef5817ad22f0e6a3626a074b2ce889819e059627169cd1eb8"
+        },
+        "observed_manifests": [
+          {
+            "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+            "manifest_sha256": "58858900ac1e30aef5817ad22f0e6a3626a074b2ce889819e059627169cd1eb8"
+          }
+        ],
+        "model_tensors": 27,
+        "model_tensor_sha256": "f773ac237c413d7218cce5a4bc94c47637e3991e0819c24e6f6d2f7998fbf542",
+        "prior_checkpoint_publications_checked": [
+          {
+            "source": "first observed update 80",
+            "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+            "update": 80,
+            "model_tensor_sha256": "f773ac237c413d7218cce5a4bc94c47637e3991e0819c24e6f6d2f7998fbf542",
+            "all_model_tensors_bitwise_equal": true
+          },
+          {
+            "source": "previous.pt at endpoint",
+            "checkpoint_sha256": "3bf80665328d315c7ca05590f17a6522d201255fdae907499ea27cedf245f181",
+            "update": 80,
+            "model_tensor_sha256": "f773ac237c413d7218cce5a4bc94c47637e3991e0819c24e6f6d2f7998fbf542",
+            "all_model_tensors_bitwise_equal": true
+          }
+        ],
+        "base_actor_unchanged_parameters": 49141,
+        "verified_independent_action_rows": 40,
+        "prior_audits_sha256": {
+          "10": "b7b2eebbd71d279b1a7c7e13187c910557a3d4f8e7c667cffb2500b18a1ada06",
+          "40": "24d84f0c319658a222b1fd977c7bd02fd35ce9fa5f6da36db29b2def18815f79"
+        },
+        "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+        "independent_observer_script_sha256": "0c7a35bd2008e38153dd5729e222a577704f644d31f0859c23dca7273976bed7",
+        "behavior_script_sha256": "8b53954eaea424655cdcf16caceaedf0a1f02c6e5c1a90abd99c274b535068fb",
+        "logged_update_80_publications": [
+          {
+            "utc": "2026-11-26T14:03:37Z",
+            "checkpoint_sha256": "3bf80665328d315c7ca05590f17a6522d201255fdae907499ea27cedf245f181"
+          },
+          {
+            "utc": "2026-11-26T14:03:40Z",
+            "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f"
+          }
+        ],
+        "metrics_sha256": "01b51ac484151a0eb2686c47afdde385d26109ddcb8f3ae014964c6b794f160f"
+      }
+    }
+  }
+}

@@ -76,6 +76,25 @@ def mobility_features(board, options):
     return features
 
 
+def preserve_last_cross(logits, valid, cross_mobility):
+    """Select the highest-logit valid move preserving an existing CROSS landing.
+
+    Return device tensors for the choice, a greedy loss of the last landing,
+    and an actual override. An entirely padded row has choice -1.
+    """
+    import torch
+    valid = valid.bool()
+    ranked = logits.masked_fill(~valid, -torch.inf)
+    greedy = ranked.argmax(-1, keepdim=True)
+    before, after = cross_mobility.unbind(-1)
+    survives = valid & (after > 0)
+    threat = (valid & (before > 0)).gather(1, greedy).squeeze(1) & ~survives.gather(1, greedy).squeeze(1)
+    override = threat & survives.any(-1)
+    alternative = ranked.masked_fill(~survives, -torch.inf).argmax(-1)
+    choice = torch.where(override, alternative, greedy.squeeze(1))
+    return choice.masked_fill(~valid.any(-1), -1), threat, override
+
+
 @lru_cache(maxsize=256)
 def _shape_windows(shape):
     sx, sy, sz, sw = shape.extents

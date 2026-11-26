@@ -158,6 +158,8 @@ def calibrate(args, device, budget, runtime):
 
 DECISION_COUNTERS = ('decisions', 'planner_triggers', 'immediate_losses', 'immediate_rescues',
                      'planner_overrides', 'direct_weight_changes', 'residual_changes')
+# Count the base choice losing an existing CROSS landing, and the subset avoided by the guard.
+LAST_CROSS_COUNTERS = ('last_cross_losses', 'last_cross_overrides')
 LATENCY_SCOPE = ('Wall time from batched preparation through the last game commit in the lockstep, '
                  'including CPU and device work and warmup. One sample per committed game move. '
                  'Nearest-rank percentiles at 0.1 ms resolution.')
@@ -188,7 +190,8 @@ def summarize(rows, seeds, policy, cap):
     for row in rows:
         latency.update(row.get('batch_latency_histogram_0p1ms', {}))
         counters.update(row.get('decisions', {}))
-    return {'policy': policy, 'cap': cap, 'decision_counts': {k: counters[k] for k in DECISION_COUNTERS},
+    keys = DECISION_COUNTERS + tuple(k for k in LAST_CROSS_COUNTERS if k in counters)
+    return {'policy': policy, 'cap': cap, 'decision_counts': {k: counters[k] for k in keys},
             'move_latency': _latency(latency), 'complete': len(rows) == len(seeds),
             'requested_seeds': list(seeds), 'seeds': [r['seed'] for r in rows],
             'placements': placements, 'clears': [r['clears'] for r in rows], 'games': rows,
@@ -235,9 +238,10 @@ class _HostOptions:
 
 def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_size=None, preview_search=False, decision_stats=None):
     """Map live batch indices to their (recovered target, chosen placement)."""
-    from tetris_cross_survival import preview_choice
+    from tetris_cross_survival import mobility_features, preserve_last_cross, preview_choice
+    guard = preview_search == 'preserve-last-cross'
     if preview_search and (scoring or model.config.architecture != 'survival-spatial-v4'):
-        raise ValueError('Visible-preview search requires a spatial V4 actor')
+        raise ValueError('The selected move mode requires a spatial V4 actor')
     compare = decision_stats is not None and (model.config.cross_weight or model.config.cross_residual)
     change_key = 'direct_weight_changes' if model.config.cross_weight else 'residual_changes'
 
@@ -255,17 +259,25 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
             prepared = neural.prepare(state, target, config)
             if prepared is None:
                 continue
+            if guard and 'cross_mobility' not in prepared.arrays:
+                prepared.arrays['cross_mobility'] = mobility_features(state.board, prepared.options)
             if scoring:
                 pool = model.prepare_cpu(prepared, state)
                 choice = int(pool.indices[0, model.choose(pool).item()])
             else:
-                values = actor(neural.collate([prepared.arrays], device))
+                batch = neural.collate([prepared.arrays], device)
+                values = actor(batch)
                 if compare:
                     logits, base_logits = values
                     decision_stats[index][change_key] = int((logits.argmax(1) != base_logits.argmax(1)).item())
                 else:
                     logits = values
-                if preview_search:
+                if guard:
+                    choices, threat, override = preserve_last_cross(logits, batch['valid'], batch['cross_mobility'])
+                    choice = int(choices.item())
+                    if decision_stats is not None:
+                        decision_stats[index].update(last_cross_losses=int(threat.item()), last_cross_overrides=int(override.item()))
+                elif preview_search:
                     choice = preview_choice(state, int(prepared.arrays['targets']), prepared.options,
                                             logits[0].detach().cpu().numpy(), config,
                                             prepared.arrays['cross_mobility'][:, 1] if 'cross_mobility' in prepared.arrays else None,
@@ -279,20 +291,42 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
     if not result.environment_indices:
         return {}
     if preview_search or compare:
-        values = actor(result.batch)
+        batch = result.batch
+        if guard and 'cross_mobility' not in batch:
+            # A custom preparer can supply ordinary V4 features without mobility.
+            # Recompute from its actual final shortlist and the public board.
+            mobility = np.zeros((*batch['valid'].shape, 2), dtype=np.float32)
+            valid_rows = batch['valid'].detach().cpu().numpy().astype(bool)
+            for row, index in enumerate(result.environment_indices):
+                mobility[row, valid_rows[row]] = mobility_features(states[index].board, result.prepared[index].options)
+            batch = {**batch, 'cross_mobility': torch.as_tensor(mobility, device=batch['valid'].device)}
+        values = actor(batch)
         if compare:
             logits, base_logits = values
             changed = (logits.argmax(1) != base_logits.argmax(1))
         else:
             logits = values
-        if not preview_search:
-            metadata = result.selected_metadata(logits.argmax(1))
-            host = torch.cat((metadata, changed.double()[:, None]), dim=1).cpu().tolist()
+        if guard or not preview_search:
+            if guard:
+                choices, threat, override = preserve_last_cross(logits, batch['valid'], batch['cross_mobility'])
+            else:
+                choices = logits.argmax(1)
+            if decision_stats is None:
+                return {i: (int(result.targets[i]), c) for i, c in
+                        zip(result.environment_indices, result.selected_candidates(choices))}
+            columns = [result.selected_metadata(choices)]
+            keys = []
+            if compare:
+                columns.append(changed[:, None].double())
+                keys.append(change_key)
+            if guard:
+                columns.extend((threat[:, None].double(), override[:, None].double()))
+                keys.extend(LAST_CROSS_COUNTERS)
+            host = torch.cat(columns, dim=1).cpu().tolist()
             candidates = result.candidates_from_metadata([row[:7] for row in host])
             for i, row in zip(result.environment_indices, host):
-                decision_stats[i][change_key] = int(row[7])
+                decision_stats[i].update(dict(zip(keys, map(int, row[7:]))))
             return {i: (int(result.targets[i]), c) for i, c in zip(result.environment_indices, candidates)}
-        batch = result.batch
         fields = [result._option_specs.double(), result._option_scores[..., None], logits.double()[..., None]]
         if 'cross_mobility' in batch:
             fields.append(batch['cross_mobility'][..., 1:2].double())
@@ -386,7 +420,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         preparer = None
         if torch.device(device).type == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
-            preparer = GpuPreparer(model.base.config if scoring else model.config, device, group_exhaustive=group_exhaustive, two_stage=two_stage)
+            preparer = GpuPreparer(model.base.config if scoring else model.config, device, group_exhaustive=group_exhaustive,
+                                   two_stage=two_stage, require_cross_mobility=preview_search == 'preserve-last-cross')
         states = {seed: game.Game(seed, 'expanded') for seed in seeds}
         for state in states.values():
             base.library.ignore(state)
@@ -394,6 +429,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds[:capacity])
         elapsed = dict.fromkeys(seeds, 0.)
         rescue_only = preview_search == 'rescue-only'
+        counters = DECISION_COUNTERS + (LAST_CROSS_COUNTERS if preview_search == 'preserve-last-cross' else ())
         first_greedy_loss = {}
         decisions = {s: Counter() for s in seeds}
         latency = {s: Counter() for s in seeds}
@@ -458,7 +494,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 decisions[seed]['decisions'] += 1
                 if rescue_only and stats[i].get('immediate_losses'):
                     first_greedy_loss.setdefault(seed, states[seed].pieces)
-                if not preview_search:
+                if not preview_search or preview_search == 'preserve-last-cross':
                     decisions[seed]['immediate_losses'] += int(states[seed].game_over)
                 latency[seed][tenths] += 1
             for seed in live:
@@ -468,7 +504,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 reason = 'cap' if cap and state.pieces >= cap else ('top_out' if state.game_over else 'target_or_no_move')
                 row = {'seed': seed, 'placements': state.pieces, 'clears': state.layers,
                        'reason': reason, 'wall_seconds': elapsed[seed] + time.monotonic() - entered[seed],
-                       'device': str(device), 'decisions': {k: decisions[seed][k] for k in DECISION_COUNTERS},
+                       'device': str(device), 'decisions': {k: decisions[seed][k] for k in counters},
                        'batch_latency_histogram_0p1ms': dict(latency[seed]), 'move_latency': _latency(latency[seed])}
                 if rescue_only:
                     row['paired_greedy'] = _paired_greedy(state.pieces, reason, first_greedy_loss.get(seed), cap)
@@ -535,7 +571,9 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
         identity.update(greedy_actor='fixed-fp32-v1', batch_size=ppo_batch_size, piece_set='expanded')
     if group_exhaustive:
         identity['group_exhaustive'] = True
-    if preview_search:
+    if preview_search == 'preserve-last-cross':
+        identity['move_guard'] = 'preserve-existing-cross-landing-v1'
+    elif preview_search:
         identity['preview_search'] = ('one-visible-physical-rescue-paired-v2' if preview_search == 'rescue-only'
                                       else 'one-visible-cross-8-16x4-v1')
     if two_stage:
@@ -712,6 +750,8 @@ def main(argv=None):
     preview.add_argument('--preview-search', action='store_true', help='Use one visible piece for PPO survival planning')
     preview.add_argument('--rescue-only', dest='preview_search', action='store_const', const='rescue-only',
                          help='Keep the PPO move whenever the visible next piece still fits.')
+    preview.add_argument('--preserve-last-cross', dest='preview_search', action='store_const', const='preserve-last-cross',
+                         help='Keep an existing CROSS landing when a shortlisted move can preserve one.')
     evaluation.add_argument('--two-stage', action='store_true')
     evaluation.add_argument('--group-exhaustive', action='store_true')
     evaluation.add_argument('--headless', action='store_true')
@@ -732,7 +772,7 @@ def main(argv=None):
     if args.action == 'evaluate' and args.cap == 0:
         args.max_cap = 0
     if args.action == 'evaluate' and args.preview_search and not args.ppo:
-        parser.error('visible-piece planning requires --ppo')
+        parser.error('the selected move mode requires --ppo')
     args.cache_dir = args.cache_dir or args.output.parent/'evaluation-cache'
     args.output.parent.mkdir(parents=True, exist_ok=True)
     device = torch.device('cuda')

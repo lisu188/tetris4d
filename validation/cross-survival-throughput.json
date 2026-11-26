@@ -308,5 +308,129 @@
       "native": 0.1328418460072595
     },
     "scope": "CPU placement, clear, next-piece legality, and render-history discard using the two evaluator commit paths. Candidate preparation, model inference, target recovery and digest verification are outside measured time. Does not change the run simulator."
+  },
+  "production_by_recipe": {
+    "scope": "Updates 24-32 inclusive, 73,728 placements per arm. Observational sequential production windows, each matched by hash to its baseline and nine raw update records. Device utilization is device-wide sampled activity. Each arm encounters its own boards; phase and optimizer work can vary.",
+    "arms": {
+      "611000-anchored": {
+        "local_receipt": "hardware-profile/611000-anchored.json",
+        "receipt_sha256": "49d1ff8bdb0fe4bda67c400689ff9c34a8f12f05272d774d74f266095cbe45fb",
+        "wall_seconds": 158.77358702203492,
+        "placements_per_second": 464.3593520990861,
+        "phase_percent": {
+          "prepare_seconds": 43.729,
+          "inference_transfer_seconds": 7.968,
+          "commit_seconds": 5.533,
+          "bootstrap_seconds": 0.127,
+          "update": 41.586
+        },
+        "optimizer_steps": 531,
+        "kl_stops": 1,
+        "device_utilization_median_pct": 33.0,
+        "cpu_cores": 0.9972311380018525
+      },
+      "611000-cold": {
+        "local_receipt": "hardware-profile/611000-cold.json",
+        "receipt_sha256": "26baf0a50f128d867b34c0a8ca4924f99dd54457ca59d6801ce523889c64d10d",
+        "wall_seconds": 147.36333103396464,
+        "placements_per_second": 500.3144234233345,
+        "phase_percent": {
+          "prepare_seconds": 48.275,
+          "inference_transfer_seconds": 8.454,
+          "commit_seconds": 6.134,
+          "bootstrap_seconds": 0.142,
+          "update": 35.797
+        },
+        "optimizer_steps": 481,
+        "kl_stops": 2,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0029814663315433
+      },
+      "611000-plain": {
+        "local_receipt": "hardware-profile/611000-plain.json",
+        "receipt_sha256": "ae8ab15742dcfe9e242ce5b353f29dc5f58c6b2b2d1c53f683bd67c86cd770e8",
+        "wall_seconds": 152.0120405589696,
+        "placements_per_second": 485.01421156437215,
+        "phase_percent": {
+          "prepare_seconds": 45.996,
+          "inference_transfer_seconds": 8.031,
+          "commit_seconds": 5.884,
+          "bootstrap_seconds": 0.136,
+          "update": 38.75
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0010086368125222
+      },
+      "611000-residual": {
+        "local_receipt": "hardware-profile/611000-residual.json",
+        "receipt_sha256": "29c0c7130c4e33512a6fe57d851587ea51135f98f93f2f094951aa12819f1b68",
+        "wall_seconds": 163.59919203299796,
+        "placements_per_second": 450.66237237363043,
+        "phase_percent": {
+          "prepare_seconds": 46.147,
+          "inference_transfer_seconds": 8.376,
+          "commit_seconds": 5.641,
+          "bootstrap_seconds": 0.126,
+          "update": 38.639
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 34.0,
+        "cpu_cores": 0.9995308841003835
+      },
+      "612000-anchored": {
+        "local_receipt": "hardware-profile/612000-anchored.json",
+        "receipt_sha256": "1c132c6751b78aed4fb7f3874810cbbdad2e18dcbc49ee95390037dc713f3ceb",
+        "wall_seconds": 155.18103609600803,
+        "placements_per_second": 475.1096000827425,
+        "phase_percent": {
+          "prepare_seconds": 43.304,
+          "inference_transfer_seconds": 8.15,
+          "commit_seconds": 5.121,
+          "bootstrap_seconds": 0.119,
+          "update": 42.335
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 34.0,
+        "cpu_cores": 1.004154518035075
+      },
+      "612000-cold": {
+        "local_receipt": "hardware-profile/612000-cold.json",
+        "receipt_sha256": "eb4dc79905b80a0f457a020f91f3a87165e3b911441a547b22e2fb9ab86a62e6",
+        "wall_seconds": 159.69257830799324,
+        "placements_per_second": 461.6870788935695,
+        "phase_percent": {
+          "prepare_seconds": 45.255,
+          "inference_transfer_seconds": 8.039,
+          "commit_seconds": 5.767,
+          "bootstrap_seconds": 0.15,
+          "update": 39.759
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 0.9980079148666355
+      },
+      "612000-plain": {
+        "local_receipt": "hardware-profile/612000-plain.json",
+        "receipt_sha256": "23ab38f4600e8c875341a8fda8766d14b3d66841d4b043c6208e3f53160e724a",
+        "wall_seconds": 152.52268817502772,
+        "placements_per_second": 483.39037871790777,
+        "phase_percent": {
+          "prepare_seconds": 45.692,
+          "inference_transfer_seconds": 8.154,
+          "commit_seconds": 6.13,
+          "bootstrap_seconds": 0.143,
+          "update": 38.759
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0020056922526557
+      }
+    }
   }
 }

@@ -58,7 +58,7 @@ def positions(library):
 
 @torch.inference_mode()
 def measure(model, device, prep, pool, preview):
-    samples, triggers, choices = [], [], []
+    samples, triggers, choices, overrides = [], [], [], []
     for _, _, start_state, target in pool:
         state = copy.deepcopy(start_state)
         ev.base.library.ignore(state)
@@ -72,13 +72,18 @@ def measure(model, device, prep, pool, preview):
         if device == 'cuda':
             torch.cuda.synchronize()
         samples.append((time.perf_counter_ns() - started) / 1e6)
-        triggers.append(stats[0].get('planner_triggers', 0))
+        if preview == 'preserve-last-cross':
+            triggers.append(stats[0].get('last_cross_losses', 0))
+            overrides.append(stats[0].get('last_cross_overrides', 0))
+        else:
+            triggers.append(stats[0].get('planner_triggers', 0))
         if move:
             candidate = move[0][1]
             choices.append([candidate.rotation, candidate.x, candidate.y, candidate.w])
         else:
             choices.append(None)
     return {'device': device, 'preview': preview, 'ms': samples, 'triggers': triggers, 'choices': choices,
+            **({'last_cross_overrides': overrides} if preview == 'preserve-last-cross' else {}),
             'p50_ms': float(np.percentile(samples, 50)), 'p95_ms': float(np.percentile(samples, 95))}
 
 
@@ -92,6 +97,7 @@ def main():
     parser.add_argument('--two-stage', action='store_true')
     parser.add_argument('--headless', action='store_true')
     parser.add_argument('--rescue-only', action='store_true', help='Also measure physical rescue without reply scoring.')
+    parser.add_argument('--preserve-last-cross', action='store_true', help='Also measure the last-CROSS guard.')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     torch.set_num_threads(1)
@@ -117,7 +123,11 @@ def main():
             from tetris_gpu_simulation import GpuPreparer
             prep = GpuPreparer(model.config, device, two_stage=args.two_stage, group_exhaustive=True)
         modes = (False, True, 'rescue-only') if args.rescue_only else (False, True)
+        if args.preserve_last_cross:
+            modes += ('preserve-last-cross',)
         for preview in modes:
+            if prep is not None:
+                prep.require_cross_mobility = preview == 'preserve-last-cross'
             measure(model, device, prep, pool, preview)
             row = measure(model, device, prep, pool, preview)
             report['modes'].append(row)

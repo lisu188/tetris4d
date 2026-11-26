@@ -612,7 +612,7 @@ class NeuralAgent:
                            (config.architecture == 'survival-spatial-v4' and config.screening == 'exhaustive'))
         self.candidate_budget = 0 if self.exhaustive else config.candidates
         if preview_search and self.model.config.architecture != 'survival-spatial-v4':
-            raise ValueError('Visible-preview search requires a spatial V4 checkpoint')
+            raise ValueError('The selected neural move mode requires a spatial V4 checkpoint')
         self.last_trace = None
         self.pending_trace = None
         self.capture_traces = (False if self.model.config.architecture in FEATURE_ARCHITECTURES
@@ -644,18 +644,27 @@ class NeuralAgent:
         before = time.perf_counter()
         requested_target = target
         target = int(prepared.arrays['targets'])
+        guard = self.preview_search == 'preserve-last-cross'
+        if guard and 'cross_mobility' not in prepared.arrays:
+            from tetris_cross_survival import mobility_features
+            prepared.arrays['cross_mobility'] = mobility_features(state.board, prepared.options)
         batch = collate([prepared.arrays], self.device)
         with torch.inference_mode():
             prediction = self.model(batch, capture=self.capture_traces is True)
-            index = int(prediction['logits'][0].argmax().item())
             if not bool(torch.isfinite(prediction['logits'][0][batch['valid'][0]]).all()):
                 raise ValueError('Neural inference produced non-finite logits')
-            if self.preview_search:
+            if guard:
+                from tetris_cross_survival import preserve_last_cross
+                choices, _, _ = preserve_last_cross(prediction['logits'], batch['valid'], batch['cross_mobility'])
+                index = int(choices.item())
+            elif self.preview_search:
                 from tetris_cross_survival import preview_choice
                 index = preview_choice(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
                                        self.model.config, prepared.arrays['cross_mobility'][:, 1]
                                        if 'cross_mobility' in prepared.arrays else None,
                                        rescue_only=self.preview_search == 'rescue-only')
+            else:
+                index = int(prediction['logits'][0].argmax().item())
             score = float(prediction['logits'][0, index].item())
             trace_info = {'logit': score, 'piece': state.current, 'piece_number': state.pieces + 1,
                           'shortlist': len(prepared.options), 'selected': index}

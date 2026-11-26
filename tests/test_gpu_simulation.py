@@ -39,6 +39,20 @@ class SamplingContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requires CUDA"):
             gpu.GpuPreparer(device="cpu")
 
+    def test_reference_only_plain_actor_provides_requested_cross_mobility(self):
+        import tetris_cross_survival as cross
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        preparer.config = neural.Config(architecture="survival-spatial-v4", candidates=48, shortlist=4)
+        preparer.require_cross_mobility = True
+        state = game.Game(37)
+        expected = neural.prepare(state, 1, preparer.config)
+        self.assertNotIn("cross_mobility", expected.arrays)
+        batch = preparer._reference_batch([state], [1], "candidate_budget_bound")
+        np.testing.assert_array_equal(batch.batch["cross_mobility"][0].numpy(),
+                                      cross.mobility_features(state.board, expected.options))
+        self.assertEqual(tuple(batch.prepared[0].options), tuple(expected.options))
+
     def test_screen_shortlist_matches_dense_ranking_with_padding_ties_and_random_slots(self):
         crowded = (0, 2, 6, 11, 13, 18, 24, 29, 31, 38, 44, 50, 59, 62)
         legal = ((), (0,), (37,), (0, 12, 33), crowded[:5], crowded, crowded, crowded)
