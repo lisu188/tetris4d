@@ -1,0 +1,219 @@
+{
+  "baseline_revision": "39292969e031226c68e53757ed4379ee5c9f2dee",
+  "candidate_manifest_sha256": "8202d020b6c9f9240154b0d7ce915b2e7f619c0459ae20328d73f471d3ebd96c",
+  "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "parity": true,
+  "workloads": {
+    "opening": {
+      "pairs": 5,
+      "per_pair": [
+        0.7374419076708314,
+        1.0460711796115003,
+        1.4401716731088914,
+        1.3789538830150452,
+        1.1226116376679678
+      ],
+      "median_speedup": 1.1226116376679678,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 340.5509765790056,
+        "median_peak_reserved_mib": 2306.0,
+        "greedy_placements_per_second": 279.2304569975916
+      },
+      "combined": {
+        "median_placements_per_second": 393.2214565106534,
+        "median_peak_reserved_mib": 1354.0,
+        "greedy_placements_per_second": 203.5489305665896
+      },
+      "greedy": {
+        "per_pair": [
+          0.31346944853481545,
+          0.7051290091450385,
+          0.8655107697372321,
+          1.1612140788764114,
+          0.7289639273424433
+        ],
+        "median_speedup": 0.7289639273424433,
+        "median_placements_per_second": {
+          "reference": 279.2304569975916,
+          "combined": 203.5489305665896
+        }
+      }
+    },
+    "boundaries": {
+      "pairs": 5,
+      "per_pair": [
+        0.8596992940442009,
+        1.2222852868345562,
+        1.153533804244902,
+        1.0672595682468466,
+        1.2268581594549774
+      ],
+      "median_speedup": 1.153533804244902,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 279.13694163406427,
+        "median_peak_reserved_mib": 2636.0
+      },
+      "combined": {
+        "median_placements_per_second": 314.58449764684536,
+        "median_peak_reserved_mib": 2456.0
+      }
+    },
+    "late": {
+      "pairs": 5,
+      "per_pair": [
+        0.4762091974109367,
+        1.3483845748938652,
+        1.169159095676203,
+        1.2877975340627053,
+        1.3769888127672336
+      ],
+      "median_speedup": 1.2877975340627053,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 291.26889940403146,
+        "median_peak_reserved_mib": 2788.0
+      },
+      "combined": {
+        "median_placements_per_second": 331.2852340743678,
+        "median_peak_reserved_mib": 1422.0
+      }
+    }
+  },
+  "receipt_sha256": {
+    "opening/1-reference.json": "982af587b24265573f6eee8b445b12d043fcbc5e8f1dd5f0d9b3ffc277099261",
+    "opening/1-combined.json": "0713d4021290252bc22d7bbd9050cfc2841e5ace4702990ee810c78fe7e08335",
+    "opening/2-reference.json": "bcca4abbdd78f033e9d0028d64f2a493aa212fdcd7762fb84534cf2acf10a73e",
+    "opening/2-combined.json": "f31d25428ef34a36fa3b8a3f43257c343bfc1c95c717d9db6a29b6b3d677a4ec",
+    "opening/3-reference.json": "4f8874b36088b20d69809b493322ffb5c607345050d816a06d08c08b1e68829f",
+    "opening/3-combined.json": "63e77ca4974d2121ff45e80747bea351784c00f75572e71b4ae443eee690914d",
+    "opening/4-reference.json": "b7474e5c25526c17cdee140ff3f329fe5ae6ff66780e6b4d2f97f0e937c41699",
+    "opening/4-combined.json": "1b8c81dfe2c1d87f7d71c067d61195043abcc4c65dde848acd84348d39520c60",
+    "opening/5-reference.json": "cf7ddbc7babc0ed3da823ddf569e3218070cd4dd1b686a09ccddf3deb6327844",
+    "opening/5-combined.json": "f6fe4b4abdeb4dc02bef610de5ade1815972407ee9c7bf29f5b64ea5e2bf14b9",
+    "boundaries/1-reference.json": "4994fb32fd57fccceb2baa4f2924b938b1917ca866f8996aa6f38e4700df41c1",
+    "boundaries/1-combined.json": "82d15c4def2f999f34bed48b2c98f568d8f6f521b04620c7ef855a629205e83d",
+    "boundaries/2-reference.json": "4a66435200a211075a53c8fa731ded6bb013c3976897d33bfe6de49df54d03a5",
+    "boundaries/2-combined.json": "a5c620272f2c76497c8b17ca0849d0fa684536a6ccb490186f13e03f822f540d",
+    "boundaries/3-reference.json": "18cde4375fd7d96ecfb3970d7d493b5522f6a7ae900ad093579c1acb39d6cb3b",
+    "boundaries/3-combined.json": "13fd679ed761faa794d119cac2b72c7b87cc103290b585b824f7bb8eba2373a9",
+    "boundaries/4-reference.json": "5beb9e528f2039f307ecabbe6cfad37b11ffdcec71a430abf29017167f169882",
+    "boundaries/4-combined.json": "21275cb5f323059bd5b9faf39e17847fc99ec1aad1fb8e1c849e5cc35c14cc1a",
+    "boundaries/5-reference.json": "95ec9f3e7a30854a59ad627a8ad5e03fc98626f8864dc9e7d6d79bd63ce7c03e",
+    "boundaries/5-combined.json": "e2dbaa9053c6d79e29466d3f732c8e960fb968e84f18e0251429e144821a773a",
+    "late/1-reference.json": "3484c0faf8472414d1b1923e171dc1890964b902f7db7d75495a8d9129d135ae",
+    "late/1-combined.json": "6fba3e49629a20560a033ad9758b1dec60157e3113a62855d9851992aa69b051",
+    "late/2-reference.json": "a09ff04eb330d6a7db57bfbf38422073b8a635a7e7f5fa4d8f17e1055e153c8b",
+    "late/2-combined.json": "a2875232a36cd7853053ce2d723212e9b8b4b7fc9b938719652af621b944a19e",
+    "late/3-reference.json": "2a839fdb096e824eb717cfb57b740a3ce70adf60788a9d016ed81077075077fc",
+    "late/3-combined.json": "30b09fad5cf82303e9f5a733a2d68abf42fad21e8aa3c75b30be832865978944",
+    "late/4-reference.json": "756d81ffb34346e62066c0cf7dc6a9e5ea8411f241ca7bcc00a46720d6c1dbc6",
+    "late/4-combined.json": "d4375a9b3c1c8995eb13935c024d8689cae9044a7cb97d6e0bc02e6c63110c12",
+    "late/5-reference.json": "90732dc23154a2e4c6010b875a09dbc3bb0124cf54083203b24ba8d2362cee09",
+    "late/5-combined.json": "c6ed978773ecefabccf5a9bacaa12997f6d3131228f072ebcc85ef5ad475fcbf"
+  },
+  "enabled": {
+    "two_stage": true,
+    "headless": true
+  },
+  "greedy_enabled": {
+    "two_stage": false,
+    "headless": false
+  },
+  "gate_sha256": "ef991d7550b58dd223369d65656ac2b573447283b11aab94879bcd72285bd3ef",
+  "preparation_seconds": 2023,
+  "native_replay": {
+    "game_id": "006454ab20eb3b13ff2cb82526956caabcdd68ed2332ae8a5ba8ec5bb700d314",
+    "seed": 300018,
+    "placements": 11020,
+    "checked_returned_moves": 11020,
+    "board_sha256_chain": "dd0d8029931c3edcae6d1a5f5f6c06b29e98195427f8d59541d0a7cd5b820f94",
+    "native_commit_seconds": 1.5682082974235527,
+    "terminal": true,
+    "last_board_sha256": "e67ffef92ad9ae44a2bde642dec9016033703364f229f6e7f0ddd78f3f85478f",
+    "matched_archive_terminal_sha256": true
+  },
+  "preview_latency": {
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. Every position and mode runs once to warm before timed pass.",
+    "positions": 12,
+    "modes": [
+      {
+        "device": "cpu",
+        "preview": false,
+        "p50_ms": 42.430805,
+        "p95_ms": 55.60408694999999,
+        "triggers": 0
+      },
+      {
+        "device": "cuda",
+        "preview": false,
+        "p50_ms": 7.541195500000001,
+        "p95_ms": 8.192013399999999,
+        "triggers": 0
+      },
+      {
+        "device": "cpu",
+        "preview": true,
+        "p50_ms": 50.155181999999996,
+        "p95_ms": 96.38253029999997,
+        "triggers": 8
+      },
+      {
+        "device": "cuda",
+        "preview": true,
+        "p50_ms": 12.502906,
+        "p95_ms": 60.78901914999997,
+        "triggers": 8
+      }
+    ]
+  },
+  "reference_cache_smoke": {
+    "schema": "real-cuda-v4-frozen-reference-cache-v1",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "torch": "2.14.1+cu130",
+    "cuda": "13.0",
+    "source": "b9ad77a315ff818f0e81b9ab8c79adec9c9e1b1c6af159bcbd0feb780717a719",
+    "actor_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "critic_checkpoint_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+    "reference_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "locked_actor_digest": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+    "base_actor_digest_at_start": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+    "behavior_temperature": 0.25,
+    "reference_kl_weight": 0.05,
+    "runner_updates": 1,
+    "optimizer_steps": 2,
+    "placements": 4,
+    "reference_forward_batch_sizes": [
+      2,
+      2
+    ],
+    "retained_reference_shape": [
+      4,
+      128
+    ],
+    "retained_reference_dtype": "torch.float32",
+    "rollout_cache": {
+      "requested": true,
+      "enabled": true,
+      "storage": "fixed_features",
+      "bytes": 383008,
+      "frozen_reference": {
+        "enabled": true,
+        "bytes": 2048
+      }
+    },
+    "gpu_preparations": {
+      "batch_calls": 3,
+      "environment_calls": 6,
+      "cpu_fallbacks": {}
+    },
+    "gather_matched_direct_fp32": true,
+    "gather_matched_behavior_fp32": true,
+    "training_kl": 0.001883884659036994,
+    "diagnostic_kl_with_cache": 0.001883884659036994,
+    "diagnostic_kl_without_cache": 0.001883884659036994,
+    "seconds": 44.13478371500969
+  }
+}

@@ -7,6 +7,7 @@ import random
 from pathlib import Path
 import sys
 import tkinter as tk
+from textwrap import dedent
 from types import SimpleNamespace
 import unittest
 
@@ -89,30 +90,40 @@ class RendererTests(unittest.TestCase):
             else:
                 candidate = copy.deepcopy(new[name])
                 if name == '_load_native':
-                    # PPO adds this exact native binding; retain the original
-                    # invariant for every pre-existing engine/native statement.
-                    expected = ast.parse("{'t4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]}").body[0].value
-                    optional = ast.parse("if hasattr(library, 't4_board_features'):\n    signatures['t4_board_features'] = [pointer] * 5").body[0]
-                    bindings = []
-                    class StripNativeMetrics(ast.NodeTransformer):
-                        def visit_If(self, node):
-                            if ast.dump(node) == ast.dump(optional):
-                                bindings.append(node)
-                                return None
-                            return self.generic_visit(node)
-
-                        def visit_Dict(self, node):
-                            retained = []
-                            for key, value in zip(node.keys, node.values):
-                                if isinstance(key, ast.Constant) and key.value == 't4_sustained_metrics':
-                                    bindings.append(ast.Dict(keys=[key], values=[value]))
-                                else:
-                                    retained.append((key, value))
-                            node.keys = [key for key, _ in retained]
-                            node.values = [value for _, value in retained]
-                            return self.generic_visit(node)
-                    candidate = StripNativeMetrics().visit(candidate)
-                    self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected), ast.dump(optional)])
+                    # Extend the historical ABI at the exact binding point. The global AST
+                    # comparison still checks every old signature, capability check and call.
+                    signature = next(n for n in ast.walk(node) if isinstance(n, ast.Assign)
+                                     and ast.unparse(n.targets[0]) == 'signatures')
+                    extra = ast.parse("{'t4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]}").body[0].value
+                    signature.value.keys.extend(extra.keys)
+                    signature.value.values.extend(extra.values)
+                    owner = next(n for n in ast.walk(node) if signature in getattr(n, 'body', []))
+                    start = owner.body.index(signature) + 1
+                    owner.body[start:start] = ast.parse(dedent("""
+                        optional = {
+                            't4_board_features': [pointer] * 5,
+                            't4_checked_apply': [pointer, pointer] + [integer] * 4 + [pointer] * 6 + [integer],
+                            't4_has_move': [pointer, pointer, integer],
+                            't4_exhaustive_primary': [pointer, pointer, integer, integer, integer, integer, pointer, integer],
+                        }
+                        signatures.update((name, args) for name, args in optional.items() if hasattr(library, name))
+                    """)).body
+                if name == 'launch_demo':
+                    # The feature-inspector smoke callback has a text display. Check its
+                    # complete body and keep the Tk setup, scheduling and mainloop pinned.
+                    expected = next(n for n in ast.walk(node) if isinstance(n, ast.FunctionDef) and n.name == 'finish')
+                    expected.body = ast.parse(dedent("""
+                        try:
+                            view = app.network
+                            result = {'passed': not app.errors, 'callback_errors': app.errors,
+                                      'selected_drop': app.planned is not None,
+                                      'visible_network_nodes': len(getattr(view, 'positions', ()))}
+                            if hasattr(view, 'display'):
+                                result['feature_decision_visible'] = 'Architecture:' in view.display.get('1.0', 'end')
+                            print(json.dumps(result, indent=2))
+                        finally:
+                            app.close()
+                    """)).body
                 if name == 'pooled_histograms':
                     # Exact C-speed validation of the 4096 heights (issue #35).
                     original = 'any((not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights))'
@@ -147,11 +158,73 @@ class RendererTests(unittest.TestCase):
                                 hooks.append('call')
                                 return None
                             return self.generic_visit(node)
+                    # Build the expected render-history path from the original commit
+                    # statements. Only the shared tail takes the next-piece legality as input.
+                    methods = {n.name: n for n in node.body if isinstance(n, ast.FunctionDef)}
+                    reset = methods['reset']
+                    anchor = next(i for i, stmt in enumerate(reset.body) if ast.unparse(stmt) == 'self.board = EMPTY_BOARD') + 1
+                    reset.body[anchor:anchor] = ast.parse('self._packed_board = None\nself.last_clear_mask = 0').body
+                    commit = methods['commit']
+                    tail = next(i for i, stmt in enumerate(commit.body) if ast.unparse(stmt) == 'self.board = move.board')
+                    finish = ast.parse('def _finish_commit(self, move: Move, next_is_legal: bool) -> None: pass').body[0]
+                    finish.body = commit.body[tail:]
+                    self.assertEqual(ast.unparse(finish.body[-1]), 'self.game_over = not has_legal_move(self.board, self.current)')
+                    finish.body[-1] = ast.parse('self.game_over = not next_is_legal').body[0]
+                    commit.body[tail:] = ast.parse(dedent("""
+                        self.last_clear_mask = cleared
+                        self._packed_board = None
+                        self._finish_commit(move, has_legal_move(move.board, self.next_piece))
+                    """)).body
+                    packed = ast.parse(dedent('''
+                        @property
+                        def packed_board(self):
+                            """Read-only native column masks belonging to the current immutable board."""
+                            cached = self._packed_board
+                            return cached[1] if cached is not None and cached[0] is self.board else None
+                    ''')).body[0]
+                    node.body.insert(node.body.index(commit), packed)
+                    node.body.insert(node.body.index(commit) + 1, finish)
                     candidate = StripRecording().visit(candidate)
                     self.assertEqual(sorted(hooks), ['__del__', 'call', 'call', 'call', 'lookup', 'lookup'])
                 self.assertEqual(ast.dump(node), ast.dump(candidate), name)
         self.assertEqual(game.PIECE_CELLS, baseline.PIECE_CELLS)
         self.assertEqual(game.ROUGHNESS_TABLE, baseline.ROUGHNESS_TABLE)
+
+    def test_default_commit_keeps_render_history_and_matches_historical_game(self):
+        self.assertFalse(game.TWO_STAGE_EXHAUSTIVE)
+        self.assertFalse(game.HEADLESS_COMMIT)
+        self.addCleanup(game.configure_backend, game.BACKEND)
+        self.addCleanup(baseline.configure_backend, baseline.BACKEND)
+        game.configure_backend('auto')
+        baseline.configure_backend('python')
+        center = game.column_index(7, 7, 7)
+        clear_board = [3] * game.AREA
+        clear_board[center] = 0
+        frontier = [1 << 14] * game.AREA
+        for step in (0, -1, 1, -16, 16, -256, 256):
+            frontier[center + step] = 1 << 11
+        for board, cleared, top_out in ((game.EMPTY_BOARD, 0, False), (tuple(clear_board), 3, False),
+                                        (tuple(frontier), 0, True)):
+            with self.subTest(clear_mask=cleared, top_out=top_out):
+                old, new = baseline.Game(103), game.Game(103)
+                for state in (old, new):
+                    state.board, state.current, state.next_piece = board, 'I', 'CROSS'
+                rotation = next(i for i, shape in enumerate(game.SHAPES['I']) if shape.extents[2] == 4)
+                reference = baseline.make_move(board, 'I', rotation, 7, 7, 7)
+                old.commit(reference)
+                option = game.make_move(board, 'I', rotation, 7, 7, 7).candidate
+                actual = game.play_candidate(new, option)
+                self.assertEqual(new.last_clear_mask, cleared)
+                self.assertIsNone(new.packed_board)
+                self.assertEqual(new.game_over, top_out)
+                for field in ('board', 'pieces', 'layers', 'score', 'cells_placed', 'piece_counts',
+                              'current', 'next_piece', 'game_over'):
+                    self.assertEqual(getattr(old, field), getattr(new, field), field)
+                self.assertEqual(tuple(map(asdict, old.locked_pieces)), tuple(map(asdict, new.locked_pieces)))
+                self.assertEqual((reference.board, reference.heights, reference.holes),
+                                 (actual.board, actual.heights, actual.holes))
+                self.assertEqual(old.stream.bag, new.stream.bag)
+                self.assertEqual(old.stream.rng.getstate(), new.stream.rng.getstate())
 
     def test_board_evaluation_matches_renderer_baseline(self):
         backend = game.BACKEND
