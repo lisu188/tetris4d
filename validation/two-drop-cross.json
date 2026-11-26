@@ -1,0 +1,315 @@
+{
+  "schema": "two-drop-cross-archive-v1",
+  "provenance": {
+    "trained_actor": "612000-plain",
+    "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+    "actor_state_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "collection_runtime_git": "57d67abf54ef8f231a161df3761c64a820ddca79",
+    "solver_sha256": "d14a3405f4a40eafc8e95c53f6401fd2145400b032166d1a19c2626f5c08736e",
+    "fixed_cpu_actor": "FP32, batch 32, 128 shortlist slots, native exhaustive teacher preparation and ordinary checked commit.",
+    "evidence_directory": "survival-training.artifacts/cross-survival-24h/two-drop-clear-search",
+    "local_file_sha256": {
+      "search-plan.json": "2d7da92a468cf59429487d3d50190f6b23797a5405e9a274c58a0320bdcb9ae8",
+      "roots/roster.json": "6b07cedad78fb511af60cf1416f110b62e9a89c53bdcd8982956a8011b590959",
+      "roots/extract.py": "350a385aeba02eece10f335d0eccdf6f5d9681284b5f0780b43c0ddcdcdbe355",
+      "run_search.py": "60f081c30ae1236e3d30d0668c132d167f5c07b1dea60189d4942d646d5bea13",
+      "witnesses.json": "b0b477a061bbfe2ca69d7128fdfb173f6c67ab0751f2552ee83d360e79788999",
+      "paired/plan.json": "0f919eedd85a715f662bc7640ad6e5e7c14b5758f2d1b981e31e0203ac03cdee",
+      "paired/selection.json": "4cae04b83bbc6cdf20c9139836bab74bb95b229c7768f84ee4dfd03c1bfac14a",
+      "paired/play.py": "fa80f945b8d6dfc83a7a9d4db46e1df03122c0b13773b1fdf6dbd23b77cc4059",
+      "paired/result.json": "e9edf5330fed084270f53426c37f3e76046e01d7aca4bc3333da73c96b90265c",
+      "immediate-clear-comparator/plan.json": "75c916fcb483e65a4f4ffa1e230a2bd27014a353397f7f642fcc88fb5f82d770",
+      "immediate-clear-comparator/window.py": "a0662be0959528b0603f35e90f9053b7a9ff3fdad77aa524bf5ee87b98f18789",
+      "immediate-clear-comparator/bind.py": "3b33f1cee792e9a1f1d46720b6d03ce8b20486299820924d60de314dc7e7c052",
+      "immediate-clear-comparator/result.json": "ce2102b0f040853de2a871d3e8ddcb6c207264c845a69cc36358cf31ed9f5665",
+      "independent-audit/audit.py": "d0396fa10b448d7225546c468238d82c770ebbd2b9559d0f6c72cacce9176a32",
+      "independent-audit/result.json": "b18fb248da34af8fda441d3891fc9b62718a494ce2d72d4e6d586beb012bd32c"
+    }
+  },
+  "cohort": {
+    "source": "64 previously frozen expanded-piece training streams with physical top-out. All 652639 recorded decisions screened. Each root is a recorded predecision board with zero CROSS origins, a visible non-CROSS piece and a target layer passing static two-piece capacity bounds. Repeated positions from one game are correlated.",
+    "zero_origin_decisions": {
+      "final": 710,
+      "temporary": 34
+    },
+    "eligible_boards": {
+      "final": 43,
+      "temporary": 6
+    },
+    "eligible_distinct_games": 7,
+    "witnesses": {
+      "final": 19,
+      "temporary": 5
+    },
+    "complete_negative_decisions": 25,
+    "independent_check": "Scanned every visible orientation, horizontal origin and relevant Z at or above original landing. On 24 negatives no viable visible translation existed. On seed 300112 at placement 9706, exactly two static visible poses remained and none of 59 legal nonclearing HYPER first poses covered the remaining holes. Independently constructed a positive on the earliest positive board of each of seven represented games; checked both engine moves, afterboard hashes and exact reopened origin count on all 24 reported positives.",
+    "positive_conditionals": {
+      "first_equal_to_greedy": 13,
+      "second_equal_to_greedy_after_witness_first": 5,
+      "greedy_second_reopens_after_witness_first": 20,
+      "greedy_second_reopens_given_first_was_greedy": 10
+    },
+    "columns": [
+      "seed",
+      "placements_before",
+      "episode",
+      "board_sha256",
+      "witness",
+      "first_actor_rank",
+      "second_actor_rank_after_witness_first",
+      "greedy_second_cross_origins_after_witness_first",
+      "independent_existence_check"
+    ],
+    "rows": [
+      [300012,12218,"final","b1240856e0a0722bd86af1bc5f6dc2de329a931bd9922cd289a8507739bd0eb8",true,1,5,1087,true],
+      [300040,11479,"final","297f4dfeda1a231fa59c0412a3dcbd8ab681310b0733e94d9818dfeb7c2049eb",false,null,null,null,false],
+      [300040,11480,"final","b0f3fe11187a1c31eeb8c952058464bb9110108c3b6704fc1c4a6f5a66f67df0",true,1,null,0,true],
+      [300040,11481,"final","529196197a046af29b1244cac481330128782ec97178f787fba9cec3052e9509",false,null,null,null,false],
+      [300040,11482,"final","b3bf38d3bbad8a5962611dfa2295db3090aea8e37c9d2fd02753ccd36862bd22",true,1,null,0,null],
+      [300040,11483,"final","8e42f8b1876c9117177b5b01278516445fb1f0aea3f5bf6764edb7fcba52d1cb",false,null,null,null,false],
+      [300040,11484,"final","953fcec8d868b6add5a4e7165fc13701fe2f46e028fb26450e9e2f83f6206e27",true,1,3,539,null],
+      [300040,11485,"final","81e1c7cbd8a9da235fb1fa51ac948cd06c53aba92a8ada078a7465ad884a1de6",true,5,2,538,null],
+      [300040,11486,"final","9934cf6cfe6c30b9673cdb6c937ad3fca501602e86ff01d9af91051b71950119",false,null,null,null,false],
+      [300040,11487,"final","9e8b32949af3aa470125cfe2a3f874e854805a0b66244fd7c8b5e08b25da5998",true,1,3,519,null],
+      [300040,11488,"final","bb37c07c262a8a09237e32e6f9dd834550bb65809ee13f589df6ea2836eb920e",true,5,3,515,null],
+      [300040,11489,"final","1c656995d1578795b24a12efb46850422390864b8810d0043b3e5c6ec25b01ea",true,6,2,515,null],
+      [300040,11490,"final","e8f379184c50b48671b54318798ca188f13de4772ac92d3a3c005845fa3f49c8",true,6,null,0,null],
+      [300040,11491,"final","d5edcad7ea135cd72b90102bead5bb2a76971dff3025f6bac5632bdc02ada64f",true,1,3,512,null],
+      [300040,11492,"final","3d5a1bf72733cf10a64454bf7f0b89c03228d2a485559b17ee7526bf4036e348",true,5,3,509,null],
+      [300040,11493,"final","8367409635fde0428b355dab7ac00b198e7e27dbeb61ba42a2b895f57a2b0cc3",true,6,1,511,null],
+      [300040,11494,"final","3d1fc815b1297f88c480e7d79b222f3e572f12db081496c0d8ed75e804776190",true,3,3,510,null],
+      [300040,11495,"final","1b0305d3fbda11470cda7fc9e44b9cfd78583a6345c7d5e230d2126a6bee8c31",true,5,1,508,null],
+      [300040,11496,"final","3dde451a4dc65ccd1eb8515407893c0fd8ff7b812039c907ca977c1b99bd03ba",false,null,null,null,false],
+      [300040,11498,"final","ed8b489d29cae0ed115abfe565440e5a65af73e2371946365be1e26add3e2883",true,1,null,0,null],
+      [300040,11499,"final","858350369f462b23652d70978fc36e4be7b0810b5d514b26ecbad3c3bf2f3619",false,null,null,null,false],
+      [300040,11500,"final","616259d420908a978439f33699e81782568df2cc7a4383c38d8c41c61372a3c3",false,null,null,null,false],
+      [300040,11501,"final","c15b939c4859a6e947d096645914fb40f09ec3bd14e464340a6add3edda6ba20",true,1,2,484,null],
+      [300040,11502,"final","4eb1fd4a2eb62566db214b8f539505175e378808a31926c5dfd40f20d61abbe5",true,6,3,481,null],
+      [300052,24126,"temporary","790e462ea1d98f4b3b0923bdd60b0c5b552b1281bdb647606aad7232f45e8756",true,1,8,1573,true],
+      [300052,24127,"temporary","f2fa953930ddc50a0ae676ad8460b724d75a92700c2d6b1bfdecc595610a1800",false,null,null,null,false],
+      [300106,21205,"temporary","bca28a1e21d60fe3c2985da7a9539b0a019e01e1d780cc256fd2906018d02bd5",true,1,1,1465,true],
+      [300106,21206,"temporary","cd2b03c8e81e0ddc76d94e5aa56d1ebb136b02090aa5afbc35e294ee5df6987f",true,5,4,1465,null],
+      [300112,9703,"final","ec852a41ee214c159bd81d2898a7e1dad2a9c69c7776909d89fd702e641929be",false,null,null,null,false],
+      [300112,9704,"final","59ce5f47fa0ed452f9a8bc0fc600a93847cd2e266ba0f32f593eed4ff0d24694",false,null,null,null,false],
+      [300112,9705,"final","fe18f489bb12480d60a9a175fc685881fea46a416ad2488a90c0bd11f3450350",false,null,null,null,false],
+      [300112,9706,"final","1f7ce0d0b1eb5ff63b043412984f3bd30a9357a639a86610a00230aab3652b39",false,null,null,null,false],
+      [300112,9707,"final","128b5eaacbb659909fbd9776e4973b46572e0c61f82599b48d463be272eb9ca5",false,null,null,null,false],
+      [300112,9708,"final","f92f7a933dc8ed25eb329437f655bdfc92e09eda5ac14db7bb87177bb7b82ed0",false,null,null,null,false],
+      [300112,9709,"final","bfa52ee82f0e10eeb1032262827c262f58568c59510fb4e43ac33ef8e78a2940",true,1,1,319,true],
+      [300112,9710,"final","dc058abbe77b12573efad475113e5b639b02f71c4589e504e12d0a77a2352d44",false,null,null,null,false],
+      [300112,9711,"final","e604246a55eb97fd29ff9d4fe030cde124255db71f543a23c2469e6744793f1e",false,null,null,null,false],
+      [300112,9712,"final","1be4fbb51b997508acc64096e316cb7a80b7595b509591ade93528cba6c4f685",false,null,null,null,false],
+      [300112,9713,"final","cc00f9a1a6ea60306ce426417c92ff1e0a57079bda4e4fc6a00a1c4bc2e84067",false,null,null,null,false],
+      [300250,16283,"temporary","b2ea0bc9c8004d0fbb937ed546843b2f1b023385d08c6d668db910d76ca23a9a",true,1,null,1730,true],
+      [300250,16284,"temporary","d0ccada85ce56a305c9be1fb055147671d133fe2b48ec95bc4084d38f539fb53",true,10,7,1731,null],
+      [300504,6836,"final","e5745a0c88d1f61a68f17e0636e763002da3014fbad50d8d015c9961e757ecf4",false,null,null,null,false],
+      [300504,6837,"final","72d2278a88d4d3d074cd3ce9a1f4d7fc173f20868ab5a994a4be1aef753a4631",false,null,null,null,false],
+      [300504,6838,"final","0b06981b5c5abba23d17d5e61013706682476307fffd9865e590810eadfcf3e5",false,null,null,null,false],
+      [300504,6839,"final","33d931c1c401232c5f6a7694826c2e24cb2daf4e4df64c85f259e2856305356d",true,1,1,367,true],
+      [300504,6840,"final","0613e16ebf5689eedc8dfacb75ba61d6fb5146db41ce04f4d3c1f1c559ec029e",false,null,null,null,false],
+      [300504,6841,"final","066ba57f7b5ed0449eae37af663b4a4e0c78eb5a3ba17a4be95fe037273890ca",false,null,null,null,false],
+      [300504,6842,"final","6a9a3e7b445eac060742e3fce578dfe95e129cfbeb98f723575bb0ffb6376511",false,null,null,null,false],
+      [300504,6843,"final","9265b71491f2cf2aa64ecdc3c8ed57b2a6ab76d6f74245f9ca7f2105f44bb943",false,null,null,null,false]
+    ],
+    "null_semantics": "A null rank on a witnessed move means outside the original shortlist. Rows without a witness have no ranks. A null independent existence check means this positive was verified by replaying its witness only."
+  },
+  "continuations": {
+    "selection": "Per game, earliest eligible witness in its final zero-origin episode. Four games qualified. Three further games supplied temporary positives or eligible negative boards.",
+    "actors": {
+      "greedy": "Original greedy actor throughout.",
+      "witness": "Play the preferred two physical drops once at the root, then ordinary greedy.",
+      "emergency": "Rescue only when the greedy drop cannot accommodate the visible next piece; use the registered exhaustive fallback.",
+      "one_drop": "Secondary comparator, used only on the first two decisions when CROSS is closed. Pick the highest actor-ranked retained immediate clear that reopens CROSS and admits the visible piece, then scan non-shortlisted physical poses in engine order if needed. Use greedy if no qualifying clear exists. All later moves use ordinary greedy. Each two-step state matched a completed branch exactly."
+    },
+    "metric": "Uncapped physical placements from the root, including the first two. Common original piece stream within each root. All arms reached a physical top-out.",
+    "move_columns": [
+      "rotation",
+      "x",
+      "y",
+      "w",
+      "z",
+      "clears"
+    ],
+    "rows": [
+      {
+        "seed": 300012,
+        "placements_before": 12218,
+        "board_sha256": "b1240856e0a0722bd86af1bc5f6dc2de329a931bd9922cd289a8507739bd0eb8",
+        "snapshot_sha256": "11c5336758d4a95e65d118bfe050a12d72181fecac464395118320bb17b49602",
+        "witness_first": [
+          2,
+          0,
+          6,
+          14,
+          14,
+          0
+        ],
+        "witness_second": [
+          2,
+          8,
+          0,
+          12,
+          13,
+          1
+        ],
+        "witness_cross_origins_after_two": 1084,
+        "witness_after_board_sha256": "589b7edb9c932aab061b754645776271b6e925e1b262f3f3acc4ca19c7c7d451",
+        "one_drop_sources": [
+          "no_clear_greedy",
+          "shortlist_clear"
+        ],
+        "one_drop_cross_origins_after_two": 1087,
+        "one_drop_matched_full_state_after_two": [
+          "baseline"
+        ],
+        "remaining_placements": {
+          "greedy": 617,
+          "witness": 650,
+          "emergency": 617,
+          "one_drop": 617
+        },
+        "physical_top_out": true
+      },
+      {
+        "seed": 300040,
+        "placements_before": 11480,
+        "board_sha256": "b0f3fe11187a1c31eeb8c952058464bb9110108c3b6704fc1c4a6f5a66f67df0",
+        "snapshot_sha256": "5d988f15700388ccc8b5466a9c27a05b3ca977ffab0bb85a93b542f9b24852b0",
+        "witness_first": [
+          8,
+          4,
+          14,
+          4,
+          13,
+          0
+        ],
+        "witness_second": [
+          43,
+          10,
+          2,
+          14,
+          12,
+          1
+        ],
+        "witness_cross_origins_after_two": 544,
+        "witness_after_board_sha256": "e7e64cfbbbf2e7c84d661a9313c6ad64e6d3822a683a2b3d4e2a7ae1b1a33a84",
+        "one_drop_sources": [
+          "no_clear_greedy",
+          "outside_clear"
+        ],
+        "one_drop_cross_origins_after_two": 544,
+        "one_drop_matched_full_state_after_two": [
+          "witness"
+        ],
+        "remaining_placements": {
+          "greedy": 538,
+          "witness": 1296,
+          "emergency": 538,
+          "one_drop": 1296
+        },
+        "physical_top_out": true
+      },
+      {
+        "seed": 300112,
+        "placements_before": 9709,
+        "board_sha256": "bfa52ee82f0e10eeb1032262827c262f58568c59510fb4e43ac33ef8e78a2940",
+        "snapshot_sha256": "a5b07724cee2c94600522a60cd3bb41bc24e0d19494e941521a0e959f85beae8",
+        "witness_first": [
+          94,
+          0,
+          2,
+          10,
+          13,
+          0
+        ],
+        "witness_second": [
+          2,
+          2,
+          14,
+          15,
+          0,
+          1
+        ],
+        "witness_cross_origins_after_two": 319,
+        "witness_after_board_sha256": "46a1d57e3c03be023c683e1a59b251996ba25ab2dba1e4680134a6c6a4323ec3",
+        "one_drop_sources": [
+          "no_clear_greedy",
+          "shortlist_clear"
+        ],
+        "one_drop_cross_origins_after_two": 319,
+        "one_drop_matched_full_state_after_two": [
+          "baseline",
+          "witness"
+        ],
+        "remaining_placements": {
+          "greedy": 462,
+          "witness": 462,
+          "emergency": 462,
+          "one_drop": 462
+        },
+        "physical_top_out": true
+      },
+      {
+        "seed": 300504,
+        "placements_before": 6839,
+        "board_sha256": "33d931c1c401232c5f6a7694826c2e24cb2daf4e4df64c85f259e2856305356d",
+        "snapshot_sha256": "f1edda1c95f0319dcf0f56e8c0d47a40d5da71a3a9fa57fb667b33cb72b5855b",
+        "witness_first": [
+          3,
+          0,
+          8,
+          1,
+          12,
+          0
+        ],
+        "witness_second": [
+          17,
+          13,
+          4,
+          0,
+          11,
+          1
+        ],
+        "witness_cross_origins_after_two": 367,
+        "witness_after_board_sha256": "6c3a8d50b46e9dc3985b721d20a41b25d2fdeabf33af44a20079e5da363a3368",
+        "one_drop_sources": [
+          "no_clear_greedy",
+          "shortlist_clear"
+        ],
+        "one_drop_cross_origins_after_two": 367,
+        "one_drop_matched_full_state_after_two": [
+          "baseline",
+          "witness"
+        ],
+        "remaining_placements": {
+          "greedy": 450,
+          "witness": 450,
+          "emergency": 450,
+          "one_drop": 450
+        },
+        "physical_top_out": true
+      }
+    ],
+    "totals": {
+      "greedy": 2067,
+      "witness": 2858,
+      "emergency": 2067,
+      "one_drop": 2825
+    },
+    "mean_witness_gain_over_greedy": 197.75,
+    "mean_witness_gain_over_one_drop": 8.25,
+    "limits": "One actor and four witness-selected training roots. Three ordinary second choices already reopened CROSS. The large gain on seed 300040 was fully reproduced by the one-drop comparator. No fresh games, promotion decision or training change."
+  },
+  "cli_fixture": {
+    "path": "tests/fixtures/two-drop-cross.json",
+    "seed": 300040,
+    "placements_before": 11480,
+    "public_fields": [
+      "current",
+      "next_piece",
+      "board"
+    ],
+    "sha256": "0656e0a29fce908aae738b3cde0b7e806a884d951df61e5df39b51b61d331c38"
+  }
+}
