@@ -49,6 +49,69 @@ class PreparationGateTests(unittest.TestCase):
         # A recovered target can continue the same episode.
         validate_preparation(self.row(fallbacks={'buried_target': 1}), 32, 256)
 
+    def test_profile_is_standalone_and_never_overwrites(self):
+        import subprocess
+        from tempfile import TemporaryDirectory
+        from tools import benchmark_spatial_ppo as benchmark
+        with TemporaryDirectory() as tmp:
+            output = Path(tmp) / 'existing.json'
+            output.write_text('previous report')
+            cmd = [sys.executable, '-B', benchmark.__file__, '--profile-step', 'cpu', '--incumbent', 'unused']
+            for extra, message in ((['--output', str(output)], 'requires a new --output'),
+                                   (['--output', str(Path(tmp)/'new.json'), '--pairs', '2'], 'is standalone'),
+                                   (['--output', str(Path(tmp)/'new.json'), '--compare-simulation'], 'is standalone')):
+                with self.subTest(extra=extra):
+                    result = subprocess.run(cmd + extra, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 2)
+                    self.assertIn(message, result.stderr)
+            self.assertEqual(output.read_text(), 'previous report')
+
+    def test_one_cpu_profile_exports_host_ranges_without_leaking_wrappers(self):
+        import gzip
+        import json
+        from tempfile import TemporaryDirectory
+        import torch
+        from tools.benchmark_spatial_ppo import profile_rollout_step
+
+        def shortlist():
+            return torch.arange(4).sum().item()
+
+        preparer = SimpleNamespace(_screen_shortlist=shortlist)
+        trainer = SimpleNamespace(args=SimpleNamespace(envs=32, rollout=256), _gpu_preparer=preparer)
+
+        def rollout(warmup):
+            self.assertFalse(warmup)
+            self.assertEqual(trainer.args.rollout, 1)
+            self.assertEqual(preparer._screen_shortlist(), 6)
+            return SimpleNamespace(choices=range(32))
+
+        trainer.rollout = rollout
+        with TemporaryDirectory() as tmp:
+            trace = Path(tmp)/'profiles'/'step.json.gz'
+            profile_rollout_step(trainer, 'cpu', trace, {'device': 'cpu', 'rollout_steps': 1})
+            report = json.loads(gzip.decompress(trace.read_bytes()))
+            self.assertEqual(report['simulation_benchmark'], {'device': 'cpu', 'rollout_steps': 1})
+            names = {e.get('name') for e in report['traceEvents']}
+            self.assertTrue({'benchmark/rollout_step', 'simulation/screen_shortlist', 'aten::sum'} <= names)
+            self.assertIs(preparer._screen_shortlist, shortlist)
+
+    def test_host_only_trace_cannot_be_published_as_cuda(self):
+        from tempfile import TemporaryDirectory
+        import torch
+        from tools.benchmark_spatial_ppo import profile_rollout_step
+        cpu, cuda = torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA
+        host_only = torch.profiler.profile(activities=[cpu])
+        trainer = SimpleNamespace(args=SimpleNamespace(envs=32), _gpu_preparer=None,
+                                  _gpu_prepare_status=dict(enabled=True, preparations=dict(
+                                      batch_calls=1, environment_calls=32, cpu_fallbacks={})),
+                                  rollout=lambda warmup: SimpleNamespace(choices=range(32)))
+        with TemporaryDirectory() as tmp, patch.object(torch.profiler, 'supported_activities', return_value={cpu, cuda}), \
+                patch.object(torch.cuda, 'synchronize'), patch.object(torch.profiler, 'profile', return_value=host_only):
+            trace = Path(tmp)/'cuda.json'
+            with self.assertRaisesRegex(RuntimeError, 'did not emit any CUDA kernels'):
+                profile_rollout_step(trainer, 'cuda', trace, {'device': 'cuda'})
+            self.assertFalse(trace.exists())
+
     def test_enabled_flag_alone_does_not_prove_cuda_work(self):
         fallback = self.row()
         fallback['gpu_prepare']['runtime_fallback'] = 'allocation_failed'

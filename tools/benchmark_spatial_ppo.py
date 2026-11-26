@@ -2,6 +2,8 @@
 import argparse
 import ast
 import base64
+from contextlib import ExitStack
+import gzip
 import hashlib
 import json
 import math
@@ -177,6 +179,56 @@ def greedy_benchmark(v4, args):
     return elapsed, proof
 
 
+def profile_rollout_step(trainer, device, output, metadata):
+    """Export a single 32-environment rollout step; keep all instrumentation outside timed workers."""
+    import torch
+    from unittest.mock import patch
+    activities = [torch.profiler.ProfilerActivity.CPU]
+    if device == 'cuda':
+        activities.append(torch.profiler.ProfilerActivity.CUDA)
+        if activities[-1] not in torch.profiler.supported_activities():
+            raise RuntimeError('CUDA profiling requires a CUDA-enabled profiler with CUPTI')
+        torch.cuda.synchronize()
+    trainer.args.rollout = 1
+    with torch.profiler.profile(activities=activities) as capture, ExitStack() as ranges:
+        capture.add_metadata_json('simulation_benchmark', json.dumps(metadata))
+        # Wrap only this worker's warmed preparer, including older revisions without a final selector.
+        preparer = trainer._gpu_preparer
+        for owner, name in ((trainer, 'prepare_episode'), (preparer, '_prepare_group'),
+                            (preparer, '_screen_shortlist'), (preparer, '_final_shortlist')):
+            method = getattr(owner, name, None)
+            if method is not None:
+                labeled = torch.profiler.record_function('simulation/' + name.lstrip('_'))(method)
+                ranges.enter_context(patch.object(owner, name, labeled))
+        with torch.profiler.record_function('benchmark/rollout_step'):
+            rollout = trainer.rollout(False)
+            if device == 'cuda':
+                torch.cuda.synchronize()
+    if len(rollout.choices) != trainer.args.envs:
+        raise RuntimeError('Incomplete profiling rollout step')
+    if device == 'cuda':
+        preparation = trainer._gpu_prepare_status
+        stats = preparation.get('preparations', {})
+        if (not preparation['enabled'] or preparation.get('runtime_fallback') or not stats.get('batch_calls')
+                or sum(stats['cpu_fallbacks'].values()) >= stats['environment_calls']):
+            raise RuntimeError('Profile did not exercise CUDA simulation for this workload')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
+        trace = Path(temporary) / output.name
+        capture.export_chrome_trace(str(trace))
+        # Newer CUPTI backends can defer the write until the observer is joined.
+        if hasattr(capture, 'wait_for_exports'):
+            capture.wait_for_exports()
+        opener = gzip.open if trace.suffix == '.gz' else open
+        with opener(trace, 'rt', encoding='utf-8') as stream:
+            events = json.load(stream)['traceEvents']
+        if not any(e.get('name') == 'benchmark/rollout_step' for e in events):
+            raise RuntimeError('Profiler did not emit the host rollout range')
+        if device == 'cuda' and not any(e.get('cat') == 'kernel' for e in events):
+            raise RuntimeError('Profiler did not emit any CUDA kernels; check CUPTI availability')
+        os.link(trace, output)  # Publish only a complete trace, without replacing any existing file.
+
+
 def measure(args):
     sys.path.insert(0, str(args.source.resolve()))
     import torch
@@ -184,13 +236,17 @@ def measure(args):
 
     with tempfile.TemporaryDirectory() as temporary:
         switches = VARIANTS[args.variant]
-        if args.compare_simulation:
+        device = args.profile_step or 'cuda'
+        if args.compare_simulation or args.profile_step:
             switches = VARIANTS['combined'].copy()
             if args.variant == 'combined':
                 switches.extend(('--two-stage-exhaustive', '--headless-commit'))
+        backend_flags = ['--gpu-prepare', '--coalesce-transfers', '--cache-rollout', '--fused-encoding']
+        if device == 'cpu':
+            backend_flags = ['--coalesce-transfers', '--cache-rollout']
         options = v4.arguments([
-            '--run-dir', temporary, '--device', 'cuda', '--backend', 'native', '--no-gpu-defaults',
-            '--gpu-prepare', '--coalesce-transfers', '--cache-rollout', '--fused-encoding',
+            '--run-dir', temporary, '--device', device, '--backend', 'native', '--no-gpu-defaults',
+            *backend_flags,
             '--pretrained', str(args.incumbent.resolve()), '--preserve-pretrained-critic',
             '--calibration-games', '0', '--allow-uncalibrated', '--regional-critic', '--recover-target',
             '--screening', 'exhaustive', '--fixed-lr', '--seed', str(args.seed), '--pieces', '0',
@@ -200,7 +256,7 @@ def measure(args):
         torch.set_num_threads(1)
         v4.game.configure_backend('native')
         v4.game.load_checkpoint(options.weights)
-        with v4.v2.device_lock(torch.device('cuda')), v4.base.Budget(1) as budget:
+        with v4.v2.device_lock(torch.device(device)), v4.base.Budget(1) as budget:
             trainer = v4.SurvivalTrainer(options, budget)
             if not trainer.calibrate():
                 raise ValueError('Benchmark initialization failed calibration')
@@ -217,6 +273,14 @@ def measure(args):
             if args.workload == 'late':
                 trainer.environments[:] = late_episodes(v4, [e.number for e in trainer.environments], args.late_states)
                 trainer.prepared = trainer._prepared_gpu_batch = None
+            if args.profile_step:
+                metadata = dict(device=device, workload=args.workload, variant=args.variant, seed=args.seed,
+                                environments=options.envs, rollout_steps=1, warmup_steps=4,
+                                checkpoint_sha256=trainer.imported_checkpoint_sha256,
+                                simulator_sha256=_sha(args.source/'tetris_gpu_simulation.py'))
+                profile_rollout_step(trainer, device, args.output, metadata)
+                print(f'Wrote {device.upper()} rollout trace to {args.output}')
+                return
             torch.cuda.synchronize()
             torch.cuda.reset_peak_memory_stats()
             start = time.perf_counter()
@@ -560,16 +624,31 @@ if __name__ == '__main__':
     parser.add_argument('--gate-failure', metavar='REASON')
     parser.add_argument('--late-states', type=Path)
     parser.add_argument('--compare-simulation', action='store_true', help='Compare incumbent V4 simulation against staged selection and native headless commitment')
+    parser.add_argument('--profile-step', choices=('cpu', 'cuda'),
+                        help='Standalone one-step training rollout trace after warmup, including preparation, actor, commits and bootstrap. '
+                             'Use --output TRACE.json or TRACE.json.gz and optionally --variant reference|combined (default combined).')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--reference', type=Path)
-    parser.add_argument('--candidate', type=Path, default=ROOT)
-    parser.add_argument('--pairs', type=int, default=5)
+    parser.add_argument('--candidate', type=Path)
+    parser.add_argument('--pairs', type=int)
     parser.add_argument('--seed', type=int, default=418000)
     parser.add_argument('--workload', choices=('opening', 'boundaries', 'late'), default='opening',
                         help='Boundaries compares reference and combined at a 744 MiB limit with a forced clear and target recovery')
     parser.add_argument('--variant', choices=VARIANTS)
     parser.add_argument('--source', type=Path, default=ROOT)
     args = parser.parse_args()
+    if args.profile_step:
+        if (args.compare_simulation or args.reference or args.candidate or args.pairs is not None
+                or args.freeze_simulation or args.summarize_simulation_gate
+                or args.make_late_states or args.gate_failure or args.variant not in (None, 'reference', 'combined')):
+            parser.error('--profile-step is standalone; choose --source and --variant reference or combined')
+        if not args.output.name.endswith(('.json', '.json.gz')) or args.output.exists() or args.output.is_symlink():
+            parser.error('--profile-step requires a new --output TRACE.json or TRACE.json.gz')
+        args.variant = args.variant or 'combined'
+    else:
+        args.candidate = args.candidate or ROOT
+        if args.pairs is None:
+            args.pairs = 5
     if args.freeze_simulation:
         freeze_simulation(args.output)
         raise SystemExit(0)

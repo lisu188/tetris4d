@@ -1721,6 +1721,370 @@
           }
         ]
       }
+    },
+    "612000-anchored": {
+      "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+      "receipt_sha256": "3cae061533ba46d0a28fe9ed42418a449a32979a65541a40649198d0f97123aa",
+      "summary": {
+        "opening": {
+          "games": 8,
+          "remaining_mean": 40705,
+          "offset_range": [
+            0,
+            0
+          ],
+          "own": {
+            "mean_prediction": 25091.237545013428,
+            "mae": 15613.762454986572,
+            "bias": -15613.762454986572,
+            "underpredicted": 8
+          },
+          "incumbent": {
+            "mean_prediction": 17616.382122039795,
+            "mae": 23088.617877960205,
+            "bias": -23088.617877960205,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 40897,
+            "mae": 7361,
+            "bias": 192,
+            "underpredicted": 4
+          }
+        },
+        "8192": {
+          "games": 8,
+          "remaining_mean": 30405,
+          "offset_range": [
+            10300,
+            10300
+          ],
+          "own": {
+            "mean_prediction": 29070.998668670654,
+            "mae": 4168.026378631592,
+            "bias": -1334.0013313293457,
+            "underpredicted": 4
+          },
+          "incumbent": {
+            "mean_prediction": 21479.984521865845,
+            "mae": 8925.015478134155,
+            "bias": -8925.015478134155,
+            "underpredicted": 8
+          },
+          "other_seed_median": {
+            "mean_prediction": 30597,
+            "mae": 7361,
+            "bias": 192,
+            "underpredicted": 4
+          }
+        },
+        "32768": {
+          "games": 6,
+          "remaining_mean": 10852.666666666666,
+          "offset_range": [
+            33047,
+            33047
+          ],
+          "own": {
+            "mean_prediction": 9376.740038394928,
+            "mae": 2812.793757279714,
+            "bias": -1475.9266282717388,
+            "underpredicted": 3
+          },
+          "incumbent": {
+            "mean_prediction": 15050.135135650635,
+            "mae": 4888.886984507243,
+            "bias": 4197.468468983968,
+            "underpredicted": 2
+          },
+          "other_seed_median": {
+            "mean_prediction": 9892.5,
+            "mae": 4510.5,
+            "bias": -960.1666666666666,
+            "underpredicted": 3
+          }
+        }
+      },
+      "missing": {
+        "32768": {
+          "completed_below_threshold": [
+            48200001,
+            48200005
+          ]
+        }
+      },
+      "rows": {
+        "opening": [
+          {
+            "seed": 48200001,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 32767,
+            "own": 25155.696868896484,
+            "incumbent": 17639.278411865234,
+            "other_seed_median": 42430
+          },
+          {
+            "seed": 48200003,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 39364,
+            "own": 25142.467498779297,
+            "incumbent": 17691.997528076172,
+            "other_seed_median": 42430
+          },
+          {
+            "seed": 48200005,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 29475,
+            "own": 25071.571350097656,
+            "incumbent": 17574.481964111328,
+            "other_seed_median": 42430
+          },
+          {
+            "seed": 48200007,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 37902,
+            "own": 25024.913787841797,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 42430
+          },
+          {
+            "seed": 48200009,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 43449,
+            "own": 25137.399673461914,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 39364
+          },
+          {
+            "seed": 48200011,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 49518,
+            "own": 25035.537719726562,
+            "incumbent": 17597.904205322266,
+            "other_seed_median": 39364
+          },
+          {
+            "seed": 48200013,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 42430,
+            "own": 25024.913787841797,
+            "incumbent": 17609.760284423828,
+            "other_seed_median": 39364
+          },
+          {
+            "seed": 48200015,
+            "offset": 0,
+            "target": 1,
+            "scoring_target": 1,
+            "board_sha256": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47",
+            "snapshot_sha256": null,
+            "remaining": 50735,
+            "own": 25137.399673461914,
+            "incumbent": 17603.93714904785,
+            "other_seed_median": 39364
+          }
+        ],
+        "8192": [
+          {
+            "seed": 48200001,
+            "offset": 10300,
+            "target": 6,
+            "scoring_target": 6,
+            "board_sha256": "a24840317c8c1b74bc5965985df02456af886d22396ec09d0cfe93f6052704e1",
+            "snapshot_sha256": "44c195dbdcbdd8f003b740d3ae3ce96919d0bdc9745ca42b4c96eb435634edb6",
+            "remaining": 22467,
+            "own": 24839.702606201172,
+            "incumbent": 18467.243194580078,
+            "other_seed_median": 32130
+          },
+          {
+            "seed": 48200003,
+            "offset": 10300,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "8a70fc0ab0ddfbe9721881c5b4785f958581f4c887165e7dc38b818596cf07d0",
+            "snapshot_sha256": "9283a41d0fd0011861d0cefec6a77384017b29b386e6f01e960533bc5cbe1e08",
+            "remaining": 29064,
+            "own": 29254.112243652344,
+            "incumbent": 20870.38230895996,
+            "other_seed_median": 32130
+          },
+          {
+            "seed": 48200005,
+            "offset": 10300,
+            "target": 6,
+            "scoring_target": 6,
+            "board_sha256": "5bb64af52b7821811c195c892122494b104dbe40d60695d00648f2fac0525826",
+            "snapshot_sha256": "5508d2c3bd81cf49fea034cba78d1a758781257497f45286a775f1a4fa319e81",
+            "remaining": 19175,
+            "own": 27003.360748291016,
+            "incumbent": 18866.592407226562,
+            "other_seed_median": 32130
+          },
+          {
+            "seed": 48200007,
+            "offset": 10300,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "8e0fb2f16ca4af781e38992f54b975c492bf06a823eaddc9553fdcc8bf724b0e",
+            "snapshot_sha256": "b2c601826be2d9b4fcf033eff7f463ca01159501e989478f620fc0b8195ac1bf",
+            "remaining": 27602,
+            "own": 28546.924591064453,
+            "incumbent": 20851.181030273438,
+            "other_seed_median": 32130
+          },
+          {
+            "seed": 48200009,
+            "offset": 10300,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "1615ed30ce1d10f967460c0608641313b56d5cf9d374ff5c8bfc4d7e7358395f",
+            "snapshot_sha256": "172a7a55904ae07a31050b1162dbc496482a22d281bff6e2aad4992f718694b8",
+            "remaining": 33149,
+            "own": 31059.21173095703,
+            "incumbent": 23876.728057861328,
+            "other_seed_median": 29064
+          },
+          {
+            "seed": 48200011,
+            "offset": 10300,
+            "target": 5,
+            "scoring_target": 5,
+            "board_sha256": "86857a695afb2cfb7e70aa5bb039524910550572c51ec84e2e910102ead9bb2c",
+            "snapshot_sha256": "ea59955d75547f2264d170b0cfe31953d0755a6e59e424c0f2c5524cbb35d70d",
+            "remaining": 39218,
+            "own": 29669.837951660156,
+            "incumbent": 22502.376556396484,
+            "other_seed_median": 29064
+          },
+          {
+            "seed": 48200013,
+            "offset": 10300,
+            "target": 3,
+            "scoring_target": 3,
+            "board_sha256": "7cde63ef5f9123bd61402c6a8c594e75a23dfabdb09655fbd9cb73e7532ff91d",
+            "snapshot_sha256": "e61b4d82c377cc288d0e87c53b0a022dc9c102da1b82bc37aee7e55f2229745e",
+            "remaining": 32130,
+            "own": 31521.488189697266,
+            "incumbent": 23323.162078857422,
+            "other_seed_median": 29064
+          },
+          {
+            "seed": 48200015,
+            "offset": 10300,
+            "target": 4,
+            "scoring_target": 4,
+            "board_sha256": "53879d07a28eec1233d19275ea7fcb1c3e68106a607b7a1de0ca4aa5aa6e1790",
+            "snapshot_sha256": "6cd4ae8723c327e9f87343986eddcc33720b2277d4506aa8bec1423feb042628",
+            "remaining": 40435,
+            "own": 30673.351287841797,
+            "incumbent": 23082.210540771484,
+            "other_seed_median": 29064
+          }
+        ],
+        "32768": [
+          {
+            "seed": 48200003,
+            "offset": 33047,
+            "target": 12,
+            "scoring_target": 12,
+            "board_sha256": "c3d157995d9aff1e2d6a83b0875760f1312e5e9cfa98fc1b7a839fe664182413",
+            "snapshot_sha256": "990863a993a9071151d334bd4b45421694810791bd99ff090c103ada80230331",
+            "remaining": 6317,
+            "own": 1175.3114461898804,
+            "incumbent": 12138.206481933594,
+            "other_seed_median": 10402
+          },
+          {
+            "seed": 48200007,
+            "offset": 33047,
+            "target": 11,
+            "scoring_target": 11,
+            "board_sha256": "f0d774d5568a328b33f83144d6692d5451d63f047c2fe46b100194b6400bae21",
+            "snapshot_sha256": "246e348ce4bb0b1744364faf798c9973bee77001f448f24a0eb90d4c9ba6c6d8",
+            "remaining": 4855,
+            "own": 6297.036170959473,
+            "incumbent": 13442.76237487793,
+            "other_seed_median": 10402
+          },
+          {
+            "seed": 48200009,
+            "offset": 33047,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "dc0b77d3a4d2779c5e2096e56608a791099a80c0191427645ed8d27110212394",
+            "snapshot_sha256": "248276660477e90f3f78502e638d6653f366ea63eabbb017d145e81aef6efa62",
+            "remaining": 10402,
+            "own": 12761.253356933594,
+            "incumbent": 16429.494857788086,
+            "other_seed_median": 9383
+          },
+          {
+            "seed": 48200011,
+            "offset": 33047,
+            "target": 9,
+            "scoring_target": 9,
+            "board_sha256": "89ec6d3a1cf4c9142b102d55dbdc0310c846f5be16720141a286dc7752bc6192",
+            "snapshot_sha256": "235f3e9c7e63812f6a607fb342ff77a5e8d737525c1edec49a1aec479001692e",
+            "remaining": 16471,
+            "own": 14326.132774353027,
+            "incumbent": 16138.07487487793,
+            "other_seed_median": 9383
+          },
+          {
+            "seed": 48200013,
+            "offset": 33047,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "2d8cc19bcca2f938e1a2de251833823d1700f3843d26bef9c31c379cb347d4c6",
+            "snapshot_sha256": "2aa842121549aca78365d34055c92bb76315d94a3de487c9c6214d1de6bd389b",
+            "remaining": 9383,
+            "own": 9592.31185913086,
+            "incumbent": 16205.602645874023,
+            "other_seed_median": 10402
+          },
+          {
+            "seed": 48200015,
+            "offset": 33047,
+            "target": 10,
+            "scoring_target": 10,
+            "board_sha256": "8cb61a4b0b67067800aab86f85588899b7635c283dd4398e6464d5890866ed1c",
+            "snapshot_sha256": "2f72288667133e9fcda27c8ceaa821851dfb23abb33a8f279fd0ce5e46deecee",
+            "remaining": 17688,
+            "own": 12108.394622802734,
+            "incumbent": 15946.669578552246,
+            "other_seed_median": 9383
+          }
+        ]
+      }
     }
   },
   "frozen_design": {
@@ -2085,6 +2449,90 @@
             }
           ],
           "mean_delta": 7665.048246701558,
+          "positive": 5
+        }
+      },
+      "612000-anchored": {
+        "opening-8192": {
+          "pairs": [
+            {
+              "seed": 48200001,
+              "elapsed": 10300,
+              "delta": 9984.005737304688
+            },
+            {
+              "seed": 48200003,
+              "elapsed": 10300,
+              "delta": 14411.644744873047
+            },
+            {
+              "seed": 48200005,
+              "elapsed": 10300,
+              "delta": 12231.78939819336
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 10300,
+              "delta": 13822.010803222656
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 10300,
+              "delta": 16221.812057495117
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 10300,
+              "delta": 14934.300231933594
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 10300,
+              "delta": 16796.57440185547
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 10300,
+              "delta": 15835.951614379883
+            }
+          ],
+          "mean_delta": 14279.761123657227,
+          "positive": 8
+        },
+        "8192-32768": {
+          "pairs": [
+            {
+              "seed": 48200003,
+              "elapsed": 22747,
+              "delta": -5331.800797462463
+            },
+            {
+              "seed": 48200007,
+              "elapsed": 22747,
+              "delta": 497.11157989501953
+            },
+            {
+              "seed": 48200009,
+              "elapsed": 22747,
+              "delta": 4449.0416259765625
+            },
+            {
+              "seed": 48200011,
+              "elapsed": 22747,
+              "delta": 7403.294822692871
+            },
+            {
+              "seed": 48200013,
+              "elapsed": 22747,
+              "delta": 817.8236694335938
+            },
+            {
+              "seed": 48200015,
+              "elapsed": 22747,
+              "delta": 4182.0433349609375
+            }
+          ],
+          "mean_delta": 2002.9190392494202,
           "positive": 5
         }
       }

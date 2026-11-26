@@ -693,6 +693,81 @@
       "blocked_pieces": {
         "CROSS": 8
       }
+    },
+    "612000-anchored": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 32767,
+          "clears": 38,
+          "placed_cells": 196594,
+          "occupied_cells": 40946,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 39364,
+          "clears": 46,
+          "placed_cells": 236179,
+          "occupied_cells": 47763,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 29475,
+          "clears": 33,
+          "placed_cells": 176850,
+          "occupied_cells": 41682,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 37902,
+          "clears": 44,
+          "placed_cells": 227412,
+          "occupied_cells": 47188,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 43449,
+          "clears": 51,
+          "placed_cells": 260699,
+          "occupied_cells": 51803,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 49518,
+          "clears": 60,
+          "placed_cells": 297110,
+          "occupied_cells": 51350,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 42430,
+          "clears": 50,
+          "placed_cells": 254584,
+          "occupied_cells": 49784,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 50735,
+          "clears": 61,
+          "placed_cells": 304401,
+          "occupied_cells": 54545,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "3cae061533ba46d0a28fe9ed42418a449a32979a65541a40649198d0f97123aa",
+      "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+      "mean_terminal_cells": 48132.625,
+      "pooled_clears_per_1000": 1.1761454366785407,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
     }
   },
   "snapshot_crosschecks": [
@@ -713,6 +788,12 @@
       "seed": 48200001,
       "placement": 9311,
       "occupied_cells": 14907
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200001,
+      "placement": 10300,
+      "occupied_cells": 20845
     },
     {
       "player": "611000-cold",
@@ -763,10 +844,22 @@
       "occupied_cells": 14905
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200003,
+      "placement": 10300,
+      "occupied_cells": 16747
+    },
+    {
       "player": "611000-cold",
       "seed": 48200003,
       "placement": 10540,
       "occupied_cells": 18190
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200003,
+      "placement": 33047,
+      "occupied_cells": 42635
     },
     {
       "player": "611000-anchored",
@@ -805,6 +898,12 @@
       "occupied_cells": 18994
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200005,
+      "placement": 10300,
+      "occupied_cells": 16743
+    },
+    {
       "player": "611000-cold",
       "seed": 48200005,
       "placement": 10540,
@@ -829,10 +928,22 @@
       "occupied_cells": 14907
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200007,
+      "placement": 10300,
+      "occupied_cells": 16740
+    },
+    {
       "player": "611000-cold",
       "seed": 48200007,
       "placement": 10540,
       "occupied_cells": 14086
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200007,
+      "placement": 33047,
+      "occupied_cells": 38546
     },
     {
       "player": "612000-cold",
@@ -871,10 +982,22 @@
       "occupied_cells": 14895
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200009,
+      "placement": 10300,
+      "occupied_cells": 12636
+    },
+    {
       "player": "611000-cold",
       "seed": 48200009,
       "placement": 10540,
       "occupied_cells": 14096
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200009,
+      "placement": 33047,
+      "occupied_cells": 38539
     },
     {
       "player": "612000-cold",
@@ -919,10 +1042,22 @@
       "occupied_cells": 14913
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200011,
+      "placement": 10300,
+      "occupied_cells": 16732
+    },
+    {
       "player": "611000-cold",
       "seed": 48200011,
       "placement": 10540,
       "occupied_cells": 14071
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200011,
+      "placement": 33047,
+      "occupied_cells": 34438
     },
     {
       "player": "611000-anchored",
@@ -961,10 +1096,22 @@
       "occupied_cells": 14898
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200013,
+      "placement": 10300,
+      "occupied_cells": 12653
+    },
+    {
       "player": "611000-cold",
       "seed": 48200013,
       "placement": 10540,
       "occupied_cells": 18181
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200013,
+      "placement": 33047,
+      "occupied_cells": 38535
     },
     {
       "player": "611000-anchored",
@@ -997,10 +1144,22 @@
       "occupied_cells": 10813
     },
     {
+      "player": "612000-anchored",
+      "seed": 48200015,
+      "placement": 10300,
+      "occupied_cells": 12639
+    },
+    {
       "player": "611000-cold",
       "seed": 48200015,
       "placement": 10540,
       "occupied_cells": 14093
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200015,
+      "placement": 33047,
+      "occupied_cells": 38540
     },
     {
       "player": "612000-cold",

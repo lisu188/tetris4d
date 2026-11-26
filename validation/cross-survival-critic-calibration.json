@@ -695,5 +695,195 @@
         }
       }
     }
+  },
+  "cross_validated_auxiliary_readout": {
+    "gate_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+    "inputs": [
+      "bias",
+      "incumbent_value_thousands",
+      "elapsed_thousands",
+      "is_cold"
+    ],
+    "input_columns": {
+      "with_critic": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "age_and_temperature": [
+        0,
+        2,
+        3
+      ]
+    },
+    "full_fit": {
+      "with_critic": [
+        -0.9008404846908418,
+        1.0942059826497008,
+        -0.567063631275036,
+        11.103674806193567
+      ],
+      "age_and_temperature": [
+        23.092030320165343,
+        -0.9344783535085177,
+        14.498349737899852
+      ]
+    },
+    "held_out_summary": {
+      "1.0": {
+        "opening": {
+          "incumbent": {
+            "mae": 6250.71826171875,
+            "bias": -6250.71826171875
+          },
+          "donor": {
+            "mae": 7475.323974609375,
+            "bias": 7475.323974609375
+          },
+          "with_critic": {
+            "mae": 5366.3640116224215,
+            "bias": -5366.3640116224215
+          },
+          "age_and_temperature": {
+            "mae": 1890.0418149783413,
+            "bias": -761.9010238503856
+          }
+        },
+        "all": {
+          "incumbent": {
+            "mae": 6214.786921223639,
+            "bias": 5962.0481467663085
+          },
+          "donor": {
+            "mae": 8604.376016777445,
+            "bias": 8281.79608387546
+          },
+          "with_critic": {
+            "mae": 1818.9757982664219,
+            "bias": 124.50497136820526
+          },
+          "age_and_temperature": {
+            "mae": 1906.7490637175933,
+            "bias": 38.51302208777031
+          }
+        },
+        "last_512": {
+          "incumbent": {
+            "mae": 10048.406799316406,
+            "bias": 10048.406799316406
+          },
+          "donor": {
+            "mae": 303.05013513565063,
+            "bias": 281.88687658309937
+          },
+          "with_critic": {
+            "mae": 256.0,
+            "bias": -256.0
+          },
+          "age_and_temperature": {
+            "mae": 1470.1653495146224,
+            "bias": 1300.801984424341
+          }
+        }
+      },
+      "0.25": {
+        "opening": {
+          "incumbent": {
+            "mae": 21240.21826171875,
+            "bias": -21240.21826171875
+          },
+          "donor": {
+            "mae": 7514.176025390625,
+            "bias": -7514.176025390625
+          },
+          "with_critic": {
+            "mae": 9169.086211589489,
+            "bias": -9169.086211589489
+          },
+          "age_and_temperature": {
+            "mae": 3429.7094027023004,
+            "bias": -1243.987482870266
+          }
+        },
+        "all": {
+          "incumbent": {
+            "mae": 6870.037842392041,
+            "bias": -946.0646555755343
+          },
+          "donor": {
+            "mae": 4689.756922089839,
+            "bias": 4026.7716978748695
+          },
+          "with_critic": {
+            "mae": 3103.78453707893,
+            "bias": 17.522604688217626
+          },
+          "age_and_temperature": {
+            "mae": 3585.8799672084856,
+            "bias": 115.11617573724564
+          }
+        },
+        "last_512": {
+          "incumbent": {
+            "mae": 10509.508056640625,
+            "bias": 10509.508056640625
+          },
+          "donor": {
+            "mae": 1907.979887008667,
+            "bias": 1907.979887008667
+          },
+          "with_critic": {
+            "mae": 888.3582137752906,
+            "bias": 674.0760389735603
+          },
+          "age_and_temperature": {
+            "mae": 2745.849815272948,
+            "bias": 2606.599815272948
+          }
+        }
+      }
+    },
+    "zero_with_over_512_left": {
+      "1.0": 80,
+      "0.25": 58
+    },
+    "design": {
+      "study": "incumbent-auxiliary-value-readout-v1",
+      "registered_utc": "2026-11-26T16:33:22+00:00",
+      "scope": "Retrospective diagnostic following inspection of the summarized errors on these eight paired piece streams. No independent new games.",
+      "seeds": [
+        48100001,
+        48100003,
+        48100005,
+        48100007,
+        48100009,
+        48100011,
+        48100013,
+        48100015
+      ],
+      "temperature": [
+        1.0,
+        0.25
+      ],
+      "model": "max(0, 1000*(a + b*v/1000 + c*age/1000 + d*is_cold)) with v from the unchanged incumbent head in placements, age from placements already played and cold indicating T=0.25. Fit four unconstrained coefficients by ordinary least squares with total observation weight one per training game. Target realized remaining placements in thousands. Also fit the nested model omitting v.",
+      "control": [
+        "unchanged incumbent",
+        "unchanged donor",
+        "fitted age + temperature without critic"
+      ],
+      "fold": "Leave one original piece seed and both of its temperatures out of fitting. Score every retained sample of the held-out stream. Refit once using all seeds for explicit illustrative coefficients.",
+      "metrics": "Mean within game then average equally over games. Report MAE and signed bias by temperature at opening, all sampled frames and last 512. Full-fit coefficients only for a future independent test.",
+      "no_outcome_as_input": true
+    },
+    "design_sha256": "9b9b755c59c362aa27a025a539bc11d255e69ee679f6dc54f8d67a4f4335643f",
+    "receipt_sha256": "5af2efc17c41f3073ee01cb105d8c952e9373482555d78e3f194738e794d9781",
+    "runner_sha256": "37425bd7d1b153af46d683cb583193e73be4f2b028b8d4e2407a19be38694c8f",
+    "independent_verification": {
+      "case_count": 3929,
+      "folds": 8,
+      "method": "Independently solved the game-weighted normal equations and reproduced all 16 held-out, per-game mean absolute errors to within 0.00001 placements. Float32 torch.nn.Linear(3,1) followed by ReLU reproduced the full-fit float64 predictions over all sampled frames.",
+      "max_fp32_discrepancy_placements_rounded": 0.00464
+    }
   }
 }

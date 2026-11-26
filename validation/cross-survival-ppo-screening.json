@@ -366,6 +366,70 @@
           "ties": 0
         }
       }
+    },
+    "612000-anchored": {
+      "receipt_sha256": "3cae061533ba46d0a28fe9ed42418a449a32979a65541a40649198d0f97123aa",
+      "endpoint_sha256": "8dd666432dbd2142569eeb06f965242d48920ff0fc8ddacadd4ce5a971b42395",
+      "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+      "mean": 40705,
+      "median": 40897.0,
+      "placements": [
+        32767,
+        39364,
+        29475,
+        37902,
+        43449,
+        49518,
+        42430,
+        50735
+      ],
+      "clears": [
+        38,
+        46,
+        33,
+        44,
+        51,
+        60,
+        50,
+        61
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1324.0630694210413,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 4008.125,
+          "relative_gain": 0.10922251554117346,
+          "paired_bootstrap_95": [
+            -2481.0,
+            11079.784375
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2145.5,
+          "relative_gain": 0.055641281655623126,
+          "paired_bootstrap_95": [
+            -4976.0,
+            9473.709374999997
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
     }
   },
   "behavior_cohorts": {
@@ -869,6 +933,59 @@
         "ties": 0
       },
       "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-cold."
+    },
+    "anchored": {
+      "mean": 39352.875,
+      "mean_of_medians": 38544.75,
+      "mean_by_game_seed": [
+        34751.5,
+        37506.5,
+        26519.5,
+        34522.5,
+        44367.5,
+        49841.5,
+        44432,
+        42882
+      ],
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2656.0,
+          "relative_gain": 0.07237673507621561,
+          "paired_bootstrap_95": [
+            -4047.0046875,
+            10078.5
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 793.375,
+          "relative_gain": 0.02057534459731065,
+          "paired_bootstrap_95": [
+            -6599.615624999999,
+            8398.189062499989
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      },
+      "replicate_comparison": {
+        "control": "ppo",
+        "cap": 0,
+        "mean_difference": 2704.25,
+        "relative_gain": 0.07116306914995099,
+        "paired_bootstrap_95": [
+          -1374.875,
+          7462.5
+        ],
+        "wins": 4,
+        "ties": 0
+      },
+      "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-anchored."
     }
   },
   "second_plain_block_swaps": {
