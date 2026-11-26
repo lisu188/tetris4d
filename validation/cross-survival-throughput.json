@@ -265,5 +265,48 @@
         }
       }
     }
+  },
+  "greedy_commit_replay": {
+    "schema": "cross-greedy-commit-only-v1",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "source_sha256": "102b59d7032f632b9d52bfe922530757e31c2972b356f06dd7efbd9c79ec0015",
+    "native_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+    "game_id": "006454ab20eb3b13ff2cb82526956caabcdd68ed2332ae8a5ba8ec5bb700d314",
+    "seed": 300018,
+    "record_sha256": "54d5c520632251fa66864ff93ea38e561cc97d4e1e19ec066e5ad6fdf9135010",
+    "moves": 11020,
+    "clears": 6,
+    "score": 600,
+    "natural_terminal": true,
+    "board_chain_sha256": "9521a5a0fb8e2cc95afd50f1fbcbbf5a82b6ba4e066db109612be6db595bd648",
+    "final_board_sha256": "e67ffef92ad9ae44a2bde642dec9016033703364f229f6e7f0ddd78f3f85478f",
+    "pairs": [
+      {
+        "standard": 5.04858993,
+        "native": 1.415190184
+      },
+      {
+        "native": 1.462294838,
+        "standard": 5.38759823
+      },
+      {
+        "standard": 4.795573811,
+        "native": 1.463917143
+      },
+      {
+        "native": 1.779657028,
+        "standard": 5.170520399
+      },
+      {
+        "standard": 4.810495433,
+        "native": 1.791204848
+      }
+    ],
+    "paired_median_speedup": 3.275850572507436,
+    "median_ms_per_move": {
+      "standard": 0.45812975771324865,
+      "native": 0.1328418460072595
+    },
+    "scope": "CPU placement, clear, next-piece legality, and render-history discard using the two evaluator commit paths. Candidate preparation, model inference, target recovery and digest verification are outside measured time. Does not change the run simulator."
   }
 }
