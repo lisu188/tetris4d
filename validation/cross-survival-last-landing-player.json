@@ -1922,5 +1922,224 @@
     },
     "local_receipt": "high-direct-scalars-override-boards.json",
     "receipt_sha256": "a989b3bc38be1d6ef8bd66ebd657f565b7355252d71731a0a4f3d6f171b71a3d"
+  },
+  "prospective_weight_145": {
+    "scope": "Eight new prespecified historical training roots using the same final-256 crossing convention; disjoint from both guard cohorts and earlier geometric and preview fixtures. Both policies start at identical boards and piece streams. Primary outcome: placements restricted to 256 following each root. Tied caps on distinct boards leave natural differences unresolved.",
+    "local_receipt": "direct145-prospective-eight/results.json",
+    "receipt_sha256": "c6ec6f74b43b794be9dea25c5aafbd90d008b4092e233cdedda36a37464ff383",
+    "plan_sha256": "173f1bb76ccb825eca9829b65e04014097aa4af44b0b34ced0c04c21d2d2291a",
+    "roots_sha256": "f73e5d9158a50bd3e405eeb1b40a43a0fb58579546611052717a1c26e40f3141",
+    "summary": {
+      "boards": 8,
+      "distinct_seeds": 8,
+      "changed_action_roots": 8,
+      "total": {
+        "weight4": 1162,
+        "weight145": 1247
+      },
+      "reasons": {
+        "weight4": {
+          "physical_top_out": 5,
+          "cap": 3
+        },
+        "weight145": {
+          "physical_top_out": 5,
+          "cap": 3
+        }
+      },
+      "restricted_wins": 4,
+      "restricted_losses": 1,
+      "restricted_ties": 3,
+      "uncensored_equal": 0,
+      "mean_restricted_difference": 10.625
+    },
+    "rows": [
+      {
+        "seed": 300076,
+        "offset": 7627,
+        "arms": {
+          "weight4": {
+            "placements": 97,
+            "reason": "physical_top_out",
+            "final_board_sha256": "3d7b66ed7508dd794081a78bc4d7547a92c8c05147dc76d24c0438d374c98106",
+            "final_stream_sha256": "e5ac85a017fe4814f131815530eb2f762ca9c3b0054683e71e0da59436597b96"
+          },
+          "weight145": {
+            "placements": 109,
+            "reason": "physical_top_out",
+            "final_board_sha256": "d580fdd4c8357876515a3c0da3329e9ae1847381384b9bb74640a9140ea4dedf",
+            "final_stream_sha256": "3841f51e77662796a32b2ba32b0e56ad58a1b19a18428555f9bdd10a86375c71"
+          }
+        },
+        "first_change_from_root": 6,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 12
+      },
+      {
+        "seed": 300188,
+        "offset": 7245,
+        "arms": {
+          "weight4": {
+            "placements": 61,
+            "reason": "physical_top_out",
+            "final_board_sha256": "f35ca3c828d11c18b13d2ae12e0eec1657dae03200a77c2c1f386063c3b27eb0",
+            "final_stream_sha256": "a97dd4bb799c145b7062578dc67408ee8c22c1dd3627bdeedba62e26dc372900"
+          },
+          "weight145": {
+            "placements": 80,
+            "reason": "physical_top_out",
+            "final_board_sha256": "289a093618dac4838eb5b30dfc91867e9afc40b8617d60b41f6b5b1b8d8db909",
+            "final_stream_sha256": "d066739f70a50cadcb7643ddd7fda7701fae48210901fc674e934b526f7111b6"
+          }
+        },
+        "first_change_from_root": 58,
+        "weight4_origins": 0,
+        "weight145_origins": 1,
+        "paired_restricted_gain": 19
+      },
+      {
+        "seed": 300498,
+        "offset": 5878,
+        "arms": {
+          "weight4": {
+            "placements": 79,
+            "reason": "physical_top_out",
+            "final_board_sha256": "5c8f89b1e9abf3663001c3ecfe1bfcc291b5931adf112567301857782c13f1f5",
+            "final_stream_sha256": "2889abeee4e498298fba0e7be364b585ebd1d9810b557609b090a3ebc2d3e96c"
+          },
+          "weight145": {
+            "placements": 131,
+            "reason": "physical_top_out",
+            "final_board_sha256": "ed2d39af912198efc7b26292d3cbc1596902221d7e12c4e58c3b7fa7a131cf33",
+            "final_stream_sha256": "c59fd1c1d87130c2cc891d729d021da809513182288c5399855de4baecc41327"
+          }
+        },
+        "first_change_from_root": 7,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 52
+      },
+      {
+        "seed": 300248,
+        "offset": 7205,
+        "arms": {
+          "weight4": {
+            "placements": 80,
+            "reason": "physical_top_out",
+            "final_board_sha256": "49339de6ad03c392050166a4133ec8dd7cdb3bee97227bcd1cc5b6c9d341697e",
+            "final_stream_sha256": "b1223f9e78433ed75c0949d7fcb7a0eaa795d3e58600610a2f068602ac6b067b"
+          },
+          "weight145": {
+            "placements": 105,
+            "reason": "physical_top_out",
+            "final_board_sha256": "4c9eac8006dc8f6d6e3eda530f4757984f8b214ce041016efeffcd875dd7ae90",
+            "final_stream_sha256": "85e82120846aa1a53894c767e811e93dd622616e41dc9646eebd0d1719337b6a"
+          }
+        },
+        "first_change_from_root": 8,
+        "weight4_origins": 6,
+        "weight145_origins": 7,
+        "paired_restricted_gain": 25
+      },
+      {
+        "seed": 300184,
+        "offset": 23334,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "99a1fdfa78cbc020ba89e77b7b999853d43965a4977688214bc3e07c532a1675",
+            "final_stream_sha256": "281613c71f2914efb128342fef343b322d8d4cab3b0e5fc0999538c359b133f6"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "df9bb89c7c7cbea9a37fed08d4643dce620254cc0e1b37879466714525600122",
+            "final_stream_sha256": "281613c71f2914efb128342fef343b322d8d4cab3b0e5fc0999538c359b133f6"
+          }
+        },
+        "first_change_from_root": 1,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300208,
+        "offset": 22443,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "786aa476631ece5ad1c92667990ac6c7e56bca1b71f803c3ac250d6dba676f5f",
+            "final_stream_sha256": "b0b2e938411e8d0117afe341afdd866508f1eaa5b81b448dea71d1d209ab2570"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "df164d73ae50a20afd099990946c432c08498196faf19a944a250944234b4604",
+            "final_stream_sha256": "b0b2e938411e8d0117afe341afdd866508f1eaa5b81b448dea71d1d209ab2570"
+          }
+        },
+        "first_change_from_root": 2,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300166,
+        "offset": 24604,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "a749c8d1c441b8a307d4f32c089c443f84aa0cc66815a904c6eee91d50078ada",
+            "final_stream_sha256": "f400ecc4898bc38c07726383b06be10a0a778b8f62544fcefe79fc0dedb3c694"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "7efe9c5028883ebf47720e28caf76ab043e5c5fb004c94c61f731b95662678a7",
+            "final_stream_sha256": "f400ecc4898bc38c07726383b06be10a0a778b8f62544fcefe79fc0dedb3c694"
+          }
+        },
+        "first_change_from_root": 13,
+        "weight4_origins": 6,
+        "weight145_origins": 7,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300486,
+        "offset": 5786,
+        "arms": {
+          "weight4": {
+            "placements": 77,
+            "reason": "physical_top_out",
+            "final_board_sha256": "8af4317b1425c8e1ed5693f1b6a83c02f48c8b8fbe21c2a692440059cfa09d56",
+            "final_stream_sha256": "b812a84cfa9fc6b30274e4d356198651ff3da6256fe3b5e4a6eae16f9db9a060"
+          },
+          "weight145": {
+            "placements": 54,
+            "reason": "physical_top_out",
+            "final_board_sha256": "e75a3af6df74166195e8aedcf89b3d7b57ecbfbe1bc0251285dab9a51a39af89",
+            "final_stream_sha256": "e0c2d7b0438ed7c8cee9143ece31f5a1a7c438aaa03b19d7784ecc794b078fff"
+          }
+        },
+        "first_change_from_root": 10,
+        "weight4_origins": 4,
+        "weight145_origins": 5,
+        "paired_restricted_gain": -23
+      }
+    ],
+    "uncapped_protocol": {
+      "plan_sha256": "a54e02baf2988c2c938b40bfd8f34d87801350633305f3429713ed9e1f26fc50",
+      "prefix_verification_sha256": "c82e31971a4a1c6d79611a3e6b784be1d19adb2d5b0a7bc0e350b646d8b21e24",
+      "seeds": [
+        300184,
+        300208,
+        300166
+      ],
+      "scope": "Each of the six 256-move prefixes reproduced its own original actions, board, stream and target. A separate CPU process resumed the snapshots for uncapped comparison."
+    }
   }
 }

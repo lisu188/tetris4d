@@ -430,6 +430,23 @@
         "kl_stops": 0,
         "device_utilization_median_pct": 35.0,
         "cpu_cores": 1.0020056922526557
+      },
+      "612000-residual": {
+        "local_receipt": "hardware-profile/612000-residual.json",
+        "receipt_sha256": "30befd0ed72179bcc753e1bf1c947e304abda88dab859032a19f26397dc54dd8",
+        "wall_seconds": 148.99099908198696,
+        "placements_per_second": 494.8486851841893,
+        "phase_percent": {
+          "prepare_seconds": 44.682,
+          "inference_transfer_seconds": 8.583,
+          "commit_seconds": 5.473,
+          "bootstrap_seconds": 0.132,
+          "update": 40.207
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 33.0,
+        "cpu_cores": 0.9997163518515023
       }
     }
   }

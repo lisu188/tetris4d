@@ -180,5 +180,135 @@
         "metrics_sha256": "01b51ac484151a0eb2686c47afdde385d26109ddcb8f3ae014964c6b794f160f"
       }
     }
+  },
+  "second_seed": {
+    "seed": 612000,
+    "initialization_sha256": "a2ebf70a9494ee85f3e32bab4582b113b9d9c65d49b6daac893c3ea39dbab386",
+    "updates": {
+      "10": {
+        "local_receipt": "612000-residual-signal-010.json",
+        "receipt_sha256": "e7510ea996e770c0beb2aba360b0e9a0a5095e081a494a42aca6c7565e47c489",
+        "checkpoint_sha256": "82053336086d040ef949245c174ae27916ed2b271b6b863c007ca8dcf47dc2d8",
+        "observer_sha256": "145821eb3e88ce64f73a1d717cbd9b1146918d943d5addcacfb7df38eca3334f",
+        "summary": {
+          "registered_changes": 1,
+          "fixed_candidate_boards": 40,
+          "valid_candidates": 5028,
+          "different_at_virtual_post_tanh_multiplier": {
+            "1": 1,
+            "4": 1,
+            "16": 1,
+            "64": 2,
+            "256": 2
+          },
+          "residual_size": {
+            "min": -0.00570711400359869,
+            "median": -0.0008903972338885069,
+            "mean": -0.0014554289938776687,
+            "max": 7.344674031628529e-06
+          },
+          "within_board_range": {
+            "min": 0.00023386147222481668,
+            "median": 0.0006030256045050919,
+            "mean": 0.0007459053689672146,
+            "max": 0.0027523781172931194
+          },
+          "boards_where_range_can_bridge_base_margin": 1,
+          "different_from_registered_with_largest_coefficient_removed": 0,
+          "different_from_registered_with_output_bias_removed": 0,
+          "saturation_above_95pct_bound": 0,
+          "largest_final_weight": {
+            "name": "cross_head.2.weight[0,6]",
+            "value": -0.003680041991174221,
+            "output_bias": -0.0002131051878677681,
+            "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+          }
+        },
+        "changed_boards": [
+          {
+            "stream": 300538,
+            "offset": 659,
+            "group": "ordinary",
+            "candidates": 128,
+            "base_greedy": 30,
+            "base_margin": 9.5367431640625e-06,
+            "residual_min": -0.002965671243146062,
+            "residual_max": -0.0021333282347768545,
+            "range": 0.0008323430083692074,
+            "scaled_choices": {
+              "1": 115,
+              "4": 115,
+              "16": 115,
+              "64": 115,
+              "256": 115
+            },
+            "without_largest_coefficient": 115,
+            "without_output_bias": 115
+          }
+        ]
+      },
+      "40": {
+        "local_receipt": "612000-residual-signal-040.json",
+        "receipt_sha256": "0bd744351ada8f85ffabebbc8c02762d7edb9e4dcab8456ee84ce134218aa00e",
+        "checkpoint_sha256": "f966cf4e5295fd907c37f5d16e66c1e2094b40d578db7b22a6a3770b7fc656da",
+        "observer_sha256": "51ef6aff0bdbd71a99bdc95256f6d85418c6c4ef76aad258e7808686fb3090fe",
+        "summary": {
+          "registered_changes": 1,
+          "fixed_candidate_boards": 40,
+          "valid_candidates": 5028,
+          "different_at_virtual_post_tanh_multiplier": {
+            "1": 1,
+            "4": 2,
+            "16": 2,
+            "64": 2,
+            "256": 8
+          },
+          "residual_size": {
+            "min": -0.03232887014746666,
+            "median": -0.004404047038406134,
+            "mean": -0.008176956732212757,
+            "max": 0.00042718477197922766
+          },
+          "within_board_range": {
+            "min": 0.0010647149756550789,
+            "median": 0.0057838603388518095,
+            "mean": 0.0059632310323650016,
+            "max": 0.015465321019291878
+          },
+          "boards_where_range_can_bridge_base_margin": 2,
+          "different_from_registered_with_largest_coefficient_removed": 0,
+          "different_from_registered_with_output_bias_removed": 0,
+          "saturation_above_95pct_bound": 0,
+          "largest_final_weight": {
+            "name": "cross_head.2.weight[0,19]",
+            "value": -0.014329805038869381,
+            "output_bias": 0.012914201244711876,
+            "semantics": "Coefficient on a learned 32-unit hidden feature before final tanh; no hand-assigned physical meaning."
+          }
+        },
+        "changed_boards": [
+          {
+            "stream": 300538,
+            "offset": 659,
+            "group": "ordinary",
+            "candidates": 128,
+            "base_greedy": 30,
+            "base_margin": 9.5367431640625e-06,
+            "residual_min": -0.02025088481605053,
+            "residual_max": -0.011966819874942303,
+            "range": 0.008284064941108227,
+            "scaled_choices": {
+              "1": 115,
+              "4": 115,
+              "16": 115,
+              "64": 115,
+              "256": 115
+            },
+            "without_largest_coefficient": 115,
+            "without_output_bias": 115
+          }
+        ]
+      }
+    }
   }
 }
