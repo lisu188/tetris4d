@@ -504,6 +504,36 @@ class DangerStartTests(TrainerHarness):
                 self.assertEqual(event['start_pieces'], episode.start['offset'])
                 self.assertEqual(event['own_placements'], episode.state.pieces + 7 - episode.start['offset'])
 
+    def test_update_exposure_includes_partial_episodes_and_resumes_without_double_counting(self):
+        options = ('--danger-starts', '.9999', '--danger-window', '5', '20', '--danger-pool', '4', '--pieces', '0')
+        trainer = self.trainer(*options)
+        initial_count = len(trainer.environments)
+        self.assertTrue(all(e.start for e in trainer.environments))
+        self.assertTrue(trainer.calibrate())
+
+        def update(owner):
+            owner.update(owner.rollout(False), False)
+            return [r for line in owner.metrics.read_text().splitlines() if (r := json.loads(line))['event'] == 'update'][-1]
+
+        first = update(trainer)
+        placements = initial_count * trainer.args.rollout
+        self.assertEqual(first['finished_episodes'], 0)
+        self.assertEqual(first['danger_starts_this_update'], initial_count)
+        self.assertEqual(first['danger_placements_this_update'], placements)
+        self.assertEqual(first['fresh_placements_this_update'], 0)
+        trainer.save('partial_danger_episodes')
+        resumed = self.trainer(*options)
+        # Force a reset for each live episode after one more move; every replacement is fresh.
+        resumed.args.pieces = 1
+        with patch.object(resumed, '_next_danger_start', return_value=None):
+            second = update(resumed)
+        self.assertEqual(second['danger_starts_this_update'], 0)
+        self.assertEqual(second['danger_placements_this_update'], initial_count)
+        self.assertEqual(second['fresh_placements_this_update'], placements - initial_count)
+        self.assertEqual(second['danger_placements_total'], placements + initial_count)
+        self.assertEqual(second['fresh_starts_this_update'], placements)
+        self.assertEqual(second['danger_placements_total'] + second['fresh_placements_total'], second['placements'])
+
     def test_fresh_runs_never_touch_the_library(self):
         trainer = self.trainer()
         self.assertEqual(trainer.danger_pool, [])

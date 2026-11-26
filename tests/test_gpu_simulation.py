@@ -112,6 +112,31 @@ class CudaPreparationContractTests(unittest.TestCase):
             self.assertEqual(selected, tuple(references[i].options[references[i].teacher] for i in result.environment_indices))
         return result
 
+    def test_staged_exhaustive_matches_dense_for_ties_recovery_and_ragged_groups(self):
+        states = [game.Game(840000 + i) for i in range(7)]
+        for i, (piece, board) in enumerate((
+            ('BRIDGE', game.EMPTY_BOARD), ('L', (0, 1, 3, 7) * 1024),
+            ('FORK', (3, 7, 1, 0) * 1024), ('I', (0,) + (65535,) * 4095),
+            ('CROSS', (65535,) * 4096), ('I', (2,) * 4096), ('I', (0,) + (32767,) * 4095))):
+            states[i].current, states[i].board = piece, board
+        for mode, width in (('teacher-random', 17), ('teacher-top', 128)):
+            config = neural.Config(screening='exhaustive', recover_target=True, shortlist=width, shortlist_mode=mode)
+            preparer = gpu.GpuPreparer(config, group_exhaustive=True, two_stage=True)
+            reference = gpu.GpuPreparer(config, group_exhaustive=True)
+            targets = [1, 1, 1, 15, 13, 0, 15]
+            expected, actual = reference.prepare_batch(states, targets), preparer.prepare_batch(states, targets)
+            self.assertGreater(preparer.two_stage_counts['screened_groups'], 0)
+            self.assertEqual(actual.environment_indices, expected.environment_indices)
+            self.assertEqual(actual.cpu_fallbacks, expected.cpu_fallbacks)
+            self.assertEqual(actual.targets, expected.targets)
+            for key, value in expected.batch.items():
+                torch.testing.assert_close(actual.batch[key], value, rtol=0, atol=0)
+            for field in ('teachers', '_option_specs', '_option_scores'):
+                torch.testing.assert_close(getattr(actual, field), getattr(expected, field), rtol=0, atol=0)
+            for a, b in zip(actual.prepared, expected.prepared):
+                if b is not None:
+                    self.assertEqual((a.evaluations, a.fallback), (b.evaluations, b.fallback))
+
     def test_all_pieces_and_retained_records(self):
         config = neural.Config(candidates=2048, shortlist=128)
         states = [game.Game(9000 + i, "expanded") for i in range(16)]

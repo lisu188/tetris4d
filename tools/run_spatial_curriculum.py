@@ -38,20 +38,22 @@ def freeze(path, data):
         base.durable_json(path, data)
 
 
-def trainer_args(out, incumbent, arm, optimizations):
+def trainer_args(out, incumbent, arm, optimizations, *, seed=TRAIN_SEED, danger_per_game=None,
+                 selection_seeds=DEV + HOLDOUT, extra=()):
+    per_game = ARMS[arm] if danger_per_game is None else danger_per_game
     return v4.arguments([
         '--run-dir', str(out / arm), '--pretrained', str(incumbent), '--preserve-pretrained-critic',
         '--device', 'cuda', '--backend', 'native', '--no-gpu-defaults', '--gpu-prepare', '--coalesce-transfers',
         '--cache-rollout', '--fused-encoding', '--rollout-cache-mib', '2048', '--precision', 'fp32', '--threads', '1',
-        '--seed', str(TRAIN_SEED), '--calibration-games', '0', '--allow-uncalibrated', '--pieces', '0',
-        '--danger-starts', '.25', '--distinct-danger-seeds', '--danger-pool', '32', '--danger-per-game', str(ARMS[arm]),
+        '--seed', str(seed), '--calibration-games', '0', '--allow-uncalibrated', '--pieces', '0',
+        '--danger-starts', '.25', '--distinct-danger-seeds', '--danger-pool', '32', '--danger-per-game', str(per_game),
         '--danger-window', '500', '3000', '--recover-target', '--regional-critic', '--screening', 'exhaustive',
         '--policy-mode', 'teacher-prior', '--teacher-prior-scale', '.125', '--fixed-lr', '--lr', '5e-5',
         '--critic-lr', '.0003', '--entropy', '.001', '--gae-lambda', '.999', '--ppo-epochs', '2',
         '--clip-ratio', '.1', '--target-kl', '.01', '--envs', '32', '--rollout', '256', '--batch', '32',
         '--optimizer-batch', '256', '--warmup-updates', '0', '--imitation', '0', '--secondary-weight', '0',
-        '--regret-weight', '0', '--defer-selection', '--selection-seeds', *map(str, DEV + HOLDOUT),
-        '--selection-pieces', str(CAP), '--save-seconds', '300', '--save-every', '10', *OPTIONS[optimizations]])
+        '--regret-weight', '0', '--defer-selection', '--selection-seeds', *map(str, selection_seeds),
+        '--selection-pieces', str(CAP), '--save-seconds', '300', '--save-every', '10', *OPTIONS[optimizations], *extra])
 
 
 def protocol(incumbent, optimizations, device):

@@ -79,15 +79,17 @@ def secondary_teacher_loss(logp, batch, winners=None):
 
 
 def gradient_size(loss, parameters):
+    if not loss.requires_grad:
+        return 0.
     gradients = torch.autograd.grad(loss, parameters, retain_graph=True, allow_unused=True)
     squared = sum(g.detach().float().square().sum() for g in gradients if g is not None)
     return float(squared.sqrt().item()) if isinstance(squared, torch.Tensor) else 0.
 
 
-def actor_digest(model):
+def actor_digest(model, *, base_only=False):
     h = hashlib.sha256()
     for name, value in sorted(model.state_dict().items()):
-        if not name.startswith('value.'):
+        if not name.startswith('value.') and not (base_only and name.startswith('cross_head.')):
             h.update(name.encode())
             h.update(value.detach().cpu().contiguous().numpy().tobytes())
     return h.hexdigest()
@@ -146,7 +148,7 @@ def clip_gradient_groups(optimizer, scope, maximum=1., coalesce=False):
     for name, parameters in (('actor', actor), ('critic', critic)):
         gradients = [p.grad for p in parameters if p.grad is not None]
         norms[name] = (torch.nn.utils.get_total_norm(gradients, error_if_nonfinite=True) if gradients
-                       else torch.zeros((), device=parameters[0].device))
+                       else torch.zeros((), device=critic[0].device))
     if scope == 'joint':
         total = torch.nn.utils.clip_grad_norm_(actor + critic, maximum, error_if_nonfinite=True)
     else:
@@ -249,6 +251,7 @@ class Rollout:
     gpu_prepare: dict | None = None
     fixed_cache: FixedRolloutCache | None = None
     fixed_fallback: str | None = None
+    reference_logp: torch.Tensor | None = None
 
 
 class RolloutCache:
@@ -386,6 +389,9 @@ class SurvivalTrainer(base.Trainer):
                                         if getattr(self.args, 'fused_encoding', False) else None)}
 
     def policy_logp(self, logits, valid):
+        temperature = getattr(self.args, 'behavior_temperature', 1.)
+        if temperature != 1.:
+            logits = logits.float() / temperature
         if not getattr(self.args, 'coalesce_transfers', False):
             return legacy.categorical_logp(logits, valid)
         valid = valid.bool()
@@ -414,13 +420,17 @@ class SurvivalTrainer(base.Trainer):
             self.model.blocks.requires_grad_(False)
         self.calibration_actor = actor_digest(self.model)
         self.initial_actor_sha256 = self.calibration_actor
+        self.configure_reference(resuming)
+
+    def configure_reference(self, resuming):
         if not resuming and getattr(self.args, 'reference_kl_weight', 0.):
-            with base.preserve_rng():
-                reference, checkpoint = neural.load_checkpoint(self.args.reference_checkpoint, self.device)
+            with base.preserve_rng(), Path(self.args.reference_checkpoint).open('rb') as stream:
+                if base.stream_hash(stream) != self.signature['reference_checkpoint_sha256']:
+                    raise ValueError('Reference checkpoint changed while loading')
+                stream.seek(0)
+                reference, checkpoint = neural.load_checkpoint(stream, self.device)
             if checkpoint['teacher_parameters'] != game.network_parameters():
                 raise ValueError('Reference policy uses different candidate-pipeline weights')
-            if base.file_hash(Path(self.args.reference_checkpoint)) != self.signature['reference_checkpoint_sha256']:
-                raise ValueError('Reference checkpoint changed while loading')
             self.set_reference(reference)
 
     def set_reference(self, reference):
@@ -428,7 +438,10 @@ class SurvivalTrainer(base.Trainer):
         def actor_config(model):
             return {key: value for key, value in asdict(model.config).items()
                     if key not in ('detach_critic', 'centered_critic')}
-        if actor_config(reference) != actor_config(self.model):
+        expected = actor_config(self.model)
+        if not reference.config.cross_residual and not reference.config.cross_weight:
+            expected.update(cross_residual=False, cross_weight=0.)
+        if actor_config(reference) != expected:
             raise ValueError('Reference and current policy must use the same actor and candidate configuration')
         reference.requires_grad_(False)
         reference.eval()
@@ -444,6 +457,37 @@ class SurvivalTrainer(base.Trainer):
     @torch.no_grad()
     def reference_logp(self, batch):
         return self.policy_logp(self.kl_logits(self.reference_policy, batch), batch['valid'])
+
+    @torch.no_grad()
+    def cache_reference_distribution(self, rollout, inputs_bytes):
+        # The reference is immutable. Candidate order and masks are fixed by the collected rollout.
+        rows = len(rollout.choices)
+        cache = self.cache_for(rollout)
+        width = max(cache.lengths) if cache is not None else max(len(r['valid']) for r in rollout.records)
+        size = rows * width * 4
+        limit = self.args.rollout_cache_mib * 2**20 - inputs_bytes
+        if self.device.type == 'cuda':
+            limit = min(limit, cuda_available_bytes(self.device) // 4)
+        if size > limit:
+            return {'enabled': False, 'reason': 'memory_bound', 'required_bytes': size}
+        try:
+            logp = torch.full((rows, width), -torch.inf, dtype=torch.float32, device=self.device)
+            with neural.precision_context(self.device, self.args.precision):
+                for start in range(0, rows, self.args.batch):
+                    end = min(rows, start + self.args.batch)
+                    batch, _ = self.policy_batch(rollout, list(range(start, end)))
+                    values = self.reference_logp(batch)
+                    logp[start:end, :values.shape[1]].copy_(values)
+        except (MemoryError, torch.OutOfMemoryError):
+            return {'enabled': False, 'reason': 'allocation_failed', 'required_bytes': size}
+        rollout.reference_logp = logp
+        return {'enabled': True, 'bytes': size}
+
+    def reference_minibatch(self, rollout, batch, indices):
+        if rollout.reference_logp is None:
+            return self.reference_logp(batch)
+        selected = torch.as_tensor(indices, device=self.device)
+        return rollout.reference_logp[:, :batch['valid'].shape[1]].index_select(0, selected)
 
     def create_optimizer(self):
         actor = [p for n, p in self.model.named_parameters()
@@ -463,7 +507,7 @@ class SurvivalTrainer(base.Trainer):
             if not reference or reference['checkpoint_sha256'] != self.signature['reference_checkpoint_sha256']:
                 raise ValueError('Missing or changed frozen reference in the resumed experiment')
             with base.preserve_rng():
-                model = neural.ColumnPolicy(neural.Config(**reference['config'])).to(self.device)
+                model = neural.create_model(neural.Config(**reference['config'])).to(self.device)
             model.load_state_dict(reference['model'], strict=True)
             if not all(bool(torch.isfinite(value).all()) for value in model.state_dict().values()):
                 raise ValueError('Non-finite frozen reference parameters')
@@ -549,6 +593,8 @@ class SurvivalTrainer(base.Trainer):
             neural.FEATURES * 4 + neural.COLUMNS * 9 + 1 + 4 + 4) + 24
         if self.model.config.architecture in neural.SPATIAL_ARCHITECTURES:
             per_record += 6 * 4 + shortlist * 18 * 4
+        if self.model.config.cross_residual or self.model.config.cross_weight:
+            per_record += shortlist * 2 * 4
         per_record += shortlist * 4 * getattr(self.model, 'NEXT_FEATURES', 0)
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
@@ -567,6 +613,8 @@ class SurvivalTrainer(base.Trainer):
                     if self._gpu_preparer is None:
                         from tetris_gpu_simulation import GpuPreparer
                         options = {'group_exhaustive': True} if getattr(self.args, 'group_exhaustive', False) else {}
+                        if getattr(self.args, 'two_stage_exhaustive', False):
+                            options['two_stage'] = True
                         self._gpu_preparer = GpuPreparer(self.model.config, self.device, **options)
                     result = self._gpu_preparer.prepare_batch([e.state for e in self.environments],
                                                               [e.target for e in self.environments])
@@ -962,7 +1010,8 @@ class SurvivalTrainer(base.Trainer):
                 indices = list(range(start, min(start + self.args.batch, len(rollout.choices))))
                 batch, _ = self.policy_batch(rollout, indices)
                 current = self.policy_logp(self.kl_logits(self.model, batch), batch['valid'])
-                values.append(legacy.exact_kl(self.reference_logp(batch), current, batch['valid']).sum())
+                reference = self.reference_minibatch(rollout, batch, indices)
+                values.append(legacy.exact_kl(reference, current, batch['valid']).sum())
         return sum(scalar_values(values)) / len(rollout.choices)
 
     def update_inputs(self, rollout, indices):
@@ -1031,6 +1080,8 @@ class SurvivalTrainer(base.Trainer):
         started = time.perf_counter()
         try:
             telemetry = self.create_rollout_cache(rollout)
+            if getattr(self, 'reference_policy', None) is not None and self.model.config.architecture == 'survival-spatial-v4':
+                telemetry['frozen_reference'] = self.cache_reference_distribution(rollout, telemetry['bytes'])
             result = self._update(rollout, warmup, started, telemetry)
             if rollout.fixed_cache is not None or (rollout.gpu_prepare is not None and rollout.gpu_prepare['enabled']):
                 self._previous_device_rollout = weakref.ref(rollout)
@@ -1044,6 +1095,7 @@ class SurvivalTrainer(base.Trainer):
         previous = reference() if reference is not None else None
         if previous is not None:
             previous.fixed_cache = None
+            previous.reference_logp = None
             previous.records.clear()
             previous.old_logp.clear()
             previous.labels.clear()
@@ -1089,7 +1141,8 @@ class SurvivalTrainer(base.Trainer):
                                       'regret': self.args.regret_weight * regret,
                                       'entropy': -self.args.entropy * entropy * (not warmup)}
                         if getattr(self, 'reference_policy', None) is not None:
-                            reference_kl = legacy.exact_kl(self.reference_logp(batch), logp, batch['valid']).mean()
+                            reference = self.reference_minibatch(rollout, batch, indices)
+                            reference_kl = legacy.exact_kl(reference, logp, batch['valid']).mean()
                             components['reference_kl'] = self.args.reference_kl_weight * reference_kl
                         loss = sum(components.values())
                     if not bool(torch.isfinite(loss)):

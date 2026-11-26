@@ -173,19 +173,20 @@ class Episode:
 
 def apply_move(episode: Episode, candidate, update: int, behavior: str):
     state, before_target = episode.state, episode.target
-    move = game.materialize_move(state.board, candidate)
-    cleared = neural._clear_mask(state, move)
     library.annotate(state, behavior, update, before_target)
-    state.commit(move)
+    move = game.play_candidate(state, candidate)
+    cleared = state.last_clear_mask
     if move.layers:
         following = game.next_hyperlayer_target(state.board, episode.target)
         if following is not None:
             episode.target = following
+    packed = state.packed_board
+    digest = hashlib.sha256(packed).hexdigest() if packed is not None and packed.dtype.str == '<u2' else board_hash(state.board)
     row = {'piece_number': state.pieces, 'piece': move.piece, 'rotation': candidate.rotation,
            'x': candidate.x, 'y': candidate.y, 'z': candidate.z, 'w': candidate.w,
            'cleared_mask': cleared, 'clears': move.layers, 'target_before': before_target,
            'target_after': episode.target, 'update': update, 'behavior': behavior,
-           'reward_pieces': 1, 'board_sha256': board_hash(state.board)}
+           'reward_pieces': 1, 'board_sha256': digest}
     pending = getattr(episode, 'pending_retarget', None)
     if pending is not None:
         row['retarget_from'] = pending

@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import replace
 import hashlib
 import json
@@ -12,6 +13,7 @@ from pathlib import Path
 import statistics
 import sys
 import time
+import zlib
 
 import numpy as np
 import torch
@@ -38,10 +40,10 @@ def runtime_identity(device):
     paths += [ROOT/(name+'.py') for name in ('tetris_afterstate_td', 'tetris_neural', 'tetris_survival_v3', 'tetris_survival_v4',
               'sparse_tetris_4d_optimized', 'tetris_gpu_simulation', 'tetris_gpu_encoding',
               'tetris_gpu_spatial', 'tetris_gpu_board_features', 'tetris_survival_v5', 'train_overnight',
-              'train_survival_v4', 'tetris_game_library')]
+              'train_survival_v4', 'tetris_game_library', 'tetris_cross_survival', 'tetris_gpu_cross')]
     return {'files': {path.name: base.file_hash(path) for path in paths},
             'torch': str(torch.__version__), 'cuda': torch.version.cuda,
-            'device': torch.cuda.get_device_name(device), 'numpy': np.__version__}
+            'device': torch.cuda.get_device_name(device) if torch.device(device).type == 'cuda' else str(device), 'numpy': np.__version__}
 
 
 def load_model(path, device):
@@ -154,6 +156,27 @@ def calibrate(args, device, budget, runtime):
     return True
 
 
+DECISION_COUNTERS = ('decisions', 'planner_triggers', 'immediate_losses', 'immediate_rescues',
+                     'planner_overrides', 'direct_weight_changes', 'residual_changes')
+LATENCY_SCOPE = ('Wall time from batched preparation through the last game commit in the lockstep, '
+                 'including CPU and device work and warmup. One sample per committed game move. '
+                 'Nearest-rank percentiles at 0.1 ms resolution.')
+
+
+def _latency(histogram):
+    values = sorted((int(tenths), count) for tenths, count in histogram.items())
+    total = sum(n for _, n in values)
+    result = {'scope': LATENCY_SCOPE, 'samples': total, 'p50_ms': None, 'p95_ms': None}
+    for p in (50, 95):
+        seen = 0
+        for tenths, count in values:
+            seen += count
+            if seen >= math.ceil(total * p / 100):
+                result[f'p{p}_ms'] = tenths / 10
+                break
+    return result
+
+
 def summarize(rows, seeds, policy, cap):
     rows = [dict(rows[s]) for s in seeds if s in rows]
     for row in rows:
@@ -161,16 +184,23 @@ def summarize(rows, seeds, policy, cap):
     placements = [r['placements'] for r in rows]
     total = sum(placements)
     clears_per_1k = 1000 * sum(r['clears'] for r in rows) / total if total else None
-    return {'policy': policy, 'cap': cap, 'complete': len(rows) == len(seeds),
+    latency, counters = Counter(), Counter()
+    for row in rows:
+        latency.update(row.get('batch_latency_histogram_0p1ms', {}))
+        counters.update(row.get('decisions', {}))
+    return {'policy': policy, 'cap': cap, 'decision_counts': {k: counters[k] for k in DECISION_COUNTERS},
+            'move_latency': _latency(latency), 'complete': len(rows) == len(seeds),
             'requested_seeds': list(seeds), 'seeds': [r['seed'] for r in rows],
             'placements': placements, 'clears': [r['clears'] for r in rows], 'games': rows,
             'clears_per_1k': clears_per_1k,
-            'stop_reasons': [r['reason'] for r in rows], 'censored': sum(r['reason']=='cap' for r in rows),
+            'stop_reasons': [r['reason'] for r in rows],
+            'target_or_no_move': sum(r['reason'] == 'target_or_no_move' for r in rows),
+            'top_outs': sum(r['reason'] == 'top_out' for r in rows), 'censored': sum(r['reason']=='cap' for r in rows),
             'mean': statistics.mean(placements) if rows else None,
             'median': statistics.median(placements) if rows else None, 'minimum': min(placements, default=None)}
 
 
-def _fixed_actor_choices(model, batch, size):
+def _fixed_actor_logits(model, batch, size, *, return_base=False):
     """Give each cached greedy game the same FP32 kernel shapes, independent of its peers."""
     rows, width = batch['valid'].shape
     fixed = {}
@@ -181,11 +211,43 @@ def _fixed_actor_choices(model, batch, size):
         if rows < size:
             value = torch.cat((value, value[:1].expand(size - rows, *value.shape[1:])))
         fixed[name] = value.contiguous()
-    return model.actor_logits(fixed)[:rows].argmax(-1)
+    if return_base:
+        adjusted, base_logits = model.actor_logits(fixed, return_base=True)
+        return adjusted[:rows, :width], base_logits[:rows, :width]
+    return model.actor_logits(fixed)[:rows, :width]
 
 
-def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_size=None):
+def _fixed_actor_choices(model, batch, size):
+    return _fixed_actor_logits(model, batch, size).argmax(-1)
+
+
+class _HostOptions:
+    def __init__(self, piece, rows):
+        self.piece, self.rows = piece, rows
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, index):
+        row = self.rows[index]
+        return game.Candidate(self.piece, *map(int, row[:6]), float(row[6]))
+
+
+def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_size=None, preview_search=False, decision_stats=None):
     """Map live batch indices to their (recovered target, chosen placement)."""
+    from tetris_cross_survival import preview_choice
+    if preview_search and (scoring or model.config.architecture != 'survival-spatial-v4'):
+        raise ValueError('Visible-preview search requires a spatial V4 actor')
+    compare = decision_stats is not None and (model.config.cross_weight or model.config.cross_residual)
+    change_key = 'direct_weight_changes' if model.config.cross_weight else 'residual_changes'
+
+    def actor(batch):
+        if ppo_batch_size:
+            return _fixed_actor_logits(model, batch, ppo_batch_size, return_base=bool(compare))
+        if compare:
+            return model.actor_logits(batch, return_base=True)
+        return model(batch)['logits']
+
     if preparer is None:
         moves = {}
         config = model.base.config if scoring else model.config
@@ -196,15 +258,58 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
             if scoring:
                 pool = model.prepare_cpu(prepared, state)
                 choice = int(pool.indices[0, model.choose(pool).item()])
-            elif ppo_batch_size:
-                choice = int(_fixed_actor_choices(model, neural.collate([prepared.arrays], device), ppo_batch_size).item())
             else:
-                choice = int(model(neural.collate([prepared.arrays], device))['logits'].argmax(1).item())
+                values = actor(neural.collate([prepared.arrays], device))
+                if compare:
+                    logits, base_logits = values
+                    decision_stats[index][change_key] = int((logits.argmax(1) != base_logits.argmax(1)).item())
+                else:
+                    logits = values
+                if preview_search:
+                    choice = preview_choice(state, int(prepared.arrays['targets']), prepared.options,
+                                            logits[0].detach().cpu().numpy(), config,
+                                            prepared.arrays['cross_mobility'][:, 1] if 'cross_mobility' in prepared.arrays else None,
+                                            decision_stats[index] if decision_stats is not None else None)
+                else:
+                    choice = int(logits.argmax(1).item())
             moves[index] = (int(prepared.arrays['targets']), prepared.options[choice])
         return moves
     result = preparer.prepare_batch(states, targets)
     if not result.environment_indices:
         return {}
+    if preview_search or compare:
+        values = actor(result.batch)
+        if compare:
+            logits, base_logits = values
+            changed = (logits.argmax(1) != base_logits.argmax(1))
+        else:
+            logits = values
+        if not preview_search:
+            metadata = result.selected_metadata(logits.argmax(1))
+            host = torch.cat((metadata, changed.double()[:, None]), dim=1).cpu().tolist()
+            candidates = result.candidates_from_metadata([row[:7] for row in host])
+            for i, row in zip(result.environment_indices, host):
+                decision_stats[i][change_key] = int(row[7])
+            return {i: (int(result.targets[i]), c) for i, c in zip(result.environment_indices, candidates)}
+        batch = result.batch
+        fields = [result._option_specs.double(), result._option_scores[..., None], logits.double()[..., None]]
+        if 'cross_mobility' in batch:
+            fields.append(batch['cross_mobility'][..., 1:2].double())
+        if compare:
+            fields.append(changed[:, None, None].expand(-1, logits.shape[1], 1).double())
+        packed = torch.cat(fields, -1).detach().cpu().numpy()
+        moves = {}
+        for row, i in enumerate(result.environment_indices):
+            data = packed[row, :len(result.prepared[i].options)]
+            options = _HostOptions(states[i].current, data)
+            target = int(result.targets[i])
+            if compare:
+                decision_stats[i][change_key] = int(data[0, -1])
+            choice = preview_choice(states[i], target, options, data[:, 7], model.config,
+                                    data[:, 8] if 'cross_mobility' in batch else None,
+                                    decision_stats[i] if decision_stats is not None else None)
+            moves[i] = target, options[choice]
+        return moves
     if scoring:
         pool = model.prepare_device(result, states)
         actions = pool.indices.gather(1, model.choose(pool)[:, None]).squeeze(1)
@@ -216,15 +321,44 @@ def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_si
             for i, candidate in zip(result.environment_indices, result.selected_candidates(actions))}
 
 
+def _snapshot(state, target, wall_seconds):
+    rng_version, rng_state, gauss = state.stream.rng.getstate()
+    packed = np.asarray(state.board, dtype='<u2').tobytes()
+    return {'version': 1, 'seed': state.seed, 'piece_set': state.piece_set, 'target': target,
+            'board': base64.b64encode(zlib.compress(packed, 1)).decode('ascii'),
+            'pieces': state.pieces, 'cells_placed': state.cells_placed, 'layers': state.layers, 'score': state.score,
+            'piece_counts': dict(state.piece_counts), 'current': state.current, 'next_piece': state.next_piece,
+            'bag': list(state.stream.bag), 'rng': [rng_version, list(rng_state), gauss],
+            'wall_seconds': wall_seconds}
+
+
+def _resume(state, data):
+    if data['version'] != 1 or (data['seed'], data['piece_set']) != (state.seed, state.piece_set):
+        raise ValueError('Invalid partial game identity')
+    board = np.frombuffer(zlib.decompress(base64.b64decode(data['board'], validate=True)), dtype='<u2')
+    if len(board) != 4096 or not 0 <= data['target'] < 16 or sum(data['piece_counts'].values()) != data['pieces']:
+        raise ValueError('Invalid partial game state')
+    state.board = tuple(map(int, board))
+    for name in ('pieces', 'layers', 'score', 'cells_placed', 'current', 'next_piece'):
+        setattr(state, name, data[name])
+    state.piece_counts = dict(data['piece_counts'])
+    state.stream.bag = list(data['bag'])
+    version, rng, gauss = data['rng']
+    state.stream.rng.setstate((version, tuple(rng), gauss))
+    return data['target'], data['wall_seconds']
+
+
 @torch.inference_mode()
 def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=None,
-                   stop_requested=None, on_finish=None, ppo_batch_size=None, group_exhaustive=False):
+                   stop_requested=None, on_finish=None, ppo_batch_size=None, group_exhaustive=False,
+                   preview_search=False, two_stage=False, headless=False, partials=None, on_partial=None,
+                   progress_seconds=60.):
     """Fresh greedy lockstep evaluation. Per-game time includes concurrent lockstep peers."""
     import tetris_afterstate_td as td
 
     seeds = tuple(seeds)
-    if top_k != TOP_K or cap < 1 or not seeds or len(set(seeds)) != len(seeds):
-        raise ValueError('Expected a positive cap, distinct fresh seeds and top_k=16')
+    if top_k != TOP_K or cap < 0 or not seeds or len(set(seeds)) != len(seeds):
+        raise ValueError('Expected a nonnegative cap, distinct fresh seeds and top_k=16')
     if policy not in POLICY_ORDER:
         raise ValueError('Unknown evaluation policy')
     if ppo_batch_size is not None and (policy != 'ppo' or type(ppo_batch_size) is not int or ppo_batch_size < 1
@@ -234,6 +368,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
     original_model = model
     was_training = model.training
     model.eval()
+    previous_flags = game.TWO_STAGE_EXHAUSTIVE, game.HEADLESS_COMMIT
+    game.set_simulation_fast_paths(two_stage=two_stage, headless=headless)
     try:
         if policy == 'frozen':
             model = td.from_v4(model).to(device).eval()
@@ -241,47 +377,89 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         preparer = None
         if torch.device(device).type == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
-            preparer = GpuPreparer(model.base.config if scoring else model.config, device, group_exhaustive=group_exhaustive)
+            preparer = GpuPreparer(model.base.config if scoring else model.config, device, group_exhaustive=group_exhaustive, two_stage=two_stage)
         states = {seed: game.Game(seed, 'expanded') for seed in seeds}
         for state in states.values():
             base.library.ignore(state)
         capacity = ppo_batch_size or len(seeds)
         targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds[:capacity])
+        elapsed = dict.fromkeys(seeds, 0.)
+        decisions = {s: Counter() for s in seeds}
+        latency = {s: Counter() for s in seeds}
+        for seed, data in (partials or {}).items():
+            targets[seed], elapsed[seed] = _resume(states[seed], data)
+            decisions[seed].update(data.get('decisions', {}))
+            latency[seed].update(data.get('batch_latency_histogram_0p1ms', {}))
+        entered = dict.fromkeys(live, began)
         next_seed = len(live)
+        next_progress = began + progress_seconds
+        def save_live():
+            if on_partial:
+                for seed in live:
+                    state = states[seed]
+                    if state.pieces:
+                        snapshot = _snapshot(state, targets[seed], elapsed[seed] + time.monotonic() - entered[seed])
+                        snapshot.update(decisions=dict(decisions[seed]), batch_latency_histogram_0p1ms=dict(latency[seed]))
+                        on_partial(snapshot)
         while live:
             if (deadline is not None and time.monotonic() >= deadline) or (stop_requested and stop_requested()):
+                save_live()
                 break
+            if time.monotonic() >= next_progress:
+                save_live()
+                counts = [states[s].pieces for s in live]
+                print(f'{policy} {len(rows)}/{len(seeds)} games complete, live placement range {min(counts)}–{max(counts)}', flush=True)
+                next_progress = time.monotonic() + progress_seconds
             current = [states[s] for s in live]
             options = (ppo_batch_size,) if ppo_batch_size else ()
-            moves = select_moves(model, current, [targets[s] for s in live], scoring, device, preparer, *options)
+            stats = defaultdict(dict)
+            telemetry = {}
+            if preview_search or model.config.cross_weight or model.config.cross_residual:
+                telemetry = {'preview_search': preview_search, 'decision_stats': stats}
+            move_started = time.monotonic_ns()
+            moves = select_moves(model, current, [targets[s] for s in live], scoring, device, preparer, *options, **telemetry)
             playable = [live[i] for i in moves]
             for i, (target, candidate) in moves.items():
                 seed, state = live[i], current[i]
                 targets[seed] = target
-                move = game.materialize_move(state.board, candidate)
-                state.commit(move)
+                if headless:
+                    game.play_candidate(state, candidate)
+                else:
+                    state.commit(game.materialize_move(state.board, candidate))
                 state.locked_pieces = ()  # Rendering history is unused by headless decisions.
-                if move.layers:
+                if candidate.layers:
                     following = game.next_hyperlayer_target(state.board, target)
                     if following is not None:
                         targets[seed] = following
+            tenths = str((time.monotonic_ns() - move_started + 50000) // 100000)
+            for i in moves:
+                seed = live[i]
+                decisions[seed].update(stats[i])
+                decisions[seed]['decisions'] += 1
+                if not preview_search:
+                    decisions[seed]['immediate_losses'] += int(states[seed].game_over)
+                latency[seed][tenths] += 1
             for seed in live:
                 state = states[seed]
-                if seed in playable and state.pieces < cap:
+                if seed in playable and not state.game_over and (cap == 0 or state.pieces < cap):
                     continue
-                reason = 'cap' if state.pieces >= cap else ('top_out' if state.game_over else 'target_or_no_move')
+                reason = 'cap' if cap and state.pieces >= cap else ('top_out' if state.game_over else 'target_or_no_move')
                 row = {'seed': seed, 'placements': state.pieces, 'clears': state.layers,
-                       'reason': reason, 'wall_seconds': time.monotonic()-began}
+                       'reason': reason, 'wall_seconds': elapsed[seed] + time.monotonic() - entered[seed],
+                       'device': str(device), 'decisions': {k: decisions[seed][k] for k in DECISION_COUNTERS},
+                       'batch_latency_histogram_0p1ms': dict(latency[seed]), 'move_latency': _latency(latency[seed])}
                 rows[seed] = row
                 if on_finish:
                     on_finish(row)
             live = [seed for seed in playable if seed not in rows]
             added = seeds[next_seed:next_seed + capacity - len(live)]
             live.extend(added)
+            entered.update(dict.fromkeys(added, time.monotonic()))
             next_seed += len(added)
         return {**summarize(rows, seeds, policy, cap), 'wall_seconds': time.monotonic()-began}
     finally:
         original_model.train(was_training)
+        game.set_simulation_fast_paths(two_stage=previous_flags[0], headless=previous_flags[1])
 
 
 def development_score(result):
@@ -319,7 +497,8 @@ def extension_pair(results):
 
 
 def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, device, budget, runtime,
-                        weights_hash, cache_dir, *, ppo_batch_size=None, group_exhaustive=False):
+                        weights_hash, cache_dir, *, ppo_batch_size=None, group_exhaustive=False,
+                        preview_search=False, two_stage=False, headless=False, progress_seconds=60.):
     started = time.monotonic()
     identity = {'policy': name, 'checkpoint': checkpoint_hash, 'weights': weights_hash, 'runtime': runtime,
                 'screening': 'exhaustive', 'top_k': TOP_K, 'cap': cap}
@@ -327,17 +506,23 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
         identity.update(split=split, seeds=list(seeds))
     else:
         if (name != 'ppo' or type(ppo_batch_size) is not int or ppo_batch_size < 1
-                or not seeds or cap < 1 or len(set(seeds)) != len(seeds)):
+                or not seeds or cap < 0 or len(set(seeds)) != len(seeds)):
             raise ValueError('Expected distinct seeds and a positive greedy PPO evaluation batch size')
         identity.update(greedy_actor='fixed-fp32-v1', batch_size=ppo_batch_size, piece_set='expanded')
     if group_exhaustive:
         identity['group_exhaustive'] = True
+    if preview_search:
+        identity['preview_search'] = 'one-visible-cross-8-16x4-v1'
+    if two_stage:
+        identity['two_stage'] = True
+    if headless:
+        identity['headless'] = True
     path = cache_dir/digest(identity)
     rows = {}
     def validate(row, seed):
-        if (row['seed'] != seed or not 0 <= row['placements'] <= cap or row['clears'] < 0
+        if (row['seed'] != seed or row['placements'] < 0 or (cap and row['placements'] > cap) or row['clears'] < 0
                 or row['reason'] not in ('cap', 'top_out', 'target_or_no_move')
-                or (row['reason'] == 'cap') != (row['placements'] == cap)):
+                or (row['reason'] == 'cap') != bool(cap and row['placements'] == cap)):
             raise ValueError(f'Invalid completed evaluation for seed {seed}')
 
     def record(row):
@@ -345,6 +530,11 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
         key = dict(identity, seed=row['seed'])
         write_cache(path/f"{row['seed']}.json", key, row)
         rows[row['seed']] = row
+        (path/f"{row['seed']}.partial.json").unlink(missing_ok=True)
+
+    def record_partial(snapshot):
+        seed = snapshot['seed']
+        write_cache(path/f'{seed}.partial.json', dict(identity, partial_seed=seed), snapshot)
     for seed in seeds:
         row = checked_cached(path/f'{seed}.json', dict(identity, seed=seed))
         if row is not None:
@@ -358,8 +548,15 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
             raise ValueError('Evaluation checkpoint changed during load')
         if ppo_batch_size and torch.device(device).type == 'cuda':
             model.fused_encoding = True
+        partials = {}
+        for seed in missing:
+            snapshot = checked_cached(path/f'{seed}.partial.json', dict(identity, partial_seed=seed))
+            if snapshot is not None:
+                partials[seed] = snapshot
         evaluate_fresh(model, missing, policy=name, cap=cap, device=device, stop_requested=budget.expired,
-                       on_finish=record, ppo_batch_size=ppo_batch_size, group_exhaustive=group_exhaustive)
+                       on_finish=record, ppo_batch_size=ppo_batch_size, group_exhaustive=group_exhaustive,
+                       preview_search=preview_search, two_stage=two_stage, headless=headless, partials=partials,
+                       on_partial=record_partial, progress_seconds=progress_seconds)
         print(f'{name} cap {cap}: {len(rows)}/{len(seeds)} games, {time.monotonic()-start:.1f}s', flush=True)
         del model
     result = summarize(rows, seeds, name, cap)
@@ -426,13 +623,21 @@ def evaluate(args, device, budget, runtime):
               'runtime': runtime, 'checkpoints': hashes, 'weights_sha256': weights_hash, 'top_k': TOP_K,
               'selection_sha256': base.file_hash(args.selection) if args.selection else None,
               'screening': 'exhaustive', 'policy_tie_order': list(POLICY_ORDER), 'stages': [], 'clock': 'lockstep elapsed wall seconds per seed'}
+    report['options'] = {key: bool(getattr(args, key, False)) for key in
+                         ('preview_search', 'two_stage', 'headless', 'group_exhaustive')}
     names = list(paths)
     for cap in dict.fromkeys((args.cap, args.max_cap)):
         stage = {}
         report['stages'].append({'cap': cap, 'policies': stage})
         for name in names:
+            options = {}
+            for key in ('two_stage', 'headless', 'group_exhaustive'):
+                if getattr(args, key, False):
+                    options[key] = True
+            if name == 'ppo' and getattr(args, 'preview_search', False):
+                options['preview_search'] = True
             stage[name] = evaluate_checkpoint(paths[name], hashes[name], name, seeds, cap, split,
-                                              device, budget, runtime, weights_hash, args.cache_dir)
+                                              device, budget, runtime, weights_hash, args.cache_dir, **options)
             base.durable_json(args.output, report)
             if not stage[name]['complete']:
                 return False
@@ -470,6 +675,10 @@ def main(argv=None):
     evaluation.add_argument('--selection', type=Path)
     evaluation.add_argument('--cap', type=int, default=64000)
     evaluation.add_argument('--max-cap', type=int, default=128000)
+    evaluation.add_argument('--preview-search', action='store_true', help='Use one visible piece for PPO survival planning')
+    evaluation.add_argument('--two-stage', action='store_true')
+    evaluation.add_argument('--group-exhaustive', action='store_true')
+    evaluation.add_argument('--headless', action='store_true')
     final = sub.add_parser('select-final')
     final.add_argument('--run-dir', type=Path, required=True)
     for command in (calibration, evaluation):
@@ -482,8 +691,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not math.isfinite(args.max_seconds) or args.max_seconds <= 0:
         parser.error('max-seconds must be finite and positive')
-    if args.action == 'evaluate' and not 0 < args.cap <= args.max_cap:
-        parser.error('expected positive cap <= max-cap')
+    if args.action == 'evaluate' and not 0 <= args.cap <= args.max_cap:
+        parser.error('expected nonnegative cap <= max-cap')
+    if args.action == 'evaluate' and args.cap == 0:
+        args.max_cap = 0
+    if args.action == 'evaluate' and args.preview_search and not args.ppo:
+        parser.error('--preview-search requires --ppo')
     args.cache_dir = args.cache_dir or args.output.parent/'evaluation-cache'
     args.output.parent.mkdir(parents=True, exist_ok=True)
     device = torch.device('cuda')

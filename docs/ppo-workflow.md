@@ -231,3 +231,5 @@ A full clone still contains historical Git objects. A smaller checkout alone
 does not remove that history or reclaim Windows backing-volume allocation. The
 catalog and unchanged history provide recovery without copying large archived
 trees back into active source.
+
+The [CROSS survival experiment](cross-survival.md) measures direct actor changes, critic transfer, visible-preview lookahead, and simulation throughput on the same incumbent.

@@ -34,6 +34,16 @@ DEFAULT_BEAM = 4
 DEFAULT_CANDIDATES = 2048
 BATCH_SIZE = 512
 BACKEND = "auto"
+TWO_STAGE_EXHAUSTIVE = False
+HEADLESS_COMMIT = False
+
+
+def set_simulation_fast_paths(*, two_stage=False, headless=False):
+    """Configure optional native paths in this simulation process."""
+    global TWO_STAGE_EXHAUSTIVE, HEADLESS_COMMIT
+    TWO_STAGE_EXHAUSTIVE, HEADLESS_COMMIT = bool(two_stage), bool(headless)
+
+
 NEURAL_AGENT = None
 _NUMPY = None
 _NUMPY_TRIED = False
@@ -920,8 +930,13 @@ def _load_native() -> bool:
             't4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer,
                                      pointer, pointer, pointer],
         }
-        if hasattr(library, 't4_board_features'):
-            signatures['t4_board_features'] = [pointer] * 5
+        optional = {
+            't4_board_features': [pointer] * 5,
+            't4_checked_apply': [pointer, pointer] + [integer] * 4 + [pointer] * 6 + [integer],
+            't4_has_move': [pointer, pointer, integer],
+            't4_exhaustive_primary': [pointer, pointer, integer, integer, integer, integer, pointer, integer],
+        }
+        signatures.update((name, args) for name, args in optional.items() if hasattr(library, name))
         for name, arguments in signatures.items():
             function = getattr(library, name)
             function.argtypes, function.restype = arguments, integer
@@ -1000,6 +1015,36 @@ def native_roughness_deltas(table: tuple[float, ...]):
     result = positive[:, None] - positive[None, :]
     result.flags.writeable = False
     return result
+
+
+def native_primary_utilities(context: BoardEvaluation, piece: str, target: int, protect: bool):
+    """Evaluate legality and integer target utility in exhaustive enumeration order."""
+    _native_context(context)
+    shapes = native_shapes(piece)
+    result = _NUMPY.empty(placement_count(piece), dtype=_NUMPY.int32)
+    _native_check(_NATIVE.t4_exhaustive_primary(context.native_heights.ctypes.data, shapes.ctypes.data,
+        len(shapes), target, int(protect), FUTURE_HOLE_PENALTY, result.ctypes.data, len(result)))
+    return result
+
+
+@lru_cache(maxsize=32)
+def _exhaustive_layout(piece: str):
+    shapes = native_shapes(piece)
+    nx, ny, nw = 17 - shapes[:, 0], 17 - shapes[:, 1], 17 - shapes[:, 3]
+    ends = _NUMPY.cumsum(nx * ny * nw)
+    starts = ends - nx * ny * nw
+    return nx, ny, starts, ends
+
+
+def exhaustive_specs(piece: str, ids):
+    """Convert exhaustive enumeration IDs to the scorer's (rotation, x, y, w) layout."""
+    np = _NUMPY
+    nx, ny, starts, ends = _exhaustive_layout(piece)
+    rotations = np.searchsorted(ends, ids, side='right')
+    local = ids - starts[rotations]
+    xwidth = nx[rotations]
+    return np.column_stack((rotations, local % xwidth, local // xwidth % ny[rotations],
+                            local // (xwidth * ny[rotations]))).astype(np.int32)
 
 
 def native_scores(context: BoardEvaluation, piece: str, specs, target: int = -1):
@@ -1571,6 +1616,8 @@ class Game:
             recording.retire(self, 'reset')
         self.stream = PieceStream(self.seed, self.piece_set)
         self.board = EMPTY_BOARD
+        self._packed_board = None
+        self.last_clear_mask = 0
         self.current, self.next_piece = self.stream.pop(), self.stream.pop()
         self.pieces = self.layers = self.score = self.cells_placed = 0
         self.piece_counts = {name: 0 for name in PIECE_NAMES}
@@ -1579,6 +1626,12 @@ class Game:
         self.last_move: Move | None = None
         if recording is not None:
             recording.start(self)
+
+    @property
+    def packed_board(self):
+        """Read-only native column masks belonging to the current immutable board."""
+        cached = self._packed_board
+        return cached[1] if cached is not None and cached[0] is self.board else None
 
     def commit(self, move: Move) -> None:
         if self.game_over or move.before != self.board or move.piece != self.current:
@@ -1601,6 +1654,11 @@ class Game:
         cleared = full_layer_mask(solid)
         locked = LockedPiece(self.pieces + 1, move.piece, placed_cells(move))
         self.locked_pieces = compact_locked_pieces(self.locked_pieces + (locked,), cleared)
+        self.last_clear_mask = cleared
+        self._packed_board = None
+        self._finish_commit(move, has_legal_move(move.board, self.next_piece))
+
+    def _finish_commit(self, move: Move, next_is_legal: bool) -> None:
         self.board = move.board
         self.pieces += 1
         self.cells_placed += PIECE_SIZES[move.piece]
@@ -1609,7 +1667,7 @@ class Game:
         self.score += clear_points(move.layers)
         self.last_move = move
         self.current, self.next_piece = self.next_piece, self.stream.pop()
-        self.game_over = not has_legal_move(self.board, self.current)
+        self.game_over = not next_is_legal
         recording = _RECORDING
         if recording is not None:
             recording.moved(self, move)
@@ -1621,6 +1679,52 @@ class Game:
                 'hyperlayers': self.layers, 'score': self.score,
                 'game_over': self.game_over, 'max_height': max(heights), 'holes': holes,
                 'occupied_cells': sum(mask.bit_count() for mask in self.board)}
+
+
+def play_candidate(state: Game, candidate: Candidate) -> Move:
+    """Commit a checked placement. The optional headless path omits render geometry."""
+    if not (HEADLESS_COMMIT and BACKEND == 'native' and hasattr(_NATIVE, 't4_checked_apply')):
+        move = materialize_move(state.board, candidate)
+        state.commit(move)
+        return move
+    if state.game_over or state.current != candidate.piece:
+        raise ValueError('This candidate does not belong to the active piece.')
+    coords = (candidate.rotation, candidate.x, candidate.y, candidate.w, candidate.z)
+    if any(type(v) is not int for v in coords):
+        raise ValueError('Placement coordinates and rotation must be integers.')
+    rotations = native_shapes(candidate.piece)
+    if not 0 <= candidate.rotation < len(rotations) or any(not 0 <= v < HEIGHT for v in coords[1:]):
+        raise ValueError('Invalid placement coordinates or rotation.')
+    before = state.packed_board
+    if before is None:
+        before = evaluate_board(state.board).native_board
+    np = _NUMPY
+    after = np.empty(AREA, dtype=np.uint16)
+    heights = np.empty(AREA, dtype=np.int32)
+    counts = np.empty(HEIGHT, dtype=np.int32)
+    totals, differences, mask = (np.empty(n, dtype=np.int32) for n in (2, HEIGHT + 1, 1))
+    _native_check(_NATIVE.t4_checked_apply(before.ctypes.data, rotations[candidate.rotation].ctypes.data,
+        *coords[1:], after.ctypes.data, heights.ctypes.data, counts.ctypes.data, totals.ctypes.data,
+        differences.ctypes.data, mask.ctypes.data, int(_NATIVE_USE_BMI2)))
+    cleared = int(mask[0])
+    layers = cleared.bit_count()
+    height_sum, holes = totals.tolist()
+    roughness = _histogram_roughness(differences.tolist())
+    score = HEIGHT_WEIGHT * height_sum + HOLES_WEIGHT * holes + LAYERS_WEIGHT * layers + BUMP_WEIGHT * roughness
+    if candidate.layers != layers or not math.isclose(score, candidate.score, abs_tol=1e-8):
+        raise AssertionError('Incremental and literal evaluations disagree.')
+    board = tuple(after.tolist())
+    move = Move(Candidate(candidate.piece, *coords, layers, score), state.board, board, tuple(heights.tolist()), holes)
+    next_shapes = native_shapes(state.next_piece)
+    next_legal = _NATIVE.t4_has_move(heights.ctypes.data, next_shapes.ctypes.data, len(next_shapes))
+    if next_legal < 0:
+        _native_check(next_legal)
+    after.flags.writeable = False
+    state._packed_board = (board, after)
+    state.last_clear_mask = cleared
+    state.locked_pieces = ()
+    state._finish_commit(move, bool(next_legal))
+    return move
 
 
 PALETTE = {"bg": "#101721", "panel": "#182331", "board": "#080F19", "text": "#F4F0E6",
@@ -3305,10 +3409,16 @@ def launch_demo(args) -> int:
                     args.ui_fps, not args.no_frameskip)
     if args.gui_smoke:
         def finish():
-            result = {'passed': not app.errors, 'callback_errors': app.errors,
-                      'selected_drop': app.planned is not None, 'visible_network_nodes': len(app.network.positions)}
-            print(json.dumps(result, indent=2))
-            app.close()
+            try:
+                view = app.network
+                result = {'passed': not app.errors, 'callback_errors': app.errors,
+                          'selected_drop': app.planned is not None,
+                          'visible_network_nodes': len(getattr(view, 'positions', ()))}
+                if hasattr(view, 'display'):
+                    result['feature_decision_visible'] = 'Architecture:' in view.display.get('1.0', 'end')
+                print(json.dumps(result, indent=2))
+            finally:
+                app.close()
         root.after(2400, finish)
     root.mainloop()
     return 1 if app.errors else 0
@@ -3354,6 +3464,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural'), default='sustained',
                         help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
+    parser.add_argument('--neural-preview-search', action='store_true', help='Use one visible piece of survival lookahead with a spatial V4 checkpoint.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
     parser.add_argument('--target', type=int, choices=range(HEIGHT), default=1, help='Protected hyperlayer Z for --policy hyperlayer.')
     parser.add_argument('--stop-after-clear', action='store_true', help='Pause autoplay or stop benchmarks after the first clear; disabled by default.')
@@ -3391,13 +3502,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 from tetris_neural import NeuralAgent
             except ImportError as error:
                 raise ValueError('Optional PyTorch/NumPy dependency missing; install it in this environment before using --neural-checkpoint.') from error
-            NEURAL_AGENT = NeuralAgent(args.neural_checkpoint, args.neural_device, engine=sys.modules[__name__])
-            if args.candidates not in (DEFAULT_CANDIDATES, NEURAL_AGENT.model.config.candidates):
+            NEURAL_AGENT = NeuralAgent(args.neural_checkpoint, args.neural_device, engine=sys.modules[__name__],
+                                       preview_search=args.neural_preview_search)
+            config = NEURAL_AGENT.model.config
+            budget = NEURAL_AGENT.candidate_budget
+            if args.candidates not in (DEFAULT_CANDIDATES, config.candidates, budget):
                 raise ValueError('Neural checkpoint requires its saved candidate budget.')
-            args.candidates = NEURAL_AGENT.model.config.candidates
+            args.candidates = budget
             args.policy = 'neural'
             print(f'Experimental neural policy loaded on {NEURAL_AGENT.device}; not promoted over sustained.', file=sys.stderr)
-        elif args.policy == 'neural':
+        elif args.policy == 'neural' or args.neural_preview_search:
             raise ValueError('--policy neural requires --neural-checkpoint.')
         if args.test:
             result = run_self_tests()

@@ -183,7 +183,7 @@ class SurvivalTrainer(v2.SurvivalTrainer):
         return base.Trainer.run(self)
 
 
-def arguments(argv=None):
+def arguments(argv=None, *, allow_reference=False):
     supplied = list(sys.argv[1:] if argv is None else argv)
     if any(argument.split('=', 1)[0] == '--checkpoint' for argument in supplied):
         raise ValueError('V3 starts fresh; external --checkpoint is not supported')
@@ -192,7 +192,7 @@ def arguments(argv=None):
                          '--target-kl', '.01', '--imitation', '0', '--secondary-weight', '0',
                          '--regret-weight', '0', '--policy-mode', 'teacher-prior',
                          '--teacher-prior-scale', '.125', *supplied])
-    if args.reference_kl_weight:
+    if args.reference_kl_weight and not allow_reference:
         raise ValueError('V3 starts fresh; frozen reference regularization is not supported')
     # V2's historical auto-discovery is deliberately bypassed, even if an old
     # checkpoint appears in models/ after argument parsing.

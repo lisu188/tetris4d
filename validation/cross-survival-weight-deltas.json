@@ -1,0 +1,833 @@
+{
+  "schema": "spatial-v4-weight-deltas-v1",
+  "checksums": {
+    "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "control": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+    "diverse": "25b7ba72dfd24f78a9d3105fe3af16a9f60030fb8dd09e1d5b47bee34b3d57bf"
+  },
+  "tensors": {
+    "actor_state.0.weight": {
+      "shape": [
+        150
+      ],
+      "count": 150,
+      "control": {
+        "changed": 150,
+        "delta_l2": 0.05274407714782143,
+        "relative_l2": 0.004216230428649033,
+        "largest_change": {
+          "index": [
+            98
+          ],
+          "before": 1.0281397104263306,
+          "after": 1.0415825843811035,
+          "signed_delta": 0.01344287395477295
+        }
+      },
+      "diverse": {
+        "changed": 150,
+        "delta_l2": 0.061702359493128626,
+        "relative_l2": 0.004932333252988121,
+        "largest_change": {
+          "index": [
+            108
+          ],
+          "before": 1.0355408191680908,
+          "after": 1.054104208946228,
+          "signed_delta": 0.018563389778137207
+        }
+      },
+      "cosine_of_updates": 0.034354591529721035
+    },
+    "actor_state.0.bias": {
+      "shape": [
+        150
+      ],
+      "count": 150,
+      "control": {
+        "changed": 150,
+        "delta_l2": 0.014842025454376339,
+        "relative_l2": 0.038475980211866934,
+        "largest_change": {
+          "index": [
+            81
+          ],
+          "before": 0.054343726485967636,
+          "after": 0.0607229582965374,
+          "signed_delta": 0.006379231810569763
+        }
+      },
+      "diverse": {
+        "changed": 150,
+        "delta_l2": 0.014344293872638343,
+        "relative_l2": 0.037185677176837066,
+        "largest_change": {
+          "index": [
+            86
+          ],
+          "before": -0.025848697870969772,
+          "after": -0.01867242529988289,
+          "signed_delta": 0.0071762725710868835
+        }
+      },
+      "cosine_of_updates": 0.40630047041674583
+    },
+    "actor_state.1.weight": {
+      "shape": [
+        64,
+        150
+      ],
+      "count": 9600,
+      "control": {
+        "changed": 9600,
+        "delta_l2": 0.45903439318303596,
+        "relative_l2": 0.08651297609824182,
+        "largest_change": {
+          "index": [
+            45,
+            68
+          ],
+          "before": 0.09540639817714691,
+          "after": 0.07574066519737244,
+          "signed_delta": -0.019665732979774475
+        },
+        "delta_energy_in_top_direction": 0.5585158660881797,
+        "delta_energy_in_top_four_directions": 0.8909496090834854
+      },
+      "diverse": {
+        "changed": 9600,
+        "delta_l2": 0.5274858378895315,
+        "relative_l2": 0.09941383557136163,
+        "largest_change": {
+          "index": [
+            5,
+            108
+          ],
+          "before": -0.0847075805068016,
+          "after": -0.10568150132894516,
+          "signed_delta": -0.020973920822143555
+        },
+        "delta_energy_in_top_direction": 0.590321871102825,
+        "delta_energy_in_top_four_directions": 0.9194188824293553
+      },
+      "cosine_of_updates": 0.09332010812857822
+    },
+    "actor_state.1.bias": {
+      "shape": [
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.02309822900475778,
+        "relative_l2": 0.0472004934029665,
+        "largest_change": {
+          "index": [
+            1
+          ],
+          "before": -0.04140525683760643,
+          "after": -0.033565569669008255,
+          "signed_delta": 0.007839687168598175
+        }
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.029111045548237232,
+        "relative_l2": 0.05948749200945234,
+        "largest_change": {
+          "index": [
+            5
+          ],
+          "before": -0.04720825329422951,
+          "after": -0.03749839588999748,
+          "signed_delta": 0.009709857404232025
+        }
+      },
+      "cosine_of_updates": 0.5416052153089652
+    },
+    "candidate.0.weight": {
+      "shape": [
+        164
+      ],
+      "count": 164,
+      "control": {
+        "changed": 164,
+        "delta_l2": 0.05819601372647733,
+        "relative_l2": 0.004437966553038353,
+        "largest_change": {
+          "index": [
+            48
+          ],
+          "before": 0.9812370538711548,
+          "after": 0.968033492565155,
+          "signed_delta": -0.013203561305999756
+        }
+      },
+      "diverse": {
+        "changed": 164,
+        "delta_l2": 0.060037158450300235,
+        "relative_l2": 0.004578370305467732,
+        "largest_change": {
+          "index": [
+            47
+          ],
+          "before": 1.0318173170089722,
+          "after": 1.0152051448822021,
+          "signed_delta": -0.01661217212677002
+        }
+      },
+      "cosine_of_updates": 0.15521760263205756
+    },
+    "candidate.0.bias": {
+      "shape": [
+        164
+      ],
+      "count": 164,
+      "control": {
+        "changed": 164,
+        "delta_l2": 0.03982534528835454,
+        "relative_l2": 0.1369040038373076,
+        "largest_change": {
+          "index": [
+            48
+          ],
+          "before": 0.03859090432524681,
+          "after": 0.05310622602701187,
+          "signed_delta": 0.01451532170176506
+        }
+      },
+      "diverse": {
+        "changed": 164,
+        "delta_l2": 0.03520615900688071,
+        "relative_l2": 0.12102504304424076,
+        "largest_change": {
+          "index": [
+            53
+          ],
+          "before": -0.023141318932175636,
+          "after": -0.013985426165163517,
+          "signed_delta": 0.00915589276701212
+        }
+      },
+      "cosine_of_updates": 0.6616169443274306
+    },
+    "candidate.1.weight": {
+      "shape": [
+        128,
+        164
+      ],
+      "count": 20992,
+      "control": {
+        "changed": 20992,
+        "delta_l2": 0.6607774305792308,
+        "relative_l2": 0.08234616776596311,
+        "largest_change": {
+          "index": [
+            96,
+            28
+          ],
+          "before": 0.0907231792807579,
+          "after": 0.0652332603931427,
+          "signed_delta": -0.025489918887615204
+        },
+        "delta_energy_in_top_direction": 0.5171300200114783,
+        "delta_energy_in_top_four_directions": 0.8601661597783948
+      },
+      "diverse": {
+        "changed": 20992,
+        "delta_l2": 0.6192211542704217,
+        "relative_l2": 0.0771674193065095,
+        "largest_change": {
+          "index": [
+            84,
+            132
+          ],
+          "before": -0.03629067540168762,
+          "after": -0.012311043217778206,
+          "signed_delta": 0.023979632183909416
+        },
+        "delta_energy_in_top_direction": 0.48033949805558734,
+        "delta_energy_in_top_four_directions": 0.8467694808497624
+      },
+      "cosine_of_updates": 0.0014501521714218595
+    },
+    "candidate.1.bias": {
+      "shape": [
+        128
+      ],
+      "count": 128,
+      "control": {
+        "changed": 128,
+        "delta_l2": 0.03581711733710487,
+        "relative_l2": 0.055789050195229346,
+        "largest_change": {
+          "index": [
+            96
+          ],
+          "before": 0.02735898271203041,
+          "after": 0.03954005241394043,
+          "signed_delta": 0.012181069701910019
+        }
+      },
+      "diverse": {
+        "changed": 128,
+        "delta_l2": 0.034656697826960924,
+        "relative_l2": 0.053981570780020305,
+        "largest_change": {
+          "index": [
+            84
+          ],
+          "before": 0.10968755930662155,
+          "after": 0.12038542330265045,
+          "signed_delta": 0.0106978639960289
+        }
+      },
+      "cosine_of_updates": -0.01450862596972634
+    },
+    "candidate.3.weight": {
+      "shape": [
+        64,
+        128
+      ],
+      "count": 8192,
+      "control": {
+        "changed": 8192,
+        "delta_l2": 0.3928203692863224,
+        "relative_l2": 0.06266241444234408,
+        "largest_change": {
+          "index": [
+            38,
+            127
+          ],
+          "before": -0.13549457490444183,
+          "after": -0.11496315151453018,
+          "signed_delta": 0.02053142338991165
+        },
+        "delta_energy_in_top_direction": 0.5685663771173103,
+        "delta_energy_in_top_four_directions": 0.9366813311362323
+      },
+      "diverse": {
+        "changed": 8192,
+        "delta_l2": 0.38895708283918984,
+        "relative_l2": 0.062046145848891225,
+        "largest_change": {
+          "index": [
+            57,
+            116
+          ],
+          "before": -0.046080999076366425,
+          "after": -0.064142607152462,
+          "signed_delta": -0.01806160807609558
+        },
+        "delta_energy_in_top_direction": 0.5465410389155306,
+        "delta_energy_in_top_four_directions": 0.8892027904096709
+      },
+      "cosine_of_updates": 0.07947198810943636
+    },
+    "candidate.3.bias": {
+      "shape": [
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.03024109023836126,
+        "relative_l2": 0.058874637138549055,
+        "largest_change": {
+          "index": [
+            21
+          ],
+          "before": -0.043380893766880035,
+          "after": -0.031685538589954376,
+          "signed_delta": 0.01169535517692566
+        }
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.02205308913570797,
+        "relative_l2": 0.04293388930144744,
+        "largest_change": {
+          "index": [
+            29
+          ],
+          "before": 0.06832051277160645,
+          "after": 0.06166274473071098,
+          "signed_delta": -0.006657768040895462
+        }
+      },
+      "cosine_of_updates": 0.016925172536034528
+    },
+    "rank1.weight": {
+      "shape": [
+        64,
+        128
+      ],
+      "count": 8192,
+      "control": {
+        "changed": 8192,
+        "delta_l2": 0.447692281852523,
+        "relative_l2": 0.07478023788896851,
+        "largest_change": {
+          "index": [
+            34,
+            80
+          ],
+          "before": -0.08687260001897812,
+          "after": -0.06816497445106506,
+          "signed_delta": 0.018707625567913055
+        },
+        "delta_energy_in_top_direction": 0.4931135693046418,
+        "delta_energy_in_top_four_directions": 0.9478368640835487
+      },
+      "diverse": {
+        "changed": 8192,
+        "delta_l2": 0.5863159031971734,
+        "relative_l2": 0.09793522134833955,
+        "largest_change": {
+          "index": [
+            21,
+            11
+          ],
+          "before": -0.04902828112244606,
+          "after": -0.07262196391820908,
+          "signed_delta": -0.023593682795763016
+        },
+        "delta_energy_in_top_direction": 0.7684698843462839,
+        "delta_energy_in_top_four_directions": 0.9726001856749396
+      },
+      "cosine_of_updates": 0.334501102409259
+    },
+    "rank1.bias": {
+      "shape": [
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.043645312525689914,
+        "relative_l2": 0.09964582912160629,
+        "largest_change": {
+          "index": [
+            12
+          ],
+          "before": -0.019852662459015846,
+          "after": -0.03350111469626427,
+          "signed_delta": -0.01364845223724842
+        }
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.07097408173755247,
+        "relative_l2": 0.16203965126198341,
+        "largest_change": {
+          "index": [
+            63
+          ],
+          "before": -0.0027476674877107143,
+          "after": 0.01785864308476448,
+          "signed_delta": 0.020606310572475195
+        }
+      },
+      "cosine_of_updates": 0.4634509449135974
+    },
+    "rank_out.weight": {
+      "shape": [
+        1,
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.025853049940301503,
+        "relative_l2": 0.06202014372849353,
+        "largest_change": {
+          "index": [
+            0,
+            28
+          ],
+          "before": -0.04481116682291031,
+          "after": -0.036573246121406555,
+          "signed_delta": 0.008237920701503754
+        },
+        "delta_energy_in_top_direction": 1.0,
+        "delta_energy_in_top_four_directions": 1.0
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.026251288858476985,
+        "relative_l2": 0.06297549851257342,
+        "largest_change": {
+          "index": [
+            0,
+            27
+          ],
+          "before": 0.06604123115539551,
+          "after": 0.07084602117538452,
+          "signed_delta": 0.004804790019989014
+        },
+        "delta_energy_in_top_direction": 1.0,
+        "delta_energy_in_top_four_directions": 1.0
+      },
+      "cosine_of_updates": 0.35933046541578384
+    },
+    "rank_out.bias": {
+      "shape": [
+        1
+      ],
+      "count": 1,
+      "control": {
+        "changed": 1,
+        "delta_l2": 0.01689392328262329,
+        "relative_l2": 0.11240788603786127,
+        "largest_change": {
+          "index": [
+            0
+          ],
+          "before": 0.15029126405715942,
+          "after": 0.16718518733978271,
+          "signed_delta": 0.01689392328262329
+        }
+      },
+      "diverse": {
+        "changed": 1,
+        "delta_l2": 0.016736015677452087,
+        "relative_l2": 0.11135720883342211,
+        "largest_change": {
+          "index": [
+            0
+          ],
+          "before": 0.15029126405715942,
+          "after": 0.1670272797346115,
+          "signed_delta": 0.016736015677452087
+        }
+      },
+      "cosine_of_updates": 1.0
+    },
+    "value.0.weight": {
+      "shape": [
+        348
+      ],
+      "count": 348,
+      "control": {
+        "changed": 348,
+        "delta_l2": 0.5757259603505728,
+        "relative_l2": 0.030112377285540955,
+        "largest_change": {
+          "index": [
+            343
+          ],
+          "before": 1.1165974140167236,
+          "after": 1.2189315557479858,
+          "signed_delta": 0.10233414173126221
+        }
+      },
+      "diverse": {
+        "changed": 348,
+        "delta_l2": 0.5119072022147351,
+        "relative_l2": 0.02677444456193953,
+        "largest_change": {
+          "index": [
+            343
+          ],
+          "before": 1.1165974140167236,
+          "after": 1.2266488075256348,
+          "signed_delta": 0.11005139350891113
+        }
+      },
+      "cosine_of_updates": 0.588417202311406
+    },
+    "value.0.bias": {
+      "shape": [
+        348
+      ],
+      "count": 348,
+      "control": {
+        "changed": 348,
+        "delta_l2": 0.3495571032935481,
+        "relative_l2": 0.5090455410037122,
+        "largest_change": {
+          "index": [
+            263
+          ],
+          "before": -0.01953066512942314,
+          "after": 0.05843264237046242,
+          "signed_delta": 0.07796330749988556
+        }
+      },
+      "diverse": {
+        "changed": 348,
+        "delta_l2": 0.22999382407036936,
+        "relative_l2": 0.3349304863162674,
+        "largest_change": {
+          "index": [
+            133
+          ],
+          "before": 0.026683250442147255,
+          "after": -0.013598134741187096,
+          "signed_delta": -0.04028138518333435
+        }
+      },
+      "cosine_of_updates": 0.6675839963605358
+    },
+    "value.1.weight": {
+      "shape": [
+        128,
+        348
+      ],
+      "count": 44544,
+      "control": {
+        "changed": 44544,
+        "delta_l2": 6.393774241931762,
+        "relative_l2": 0.7426308065818517,
+        "largest_change": {
+          "index": [
+            120,
+            60
+          ],
+          "before": -0.023776942864060402,
+          "after": 0.25217732787132263,
+          "signed_delta": 0.27595427073538303
+        },
+        "delta_energy_in_top_direction": 0.5314955272544251,
+        "delta_energy_in_top_four_directions": 0.8146829705326146
+      },
+      "diverse": {
+        "changed": 44544,
+        "delta_l2": 6.024084703955168,
+        "relative_l2": 0.6996917178082884,
+        "largest_change": {
+          "index": [
+            11,
+            51
+          ],
+          "before": -0.08739256113767624,
+          "after": -0.4505021870136261,
+          "signed_delta": -0.36310962587594986
+        },
+        "delta_energy_in_top_direction": 0.5618393969430863,
+        "delta_energy_in_top_four_directions": 0.8414012189125847
+      },
+      "cosine_of_updates": 0.5076517608877809
+    },
+    "value.1.bias": {
+      "shape": [
+        128
+      ],
+      "count": 128,
+      "control": {
+        "changed": 128,
+        "delta_l2": 0.16196036273687836,
+        "relative_l2": 0.2833590575945937,
+        "largest_change": {
+          "index": [
+            60
+          ],
+          "before": 0.02349124103784561,
+          "after": 0.0847441777586937,
+          "signed_delta": 0.061252936720848083
+        }
+      },
+      "diverse": {
+        "changed": 128,
+        "delta_l2": 0.1323471638883255,
+        "relative_l2": 0.2315490469457562,
+        "largest_change": {
+          "index": [
+            120
+          ],
+          "before": 0.04156969487667084,
+          "after": -0.003232164541259408,
+          "signed_delta": -0.044801859417930245
+        }
+      },
+      "cosine_of_updates": 0.5618156205052259
+    },
+    "value.3.weight": {
+      "shape": [
+        64,
+        128
+      ],
+      "count": 8192,
+      "control": {
+        "changed": 8192,
+        "delta_l2": 2.924442976907586,
+        "relative_l2": 0.5428888591421482,
+        "largest_change": {
+          "index": [
+            13,
+            60
+          ],
+          "before": 0.04254097491502762,
+          "after": 0.21037372946739197,
+          "signed_delta": 0.16783275455236435
+        },
+        "delta_energy_in_top_direction": 0.7378794600321418,
+        "delta_energy_in_top_four_directions": 0.9844634640042735
+      },
+      "diverse": {
+        "changed": 8192,
+        "delta_l2": 2.923168242726075,
+        "relative_l2": 0.5426522195526693,
+        "largest_change": {
+          "index": [
+            43,
+            39
+          ],
+          "before": -0.020640717819333076,
+          "after": -0.23572999238967896,
+          "signed_delta": -0.21508927457034588
+        },
+        "delta_energy_in_top_direction": 0.79507988328513,
+        "delta_energy_in_top_four_directions": 0.987147427841305
+      },
+      "cosine_of_updates": 0.800512079893419
+    },
+    "value.3.bias": {
+      "shape": [
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.0745204318519471,
+        "relative_l2": 0.14174226926270922,
+        "largest_change": {
+          "index": [
+            20
+          ],
+          "before": -0.005487670656293631,
+          "after": -0.035249173641204834,
+          "signed_delta": -0.029761502984911203
+        }
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.08831690871459706,
+        "relative_l2": 0.16798398431647638,
+        "largest_change": {
+          "index": [
+            13
+          ],
+          "before": -0.021539583802223206,
+          "after": 0.027966905385255814,
+          "signed_delta": 0.04950648918747902
+        }
+      },
+      "cosine_of_updates": 0.4397203834877779
+    },
+    "value.5.weight": {
+      "shape": [
+        1,
+        64
+      ],
+      "count": 64,
+      "control": {
+        "changed": 64,
+        "delta_l2": 0.1991807717143091,
+        "relative_l2": 0.9692512197771589,
+        "largest_change": {
+          "index": [
+            0,
+            52
+          ],
+          "before": -0.013754156418144703,
+          "after": -0.13852180540561676,
+          "signed_delta": -0.12476764898747206
+        },
+        "delta_energy_in_top_direction": 1.0,
+        "delta_energy_in_top_four_directions": 1.0
+      },
+      "diverse": {
+        "changed": 64,
+        "delta_l2": 0.1583807107065112,
+        "relative_l2": 0.770710424104814,
+        "largest_change": {
+          "index": [
+            0,
+            13
+          ],
+          "before": -0.01933109015226364,
+          "after": -0.12352964282035828,
+          "signed_delta": -0.10419855266809464
+        },
+        "delta_energy_in_top_direction": 1.0,
+        "delta_energy_in_top_four_directions": 1.0
+      },
+      "cosine_of_updates": 0.9620693140182927
+    },
+    "value.5.bias": {
+      "shape": [
+        1
+      ],
+      "count": 1,
+      "control": {
+        "changed": 1,
+        "delta_l2": 0.002330780029296875,
+        "relative_l2": 0.00018853885856075575,
+        "largest_change": {
+          "index": [
+            0
+          ],
+          "before": 12.362332344055176,
+          "after": 12.364663124084473,
+          "signed_delta": 0.002330780029296875
+        }
+      },
+      "diverse": {
+        "changed": 1,
+        "delta_l2": 0.003986358642578125,
+        "relative_l2": 0.00032246007724384576,
+        "largest_change": {
+          "index": [
+            0
+          ],
+          "before": 12.362332344055176,
+          "after": 12.366318702697754,
+          "signed_delta": 0.003986358642578125
+        }
+      },
+      "cosine_of_updates": 1.0
+    },
+    "spatial_actor.weight": {
+      "shape": [
+        64,
+        18
+      ],
+      "count": 1152,
+      "control": {
+        "changed": 1152,
+        "delta_l2": 0.1912043437671716,
+        "relative_l2": 0.15938525064250292,
+        "largest_change": {
+          "index": [
+            16,
+            5
+          ],
+          "before": 0.018701929599046707,
+          "after": 0.004469766281545162,
+          "signed_delta": -0.014232163317501545
+        },
+        "delta_energy_in_top_direction": 0.9484099975877884,
+        "delta_energy_in_top_four_directions": 0.9982970043762072
+      },
+      "diverse": {
+        "changed": 1152,
+        "delta_l2": 0.20411279865842905,
+        "relative_l2": 0.17014555701271705,
+        "largest_change": {
+          "index": [
+            16,
+            4
+          ],
+          "before": -0.041930027306079865,
+          "after": -0.02825854904949665,
+          "signed_delta": 0.013671478256583214
+        },
+        "delta_energy_in_top_direction": 0.9707881583977784,
+        "delta_energy_in_top_four_directions": 0.9986112471634037
+      },
+      "cosine_of_updates": 0.492395240497348
+    }
+  },
+  "parameters": 102830
+}

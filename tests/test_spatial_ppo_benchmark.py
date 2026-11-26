@@ -19,6 +19,29 @@ class PreparationGateTests(unittest.TestCase):
                 'cpu_fallbacks': fallbacks or {}}},
         }
 
+    def test_failed_gate_is_off_and_binds_all_available_receipts(self):
+        import json
+        from tempfile import TemporaryDirectory
+        from tools.benchmark_spatial_ppo import report_failed_gate, verified_gate
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root/'opening').mkdir()
+            receipt = root/'opening/1-reference.json'
+            receipt.write_text('{"seconds": 4}')
+            gate = root/'gate.json'
+            report_failed_gate(root, gate, 'preparation time budget exhausted')
+            report = verified_gate(root, root, 'cpu', 'unused')
+            self.assertEqual(report['enabled'], {'two_stage': False, 'headless': False})
+            self.assertFalse(report['parity'])
+            report['enabled']['headless'] = True
+            gate.write_text(json.dumps(report))
+            with self.assertRaises(ValueError):
+                verified_gate(root, root, 'cpu', 'unused')
+            report_failed_gate(root, gate, 'preparation time budget exhausted')
+            receipt.write_text('{"seconds": 3}')
+            with self.assertRaises(ValueError):
+                verified_gate(root, root, 'cpu', 'unused')
+
     def test_complete_rollout_and_per_environment_recovery(self):
         validate_preparation(self.row(), 32, 256)
         # Three terminal rows across two steps caused two new batches.

@@ -281,7 +281,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
     def __init__(self, config: neural.Config):
         if config.architecture != ARCHITECTURE:
             raise ValueError('SurvivalSpatialPolicy requires survival-spatial-v4 architecture')
-        super().__init__(replace(config, architecture=V3_ARCHITECTURE))
+        super().__init__(replace(config, architecture=V3_ARCHITECTURE, cross_residual=False, cross_weight=0.))
         self.config = config
         self.spatial_actor = nn.Linear(SPATIAL_ACTOR_FEATURES, 64, bias=False)
         nn.init.zeros_(self.spatial_actor.weight)
@@ -289,6 +289,10 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                        + (REGIONAL_CRITIC_FEATURES if config.regional_critic else 0))
         self.value = nn.Sequential(nn.LayerNorm(state_width), nn.Linear(state_width, 128), nn.SiLU(),
                                    nn.Linear(128, 64), nn.SiLU(), nn.Linear(64, 1))
+        if config.cross_residual:
+            self.cross_head = nn.Sequential(nn.Linear(68, 32), nn.SiLU(), nn.Linear(32, 1))
+            nn.init.zeros_(self.cross_head[-1].weight)
+            nn.init.zeros_(self.cross_head[-1].bias)
 
     def _board_features(self, boards, targets):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
@@ -337,7 +341,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         for start in range(0, columns.shape[1], self.config.chunk):
             stop = start + self.config.chunk
             local.append(self.local_statistics(spatial, batch['indices'][:, start:stop], columns[:, start:stop]))
-        fixed = {name: batch[name] for name in ('context', 'features', 'valid', 'spatial_delta', 'teacher_prior')
+        fixed = {name: batch[name] for name in ('context', 'features', 'valid', 'spatial_delta', 'teacher_prior', 'cross_mobility')
                  if name in batch}
         return {**fixed, 'pooled': pooled, 'local': local[0] if len(local) == 1 else torch.cat(local, 1)}
 
@@ -369,17 +373,17 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden)
         return raw, hidden, pooled, value, completion
 
-    def actor_logits(self, batch):
-        """Rank candidates without computing the regional critic or retaining hidden activations."""
+    def actor_logits(self, batch, *, return_base=False):
+        """Rank candidates without computing the regional critic."""
         if 'pooled' in batch:
             spatial, pooled = None, batch['pooled']
         else:
             spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
             pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
-        raw, _ = self._rank_candidates(batch, spatial, pooled, keep_hidden=False)
-        return self._policy_logits(raw, batch)
+        raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden=self.config.cross_residual)
+        return self._policy_logits(raw, batch, hidden, return_base=return_base)
 
-    def _policy_logits(self, raw, batch):
+    def _policy_logits(self, raw, batch, hidden=None, *, return_base=False):
         logits = raw
         if self.config.policy_mode in ('teacher-residual', 'teacher-prior'):
             if 'teacher_prior' not in batch:
@@ -388,13 +392,30 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                 logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(raw.float()) - 1)
             else:
                 logits = self.config.teacher_prior_scale * batch['teacher_prior'].float() + self.config.residual_scale * raw.float()
-        return logits.masked_fill(~batch['valid'].bool(), -torch.inf)
+        base_logits = logits
+        if self.config.cross_residual or self.config.cross_weight:
+            mobility = batch['cross_mobility']
+            if mobility.shape != (*raw.shape, 2):
+                raise ValueError('Expected CROSS mobility before and after each shortlisted move')
+            if self.config.cross_residual:
+                # The context encodes current, preview, then observed remaining bag, in PIECE_NAMES order.
+                cross = neural.NAMES.index('CROSS')
+                flags = batch['context'][:, [len(neural.NAMES) + cross, 2 * len(neural.NAMES) + cross]]
+                inputs = torch.cat((hidden, mobility, flags[:, None].expand(-1, raw.shape[1], -1)), -1)
+                logits = logits + .05 * self.cross_head(inputs).squeeze(-1).tanh()
+            else:
+                logits = logits + self.config.cross_weight * (mobility[..., 1] - mobility[..., 0])
+        invalid = ~batch['valid'].bool()
+        adjusted = logits.masked_fill(invalid, -torch.inf)
+        if return_base:
+            return adjusted, base_logits.masked_fill(invalid, -torch.inf) if base_logits is not logits else adjusted
+        return adjusted
 
     def forward(self, batch, capture=False):
         if capture:
             raise NotImplementedError('V4 uses feature diagnostics rather than legacy CNN activations')
-        raw, _, pooled, value, completion = self.raw_scores(batch, keep_hidden=False)
-        logits = self._policy_logits(raw, batch)
+        raw, hidden, pooled, value, completion = self.raw_scores(batch, keep_hidden=self.config.cross_residual)
+        logits = self._policy_logits(raw, batch, hidden)
         return {'logits': logits, 'raw_logits': raw, 'value': value, 'completion': completion,
                 'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
 
