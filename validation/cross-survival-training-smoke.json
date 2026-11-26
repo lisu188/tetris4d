@@ -1,0 +1,57 @@
+{
+  "schema": "cross-survival-real-training-smoke-v1",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "precision": "fp32",
+  "recipes": {
+    "reference": {
+      "seconds": 46.49669569300022,
+      "updates": 2,
+      "real_placements": 4,
+      "trainable_actor_parameters": 49141,
+      "frozen_start_actor": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+      "donor_critic": "5ae4d48e2ecb705bd0ecc23b684c5070414ed1e60e162346a6607e3723d52e3b",
+      "base_actor_changed": true,
+      "source_actor": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "source_critic": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+      "final_kl": 0.001883884659036994,
+      "reference_kl": 0.001883884659036994,
+      "compact_cache": true,
+      "gpu_prepare": {
+        "requested": true,
+        "enabled": true,
+        "estimated_retained_bytes": 378880,
+        "preparations": {
+          "batch_calls": 3,
+          "environment_calls": 6,
+          "cpu_fallbacks": {}
+        }
+      },
+      "old_probabilities_bitwise_equal": true
+    },
+    "residual": {
+      "seconds": 26.854775746993255,
+      "updates": 2,
+      "real_placements": 4,
+      "trainable_actor_parameters": 2241,
+      "frozen_start_actor": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+      "donor_critic": "5ae4d48e2ecb705bd0ecc23b684c5070414ed1e60e162346a6607e3723d52e3b",
+      "base_actor_changed": false,
+      "source_actor": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "source_critic": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+      "final_kl": 8.40745428831724e-09,
+      "reference_kl": null,
+      "compact_cache": true,
+      "gpu_prepare": {
+        "requested": true,
+        "enabled": true,
+        "estimated_retained_bytes": 382976,
+        "preparations": {
+          "batch_calls": 3,
+          "environment_calls": 6,
+          "cpu_fallbacks": {}
+        }
+      },
+      "old_probabilities_bitwise_equal": true
+    }
+  }
+}

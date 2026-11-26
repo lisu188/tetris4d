@@ -1,0 +1,1237 @@
+{
+  "stage": "complete",
+  "specification_unix": 1795689173.4996414,
+  "plan": {
+    "ordered_candidates": [
+      {
+        "split": "fit",
+        "seed": 300322,
+        "game_id": "470217b4f6cdc3e3ae5560fe54c6901fccf28f2608be57cc7c4a99be443db624",
+        "path": "data/game-library/games/47/470217b4f6cdc3e3ae5560fe54c6901fccf28f2608be57cc7c4a99be443db624.npz",
+        "sha256": "4c0bd5603b6bdba8a14e378b35a7a4c294e31cb4101484b493eb3f4b297db442"
+      },
+      {
+        "split": "fit",
+        "seed": 300460,
+        "game_id": "5565ee2e5ac9f9972af18fe755c89b0abee085896fe243e696f164c63198e4a5",
+        "path": "data/game-library/games/55/5565ee2e5ac9f9972af18fe755c89b0abee085896fe243e696f164c63198e4a5.npz",
+        "sha256": "f4239c7c70afe4cc4afa685ef1bf63d5112272700bc352edf5a7a5d7ffb16b30"
+      },
+      {
+        "split": "fit",
+        "seed": 300264,
+        "game_id": "1eefba49543e62f91d158498dd5f5c21f72dbb26c6aa4c57476a69e4bc1d2b18",
+        "path": "data/game-library/games/1e/1eefba49543e62f91d158498dd5f5c21f72dbb26c6aa4c57476a69e4bc1d2b18.npz",
+        "sha256": "02e5b334ddd99c201ed6a862aa7bdcce1b1e08ee36842bc4dc207a23f4ebac64"
+      },
+      {
+        "split": "fit",
+        "seed": 300576,
+        "game_id": "638045123c60051043eedae80cb9bd2434ded899b1adad722ca6841501c2147c",
+        "path": "data/game-library/games/63/638045123c60051043eedae80cb9bd2434ded899b1adad722ca6841501c2147c.npz",
+        "sha256": "6b5886190d61547b45fe5b372163f87d976a14e985e5dddac0eb740d403d0deb"
+      },
+      {
+        "split": "fit",
+        "seed": 300268,
+        "game_id": "114dea1f0d59351007436a0e97bdf3e568ce8606a11b27f414302165ed50f466",
+        "path": "data/game-library/games/11/114dea1f0d59351007436a0e97bdf3e568ce8606a11b27f414302165ed50f466.npz",
+        "sha256": "22dc20d4773e1f5ee8cd83d09161eb9b3cebb3b4f73bba0b8c7b03e77ec93194"
+      },
+      {
+        "split": "fit",
+        "seed": 500000,
+        "game_id": "74d2dbd38e2d627146e64971537997d58f53d2d53bc8a6e4858ca1d46b876ec4",
+        "path": "data/game-library/games/74/74d2dbd38e2d627146e64971537997d58f53d2d53bc8a6e4858ca1d46b876ec4.npz",
+        "sha256": "b46d4220e445a57853f6ea19285412ee331da1580413120b3ac1a9bbfe6a98e5"
+      },
+      {
+        "split": "fit",
+        "seed": 300320,
+        "game_id": "81585f48d7404050f73845ece9302c103a98bbf17f4f63e84b6f822c42734b3f",
+        "path": "data/game-library/games/81/81585f48d7404050f73845ece9302c103a98bbf17f4f63e84b6f822c42734b3f.npz",
+        "sha256": "49f539f43975364c6b48b4f6f95921c1d4d51ca112a62f0e2936b3b2cceb6af5"
+      },
+      {
+        "split": "fit",
+        "seed": 300122,
+        "game_id": "130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f",
+        "path": "data/game-library/games/13/130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f.npz",
+        "sha256": "683c8283ac1ad4b9b7fe701aca0ed7668238ee19c8c852bfb474fec64e23261c"
+      },
+      {
+        "split": "fit",
+        "seed": 300286,
+        "game_id": "ab18c2be348a48ef03e8737e7439b058641b09ddc96672a686c56969b3c642dc",
+        "path": "data/game-library/games/ab/ab18c2be348a48ef03e8737e7439b058641b09ddc96672a686c56969b3c642dc.npz",
+        "sha256": "846db9aee7e1ba0bb82ef09a95ae863b116539793dd2eea5fe2bf25085c540ba"
+      },
+      {
+        "split": "fit",
+        "seed": 300536,
+        "game_id": "8ae9c42dd609b8373b535aaa9d29e7207d15cbfb93dd212a5ee8d7a991bef030",
+        "path": "data/game-library/games/8a/8ae9c42dd609b8373b535aaa9d29e7207d15cbfb93dd212a5ee8d7a991bef030.npz",
+        "sha256": "187512d6da17c4f3e23b49ec40bc8056fe035563f54352887eda5d7c6c40f410"
+      },
+      {
+        "split": "fit",
+        "seed": 300492,
+        "game_id": "6c69ad16a2de68739f010c956b6214fae50ef203cdeefee2773d19d7d99347b5",
+        "path": "data/game-library/games/6c/6c69ad16a2de68739f010c956b6214fae50ef203cdeefee2773d19d7d99347b5.npz",
+        "sha256": "8335f3c159019f1220bd522b94f65f792418d1c641f0635f103a1f3b25b8e14c"
+      },
+      {
+        "split": "fit",
+        "seed": 300124,
+        "game_id": "4e71637f79c081d50a2915c077f35b086e04cbf4e49f661947cabdd06d4f568b",
+        "path": "data/game-library/games/4e/4e71637f79c081d50a2915c077f35b086e04cbf4e49f661947cabdd06d4f568b.npz",
+        "sha256": "db0711a1772d685f0ef97bf7f465aa06551ba50981fdf59df4583b8f83f8aa62"
+      },
+      {
+        "split": "fit",
+        "seed": 300136,
+        "game_id": "fa5c4a7bc5cfa690d404ef9d68433d931c000242dddba607d3c32108218861fa",
+        "path": "data/game-library/games/fa/fa5c4a7bc5cfa690d404ef9d68433d931c000242dddba607d3c32108218861fa.npz",
+        "sha256": "a9572bf2862c40190a40a6c90189c108aeb270944e68bcd61b66f209fdfc1ced"
+      },
+      {
+        "split": "fit",
+        "seed": 300272,
+        "game_id": "d2b557a385da743fa7374ce1dcd324883a388b88c4ac45524bd53b2b457a928f",
+        "path": "data/game-library/games/d2/d2b557a385da743fa7374ce1dcd324883a388b88c4ac45524bd53b2b457a928f.npz",
+        "sha256": "d1d0ead9ad389b4d681cdac6271b782acfc55706928a57e5aa3792d6cbc7839e"
+      },
+      {
+        "split": "fit",
+        "seed": 300140,
+        "game_id": "1c1353e83599fc040e6ac4815a715881b624d168e1cbbcf8a5a1f686d72ac3a2",
+        "path": "data/game-library/games/1c/1c1353e83599fc040e6ac4815a715881b624d168e1cbbcf8a5a1f686d72ac3a2.npz",
+        "sha256": "73a3074fa9c0b6c4c7c3cf696ae00a84cf4a3e0b89f6d623a3c7bf277a6ee7ce"
+      },
+      {
+        "split": "fit",
+        "seed": 300570,
+        "game_id": "debc95acb8173fcef968e9d639bbca2118d7847919551909d578832c71b48f22",
+        "path": "data/game-library/games/de/debc95acb8173fcef968e9d639bbca2118d7847919551909d578832c71b48f22.npz",
+        "sha256": "7089550d009b4edc163040b604147d42be913c5cda5caa416932ba9eb229f0c2"
+      },
+      {
+        "split": "fit",
+        "seed": 300572,
+        "game_id": "f0f0d8da398b36ef98cf15d54c76df8fc75e9eb313c323d70458dfddefe3a6f1",
+        "path": "data/game-library/games/f0/f0f0d8da398b36ef98cf15d54c76df8fc75e9eb313c323d70458dfddefe3a6f1.npz",
+        "sha256": "77fe31a3817b5562115e6e902a8e117a9c80c0d1ced38970aab9737acbc5454c"
+      },
+      {
+        "split": "fit",
+        "seed": 300516,
+        "game_id": "87f16956a6936b5f0c4be0df565f10effaf7a8db433de8cc7b5e2b470811441e",
+        "path": "data/game-library/games/87/87f16956a6936b5f0c4be0df565f10effaf7a8db433de8cc7b5e2b470811441e.npz",
+        "sha256": "bcfb412e1a8f9efc7354729b4496430b855ad60f39d8ae975db784a337d8c73f"
+      },
+      {
+        "split": "fit",
+        "seed": 300518,
+        "game_id": "08e3c9b03c83fef3b9338cc1e47340d3aac6efb0513a75bac6badbe24e3560f6",
+        "path": "data/game-library/games/08/08e3c9b03c83fef3b9338cc1e47340d3aac6efb0513a75bac6badbe24e3560f6.npz",
+        "sha256": "fa2352b5844d875f52e4a91bfc2e1850ca23b0086a6286be96a29a0c5098c115"
+      },
+      {
+        "split": "fit",
+        "seed": 300534,
+        "game_id": "4dd7a41dd69778e9e1b374caffbdc02aa6bb7eeedabf71bb766374f0e1824f70",
+        "path": "data/game-library/games/4d/4dd7a41dd69778e9e1b374caffbdc02aa6bb7eeedabf71bb766374f0e1824f70.npz",
+        "sha256": "0e865ecd6b0f19bdde347190bc1d1b4b43bb8992f16482d715c8ccd6eae4b7cd"
+      }
+    ],
+    "excluded_manual": [
+      300006,
+      300072,
+      300224,
+      300560
+    ],
+    "excluded_discovery": [
+      300014,
+      300036,
+      300054,
+      300080,
+      300082,
+      300176,
+      300204,
+      300308,
+      300360,
+      300538
+    ],
+    "roster_rule": "Keep previous salted fit-seed order, exclude all manual pairs, archive test, discovery and reserved seeds. For each remaining game take first pre-action N<=84 entered from N>84. Stop at six eligible seeds; no replacement based on later survival or arm agreement.",
+    "modes": [
+      "unchanged greedy incumbent",
+      "same incumbent with registered single-visible-piece preview search"
+    ],
+    "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+    "source_fit_sha256": "b9fb7bfc650c93e3d07144f1cb555e6196b832443b7bf1648886f930e2a23be8",
+    "previous_sha256": "6d82bd43afb98c4b0f3d126c46d5882bf383b814f388ec2b92753df0abb0dd4b",
+    "cpu_prepare": "exact native two-stage exhaustive",
+    "actor_shape": [
+      32,
+      128
+    ],
+    "precision": "fp32",
+    "commit": "standard",
+    "cap_after_root": 1024,
+    "total_cpu_wall_budget_seconds": 720
+  },
+  "plan_sha256": "ab4953cd9d39475b665cee3e048874b63a538c0bb324c5e580800685bb912628",
+  "coordinates": {
+    "roots": [
+      {
+        "seed": 300322,
+        "game_id": "470217b4f6cdc3e3ae5560fe54c6901fccf28f2608be57cc7c4a99be443db624",
+        "file_sha256": "4c0bd5603b6bdba8a14e378b35a7a4c294e31cb4101484b493eb3f4b297db442",
+        "offset": 7036,
+        "before_n": 87,
+        "current_n": 82,
+        "board_sha256": "03140919dcf3d25752d083ba2bd4b1042787fbb862f498521ca81c0caa0e6c4c",
+        "stream_sha256": "7412538410bb75c94e3d556d4c83c98fae98214837959e880e7245dadc94c53e",
+        "source_target": 14,
+        "current": "STAIR",
+        "visible_preview": "I"
+      },
+      {
+        "seed": 300460,
+        "game_id": "5565ee2e5ac9f9972af18fe755c89b0abee085896fe243e696f164c63198e4a5",
+        "file_sha256": "f4239c7c70afe4cc4afa685ef1bf63d5112272700bc352edf5a7a5d7ffb16b30",
+        "offset": 6124,
+        "before_n": 89,
+        "current_n": 82,
+        "board_sha256": "243c1e978c4ccf171b2dde358c5973ac0b78e94ea5f17540f5dd9eb82876ac73",
+        "stream_sha256": "9771aa683639825cf92f1ac8a28f4d81dbd7def8a4c0e0ab247bb3bf4385e7c0",
+        "source_target": 7,
+        "current": "FORK",
+        "visible_preview": "B"
+      },
+      {
+        "seed": 300264,
+        "game_id": "1eefba49543e62f91d158498dd5f5c21f72dbb26c6aa4c57476a69e4bc1d2b18",
+        "file_sha256": "02e5b334ddd99c201ed6a862aa7bdcce1b1e08ee36842bc4dc207a23f4ebac64",
+        "offset": 7064,
+        "before_n": 86,
+        "current_n": 84,
+        "board_sha256": "5bdc719a651dbfc70ca3b9ee8f01d7b770fc3deba004ec40d6a90f00c4bdb714",
+        "stream_sha256": "1cca70b045d31177937aa8800099f27b6cc1e5398d37d83b69be88b427dd99f8",
+        "source_target": 14,
+        "current": "HOOK",
+        "visible_preview": "B"
+      },
+      {
+        "seed": 300576,
+        "game_id": "638045123c60051043eedae80cb9bd2434ded899b1adad722ca6841501c2147c",
+        "file_sha256": "6b5886190d61547b45fe5b372163f87d976a14e985e5dddac0eb740d403d0deb",
+        "offset": 6339,
+        "before_n": 87,
+        "current_n": 84,
+        "board_sha256": "5a82d1b46c67c7102769ad4ffcef6c2512b778e71cb38ff0e06f85b0bf227c47",
+        "stream_sha256": "07e65cef4f7829697f4a62fbf8aa9eba2c05408e85d13a00a6e6395a4576ca06",
+        "source_target": 12,
+        "current": "FORK",
+        "visible_preview": "NOVA"
+      },
+      {
+        "seed": 500000,
+        "game_id": "74d2dbd38e2d627146e64971537997d58f53d2d53bc8a6e4858ca1d46b876ec4",
+        "file_sha256": "b46d4220e445a57853f6ea19285412ee331da1580413120b3ac1a9bbfe6a98e5",
+        "offset": 9611,
+        "before_n": 85,
+        "current_n": 84,
+        "board_sha256": "b2bf8d3cb73eb91f1c4f2cc294025337ea6feee54065730dcbedb43bf1cd3b6c",
+        "stream_sha256": "77a26ad6d1413925de94bdb6e0d42674b48e447cee9c9362b6d4ba56a39bd753",
+        "source_target": 14,
+        "current": "NOVA",
+        "visible_preview": "BRIDGE"
+      },
+      {
+        "seed": 300122,
+        "game_id": "130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f",
+        "file_sha256": "683c8283ac1ad4b9b7fe701aca0ed7668238ee19c8c852bfb474fec64e23261c",
+        "offset": 21278,
+        "before_n": 85,
+        "current_n": 84,
+        "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+        "stream_sha256": "3d1e23b2a23f0a914eb34e0bc8e2ffdc28df35aa8169854a018ab829610a4f21",
+        "source_target": 13,
+        "current": "L",
+        "visible_preview": "STAIR"
+      }
+    ],
+    "unreached_before_six": [
+      {
+        "seed": 300268,
+        "game_id": "114dea1f0d59351007436a0e97bdf3e568ce8606a11b27f414302165ed50f466",
+        "sha256": "22dc20d4773e1f5ee8cd83d09161eb9b3cebb3b4f73bba0b8c7b03e77ec93194",
+        "recorded_placements": 18110,
+        "no_preaction_downcrossing": true
+      },
+      {
+        "seed": 300320,
+        "game_id": "81585f48d7404050f73845ece9302c103a98bbf17f4f63e84b6f822c42734b3f",
+        "sha256": "49f539f43975364c6b48b4f6f95921c1d4d51ca112a62f0e2936b3b2cceb6af5",
+        "recorded_placements": 5631,
+        "no_preaction_downcrossing": true
+      }
+    ]
+  },
+  "coordinates_sha256": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+  "selection_wall_seconds": 47.09081081300974,
+  "coordinate_unix": 1795689289.731831,
+  "aborted_instrumentation_seconds": 23,
+  "instrumentation_note": "Initial run interrupted at 22.48s, before collecting any policy outcomes, to retain both full final boards in addition to hashes at equal follow-up. Charged 23s to the shared cap, same frozen roots and policies.",
+  "pairs": [
+    {
+      "seed": 300322,
+      "offset": 7036,
+      "shared_piece_prefix": 200,
+      "shared_piece_prefix_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47",
+      "equal_state_forward_reuses": 149,
+      "first_override": {
+        "step": 148,
+        "common_input": true,
+        "board_sha256": "b379ea306e5ab70517e4fe786f43fb252c5aca7cb4dbd5d5a35b0a9723be4155",
+        "current": "RING",
+        "preview": "HOOK",
+        "before_n": 10,
+        "base_n_after": 6,
+        "preview_n_after": 10,
+        "actor_logit_cost": 0.13022661209106445,
+        "base_spec": {
+          "rotation": 9,
+          "x": 9,
+          "y": 13,
+          "w": 7,
+          "z": 13
+        },
+        "preview_spec": {
+          "rotation": 0,
+          "x": 10,
+          "y": 7,
+          "w": 4,
+          "z": 13
+        },
+        "trigger": {
+          "planner_triggers": 1,
+          "immediate_losses": 0,
+          "immediate_rescues": 0,
+          "planner_overrides": 1
+        }
+      },
+      "arms": {
+        "greedy": {
+          "observed": 200,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "dedd21a678aac37b9f01a0159ea49d8d83760e97dca51f6d9b7c6ed75d2d3e58",
+          "final_piece": "CROSS",
+          "final_preview": "C",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 200,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 200,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "9a82dc30b8edfb5d7f820c144c47ca104e525513681bdb51d8b62c63511b58cd",
+          "final_piece": "CROSS",
+          "final_preview": "C",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 200,
+            "planner_triggers": 41,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 9,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [
+            148,
+            160,
+            166,
+            172,
+            178,
+            182,
+            188,
+            190,
+            191
+          ],
+          "override_steps_sha256": "b9d17a9f3e6c87916ec524cf25c3e2686b1755cbc1f2e33e2344e0b7c3cde5bd"
+        }
+      },
+      "delta": 0,
+      "direction": "same",
+      "equal_final_boards": false
+    },
+    {
+      "seed": 300460,
+      "offset": 6124,
+      "shared_piece_prefix": 448,
+      "shared_piece_prefix_sha256": "afd92d77df05e2d655798920f194db65f284ec4a07d8048d3095b28dcb9c4025",
+      "equal_state_forward_reuses": 448,
+      "first_override": null,
+      "arms": {
+        "greedy": {
+          "observed": 448,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "43189db99e8c295adcd8cf301796d00daeef227c3f0afcf8ac1dc5e185640dfe",
+          "final_piece": "CROSS",
+          "final_preview": "S",
+          "target": 14,
+          "n_final": 0,
+          "clears": 1,
+          "counters": {
+            "decisions": 448,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 448,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "43189db99e8c295adcd8cf301796d00daeef227c3f0afcf8ac1dc5e185640dfe",
+          "final_piece": "CROSS",
+          "final_preview": "S",
+          "target": 14,
+          "n_final": 0,
+          "clears": 1,
+          "counters": {
+            "decisions": 448,
+            "planner_triggers": 36,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      "delta": 0,
+      "direction": "same",
+      "equal_final_boards": true
+    },
+    {
+      "seed": 300264,
+      "offset": 7064,
+      "shared_piece_prefix": 215,
+      "shared_piece_prefix_sha256": "a2c6bcb3794feb4e69954946e837e89486ce503e25fb104633d4cc9c34ff4abc",
+      "equal_state_forward_reuses": 181,
+      "first_override": {
+        "step": 180,
+        "common_input": true,
+        "board_sha256": "caf484156e34f5ec2171b4cccfd0efd9e31f7cd78b3a33abc6ab358273a70dbe",
+        "current": "STAIR",
+        "preview": "L",
+        "before_n": 5,
+        "base_n_after": 4,
+        "preview_n_after": 5,
+        "actor_logit_cost": 0.0460505485534668,
+        "base_spec": {
+          "rotation": 2,
+          "x": 5,
+          "y": 10,
+          "w": 12,
+          "z": 13
+        },
+        "preview_spec": {
+          "rotation": 27,
+          "x": 6,
+          "y": 10,
+          "w": 12,
+          "z": 13
+        },
+        "trigger": {
+          "planner_triggers": 1,
+          "immediate_losses": 0,
+          "immediate_rescues": 0,
+          "planner_overrides": 1
+        }
+      },
+      "arms": {
+        "greedy": {
+          "observed": 215,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "7aa6da2cdefb5bdddf0bf464289024f575dc0d777f13e3094a3a2eb6001c820b",
+          "final_piece": "CROSS",
+          "final_preview": "BRIDGE",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 215,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 215,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "25f0c6b909ab5589c11482fd2ba39bab0a20b056b79082805eea38ccd2646a45",
+          "final_piece": "CROSS",
+          "final_preview": "BRIDGE",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 215,
+            "planner_triggers": 60,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 2,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [
+            180,
+            188
+          ],
+          "override_steps_sha256": "87e4650ad4c359853a9d2ee1353e46aa1aa6bed727b2560f4e7ad05c76b17204"
+        }
+      },
+      "delta": 0,
+      "direction": "same",
+      "equal_final_boards": false
+    },
+    {
+      "seed": 300576,
+      "offset": 6339,
+      "shared_piece_prefix": 608,
+      "shared_piece_prefix_sha256": "492788f8ec9f9d3c0e383e9919dac9a66d74833fdba152f0189198b1c4b5b4da",
+      "equal_state_forward_reuses": 547,
+      "first_override": {
+        "step": 546,
+        "common_input": true,
+        "board_sha256": "550c7134f8029a65313c4e92a795e30bf59711b778f0bc167727a9de0d26a943",
+        "current": "HYPER",
+        "preview": "S",
+        "before_n": 9,
+        "base_n_after": 7,
+        "preview_n_after": 9,
+        "actor_logit_cost": 0.05284309387207031,
+        "base_spec": {
+          "rotation": 0,
+          "x": 12,
+          "y": 2,
+          "w": 14,
+          "z": 14
+        },
+        "preview_spec": {
+          "rotation": 0,
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "z": 13
+        },
+        "trigger": {
+          "planner_triggers": 1,
+          "immediate_losses": 0,
+          "immediate_rescues": 0,
+          "planner_overrides": 1
+        }
+      },
+      "arms": {
+        "greedy": {
+          "observed": 608,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "591e65efda39c68e26ad6573f1e8e2b34f08824d6deeec4dc2d7e443f0fa528a",
+          "final_piece": "CROSS",
+          "final_preview": "RING",
+          "target": 14,
+          "n_final": 0,
+          "clears": 1,
+          "counters": {
+            "decisions": 608,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 608,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "1b478641b8e97a78d19ae59a0124c08cb2428ce34ff7d0831c3bd79758f9f430",
+          "final_piece": "CROSS",
+          "final_preview": "RING",
+          "target": 14,
+          "n_final": 0,
+          "clears": 1,
+          "counters": {
+            "decisions": 608,
+            "planner_triggers": 53,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 2,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [
+            546,
+            558
+          ],
+          "override_steps_sha256": "d6ee65a76832e92b1258a7e9b35995fa6f9efd729c160959cbb3d19ed6d30ba1"
+        }
+      },
+      "delta": 0,
+      "direction": "same",
+      "equal_final_boards": false
+    },
+    {
+      "seed": 500000,
+      "offset": 9611,
+      "shared_piece_prefix": 232,
+      "shared_piece_prefix_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d",
+      "equal_state_forward_reuses": 174,
+      "first_override": {
+        "step": 173,
+        "common_input": true,
+        "board_sha256": "91f71baf262277fd5367dd5fcaf750cf2492554147e915cdcbfa52a81bab82c8",
+        "current": "S",
+        "preview": "FORK",
+        "before_n": 9,
+        "base_n_after": 8,
+        "preview_n_after": 9,
+        "actor_logit_cost": 0.022672653198242188,
+        "base_spec": {
+          "rotation": 23,
+          "x": 8,
+          "y": 9,
+          "w": 4,
+          "z": 14
+        },
+        "preview_spec": {
+          "rotation": 20,
+          "x": 0,
+          "y": 14,
+          "w": 13,
+          "z": 14
+        },
+        "trigger": {
+          "planner_triggers": 1,
+          "immediate_losses": 0,
+          "immediate_rescues": 0,
+          "planner_overrides": 1
+        }
+      },
+      "arms": {
+        "greedy": {
+          "observed": 232,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "e821de3f99b79994ebc21394db07979cf0cea772026190f63843914b19d12479",
+          "final_piece": "CROSS",
+          "final_preview": "C",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 232,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 247,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "5f791ca7df3f485682d69605a7c8ed94f63e5a21dc00be6e1f896329f63a9e6f",
+          "final_piece": "CROSS",
+          "final_preview": "NOVA",
+          "target": 14,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 247,
+            "planner_triggers": 72,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 1,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [
+            173
+          ],
+          "override_steps_sha256": "ca3fd65efdb49b74e1dde1a2d57743880179a71421eeb3771f4209687ed4a5e7"
+        }
+      },
+      "delta": 15,
+      "direction": "longer"
+    },
+    {
+      "seed": 300122,
+      "offset": 21278,
+      "shared_piece_prefix": 239,
+      "shared_piece_prefix_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+      "equal_state_forward_reuses": 203,
+      "first_override": {
+        "step": 202,
+        "common_input": true,
+        "board_sha256": "7e2bf753e033ddf25b80931e4fbdbff4979e001693b6f36206f81c22faeb0f60",
+        "current": "HOOK",
+        "preview": "CROSS",
+        "before_n": 8,
+        "base_n_after": 7,
+        "preview_n_after": 8,
+        "actor_logit_cost": 0.0010056495666503906,
+        "base_spec": {
+          "rotation": 99,
+          "x": 5,
+          "y": 5,
+          "w": 3,
+          "z": 12
+        },
+        "preview_spec": {
+          "rotation": 144,
+          "x": 2,
+          "y": 10,
+          "w": 0,
+          "z": 12
+        },
+        "trigger": {
+          "planner_triggers": 1,
+          "immediate_losses": 0,
+          "immediate_rescues": 0,
+          "planner_overrides": 1
+        }
+      },
+      "arms": {
+        "greedy": {
+          "observed": 239,
+          "right_censored": false,
+          "reason": "physical_top_out",
+          "final_board_sha256": "0152903d54392248515c01fad660cf8354dc0ee610ee49f180a669fb2cf49805",
+          "final_piece": "CROSS",
+          "final_preview": "S",
+          "target": 13,
+          "n_final": 0,
+          "clears": 0,
+          "counters": {
+            "decisions": 239,
+            "planner_triggers": 0,
+            "immediate_losses": 1,
+            "immediate_rescues": 0,
+            "planner_overrides": 0,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 0
+          },
+          "overrides_first_64_steps": [],
+          "override_steps_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "preview": {
+          "observed": 1024,
+          "right_censored": true,
+          "reason": "followup_cap",
+          "final_board_sha256": "29742011101cf6efdce70a73abe4568eaec3f24892a7b0ce01e198abe9534742",
+          "final_piece": "L",
+          "final_preview": "RING",
+          "target": 13,
+          "n_final": 23,
+          "clears": 1,
+          "counters": {
+            "decisions": 1024,
+            "planner_triggers": 58,
+            "immediate_losses": 1,
+            "immediate_rescues": 1,
+            "planner_overrides": 2,
+            "direct_weight_changes": 0,
+            "residual_changes": 0,
+            "verified_physical_rescues": 1
+          },
+          "overrides_first_64_steps": [
+            202,
+            238
+          ],
+          "override_steps_sha256": "d82e28b6805752b2a73bd37b81628edd4c401629ddd2dbbc37a1c657e0578d35"
+        }
+      },
+      "minimum_delta": 785,
+      "direction": "at_least_longer"
+    }
+  ],
+  "run_wall_seconds": 213.92758715403033,
+  "total_diagnostic_wall_seconds": 284.0183998810244,
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "script_sha256": "fb3e93b1f6ab6904e37d6e190b249180fa77deaa36e23f2a4091813d341969e3",
+  "source_sha256": {
+    "tetris_cross_survival.py": "1340993d9b8659b8914c82a108a8a7779bb4b2f569946f5305338ec5a6172bfa",
+    "tools/evaluate_afterstate_td.py": "66e67423c360817676bf65222ac5de1d763a41774e81ee891416dfe9d98f1311",
+    "tetris_neural.py": "441a5bc61e19180c466290f8e6749bf858eb4f20bd9730f06219d67a127fdaec",
+    "tetris_survival_v4.py": "8db8606455779f7a5dec6a0f535c688eef3452c2f8f21dd7d5cd96cd037c9bfb",
+    "sparse_tetris_4d_optimized.py": "c8d7045602cea535b6f5f639db2c1b5247dc1016995b27ad69edf1a04c085048",
+    "tetris_game_library.py": "8bc5ea4056d4a78cd7830a422a419124554462249c86c1bd3170cb1b1f8072bc",
+    "native/libtetris4d_native.so": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+    "models/trained-sigmoid.json": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb"
+  },
+  "limitations": "Six hazard-conditioned fit-side archived roots; no sampling of future outcomes. The comparison is sustained policy use on each paired live board, with the same registered shortlist, logits and public visible preview. Per-step decisions can compound, and branch clocks share a global CPU budget. The archive distribution and CPU kernels differ from fresh CUDA games. These cases do not select a policy or estimate its population performance.",
+  "schema": "cross-survival-sustained-archive-preview-v1",
+  "full_receipt_sha256": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+  "uncapped_preview_followup": {
+    "stage": "complete",
+    "original_receipt_sha256": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+    "prior_coordinate_set": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+    "prior_policy_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "diagnostic_source_sha256": "0e98d43a01ec51d1d4f240c734e8cf66cbc9b29f0290b66a598bd2fec492c0c6",
+    "prior_source_sha256": "fb3e93b1f6ab6904e37d6e190b249180fa77deaa36e23f2a4091813d341969e3",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+    "root": {
+      "seed": 300122,
+      "game_id": "130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f",
+      "file_sha256": "683c8283ac1ad4b9b7fe701aca0ed7668238ee19c8c852bfb474fec64e23261c",
+      "offset": 21278,
+      "before_n": 85,
+      "current_n": 84,
+      "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+      "stream_sha256": "3d1e23b2a23f0a914eb34e0bc8e2ffdc28df35aa8169854a018ab829610a4f21",
+      "source_target": 13,
+      "current": "L",
+      "visible_preview": "STAIR"
+    },
+    "excluded_from_policy_inputs": [
+      "RNG",
+      "future draws"
+    ],
+    "mode": "registered single visible preview, native exact two-stage, fixed FP32 32x128, standard commits",
+    "count_from": "completed future placements after archived root",
+    "budget_seconds_including_prefix": 900,
+    "logical_cpu": 7,
+    "niceness": 15,
+    "original_greedy_physical_length": 239,
+    "started_unix": 1795689738.2309232,
+    "extension_status": "must first reproduce full capped endpoint and deterministic stream",
+    "endpoint_checks": {
+      "board_sha256": "29742011101cf6efdce70a73abe4568eaec3f24892a7b0ce01e198abe9534742",
+      "piece": "L",
+      "visible": "RING",
+      "target": 13,
+      "cross_origins": 23,
+      "clears": 1,
+      "consumed_piece_prefix_239": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+      "consumed_piece_prefix_1024": "0f86b7fc53386a09d6b3f4cb40ed67da6f21cbe47e410e5e4c88748365573130",
+      "stream_state_hash": "cc5945cbcc97aebc72a5da8a235a2a138ea10e1ac0f2446f197bead3126a32c7",
+      "overrides": [
+        202,
+        238
+      ],
+      "counters": {
+        "decisions": 1024,
+        "planner_triggers": 58,
+        "immediate_losses": 1,
+        "immediate_rescues": 1,
+        "planner_overrides": 2,
+        "direct_weight_changes": 0,
+        "residual_changes": 0,
+        "verified_physical_rescues": 1
+      }
+    },
+    "stream_check": "Original capped receipt stored two visible identities plus a 239-draw digest. All 1024 draws and complete terminal RNG/bag were additionally rebuilt from its frozen root RNG.",
+    "first_physical_rescue": {
+      "completed_before_decision": 238,
+      "ordinal_placement_from_root": 239,
+      "archive_absolute_completed_before": 21516,
+      "current": "FORK",
+      "visible": "CROSS",
+      "cross_before": 1,
+      "board_sha256": "d94d52641b6d518f2fb65ba8434d7ddce18dca0e1c6da8650ea5a9ccb2fd6b51",
+      "shortlist_size": 128,
+      "shortlist_preserving_legal_visible": 76,
+      "actor_logit_cost": 0.17145395278930664,
+      "actions": [
+        {
+          "action": "incumbent_greedy",
+          "actor_rank": 1,
+          "candidate_index": 15,
+          "logit": -3.7408502101898193,
+          "placement": {
+            "rotation": 25,
+            "x": 8,
+            "y": 13,
+            "w": 3,
+            "z": 13
+          },
+          "cleared": 0,
+          "after_board_sha256": "e5f7361078555e8ce275537c0c7acc30ba186924825e680db9e0170917bb2145",
+          "cross_after": 0,
+          "visible": {
+            "count": 0,
+            "first_24_placements": []
+          }
+        },
+        {
+          "action": "registered_preview",
+          "actor_rank": 4,
+          "candidate_index": 23,
+          "logit": -3.912304162979126,
+          "placement": {
+            "rotation": 39,
+            "x": 13,
+            "y": 13,
+            "w": 14,
+            "z": 13
+          },
+          "cleared": 0,
+          "after_board_sha256": "de35162ebb5433d7b7579ab0c4a7185549ecad05fd5e9170da6bc43a8d8812d5",
+          "cross_after": 1,
+          "visible": {
+            "count": 1,
+            "first_24_placements": [
+              {
+                "rotation": 0,
+                "x": 7,
+                "y": 12,
+                "w": 2,
+                "z": 13
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "prefix_wall_seconds": 101.73104034003336,
+    "reason": "physical_top_out",
+    "right_censored": false,
+    "observed": 6132,
+    "placements_beyond_1024": 5108,
+    "delta_from_239": 5893,
+    "total_pieces": 27410,
+    "clears": 8,
+    "clear_placements": [
+      253,
+      1087,
+      1835,
+      2613,
+      3351,
+      4063,
+      4815,
+      5517
+    ],
+    "override_pre_action_offsets": [
+      202,
+      238,
+      1066,
+      1808,
+      1810,
+      1829,
+      2592,
+      3338,
+      3341,
+      3347,
+      4035,
+      4036,
+      4042,
+      4045,
+      4047,
+      4058,
+      4060,
+      4788,
+      5442,
+      5461,
+      5475,
+      5487,
+      5492,
+      5493,
+      6104,
+      6107,
+      6109
+    ],
+    "counters": {
+      "decisions": 6132,
+      "planner_triggers": 485,
+      "immediate_losses": 2,
+      "immediate_rescues": 1,
+      "planner_overrides": 27,
+      "direct_weight_changes": 0,
+      "residual_changes": 0,
+      "verified_physical_rescues": 1
+    },
+    "final_board_sha256": "3ad064e7dbb0986df4319418698efd630c7d0dd33aa07f7230e4de7861e2b7df",
+    "final_current": "CROSS",
+    "final_visible": "C",
+    "target": 13,
+    "final_cross_origins": 0,
+    "final_stream_sha256": "1da519d7092849c7a7b53b2c70c1c46e935d34dcc1ed981634356e6a1bc303c2",
+    "elapsed_wall_seconds": 521.979398747033,
+    "finish_unix": 1795690251.737173,
+    "caveat": "Single preselected fit-side branch, requested for descriptive follow-up after survival to +1024. No fresh-game estimate or placement-level attribution.",
+    "full_receipt_sha256": "a1c10034f657aad2a08523a29f7e549e9cad1c433b741329a3dd50fd88ad137e"
+  },
+  "rescue_only_ablation": {
+    "stage": "complete",
+    "frozen_unix": 1795690004.9858077,
+    "plan": {
+      "archive_sha256": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+      "coordinates_sha256": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+      "script_sha256": "d6b9b2a2c7639db4f737e345d480dce333861316ef7d89e56fae400e210264d4",
+      "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "original_runtime": "2306f06403e72999bae05b84aa18055db052caa9",
+      "roots": [
+        {
+          "seed": 300322,
+          "offset": 7036,
+          "board_sha256": "03140919dcf3d25752d083ba2bd4b1042787fbb862f498521ca81c0caa0e6c4c",
+          "stream_sha256": "7412538410bb75c94e3d556d4c83c98fae98214837959e880e7245dadc94c53e",
+          "source_target": 14
+        },
+        {
+          "seed": 300460,
+          "offset": 6124,
+          "board_sha256": "243c1e978c4ccf171b2dde358c5973ac0b78e94ea5f17540f5dd9eb82876ac73",
+          "stream_sha256": "9771aa683639825cf92f1ac8a28f4d81dbd7def8a4c0e0ab247bb3bf4385e7c0",
+          "source_target": 7
+        },
+        {
+          "seed": 300264,
+          "offset": 7064,
+          "board_sha256": "5bdc719a651dbfc70ca3b9ee8f01d7b770fc3deba004ec40d6a90f00c4bdb714",
+          "stream_sha256": "1cca70b045d31177937aa8800099f27b6cc1e5398d37d83b69be88b427dd99f8",
+          "source_target": 14
+        },
+        {
+          "seed": 300576,
+          "offset": 6339,
+          "board_sha256": "5a82d1b46c67c7102769ad4ffcef6c2512b778e71cb38ff0e06f85b0bf227c47",
+          "stream_sha256": "07e65cef4f7829697f4a62fbf8aa9eba2c05408e85d13a00a6e6395a4576ca06",
+          "source_target": 12
+        },
+        {
+          "seed": 500000,
+          "offset": 9611,
+          "board_sha256": "b2bf8d3cb73eb91f1c4f2cc294025337ea6feee54065730dcbedb43bf1cd3b6c",
+          "stream_sha256": "77a26ad6d1413925de94bdb6e0d42674b48e447cee9c9362b6d4ba56a39bd753",
+          "source_target": 14
+        },
+        {
+          "seed": 300122,
+          "offset": 21278,
+          "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+          "stream_sha256": "3d1e23b2a23f0a914eb34e0bc8e2ffdc28df35aa8169854a018ab829610a4f21",
+          "source_target": 13
+        }
+      ],
+      "rule": "Keep the original greedy move if the visible next piece fits on its afterboard. Otherwise take the first physically surviving candidate in descending original actor logit order. If none survive, keep greedy.",
+      "ties": "Stable descending FP32 logit, then original shortlist position; np.argmax for greedy.",
+      "information": "Decision consumes current board, retained actions and logits, and visible next piece only. No CROSS mobility reranking, teacher replies, hidden draws or RNG access.",
+      "runtime": "One logical CPU, one PyTorch thread, FP32 actor shape 32x128, native exact two-stage exhaustive preparation, standard checked commits, same retargeting.",
+      "cap": 1024,
+      "wall_budget_seconds": 600,
+      "order": "Round-robin all six roots each step"
+    },
+    "plan_sha256": "60f46ec20d7b17e6e1f55cb098caec40577914b4dca089652f06888c4529821a",
+    "started_unix": 1795690021.0709386,
+    "cpu": 4,
+    "niceness": 15,
+    "rows": [
+      {
+        "seed": 300322,
+        "offset": 7036,
+        "observed": 200,
+        "reason": "physical_top_out",
+        "right_censored": false,
+        "clears": 0,
+        "rescues": 0,
+        "rescue_steps_1_based": [],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 200,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": 149,
+        "original_greedy_placements": 200,
+        "original_preview_placements": 200,
+        "original_preview_censored": false,
+        "final_board_sha256": "dedd21a678aac37b9f01a0159ea49d8d83760e97dca51f6d9b7c6ed75d2d3e58",
+        "final_piece": "CROSS",
+        "final_visible": "C",
+        "target": 14
+      },
+      {
+        "seed": 300460,
+        "offset": 6124,
+        "observed": 448,
+        "reason": "physical_top_out",
+        "right_censored": false,
+        "clears": 1,
+        "rescues": 0,
+        "rescue_steps_1_based": [],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 448,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": null,
+        "original_greedy_placements": 448,
+        "original_preview_placements": 448,
+        "original_preview_censored": false,
+        "final_board_sha256": "43189db99e8c295adcd8cf301796d00daeef227c3f0afcf8ac1dc5e185640dfe",
+        "final_piece": "CROSS",
+        "final_visible": "S",
+        "target": 14
+      },
+      {
+        "seed": 300264,
+        "offset": 7064,
+        "observed": 215,
+        "reason": "physical_top_out",
+        "right_censored": false,
+        "clears": 0,
+        "rescues": 0,
+        "rescue_steps_1_based": [],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 215,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": 181,
+        "original_greedy_placements": 215,
+        "original_preview_placements": 215,
+        "original_preview_censored": false,
+        "final_board_sha256": "7aa6da2cdefb5bdddf0bf464289024f575dc0d777f13e3094a3a2eb6001c820b",
+        "final_piece": "CROSS",
+        "final_visible": "BRIDGE",
+        "target": 14
+      },
+      {
+        "seed": 300576,
+        "offset": 6339,
+        "observed": 608,
+        "reason": "physical_top_out",
+        "right_censored": false,
+        "clears": 1,
+        "rescues": 0,
+        "rescue_steps_1_based": [],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 608,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": 547,
+        "original_greedy_placements": 608,
+        "original_preview_placements": 608,
+        "original_preview_censored": false,
+        "final_board_sha256": "591e65efda39c68e26ad6573f1e8e2b34f08824d6deeec4dc2d7e443f0fa528a",
+        "final_piece": "CROSS",
+        "final_visible": "RING",
+        "target": 14
+      },
+      {
+        "seed": 500000,
+        "offset": 9611,
+        "observed": 232,
+        "reason": "physical_top_out",
+        "right_censored": false,
+        "clears": 0,
+        "rescues": 0,
+        "rescue_steps_1_based": [],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 232,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": 174,
+        "original_greedy_placements": 232,
+        "original_preview_placements": 247,
+        "original_preview_censored": false,
+        "final_board_sha256": "e821de3f99b79994ebc21394db07979cf0cea772026190f63843914b19d12479",
+        "final_piece": "CROSS",
+        "final_visible": "C",
+        "target": 14
+      },
+      {
+        "seed": 300122,
+        "offset": 21278,
+        "observed": 1024,
+        "reason": "followup_cap",
+        "right_censored": true,
+        "clears": 1,
+        "rescues": 1,
+        "rescue_steps_1_based": [
+          239
+        ],
+        "greedy_physically_losing": 1,
+        "unchanged_greedy_prefix": 238,
+        "original_greedy_terminal_verified": true,
+        "former_first_full_preview_override_anchor": 203,
+        "original_greedy_placements": 239,
+        "original_preview_placements": 1024,
+        "original_preview_censored": true,
+        "final_board_sha256": "e7a65a1c23cd816e03bb285c8409555ddf17521487f25171438ee21ee4a54b8e",
+        "final_piece": "L",
+        "final_visible": "RING",
+        "target": 13
+      }
+    ],
+    "wall_seconds": 181.5896586869494,
+    "finished_unix": 1795690189.5942385,
+    "cuda_initialized": false,
+    "full_receipt_sha256": "7361bf408a0b64a1c4c184451c1444fd00059f673cc0b8543663e52f938feddd"
+  },
+  "uncapped_rescue_only_followup": {
+    "stage": "complete",
+    "plan_sha256": "164b5cfba4684fb482ca4d7049d96f33e55f10935079383100fb5f0d4d390f61",
+    "observed": 4068,
+    "total_pieces": 25346,
+    "placements_beyond_1024": 3044,
+    "clears": 5,
+    "score_since_root": 500,
+    "cuda_initialized": false,
+    "wall_seconds": 305.7171612359816,
+    "reason": "physical_top_out",
+    "verified_cap_sha256": "40f0dfe58b154c3ae0eb2443294ecdfd2dae8e2d751ffe0f6348ef88e81ffed9",
+    "right_censored": false,
+    "physical_legal_move": false,
+    "latest_sha256": "54456423ccbc6bbf49545b1a44f338f0e5a18ac87cce9c210969f5613df43e48",
+    "full_receipt_sha256": "71e44c90f3f28a966025bd258d0753948a860d8b55c6691def187e71fc6a0332"
+  }
+}

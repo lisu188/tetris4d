@@ -1,0 +1,2490 @@
+{
+  "schema": "spatial-v4-weight4-last-landing-archive-v1",
+  "scope": "Two separate, prospectively frozen cohorts of 16 late-game roots each. Each source game was physically replayed to its historical terminal board; test trajectories start at their first recorded positive <=8 crossing in the final 256 board suffix. No source stream overlaps the previous 64 terminal-geometry records or eight direct-preview roots. These are conditional historical starts; no fresh selection or promotion.",
+  "rule": "While a positive count exists, if greedy would leave zero, choose the highest actor-ranked retained alternative with a positive count. A tie uses original shortlist order. The first-only control disables the condition after its first override; the repeated player can override again.",
+  "endpoint": "The first-stage observations are restricted to 256 placements after each selected root. Natural-endpoint continuation of the four ties at that cap in the second cohort is recorded below. All three policies played all 16 second-cohort roots to physical top-out. These selected roots do not establish game-wide dominance.",
+  "cohorts": [
+    {
+      "plan": "prospective-last-origin-plan.json",
+      "plan_sha256": "83aed9f5047855b725aab6db70ebf4f34eef5aabeadd3fef47be8ec412fd881c",
+      "roots": "prospective-last-origin-roots.json",
+      "roots_sha256": "3dc6a84770061fc343b23d122af852fb23f36f93457909096f2cb4306d726a5d",
+      "reference_receipt": "prospective-last-origin-results.json",
+      "reference_receipt_sha256": "d713ee75f8a953c904d4ed5e157206c8bb3fb3986510438ccdb29468d271cba8",
+      "arm_order": [
+        "greedy",
+        "one_override"
+      ],
+      "restricted_totals": {
+        "greedy": 1860,
+        "one_override": 1890
+      },
+      "natural_endings": {
+        "greedy": 12,
+        "one_override": 12
+      },
+      "rows": [
+        {
+          "seed": 300234,
+          "offset": 7031,
+          "outcomes": {
+            "greedy": {
+              "placements": 49,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4e6d9c56b39c309e0ca32964024ec42d6779577ab45156c67a95189ceba40d86",
+              "final_stream_sha256": "bd3ab7c6826972a6b26e9fac65a646b48629be8936bf9aa7f76516e81034a7ca",
+              "action_trace_sha256": "e27f9b423ed76db44dde18b30bf8b0a24d561cd0e43df44360589a0b5ec332b0"
+            },
+            "one_override": {
+              "placements": 49,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4e6d9c56b39c309e0ca32964024ec42d6779577ab45156c67a95189ceba40d86",
+              "final_stream_sha256": "bd3ab7c6826972a6b26e9fac65a646b48629be8936bf9aa7f76516e81034a7ca",
+              "action_trace_sha256": "e27f9b423ed76db44dde18b30bf8b0a24d561cd0e43df44360589a0b5ec332b0"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300334,
+          "offset": 6012,
+          "outcomes": {
+            "greedy": {
+              "placements": 102,
+              "reason": "physical_top_out",
+              "final_board_sha256": "aa3b45e98a4a8410dd3f374c7619bb409f59384bca268b6621aa34811e176761",
+              "final_stream_sha256": "3876c8b22848fbcf17ad235d21c507f62c9f5906490008f62df942e9180f7da9",
+              "action_trace_sha256": "030b8d5a0dc244954b84a1692db981462f494ef74d7de81ceaef013a1e01b3c9"
+            },
+            "one_override": {
+              "placements": 102,
+              "reason": "physical_top_out",
+              "final_board_sha256": "aa3b45e98a4a8410dd3f374c7619bb409f59384bca268b6621aa34811e176761",
+              "final_stream_sha256": "3876c8b22848fbcf17ad235d21c507f62c9f5906490008f62df942e9180f7da9",
+              "action_trace_sha256": "030b8d5a0dc244954b84a1692db981462f494ef74d7de81ceaef013a1e01b3c9"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300246,
+          "offset": 7180,
+          "outcomes": {
+            "greedy": {
+              "placements": 61,
+              "reason": "physical_top_out",
+              "final_board_sha256": "66e555d6a6c9e474ba4d732d02cee5f555d0d66537d83d774e96531c9a02848d",
+              "final_stream_sha256": "695bd8925f6c33d081e8ec5e8051dfc94b05832297918ae56beb3761deb044a0",
+              "action_trace_sha256": "df4f886e6502a531e3b634a856337680efcc72229deaba8521d6ef21dc1b60f2"
+            },
+            "one_override": {
+              "placements": 77,
+              "reason": "physical_top_out",
+              "final_board_sha256": "0ba1ff9d813ab1f33a9a2f3da86e3cf740d052930a596aebbd08b0ccdbe12acb",
+              "final_stream_sha256": "1e5d43a398fe9ab14fb53f6f7c618f5ab0a73b0303701aedd5b5d1b7b0cdc1d7",
+              "action_trace_sha256": "144a54ca5a131764ccbb393a0c85ac09104084fea84f14aaa4a47a92a2bfce64"
+            }
+          },
+          "overrides": [
+            {
+              "placement_from_root": 60,
+              "absolute_offset": 7239,
+              "current": "HYPER",
+              "visible": "HOOK",
+              "n_before": 1,
+              "ranked_options": 13,
+              "preserving_options": 12,
+              "source_target": 14,
+              "effective_target": 14,
+              "board_sha256": "9c0a7d54f3f9a9b7d62a23d5bcdddd9590844eb4a14f879a8633c8e55960521c",
+              "stream_sha256": "ad2d979ed201abc9bafc4b24dbbfda6edd5a877c023b0b8690fa388a1a4c2cf9",
+              "greedy": {
+                "index": 2,
+                "action": [
+                  0,
+                  14,
+                  4,
+                  13,
+                  2,
+                  0
+                ],
+                "n_after": 0
+              },
+              "preserve": {
+                "index": 10,
+                "action": [
+                  0,
+                  0,
+                  13,
+                  14,
+                  14,
+                  0
+                ],
+                "n_after": 1
+              },
+              "weight4_logit_gap": 0.4648251533508301,
+              "greedy_after_board_sha256": "9f849bebcd6d10a8f1c0475a3f16bda67449f100bebb56ec7da1c7925a039139",
+              "preserve_after_board_sha256": "373b1e5790f216ce0e0428fdcf157530ecef8049ffdd3666c6e883c1e3665d23"
+            }
+          ]
+        },
+        {
+          "seed": 300062,
+          "offset": 7640,
+          "outcomes": {
+            "greedy": {
+              "placements": 89,
+              "reason": "physical_top_out",
+              "final_board_sha256": "dd88c0d9f46ce7d9e261e63f370bb1e59ffdbb6c5dab521f938f658c963acf9b",
+              "final_stream_sha256": "4c1cfc5c0e3d5eff7e5aa1ffb045f6dafddccc8a4c5bda836c72a2b02b13d2e0",
+              "action_trace_sha256": "f18e85c8c30cd4f03b17dbd177cefff0d9ac281b1e037ccbce15a360da12c20e"
+            },
+            "one_override": {
+              "placements": 89,
+              "reason": "physical_top_out",
+              "final_board_sha256": "dd88c0d9f46ce7d9e261e63f370bb1e59ffdbb6c5dab521f938f658c963acf9b",
+              "final_stream_sha256": "4c1cfc5c0e3d5eff7e5aa1ffb045f6dafddccc8a4c5bda836c72a2b02b13d2e0",
+              "action_trace_sha256": "f18e85c8c30cd4f03b17dbd177cefff0d9ac281b1e037ccbce15a360da12c20e"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300182,
+          "offset": 29339,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "cceffda91ac500443b1fba4dfd68160f4e0bdb3f3138ec1eea4b707e3fa932c3",
+              "final_stream_sha256": "0d7362ad41f28212445be6043769e82afa2200a9edcb4aa0c7937394d717dcc0",
+              "action_trace_sha256": "cf0bc8209c5793439bf34624d635eae7ca850385b6e003196af661475b3985b2"
+            },
+            "one_override": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "cceffda91ac500443b1fba4dfd68160f4e0bdb3f3138ec1eea4b707e3fa932c3",
+              "final_stream_sha256": "0d7362ad41f28212445be6043769e82afa2200a9edcb4aa0c7937394d717dcc0",
+              "action_trace_sha256": "cf0bc8209c5793439bf34624d635eae7ca850385b6e003196af661475b3985b2"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300424,
+          "offset": 5871,
+          "outcomes": {
+            "greedy": {
+              "placements": 92,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4e86c20300d99362c6e64a87c1581e8f6664747accfbbead4e9c424f18c7799c",
+              "final_stream_sha256": "ae5254f82eb2e04d1841aea104fffdb639b1240a6f763966c7276931aac13493",
+              "action_trace_sha256": "8f86c840c0c806338ca3718fa0a9361abac30cc6fb63d546b71d28b662e35b11"
+            },
+            "one_override": {
+              "placements": 92,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4e86c20300d99362c6e64a87c1581e8f6664747accfbbead4e9c424f18c7799c",
+              "final_stream_sha256": "ae5254f82eb2e04d1841aea104fffdb639b1240a6f763966c7276931aac13493",
+              "action_trace_sha256": "8f86c840c0c806338ca3718fa0a9361abac30cc6fb63d546b71d28b662e35b11"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300130,
+          "offset": 10830,
+          "outcomes": {
+            "greedy": {
+              "placements": 41,
+              "reason": "physical_top_out",
+              "final_board_sha256": "ba9de7d4535c4a74022aa461399f1fbe6309491f6529a374e6ffb4a1d9587d1c",
+              "final_stream_sha256": "487cb8c08fef3e1a4301737f624f9885b1bb9d820da1d56121a6a9c0fc62a4e5",
+              "action_trace_sha256": "e5252cf99be8b972e0431127de18982ed19abeab59edb9e46ed7458127b88413"
+            },
+            "one_override": {
+              "placements": 41,
+              "reason": "physical_top_out",
+              "final_board_sha256": "ba9de7d4535c4a74022aa461399f1fbe6309491f6529a374e6ffb4a1d9587d1c",
+              "final_stream_sha256": "487cb8c08fef3e1a4301737f624f9885b1bb9d820da1d56121a6a9c0fc62a4e5",
+              "action_trace_sha256": "e5252cf99be8b972e0431127de18982ed19abeab59edb9e46ed7458127b88413"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300358,
+          "offset": 6679,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "87a4d7ef4787c0824633afea580ad01b9fa0fd482644e2e24f582bc96026625d",
+              "final_stream_sha256": "4eb946ab37ef648bc065217e8da89f2a382cb099128eef39a0e09bfb74b9ce1e",
+              "action_trace_sha256": "1195969d69961b62fdac7bb33308098570b27d14e6c5fec4f24c6560ef1ce763"
+            },
+            "one_override": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "87a4d7ef4787c0824633afea580ad01b9fa0fd482644e2e24f582bc96026625d",
+              "final_stream_sha256": "4eb946ab37ef648bc065217e8da89f2a382cb099128eef39a0e09bfb74b9ce1e",
+              "action_trace_sha256": "1195969d69961b62fdac7bb33308098570b27d14e6c5fec4f24c6560ef1ce763"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300446,
+          "offset": 6285,
+          "outcomes": {
+            "greedy": {
+              "placements": 51,
+              "reason": "physical_top_out",
+              "final_board_sha256": "815460c95fb54ca617e2ffd022a1928175146361a4ee3f97a08d5721e80b44be",
+              "final_stream_sha256": "75a65e41de14c1c198d08f00064791e195cf7860ff27535811226820612e0c83",
+              "action_trace_sha256": "5c71c63bcdef01dd6dae65d1f9fc0cf311fd6068ab793cd3d0466b8ee2d8af79"
+            },
+            "one_override": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "b36c8d847cd71a254750f0f1aa0e0f60501988174d9b759393bbc3d11eefb6ea",
+              "final_stream_sha256": "40c2a6c785a74fe7172ebececefb71a56b277a7a823274331c08f2726594b906",
+              "action_trace_sha256": "5f3f6db112d0ce7818ba7e98c54670d8eb751fc691de54c635726a8884d2300a"
+            }
+          },
+          "overrides": [
+            {
+              "placement_from_root": 44,
+              "absolute_offset": 6328,
+              "current": "CROSS",
+              "visible": "L",
+              "n_before": 3,
+              "ranked_options": 3,
+              "preserving_options": 2,
+              "source_target": 14,
+              "effective_target": 14,
+              "board_sha256": "4a3e722f868f8683bb6a278a84173a2f05536ae665cefa8859f0670c6bb26ae1",
+              "stream_sha256": "8960281f35ef36b4113c538d5132ed63b229da500976336fba5947395bcf20fe",
+              "greedy": {
+                "index": 1,
+                "action": [
+                  0,
+                  3,
+                  13,
+                  12,
+                  12,
+                  0
+                ],
+                "n_after": 0
+              },
+              "preserve": {
+                "index": 2,
+                "action": [
+                  0,
+                  3,
+                  13,
+                  11,
+                  13,
+                  0
+                ],
+                "n_after": 2
+              },
+              "weight4_logit_gap": 1.9820423126220703,
+              "greedy_after_board_sha256": "e2112683ddb676e9a1a74b93a397d5e6fb7db75feebd63057bf97e06c01ff328",
+              "preserve_after_board_sha256": "77e714d8b8bd69892fd53a17f3e961e54b8e246a10fc442bb9b12022d5b491b8"
+            }
+          ]
+        },
+        {
+          "seed": 300186,
+          "offset": 7319,
+          "outcomes": {
+            "greedy": {
+              "placements": 82,
+              "reason": "physical_top_out",
+              "final_board_sha256": "1ffe4efe0c97162b14423aca7600e8ac22ae3d12d4e497396afe0fe80b30e580",
+              "final_stream_sha256": "84888c6bb8ac8a377f0effa11d1062689c6885fd781720ae9783c7b80b934ae2",
+              "action_trace_sha256": "617bbf5dbe624accf08794105a08e74a5ff16195e5e4fd64853d168d8a42c534"
+            },
+            "one_override": {
+              "placements": 82,
+              "reason": "physical_top_out",
+              "final_board_sha256": "1ffe4efe0c97162b14423aca7600e8ac22ae3d12d4e497396afe0fe80b30e580",
+              "final_stream_sha256": "84888c6bb8ac8a377f0effa11d1062689c6885fd781720ae9783c7b80b934ae2",
+              "action_trace_sha256": "617bbf5dbe624accf08794105a08e74a5ff16195e5e4fd64853d168d8a42c534"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300232,
+          "offset": 7270,
+          "outcomes": {
+            "greedy": {
+              "placements": 62,
+              "reason": "physical_top_out",
+              "final_board_sha256": "eb1752d951579375b911a739177668cede88afadc95a97d91e07cc72fa5e76ab",
+              "final_stream_sha256": "39e995297e204ef1ff96cb5643c66744d2dc6e68f472b797905a63cd15b80c59",
+              "action_trace_sha256": "68664b54d8cce455b4afaf29dd4245afabd03eb57c196b6f08ce9bc29835cb35"
+            },
+            "one_override": {
+              "placements": 62,
+              "reason": "physical_top_out",
+              "final_board_sha256": "eb1752d951579375b911a739177668cede88afadc95a97d91e07cc72fa5e76ab",
+              "final_stream_sha256": "39e995297e204ef1ff96cb5643c66744d2dc6e68f472b797905a63cd15b80c59",
+              "action_trace_sha256": "68664b54d8cce455b4afaf29dd4245afabd03eb57c196b6f08ce9bc29835cb35"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300482,
+          "offset": 7032,
+          "outcomes": {
+            "greedy": {
+              "placements": 98,
+              "reason": "physical_top_out",
+              "final_board_sha256": "8ad6d385c5fef3da8f2d746ab62bdeef7543517116d9ad92ca282be1198fb823",
+              "final_stream_sha256": "b3797d64bcb274d33f516a5c5ae0e5aac0fb2f84945eeaa47ab1893fafe9bd2b",
+              "action_trace_sha256": "dec1c2754e5008fed7379ebc78c4fdbfeccde611640789915c73bf9949695d38"
+            },
+            "one_override": {
+              "placements": 98,
+              "reason": "physical_top_out",
+              "final_board_sha256": "8ad6d385c5fef3da8f2d746ab62bdeef7543517116d9ad92ca282be1198fb823",
+              "final_stream_sha256": "b3797d64bcb274d33f516a5c5ae0e5aac0fb2f84945eeaa47ab1893fafe9bd2b",
+              "action_trace_sha256": "dec1c2754e5008fed7379ebc78c4fdbfeccde611640789915c73bf9949695d38"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300150,
+          "offset": 9658,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "dca9277ae4a619ec69baae37bc02fe529d4e31b5222d3adb9f0fc0f784d4d955",
+              "final_stream_sha256": "712ef81e11ffbb995b8ddab0e2148eabbb61c2929ba3b4ec0b2105accf2b1540",
+              "action_trace_sha256": "c3a840483838dcb1c0d0f0fd351aefccf120c4ab0bab03036dbf664c80bfa578"
+            },
+            "one_override": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "dca9277ae4a619ec69baae37bc02fe529d4e31b5222d3adb9f0fc0f784d4d955",
+              "final_stream_sha256": "712ef81e11ffbb995b8ddab0e2148eabbb61c2929ba3b4ec0b2105accf2b1540",
+              "action_trace_sha256": "c3a840483838dcb1c0d0f0fd351aefccf120c4ab0bab03036dbf664c80bfa578"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300064,
+          "offset": 12297,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "4a1574084832d13115100d89a8627e6c1be6bfe235a0c948d0a099f9c85e1d9c",
+              "final_stream_sha256": "f800a12f3112ebd13676d1cbf3c011a3da516d76ab6137f27543a0c4f60d0d9a",
+              "action_trace_sha256": "c6970d0ce2a396070eae974b426616c57fd62ac4cde29080cf23cc71c6d3a011"
+            },
+            "one_override": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "4a1574084832d13115100d89a8627e6c1be6bfe235a0c948d0a099f9c85e1d9c",
+              "final_stream_sha256": "f800a12f3112ebd13676d1cbf3c011a3da516d76ab6137f27543a0c4f60d0d9a",
+              "action_trace_sha256": "c6970d0ce2a396070eae974b426616c57fd62ac4cde29080cf23cc71c6d3a011"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300336,
+          "offset": 6018,
+          "outcomes": {
+            "greedy": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "7281c24f07da1c086d7b7362747baa7a5c8b8470275d38bd73b13f832ca647ac",
+              "final_stream_sha256": "f894279fb5b183fcc39f7e566a7239639c3e0429d7725e5c98d271316d37f631",
+              "action_trace_sha256": "0f8d3cd9826c659e37042adf5ff4eed54e29f77df150ba9bf790ecd0e2f4a522"
+            },
+            "one_override": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "7281c24f07da1c086d7b7362747baa7a5c8b8470275d38bd73b13f832ca647ac",
+              "final_stream_sha256": "f894279fb5b183fcc39f7e566a7239639c3e0429d7725e5c98d271316d37f631",
+              "action_trace_sha256": "0f8d3cd9826c659e37042adf5ff4eed54e29f77df150ba9bf790ecd0e2f4a522"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300496,
+          "offset": 5792,
+          "outcomes": {
+            "greedy": {
+              "placements": 44,
+              "reason": "physical_top_out",
+              "final_board_sha256": "aff7e43602ee0fe57f50cd9c470f6020ae20bee4f8f815b47138784296fbb5bd",
+              "final_stream_sha256": "4e92c035f6dc528f7d0d6ed6d8163804e4643de4ac2956467b0a853ced5a3621",
+              "action_trace_sha256": "d60ba045af6d5647dd752cb23164cb8ead416ba79dc7f408212b3f0d9841560c"
+            },
+            "one_override": {
+              "placements": 44,
+              "reason": "physical_top_out",
+              "final_board_sha256": "aff7e43602ee0fe57f50cd9c470f6020ae20bee4f8f815b47138784296fbb5bd",
+              "final_stream_sha256": "4e92c035f6dc528f7d0d6ed6d8163804e4643de4ac2956467b0a853ced5a3621",
+              "action_trace_sha256": "d60ba045af6d5647dd752cb23164cb8ead416ba79dc7f408212b3f0d9841560c"
+            }
+          },
+          "overrides": []
+        }
+      ]
+    },
+    {
+      "plan": "repeat-last-origin-plan.json",
+      "plan_sha256": "43231aab712c93e751ef2a6bfefe8da007e104d496d24c151d7d3b8d622894af",
+      "roots": "repeat-last-origin-roots.json",
+      "roots_sha256": "0fc65cc5bba97107b40dd4102c784f43e738da8e550c49999e68e908b3687855",
+      "reference_receipt": "repeat-last-origin-results.json",
+      "reference_receipt_sha256": "d1d8997f38f5ef8f307803006c249f90fb189c1d2987cdc4771342fc2071449e",
+      "arm_order": [
+        "greedy",
+        "first_only",
+        "repeated"
+      ],
+      "restricted_totals": {
+        "greedy": 1912,
+        "first_only": 1920,
+        "repeated": 1937
+      },
+      "natural_endings": {
+        "greedy": 12,
+        "first_only": 12,
+        "repeated": 12
+      },
+      "rows": [
+        {
+          "seed": 300454,
+          "offset": 5348,
+          "outcomes": {
+            "greedy": {
+              "placements": 89,
+              "reason": "physical_top_out",
+              "final_board_sha256": "bb05675677aa357fd86d2192c321b1973cc45bc13dd9306c07080a6a43af663a",
+              "final_stream_sha256": "d0dcc7c98e5c043fe031bfdfc234e5145b8ce130d62840526c1f34b399572332",
+              "action_trace_sha256": "e2d11fd96d12c7ca9fa57abaae1abd1e94f0a215a782a80827033761ed309010"
+            },
+            "first_only": {
+              "placements": 89,
+              "reason": "physical_top_out",
+              "final_board_sha256": "bb05675677aa357fd86d2192c321b1973cc45bc13dd9306c07080a6a43af663a",
+              "final_stream_sha256": "d0dcc7c98e5c043fe031bfdfc234e5145b8ce130d62840526c1f34b399572332",
+              "action_trace_sha256": "e2d11fd96d12c7ca9fa57abaae1abd1e94f0a215a782a80827033761ed309010"
+            },
+            "repeated": {
+              "placements": 89,
+              "reason": "physical_top_out",
+              "final_board_sha256": "bb05675677aa357fd86d2192c321b1973cc45bc13dd9306c07080a6a43af663a",
+              "final_stream_sha256": "d0dcc7c98e5c043fe031bfdfc234e5145b8ce130d62840526c1f34b399572332",
+              "action_trace_sha256": "e2d11fd96d12c7ca9fa57abaae1abd1e94f0a215a782a80827033761ed309010"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300024,
+          "offset": 10816,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "a0f92c2c57b37076533388d61844c11fb97e86f50ca29b4a6415823bf13220b2",
+              "final_stream_sha256": "9c0dbcf552d728e4e05f822f4324db41d6e7b178dd6ca429cc769e8957eadcbe",
+              "action_trace_sha256": "48286ad308ed074acf3f9e670dcf17fa42c5a9abfdea4a7ee3597f85c4c70bcf"
+            },
+            "first_only": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "a0f92c2c57b37076533388d61844c11fb97e86f50ca29b4a6415823bf13220b2",
+              "final_stream_sha256": "9c0dbcf552d728e4e05f822f4324db41d6e7b178dd6ca429cc769e8957eadcbe",
+              "action_trace_sha256": "48286ad308ed074acf3f9e670dcf17fa42c5a9abfdea4a7ee3597f85c4c70bcf"
+            },
+            "repeated": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "a0f92c2c57b37076533388d61844c11fb97e86f50ca29b4a6415823bf13220b2",
+              "final_stream_sha256": "9c0dbcf552d728e4e05f822f4324db41d6e7b178dd6ca429cc769e8957eadcbe",
+              "action_trace_sha256": "48286ad308ed074acf3f9e670dcf17fa42c5a9abfdea4a7ee3597f85c4c70bcf"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300394,
+          "offset": 6069,
+          "outcomes": {
+            "greedy": {
+              "placements": 39,
+              "reason": "physical_top_out",
+              "final_board_sha256": "fe6b7c17b3adf5518319c31244cd2fc6447bd253ead23c6a7e5777779dce3f92",
+              "final_stream_sha256": "e624c409f57eee22ad8d4b44ea78c02988987d4fc9706b362bf824f7f3947a86",
+              "action_trace_sha256": "001739ffaf34668ef808587694bd7fe43a17fe97a44364bd4170fa40e0c8360e"
+            },
+            "first_only": {
+              "placements": 39,
+              "reason": "physical_top_out",
+              "final_board_sha256": "370a0682f4136bb3eb19b6070e3cfc84f05391cdc317a525d60e79abb9808838",
+              "final_stream_sha256": "e624c409f57eee22ad8d4b44ea78c02988987d4fc9706b362bf824f7f3947a86",
+              "action_trace_sha256": "69146287294c19a786b9b8c4e8f955b6d98af4f6ebe2c6b11e5275e835c2bb71"
+            },
+            "repeated": {
+              "placements": 56,
+              "reason": "physical_top_out",
+              "final_board_sha256": "38c471fc7176bf3b7cd350ac3bbbea03a74c4e925ec7fae52d3fdbf538b6f79c",
+              "final_stream_sha256": "fc7ca1229dd9695720b8a1805eefff3265b33460c683874be1c7ab9a6dbcfe27",
+              "action_trace_sha256": "bedaf2d7e618a09a4a0fc57088ee8c06058df50298e81eb798edccec2a5bdb00"
+            }
+          },
+          "overrides": [
+            {
+              "ordinal": 1,
+              "move_from_root": 36,
+              "current": "HYPER",
+              "preview": "B",
+              "n_before": 1,
+              "greedy_n_after": 0,
+              "preserved_n_after": 1,
+              "eligible": 14,
+              "shortlist": 19,
+              "source_target": 14,
+              "effective_target": 14,
+              "greedy_index": 15,
+              "guard_index": 0,
+              "greedy_action": [
+                0,
+                12,
+                13,
+                13,
+                14,
+                0
+              ],
+              "guard_action": [
+                0,
+                8,
+                5,
+                12,
+                0,
+                0
+              ],
+              "weight4_logit_gap": 33.14508819580078,
+              "board_sha256": "52bb1be4b56bd5368a442d913bb939e0ea2807ae236ac4d272502dae9279f1fe",
+              "stream_sha256": "78c774ab9b0e9de451f3dbde75f7c06651b7d60f74731600f0929444350272a7",
+              "guard_after_board_sha256": "fe94c5e37ab255bb1e2f738aa0a9f30a79939835b9ffd8514cf87e7f6bd7ecd9"
+            },
+            {
+              "ordinal": 2,
+              "move_from_root": 39,
+              "current": "HYPER",
+              "preview": "CROSS",
+              "n_before": 1,
+              "greedy_n_after": 0,
+              "preserved_n_after": 1,
+              "eligible": 12,
+              "shortlist": 17,
+              "source_target": 14,
+              "effective_target": 14,
+              "greedy_index": 13,
+              "guard_index": 11,
+              "greedy_action": [
+                0,
+                12,
+                13,
+                13,
+                14,
+                0
+              ],
+              "guard_action": [
+                0,
+                11,
+                0,
+                10,
+                14,
+                0
+              ],
+              "weight4_logit_gap": 34.4571533203125,
+              "board_sha256": "452a19511d789a6f7ec644208cca7ad396b748560efc1592f4bd414aa5d7f7c7",
+              "stream_sha256": "4fddeb551e44c5a99a749f17192a547f66245ea144cb3a14124d4329a3b4e45b",
+              "guard_after_board_sha256": "52007895076567fc7ad472f8997ae15e86a277a74dee1696a51fd028bde3a443"
+            }
+          ]
+        },
+        {
+          "seed": 300370,
+          "offset": 7100,
+          "outcomes": {
+            "greedy": {
+              "placements": 91,
+              "reason": "physical_top_out",
+              "final_board_sha256": "901e5ad39916cee9917e5783f8d51c07d20a8dac761b7b4c958e8b03fbedb791",
+              "final_stream_sha256": "6e782153920841dd76634aebd2ca4801881b91b1cc3d5c7cb1a5ecb9ed719b8a",
+              "action_trace_sha256": "6d26357ac7707018e8718ff2d6ac103e1476546ffc4131ae426d40df18f39fce"
+            },
+            "first_only": {
+              "placements": 91,
+              "reason": "physical_top_out",
+              "final_board_sha256": "901e5ad39916cee9917e5783f8d51c07d20a8dac761b7b4c958e8b03fbedb791",
+              "final_stream_sha256": "6e782153920841dd76634aebd2ca4801881b91b1cc3d5c7cb1a5ecb9ed719b8a",
+              "action_trace_sha256": "6d26357ac7707018e8718ff2d6ac103e1476546ffc4131ae426d40df18f39fce"
+            },
+            "repeated": {
+              "placements": 91,
+              "reason": "physical_top_out",
+              "final_board_sha256": "901e5ad39916cee9917e5783f8d51c07d20a8dac761b7b4c958e8b03fbedb791",
+              "final_stream_sha256": "6e782153920841dd76634aebd2ca4801881b91b1cc3d5c7cb1a5ecb9ed719b8a",
+              "action_trace_sha256": "6d26357ac7707018e8718ff2d6ac103e1476546ffc4131ae426d40df18f39fce"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300218,
+          "offset": 7180,
+          "outcomes": {
+            "greedy": {
+              "placements": 82,
+              "reason": "physical_top_out",
+              "final_board_sha256": "5ca0cb8737efb03afa45d785ade5ed04793db50027fbbcac60ad4d7e62bbfe23",
+              "final_stream_sha256": "9f2637e36bb459a2662404e9b31c4a124cdd21ace52c8e8278bf7f221e938e8b",
+              "action_trace_sha256": "e1a301333cfff91f440638edcb1f3a295ed992574bacb30f1a4f3707490598b4"
+            },
+            "first_only": {
+              "placements": 82,
+              "reason": "physical_top_out",
+              "final_board_sha256": "5ca0cb8737efb03afa45d785ade5ed04793db50027fbbcac60ad4d7e62bbfe23",
+              "final_stream_sha256": "9f2637e36bb459a2662404e9b31c4a124cdd21ace52c8e8278bf7f221e938e8b",
+              "action_trace_sha256": "e1a301333cfff91f440638edcb1f3a295ed992574bacb30f1a4f3707490598b4"
+            },
+            "repeated": {
+              "placements": 82,
+              "reason": "physical_top_out",
+              "final_board_sha256": "5ca0cb8737efb03afa45d785ade5ed04793db50027fbbcac60ad4d7e62bbfe23",
+              "final_stream_sha256": "9f2637e36bb459a2662404e9b31c4a124cdd21ace52c8e8278bf7f221e938e8b",
+              "action_trace_sha256": "e1a301333cfff91f440638edcb1f3a295ed992574bacb30f1a4f3707490598b4"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300408,
+          "offset": 6086,
+          "outcomes": {
+            "greedy": {
+              "placements": 71,
+              "reason": "physical_top_out",
+              "final_board_sha256": "31fdd5616742c5cb16ea291919d9ab8ef790acd55dc1b0ef14a031e09699769d",
+              "final_stream_sha256": "ae8229af69b1501e7330a6ce8475d4fd6658851508cfdacd9e614125b83c09c5",
+              "action_trace_sha256": "cf8efcb3fb6c9c4c7531cfc7f69fb2fe02f0269108fd11e65756224077d4ee08"
+            },
+            "first_only": {
+              "placements": 71,
+              "reason": "physical_top_out",
+              "final_board_sha256": "31fdd5616742c5cb16ea291919d9ab8ef790acd55dc1b0ef14a031e09699769d",
+              "final_stream_sha256": "ae8229af69b1501e7330a6ce8475d4fd6658851508cfdacd9e614125b83c09c5",
+              "action_trace_sha256": "cf8efcb3fb6c9c4c7531cfc7f69fb2fe02f0269108fd11e65756224077d4ee08"
+            },
+            "repeated": {
+              "placements": 71,
+              "reason": "physical_top_out",
+              "final_board_sha256": "31fdd5616742c5cb16ea291919d9ab8ef790acd55dc1b0ef14a031e09699769d",
+              "final_stream_sha256": "ae8229af69b1501e7330a6ce8475d4fd6658851508cfdacd9e614125b83c09c5",
+              "action_trace_sha256": "cf8efcb3fb6c9c4c7531cfc7f69fb2fe02f0269108fd11e65756224077d4ee08"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300110,
+          "offset": 8504,
+          "outcomes": {
+            "greedy": {
+              "placements": 61,
+              "reason": "physical_top_out",
+              "final_board_sha256": "3ebfe02329d9a673203c84246e2d14e61a3f14af2af7d28292d807e54d43735e",
+              "final_stream_sha256": "4783ee9557d98461afa01a13d4b93d5d0eb48bf17823723e965a35e27476d701",
+              "action_trace_sha256": "c6a9433281b8dac68aaead5de520fa234579ba70d8f5d703cbb9fd6fce5c6013"
+            },
+            "first_only": {
+              "placements": 61,
+              "reason": "physical_top_out",
+              "final_board_sha256": "3ebfe02329d9a673203c84246e2d14e61a3f14af2af7d28292d807e54d43735e",
+              "final_stream_sha256": "4783ee9557d98461afa01a13d4b93d5d0eb48bf17823723e965a35e27476d701",
+              "action_trace_sha256": "c6a9433281b8dac68aaead5de520fa234579ba70d8f5d703cbb9fd6fce5c6013"
+            },
+            "repeated": {
+              "placements": 61,
+              "reason": "physical_top_out",
+              "final_board_sha256": "3ebfe02329d9a673203c84246e2d14e61a3f14af2af7d28292d807e54d43735e",
+              "final_stream_sha256": "4783ee9557d98461afa01a13d4b93d5d0eb48bf17823723e965a35e27476d701",
+              "action_trace_sha256": "c6a9433281b8dac68aaead5de520fa234579ba70d8f5d703cbb9fd6fce5c6013"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300028,
+          "offset": 24589,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "8747a0aa30184bb31f5c6e2f4616374ebb2e31d875874ccfd94c9e613cbbf94e",
+              "final_stream_sha256": "99d75207c50af2a38bac987a86a08ffa66fd8e45b479c6c570b8144ace99483d",
+              "action_trace_sha256": "7e5b9bf7961d53a7e6461c7324d0d94dc3d8f8d4c5788ca7afff349162e9204b"
+            },
+            "first_only": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "8747a0aa30184bb31f5c6e2f4616374ebb2e31d875874ccfd94c9e613cbbf94e",
+              "final_stream_sha256": "99d75207c50af2a38bac987a86a08ffa66fd8e45b479c6c570b8144ace99483d",
+              "action_trace_sha256": "7e5b9bf7961d53a7e6461c7324d0d94dc3d8f8d4c5788ca7afff349162e9204b"
+            },
+            "repeated": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "8747a0aa30184bb31f5c6e2f4616374ebb2e31d875874ccfd94c9e613cbbf94e",
+              "final_stream_sha256": "99d75207c50af2a38bac987a86a08ffa66fd8e45b479c6c570b8144ace99483d",
+              "action_trace_sha256": "7e5b9bf7961d53a7e6461c7324d0d94dc3d8f8d4c5788ca7afff349162e9204b"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300068,
+          "offset": 26233,
+          "outcomes": {
+            "greedy": {
+              "placements": 66,
+              "reason": "physical_top_out",
+              "final_board_sha256": "063adb0aa57e3333dae0ae3161d75c29f2cc23866b1a50bf69c94528c814a086",
+              "final_stream_sha256": "50ac379d44111aeabf9d16975d0d4585a619307f027c74b31a6d07aed1875cb5",
+              "action_trace_sha256": "cea8eda47d7f0fb5c99bc2e0748058d887517e828d978570b9efa4e92637a04e"
+            },
+            "first_only": {
+              "placements": 66,
+              "reason": "physical_top_out",
+              "final_board_sha256": "063adb0aa57e3333dae0ae3161d75c29f2cc23866b1a50bf69c94528c814a086",
+              "final_stream_sha256": "50ac379d44111aeabf9d16975d0d4585a619307f027c74b31a6d07aed1875cb5",
+              "action_trace_sha256": "cea8eda47d7f0fb5c99bc2e0748058d887517e828d978570b9efa4e92637a04e"
+            },
+            "repeated": {
+              "placements": 66,
+              "reason": "physical_top_out",
+              "final_board_sha256": "063adb0aa57e3333dae0ae3161d75c29f2cc23866b1a50bf69c94528c814a086",
+              "final_stream_sha256": "50ac379d44111aeabf9d16975d0d4585a619307f027c74b31a6d07aed1875cb5",
+              "action_trace_sha256": "cea8eda47d7f0fb5c99bc2e0748058d887517e828d978570b9efa4e92637a04e"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300348,
+          "offset": 5838,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "54c6ddd19f936c4af3bcee9134951f6db7bac599e5fb38c5ae9fd0e0111d4a2b",
+              "final_stream_sha256": "b07a266008b915b2b21344339521dec51da0b5ef5d4580a2e217178d8ab2df34",
+              "action_trace_sha256": "e2797e3afdef117727a142a9c26f2a566da97c10a080ca32be387986a3a54b1f"
+            },
+            "first_only": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "54c6ddd19f936c4af3bcee9134951f6db7bac599e5fb38c5ae9fd0e0111d4a2b",
+              "final_stream_sha256": "b07a266008b915b2b21344339521dec51da0b5ef5d4580a2e217178d8ab2df34",
+              "action_trace_sha256": "e2797e3afdef117727a142a9c26f2a566da97c10a080ca32be387986a3a54b1f"
+            },
+            "repeated": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "54c6ddd19f936c4af3bcee9134951f6db7bac599e5fb38c5ae9fd0e0111d4a2b",
+              "final_stream_sha256": "b07a266008b915b2b21344339521dec51da0b5ef5d4580a2e217178d8ab2df34",
+              "action_trace_sha256": "e2797e3afdef117727a142a9c26f2a566da97c10a080ca32be387986a3a54b1f"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300214,
+          "offset": 7292,
+          "outcomes": {
+            "greedy": {
+              "placements": 62,
+              "reason": "physical_top_out",
+              "final_board_sha256": "608fbe34ba1886e1689a11f6869c587b0894f0c0dbbf3f79c76955052f87f956",
+              "final_stream_sha256": "b8343e4c1e96dc3146bf08c116ef50919a8eacaa8bb947effb476ca5300b3106",
+              "action_trace_sha256": "0972292974e1f69de08b0c76a4cd9302d16796b189ce4a2a0a2b680524300749"
+            },
+            "first_only": {
+              "placements": 62,
+              "reason": "physical_top_out",
+              "final_board_sha256": "608fbe34ba1886e1689a11f6869c587b0894f0c0dbbf3f79c76955052f87f956",
+              "final_stream_sha256": "b8343e4c1e96dc3146bf08c116ef50919a8eacaa8bb947effb476ca5300b3106",
+              "action_trace_sha256": "0972292974e1f69de08b0c76a4cd9302d16796b189ce4a2a0a2b680524300749"
+            },
+            "repeated": {
+              "placements": 62,
+              "reason": "physical_top_out",
+              "final_board_sha256": "608fbe34ba1886e1689a11f6869c587b0894f0c0dbbf3f79c76955052f87f956",
+              "final_stream_sha256": "b8343e4c1e96dc3146bf08c116ef50919a8eacaa8bb947effb476ca5300b3106",
+              "action_trace_sha256": "0972292974e1f69de08b0c76a4cd9302d16796b189ce4a2a0a2b680524300749"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300540,
+          "offset": 7084,
+          "outcomes": {
+            "greedy": {
+              "placements": 83,
+              "reason": "physical_top_out",
+              "final_board_sha256": "32bd865a95b300d560224472152f2d8f3c91a1f38d2a3c5c3272f1eae6183ac1",
+              "final_stream_sha256": "7a99a57422b1685c851a6dad1115c8ac9c28d7056075a68c7e79c61d8db7d10f",
+              "action_trace_sha256": "4429c945634badcb27e038d0ba90a0620d8de51231dc7391302b6ae59f71beb2"
+            },
+            "first_only": {
+              "placements": 91,
+              "reason": "physical_top_out",
+              "final_board_sha256": "643d33bfef28c88d7eb6dbf5c71b0db041457f74e7d36eda154be1d1cd31bddc",
+              "final_stream_sha256": "056f1a644c747d35d816b8fb361b9e41cbdb225f9c2f8b643641a6568595dbab",
+              "action_trace_sha256": "d70d66ec8e0669676b52775b136aa6752ed9e8e85436482c277dd9b4ebd0f236"
+            },
+            "repeated": {
+              "placements": 91,
+              "reason": "physical_top_out",
+              "final_board_sha256": "643d33bfef28c88d7eb6dbf5c71b0db041457f74e7d36eda154be1d1cd31bddc",
+              "final_stream_sha256": "056f1a644c747d35d816b8fb361b9e41cbdb225f9c2f8b643641a6568595dbab",
+              "action_trace_sha256": "d70d66ec8e0669676b52775b136aa6752ed9e8e85436482c277dd9b4ebd0f236"
+            }
+          },
+          "overrides": [
+            {
+              "ordinal": 1,
+              "move_from_root": 63,
+              "current": "HYPER",
+              "preview": "NOVA",
+              "n_before": 4,
+              "greedy_n_after": 0,
+              "preserved_n_after": 4,
+              "eligible": 6,
+              "shortlist": 7,
+              "source_target": 14,
+              "effective_target": 14,
+              "greedy_index": 4,
+              "guard_index": 6,
+              "greedy_action": [
+                0,
+                3,
+                6,
+                14,
+                10,
+                0
+              ],
+              "guard_action": [
+                0,
+                5,
+                12,
+                12,
+                14,
+                0
+              ],
+              "weight4_logit_gap": 32.75958251953125,
+              "board_sha256": "51817d34dc2ab71a8fa15cfe8febc185bb135495422478625b5a56f6735fae6b",
+              "stream_sha256": "6d2fdb8e08b7b4e20f01baa9041cf27631e7ca42ba7034e2a16a11d441b6e555",
+              "guard_after_board_sha256": "ebc36ea57bd0ad24312854e9725b4c7ab506ad57465924d61583d5acacf19f4d"
+            }
+          ]
+        },
+        {
+          "seed": 300364,
+          "offset": 6097,
+          "outcomes": {
+            "greedy": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "c030a49cc20a30e603ee9154b4f9e12a449c00c0be3cec39fa2890c4f6c683aa",
+              "final_stream_sha256": "c7282dc09b6c4815f0378075e99ec264e1b925ef63f80e9c3574ff78bce8ee3d",
+              "action_trace_sha256": "9a567261071d8e593c90e20f5a516b264399cdda40398600ae3c8867fc0543be"
+            },
+            "first_only": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "c030a49cc20a30e603ee9154b4f9e12a449c00c0be3cec39fa2890c4f6c683aa",
+              "final_stream_sha256": "c7282dc09b6c4815f0378075e99ec264e1b925ef63f80e9c3574ff78bce8ee3d",
+              "action_trace_sha256": "9a567261071d8e593c90e20f5a516b264399cdda40398600ae3c8867fc0543be"
+            },
+            "repeated": {
+              "placements": 65,
+              "reason": "physical_top_out",
+              "final_board_sha256": "c030a49cc20a30e603ee9154b4f9e12a449c00c0be3cec39fa2890c4f6c683aa",
+              "final_stream_sha256": "c7282dc09b6c4815f0378075e99ec264e1b925ef63f80e9c3574ff78bce8ee3d",
+              "action_trace_sha256": "9a567261071d8e593c90e20f5a516b264399cdda40398600ae3c8867fc0543be"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300290,
+          "offset": 6100,
+          "outcomes": {
+            "greedy": {
+              "placements": 123,
+              "reason": "physical_top_out",
+              "final_board_sha256": "560a6e98277bde75845e0e67c789546e1214eef133e44a85e63fd6bd08c8ca73",
+              "final_stream_sha256": "5532946e0ca159d4e37af66ad290efa81d66cbbca75ea4f73bc348a38fed6b1a",
+              "action_trace_sha256": "7156f7f55990bd9f2159a7280f52e96cc45caf4384c96f5d404de7f41eee45ca"
+            },
+            "first_only": {
+              "placements": 123,
+              "reason": "physical_top_out",
+              "final_board_sha256": "560a6e98277bde75845e0e67c789546e1214eef133e44a85e63fd6bd08c8ca73",
+              "final_stream_sha256": "5532946e0ca159d4e37af66ad290efa81d66cbbca75ea4f73bc348a38fed6b1a",
+              "action_trace_sha256": "7156f7f55990bd9f2159a7280f52e96cc45caf4384c96f5d404de7f41eee45ca"
+            },
+            "repeated": {
+              "placements": 123,
+              "reason": "physical_top_out",
+              "final_board_sha256": "560a6e98277bde75845e0e67c789546e1214eef133e44a85e63fd6bd08c8ca73",
+              "final_stream_sha256": "5532946e0ca159d4e37af66ad290efa81d66cbbca75ea4f73bc348a38fed6b1a",
+              "action_trace_sha256": "7156f7f55990bd9f2159a7280f52e96cc45caf4384c96f5d404de7f41eee45ca"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300086,
+          "offset": 7482,
+          "outcomes": {
+            "greedy": {
+              "placements": 56,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4ddb768c4b290302636ba702e41a8399783634de17bedc03aa2636537c857d06",
+              "final_stream_sha256": "f7ad2dcfc070b38746d9f452be4a34751ddef51b5be45e13e9799c7985af536d",
+              "action_trace_sha256": "977d3ff41f52311ac8c2586acdeb21cce5e4336d6696ebb9bc330db7e23067ca"
+            },
+            "first_only": {
+              "placements": 56,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4ddb768c4b290302636ba702e41a8399783634de17bedc03aa2636537c857d06",
+              "final_stream_sha256": "f7ad2dcfc070b38746d9f452be4a34751ddef51b5be45e13e9799c7985af536d",
+              "action_trace_sha256": "977d3ff41f52311ac8c2586acdeb21cce5e4336d6696ebb9bc330db7e23067ca"
+            },
+            "repeated": {
+              "placements": 56,
+              "reason": "physical_top_out",
+              "final_board_sha256": "4ddb768c4b290302636ba702e41a8399783634de17bedc03aa2636537c857d06",
+              "final_stream_sha256": "f7ad2dcfc070b38746d9f452be4a34751ddef51b5be45e13e9799c7985af536d",
+              "action_trace_sha256": "977d3ff41f52311ac8c2586acdeb21cce5e4336d6696ebb9bc330db7e23067ca"
+            }
+          },
+          "overrides": []
+        },
+        {
+          "seed": 300256,
+          "offset": 6786,
+          "outcomes": {
+            "greedy": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "29cc40e82bcf6cd833364ec2ad474a8442a9b279aa1df40674b2fb317aa0194b",
+              "final_stream_sha256": "4544745e760afc7d4a8cc9ef071a05130bb6c01687e80079a99576c3ea2b2f15",
+              "action_trace_sha256": "748cc117bec1d09a1d7998a734151c5dd664b87875b2b3e8bdc48c318821f664"
+            },
+            "first_only": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "29cc40e82bcf6cd833364ec2ad474a8442a9b279aa1df40674b2fb317aa0194b",
+              "final_stream_sha256": "4544745e760afc7d4a8cc9ef071a05130bb6c01687e80079a99576c3ea2b2f15",
+              "action_trace_sha256": "748cc117bec1d09a1d7998a734151c5dd664b87875b2b3e8bdc48c318821f664"
+            },
+            "repeated": {
+              "placements": 256,
+              "reason": "cap",
+              "final_board_sha256": "29cc40e82bcf6cd833364ec2ad474a8442a9b279aa1df40674b2fb317aa0194b",
+              "final_stream_sha256": "4544745e760afc7d4a8cc9ef071a05130bb6c01687e80079a99576c3ea2b2f15",
+              "action_trace_sha256": "748cc117bec1d09a1d7998a734151c5dd664b87875b2b3e8bdc48c318821f664"
+            }
+          },
+          "overrides": []
+        }
+      ]
+    }
+  ],
+  "first_cohort_repeat_regression": [
+    300246,
+    300446
+  ],
+  "working_checkout": {
+    "script_sha256": "f3607c68532f8aed3a75680e9aaaf3f34543967e8ce1ffbc64f2b0b8decccd18",
+    "checked_source_sha256": {
+      "tools/evaluate_afterstate_td.py": "d3658fe6d106ed496fcd6e2ce53cd3a894604b267aab96d6a4b4a84705157a3c",
+      "tetris_neural.py": "d24adc31ae03342a7f40e7e4e66e14155ff6d5e9c333466eba5cc8dca11ca3f2",
+      "tetris_cross_survival.py": "68685bcac20ec7c2d093b6dada1bce12ea47115cc454c8e6018e2ab50fc49f97",
+      "tetris_gpu_simulation.py": "c32d294befd7f66fb131f2da8bb902f34ab35d94cb74e18466b2d27737ffe3a3",
+      "sparse_tetris_4d_optimized.py": "9e13316e93e5c078ae4ca76c78028220bd81523557bb83b33835bad9b4a17763",
+      "tetris_survival_v4.py": "8db8606455779f7a5dec6a0f535c688eef3452c2f8f21dd7d5cd96cd037c9bfb",
+      "native/libtetris4d_native.so": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56"
+    },
+    "reference_sources_sha256": {
+      "prospective-last-origin-plan.json": "83aed9f5047855b725aab6db70ebf4f34eef5aabeadd3fef47be8ec412fd881c",
+      "prospective-last-origin-roots.json": "3dc6a84770061fc343b23d122af852fb23f36f93457909096f2cb4306d726a5d",
+      "prospective-last-origin-results.json": "d713ee75f8a953c904d4ed5e157206c8bb3fb3986510438ccdb29468d271cba8",
+      "repeat-last-origin-plan.json": "43231aab712c93e751ef2a6bfefe8da007e104d496d24c151d7d3b8d622894af",
+      "repeat-last-origin-roots.json": "0fc65cc5bba97107b40dd4102c784f43e738da8e550c49999e68e908b3687855",
+      "repeat-last-origin-results.json": "d1d8997f38f5ef8f307803006c249f90fb189c1d2987cdc4771342fc2071449e",
+      "play_prospective_last_origin.py": "0700f0092a04685e1422115a3cffb5227152d553eee5db029e7845a0572d3e83",
+      "play_repeat_last_origin.py": "a31d504777d617fb9bd7b409814b2d6a6ac452a7e001093ddfda3d20b0b73dbb"
+    },
+    "model_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "cuda_initialized": false,
+    "mode": "preserve-last-cross",
+    "case_selection": "Both registered action-changing decisions in the first cohort, first forced extinction and first safe positive-origin decision on their recurring treatment paths.",
+    "independent_geometry": "Apply normal checked candidate placement and hyperlayer clears to each of the entire retained shortlist, then count legal CROSS origins from every full resulting board with integer shape-bottom height tests. Among preserving afterboards, select highest raw actor logit with original ID breaking ties.",
+    "interfaces": [
+      "GUI NeuralAgent.choose (normal live inference)",
+      "CPU evaluator select_moves padded FP32 32x128",
+      "device-preparer evaluator branch with actual DevicePreparedBatch and CPU reference tensors"
+    ],
+    "endpoints": {
+      "300246": {
+        "greedy": {
+          "reference_fields_matched": 12,
+          "last_origin_loss_steps": [],
+          "override_steps": [],
+          "placements": 61,
+          "clears": 0,
+          "reason": "physical_top_out",
+          "right_censored": false,
+          "final_piece": "CROSS",
+          "final_preview": "STAIR",
+          "final_target": 14,
+          "final_board_sha256": "66e555d6a6c9e474ba4d732d02cee5f555d0d66537d83d774e96531c9a02848d",
+          "final_stream_sha256": "695bd8925f6c33d081e8ec5e8051dfc94b05832297918ae56beb3761deb044a0",
+          "final_origins": 0,
+          "action_trace_sha256": "df4f886e6502a531e3b634a856337680efcc72229deaba8521d6ef21dc1b60f2",
+          "draws_sha256": "f98f8502afff2540aee604303641287657b0bc7b8b34ab67de11b7aaea82504a"
+        },
+        "repeated": {
+          "reference_fields_matched": 12,
+          "last_origin_loss_steps": [
+            60,
+            62
+          ],
+          "override_steps": [
+            60
+          ],
+          "placements": 77,
+          "clears": 0,
+          "reason": "physical_top_out",
+          "right_censored": false,
+          "final_piece": "CROSS",
+          "final_preview": "STAIR",
+          "final_target": 14,
+          "final_board_sha256": "0ba1ff9d813ab1f33a9a2f3da86e3cf740d052930a596aebbd08b0ccdbe12acb",
+          "final_stream_sha256": "1e5d43a398fe9ab14fb53f6f7c618f5ab0a73b0303701aedd5b5d1b7b0cdc1d7",
+          "final_origins": 0,
+          "action_trace_sha256": "144a54ca5a131764ccbb393a0c85ac09104084fea84f14aaa4a47a92a2bfce64",
+          "draws_sha256": "a533db3d33f7b265ad2f3c830dfb9e544bac559991c634393aebeb8072c84fa8"
+        }
+      },
+      "300446": {
+        "greedy": {
+          "reference_fields_matched": 12,
+          "last_origin_loss_steps": [],
+          "override_steps": [],
+          "placements": 51,
+          "clears": 0,
+          "reason": "physical_top_out",
+          "right_censored": false,
+          "final_piece": "CROSS",
+          "final_preview": "BRIDGE",
+          "final_target": 14,
+          "final_board_sha256": "815460c95fb54ca617e2ffd022a1928175146361a4ee3f97a08d5721e80b44be",
+          "final_stream_sha256": "75a65e41de14c1c198d08f00064791e195cf7860ff27535811226820612e0c83",
+          "final_origins": 0,
+          "action_trace_sha256": "5c71c63bcdef01dd6dae65d1f9fc0cf311fd6068ab793cd3d0466b8ee2d8af79",
+          "draws_sha256": "4c2244912d08f4bfb1808ac0ebbff6c0fd97d0df7e6d31c7f2105b3a0924a420"
+        },
+        "repeated": {
+          "reference_fields_matched": 12,
+          "last_origin_loss_steps": [
+            44,
+            52
+          ],
+          "override_steps": [
+            44
+          ],
+          "placements": 65,
+          "clears": 0,
+          "reason": "physical_top_out",
+          "right_censored": false,
+          "final_piece": "CROSS",
+          "final_preview": "T",
+          "final_target": 14,
+          "final_board_sha256": "b36c8d847cd71a254750f0f1aa0e0f60501988174d9b759393bbc3d11eefb6ea",
+          "final_stream_sha256": "40c2a6c785a74fe7172ebececefb71a56b277a7a823274331c08f2726594b906",
+          "final_origins": 0,
+          "action_trace_sha256": "5f3f6db112d0ce7818ba7e98c54670d8eb751fc691de54c635726a8884d2300a",
+          "draws_sha256": "8470e2cc871099fbdc53811982bf52b8daac9becc70cfe8c42459d0302110595"
+        }
+      }
+    },
+    "local_receipt": "real-last-cross-checkout-parity.json",
+    "receipt_sha256": "e72030449867d92ad69e0badae6eb63c615a1297d55df0bdc092e1c1483d42d1",
+    "prior_revision_reproduction": {
+      "earlier_receipt_sha256": "5d48e2fc77385561b31e59f39bce3b47050a67968a67c731b54cf4bdf8ca71dd",
+      "complete_cases_and_endpoints_identical": true
+    }
+  },
+  "runtime_validation": {
+    "latency_source": "last-cross-guard-cpu-latency.json",
+    "latency_sha256": "d28d06c638964a97bb8845d016ad7743f42a2ea8ccb86812d574580f971a6b59",
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. The two_stage flag controls outer candidate preparation. Every position and mode runs once to warm before timed pass. One timed pass with other low-priority observers active. The medians do not establish a speed difference.",
+    "device": "cpu",
+    "mode_statistics": [
+      {
+        "mode": false,
+        "median_ms": 68.309249,
+        "p95_ms": 85.06361314999998,
+        "triggers": 0
+      },
+      {
+        "mode": true,
+        "median_ms": 73.5166895,
+        "p95_ms": 120.87662964999998,
+        "triggers": 8
+      },
+      {
+        "mode": "preserve-last-cross",
+        "median_ms": 59.397094,
+        "p95_ms": 74.57420904999998,
+        "triggers": 0,
+        "overrides": 0
+      }
+    ],
+    "desktop": {
+      "passed": true,
+      "callback_errors": [],
+      "selected_drop": true,
+      "visible_network_nodes": 0,
+      "feature_decision_visible": true
+    },
+    "desktop_smoke_receipt_sha256": "37e11dfbc0e8b9085587dcf3e9835c8852e8fe3e6d612c414789fca0860fa180"
+  },
+  "horizon_extension": {
+    "receipt": "repeat-last-origin-tail-2048/results.json",
+    "sha256": "807f067e919850dad15efc04659840b863a37740d737db59013bf8750a379264",
+    "frozen_plan_sha256": "dc73659776bce5f05bfe79d706a49d1687930fdfcc240ee1d903cd0d022acd13",
+    "prefix_verification_sha256": "4baeccfac2444a3e7eb804cf7c56000b3f987af0ad6d4abf1e9921d41feb07aa",
+    "resume_snapshot_sha256": "92102c3df90fab2f0f6ba10e07ae58e266e81a18ad0c2566d15c52228a2b5f5e",
+    "all_16_restricted": {
+      "per_policy": {
+        "greedy": {
+          "n": 16,
+          "sum_placements": 4843,
+          "mean_placements": 302.6875,
+          "end_reasons": {
+            "physical_top_out": 15,
+            "cap": 1
+          }
+        },
+        "first_only": {
+          "n": 16,
+          "sum_placements": 4851,
+          "mean_placements": 303.1875,
+          "end_reasons": {
+            "physical_top_out": 15,
+            "cap": 1
+          }
+        },
+        "repeated": {
+          "n": 16,
+          "sum_placements": 4868,
+          "mean_placements": 304.25,
+          "end_reasons": {
+            "physical_top_out": 15,
+            "cap": 1
+          }
+        }
+      },
+      "paired_restricted": {
+        "first_only_minus_greedy": {
+          "sum_gain": 8,
+          "positive": 1,
+          "negative": 0,
+          "terminal_equal": 14,
+          "censored_equal": 1
+        },
+        "repeated_minus_greedy": {
+          "sum_gain": 25,
+          "positive": 2,
+          "negative": 0,
+          "terminal_equal": 13,
+          "censored_equal": 1
+        },
+        "repeated_minus_first_only": {
+          "sum_gain": 17,
+          "positive": 1,
+          "negative": 0,
+          "terminal_equal": 14,
+          "censored_equal": 1
+        }
+      }
+    },
+    "tail_outcomes": [
+      {
+        "seed": 300024,
+        "arms": {
+          "greedy": {
+            "placements": 919,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "caa7dd184aa97f04d81501a73e3a1ca5fe2f3668557d0cdd9e32980c6e68881c",
+            "final_stream_sha256": "9072d6b30f6cc83a9b50c5e41a82ceaba0b88e41d14875ade235161250d5403b"
+          },
+          "first_only": {
+            "placements": 919,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "caa7dd184aa97f04d81501a73e3a1ca5fe2f3668557d0cdd9e32980c6e68881c",
+            "final_stream_sha256": "9072d6b30f6cc83a9b50c5e41a82ceaba0b88e41d14875ade235161250d5403b"
+          },
+          "repeated": {
+            "placements": 919,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "caa7dd184aa97f04d81501a73e3a1ca5fe2f3668557d0cdd9e32980c6e68881c",
+            "final_stream_sha256": "9072d6b30f6cc83a9b50c5e41a82ceaba0b88e41d14875ade235161250d5403b"
+          }
+        }
+      },
+      {
+        "seed": 300028,
+        "arms": {
+          "greedy": {
+            "placements": 2048,
+            "reason": "cap",
+            "clears": 3,
+            "final_origins": 166,
+            "final_board_sha256": "fa3d0dff01fcd68f2a70b07cab5343054d2a1be3cf1ed2b7cc79987a48dcd50f",
+            "final_stream_sha256": "5d8de77116dcb73e4458564d366e6ea2659eb75baf6d85fbb38f03efb52d637b"
+          },
+          "first_only": {
+            "placements": 2048,
+            "reason": "cap",
+            "clears": 3,
+            "final_origins": 166,
+            "final_board_sha256": "fa3d0dff01fcd68f2a70b07cab5343054d2a1be3cf1ed2b7cc79987a48dcd50f",
+            "final_stream_sha256": "5d8de77116dcb73e4458564d366e6ea2659eb75baf6d85fbb38f03efb52d637b"
+          },
+          "repeated": {
+            "placements": 2048,
+            "reason": "cap",
+            "clears": 3,
+            "final_origins": 166,
+            "final_board_sha256": "fa3d0dff01fcd68f2a70b07cab5343054d2a1be3cf1ed2b7cc79987a48dcd50f",
+            "final_stream_sha256": "5d8de77116dcb73e4458564d366e6ea2659eb75baf6d85fbb38f03efb52d637b"
+          }
+        }
+      },
+      {
+        "seed": 300348,
+        "arms": {
+          "greedy": {
+            "placements": 420,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "0dca54167f949dce3b25eaef10e1a22187d503663336e85ebf5d366b601e7f49",
+            "final_stream_sha256": "0cb965b7295f521e8597d45b9e3461e2e9c135327d1a89184558b50c93c966df"
+          },
+          "first_only": {
+            "placements": 420,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "0dca54167f949dce3b25eaef10e1a22187d503663336e85ebf5d366b601e7f49",
+            "final_stream_sha256": "0cb965b7295f521e8597d45b9e3461e2e9c135327d1a89184558b50c93c966df"
+          },
+          "repeated": {
+            "placements": 420,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "0dca54167f949dce3b25eaef10e1a22187d503663336e85ebf5d366b601e7f49",
+            "final_stream_sha256": "0cb965b7295f521e8597d45b9e3461e2e9c135327d1a89184558b50c93c966df"
+          }
+        }
+      },
+      {
+        "seed": 300256,
+        "arms": {
+          "greedy": {
+            "placements": 568,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "c493e854c965cae779ea59c8a866b256bcf73b8850bc21f44358ebe29838b88c",
+            "final_stream_sha256": "dc6785e0411299ccf0849436473aec662b3301e1b591b691dc3babab6b565e0f"
+          },
+          "first_only": {
+            "placements": 568,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "c493e854c965cae779ea59c8a866b256bcf73b8850bc21f44358ebe29838b88c",
+            "final_stream_sha256": "dc6785e0411299ccf0849436473aec662b3301e1b591b691dc3babab6b565e0f"
+          },
+          "repeated": {
+            "placements": 568,
+            "reason": "physical_top_out",
+            "clears": 1,
+            "final_origins": 0,
+            "final_board_sha256": "c493e854c965cae779ea59c8a866b256bcf73b8850bc21f44358ebe29838b88c",
+            "final_stream_sha256": "dc6785e0411299ccf0849436473aec662b3301e1b591b691dc3babab6b565e0f"
+          }
+        }
+      }
+    ],
+    "interpretation": "Four pairs previously tied at 256 continued under the original three policies. Three reached equal natural endings and the remaining pair was tied at 2048. Only natural endpoints can settle its contribution."
+  },
+  "natural_endpoints_second_cohort": {
+    "receipt": "repeat-last-origin-tail-uncapped/results.json",
+    "sha256": "aa1fc2361c69e71224cb548ea7ed6b00c312ea4fb3ac31a8a36185fcebaf8048",
+    "frozen_plan_sha256": "8edb761f5b4ace9511bead135039872ce2475f2bfefcc1b7ead39066ff18a418",
+    "uncapped_seed": 300028,
+    "identical_final_arm_state": {
+      "board_sha256": "80dce9ffbf187adb98ae76bac5399b02f671ebe76fdf4ad19ae14844e2d45068",
+      "clears": 4,
+      "current": "CROSS",
+      "final_piece": "CROSS",
+      "origins": 0,
+      "overrides": 0,
+      "placements": 3068,
+      "reason": "physical_top_out",
+      "right_censored": false,
+      "rolling_history_sha256": {
+        "actions": "5647c7c2ca64ee75e472907ff1bbf9f91b5eb4e67f8d05a2474a9d4bfb0ea71e",
+        "draws": "4166b37bbd93060427604ff77854a9ff598ef835868f864d337da703bead4088",
+        "rng": "b5f1b6578cc677bddbebe4f97c9df5e8cdf6d7d13b840958f6c7ab7c662db7a7"
+      },
+      "stream_sha256": "a25c929f1e828cb0064f37b2759855eb6c6f25d3b603a94bc8543b94cfdd1d85",
+      "target": 13,
+      "visible": "O"
+    },
+    "all_16": {
+      "paired_restricted": {
+        "first_only_minus_greedy": {
+          "censored_equal": 0,
+          "negative": 0,
+          "positive": 1,
+          "sum_gain": 8,
+          "terminal_equal": 15
+        },
+        "repeated_minus_first_only": {
+          "censored_equal": 0,
+          "negative": 0,
+          "positive": 1,
+          "sum_gain": 17,
+          "terminal_equal": 15
+        },
+        "repeated_minus_greedy": {
+          "censored_equal": 0,
+          "negative": 0,
+          "positive": 2,
+          "sum_gain": 25,
+          "terminal_equal": 14
+        }
+      },
+      "per_policy": {
+        "first_only": {
+          "end_reasons": {
+            "physical_top_out": 16
+          },
+          "mean_placements": 366.9375,
+          "n": 16,
+          "sum_placements": 5871
+        },
+        "greedy": {
+          "end_reasons": {
+            "physical_top_out": 16
+          },
+          "mean_placements": 366.4375,
+          "n": 16,
+          "sum_placements": 5863
+        },
+        "repeated": {
+          "end_reasons": {
+            "physical_top_out": 16
+          },
+          "mean_placements": 368.0,
+          "n": 16,
+          "sum_placements": 5888
+        }
+      }
+    },
+    "no_preserving_shortlist_on_final_stream": 1
+  },
+  "pairwise_mobility_weight": {
+    "calculation": "The increase above weight 4 required to tie each observed greedy and guard logit is weight4_logit_gap divided by the difference of their production normalized after-move mobility values. Computed in real arithmetic from the recorded FP32 scores; other shortlisted moves can win and FP32 ties can depend on ordering. No intervention applied to games.",
+    "pairs": [
+      {
+        "cohort": 1,
+        "seed": 300246,
+        "placement_from_root": 60,
+        "greedy_origins": 0,
+        "preserving_origins": 1,
+        "observed_logit_gap": 0.4648251533508301,
+        "mobility_difference": 0.24465054273605347,
+        "two_action_break_even": 5.899955537201962
+      },
+      {
+        "cohort": 1,
+        "seed": 300446,
+        "placement_from_root": 44,
+        "greedy_origins": 0,
+        "preserving_origins": 2,
+        "observed_logit_gap": 1.9820423126220703,
+        "mobility_difference": 0.3877619206905365,
+        "two_action_break_even": 9.11149292094592
+      },
+      {
+        "cohort": 2,
+        "seed": 300394,
+        "placement_from_root": 36,
+        "greedy_origins": 0,
+        "preserving_origins": 1,
+        "observed_logit_gap": 33.14508819580078,
+        "mobility_difference": 0.24465054273605347,
+        "two_action_break_even": 139.4793160281687
+      },
+      {
+        "cohort": 2,
+        "seed": 300394,
+        "placement_from_root": 39,
+        "greedy_origins": 0,
+        "preserving_origins": 1,
+        "observed_logit_gap": 34.4571533203125,
+        "mobility_difference": 0.24465054273605347,
+        "two_action_break_even": 144.84233345636738
+      },
+      {
+        "cohort": 2,
+        "seed": 300540,
+        "placement_from_root": 63,
+        "greedy_origins": 0,
+        "preserving_origins": 4,
+        "observed_logit_gap": 32.75958251953125,
+        "mobility_difference": 0.5680609941482544,
+        "two_action_break_even": 61.669128591817284
+      }
+    ]
+  },
+  "large_weight_fixed_board_intervention": {
+    "scope": "Four prespecified global in-memory scalars on the pinned saved actor (4 is the deployed comparator). All 40 ordered board/target inputs, 5,028 legal shortlisted candidates from ten archived training-game replays. Retrospective danger means 512 placements or less before the historical top-out; 20 danger and 20 ordinary. No new game continuation or selection.",
+    "calculation": "Use actual two-stage native preparation with deployed weight-4 config, exact physical afterboard CROSS counts, and fixed production FP32 32x128 forward. Only mutate the direct scalar in memory. Candidate tapers are f(N)=log1p(min(N,16))/log(17), selected with original-order argmax ties. Report membership of top 16 for further sensitivity; pair reorders use stable candidate index ties.",
+    "provenance": {
+      "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "weight4": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "teacher": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+      "native": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+      "runtime": "2306f06403e72999bae05b84aa18055db052caa9",
+      "fixture_manifest": "8bb5bb633c197b38255f7391a9655ad8b0bfe7d4443cb2a42c72931f33a4e8aa",
+      "fixture_replay_helper": "8b53954eaea424655cdcf16caceaedf0a1f02c6e5c1a90abd99c274b535068fb",
+      "prior_scores": "bf0028937a8189c938b60cdeb0d2dcd4bf549e4ac49fff2d87d671eb572666ed",
+      "rank_fixture": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+      "analysis_script": "b2ea8d4431f10551dcf1dcb5bea9bd17cfc36ae7b311ec924fb6b4434735ec22"
+    },
+    "checks": {
+      "finite_fp32_valid_slots": 5028,
+      "masked_padding_slots": 92,
+      "bitwise_incumbent_and_w4_base": true,
+      "bitwise_model_output_equals_additive_base_for_all_scalars": true,
+      "weight4_checkpoint_greedy_indices_and_origin_counts_match_archive": 40,
+      "same_trainable_state_dict": true,
+      "ordered_candidate_specifications_sha256": "c998b7503c5b76444fa01a2edcccb4a731f56db747f2c84da76789db77abecc3",
+      "prepared_all_inputs_sha256": "45ccb5809134c8b9b51ad3b6d276551c998f89f0ebb114ba596b7d607cda20b8",
+      "valid_masks_sha256": "59f94d7b7c6cab8255807a24bf5c75ef78dd6494bf469dde52c75a0bc38b1182",
+      "after_mobility_counts_sha256": "984f3a9e79ecda9c957d2a216fe240f1a003d71e127859aaf9fbf915ef2a0149",
+      "incumbent_valid_base_logits_sha256": "1e89c6a5387c7b9d576c447f1da249667c142a8323172477593f544dd2742830",
+      "valid_output_logits_sha256": {
+        "4": "c2ad98c0341324ce726cc34e024e5a850e9bd66c569dea39b939a33b6215381f",
+        "62": "a5219baf51d9f46b998633eb75a3cdd0b51c586d50498a4177f8966350589c8d",
+        "140": "651ee5bbceab0f8414084dedc7684e5b73319cb1fea404a9aba66913d692c934",
+        "145": "a76bcc6d32a4edff6a8a1bd024b2e78c9b2d868a71f0e4f1d4070bf0ab23878d"
+      }
+    },
+    "summary": {
+      "4": {
+        "all": {
+          "boards": 40,
+          "candidates": 5028,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 40,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 59512,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 40,
+          "w4_greedy_attains_max_raw_origins": 36,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "danger": {
+          "boards": 20,
+          "candidates": 2468,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 4632,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 16,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "ordinary": {
+          "boards": 20,
+          "candidates": 2560,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 54880,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 0,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 20,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      },
+      "62": {
+        "all": {
+          "boards": 40,
+          "candidates": 5028,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 40,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 59512,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 40,
+          "w4_greedy_attains_max_raw_origins": 36,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 22.490192890167236,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -22.490192890167236,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 16,
+          "different_pairwise_order_total": 1539,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "danger": {
+          "boards": 20,
+          "candidates": 2468,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 4632,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 16,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 22.490192890167236,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -22.490192890167236,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 16,
+          "different_pairwise_order_total": 1539,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "ordinary": {
+          "boards": 20,
+          "candidates": 2560,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 54880,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 0,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 20,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      },
+      "140": {
+        "all": {
+          "boards": 40,
+          "candidates": 5028,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 40,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 59512,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 40,
+          "w4_greedy_attains_max_raw_origins": 36,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 52.735628604888916,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -52.735628604888916,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 17,
+          "different_pairwise_order_total": 3469,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "danger": {
+          "boards": 20,
+          "candidates": 2468,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 4632,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 16,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 52.735628604888916,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -52.735628604888916,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 17,
+          "different_pairwise_order_total": 3469,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "ordinary": {
+          "boards": 20,
+          "candidates": 2560,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 54880,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 0,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 20,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      },
+      "145": {
+        "all": {
+          "boards": 40,
+          "candidates": 5028,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 40,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 59512,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 40,
+          "w4_greedy_attains_max_raw_origins": 36,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 54.67443323135376,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -54.67443323135376,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 17,
+          "different_pairwise_order_total": 3493,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "danger": {
+          "boards": 20,
+          "candidates": 2468,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 4632,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 10,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 16,
+          "changed_valid_logits": 128,
+          "changed_logit_boards": 10,
+          "max_abs_valid_logit_change": 54.67443323135376,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": -54.67443323135376,
+          "new_runner_up_boards": 1,
+          "top16_membership_changed_boards": 4,
+          "new_top16_members_total": 17,
+          "different_pairwise_order_total": 3493,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.6155531406402588
+          }
+        },
+        "ordinary": {
+          "boards": 20,
+          "candidates": 2560,
+          "greedy_changes_vs_4": 0,
+          "origins_increased": 0,
+          "origins_tied": 20,
+          "origins_decreased": 0,
+          "paired_origin_delta": 0,
+          "selected_origins_total": 54880,
+          "selected_zero_origins": 0,
+          "nonconstant_capped_mobility_boards": 0,
+          "w4_greedy_attains_max_capped_origins": 20,
+          "w4_greedy_attains_max_raw_origins": 20,
+          "changed_valid_logits": 0,
+          "changed_logit_boards": 0,
+          "max_abs_valid_logit_change": 0.0,
+          "max_valid_logit_increase": 0.0,
+          "min_valid_logit_change": 0.0,
+          "new_runner_up_boards": 0,
+          "top16_membership_changed_boards": 0,
+          "new_top16_members_total": 0,
+          "different_pairwise_order_total": 0,
+          "paired_top_two_margin_change": {
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    },
+    "local_receipt": "high-direct-scalars-fixed40.json",
+    "receipt_sha256": "4cef86039843b11d563632508808e399092cec07fb1957500373323fcd089ec3"
+  },
+  "large_weight_all_candidates_on_override_boards": {
+    "scope": "All two first-cohort and three second-cohort actual override boards on their registered repeated-guard trajectories, including the second trigger on the displaced 300394 path. Fixed controls and intervention weights, no endpoints or post-last-trigger rollouts.",
+    "weights": [
+      4,
+      62,
+      140,
+      145
+    ],
+    "method": "Original fixed 32 x 128 CPU FP32 forward, equal retained candidate set and mask, earliest index on ties. Exact source board/stream, legal actor/guard actions, guard afterboard and original adjusted logit gap agree on every case. All weighted logits verified bitwise against independent incumbent plus scalar*(f_after-f_before); finite valid entries, -inf padding.",
+    "provenance": {
+      "source_results_sha256": "d1d8997f38f5ef8f307803006c249f90fb189c1d2987cdc4771342fc2071449e",
+      "first_roots_sha256": "3dc6a84770061fc343b23d122af852fb23f36f93457909096f2cb4306d726a5d",
+      "second_roots_sha256": "0fc65cc5bba97107b40dd4102c784f43e738da8e550c49999e68e908b3687855",
+      "replay_source_sha256": "a31d504777d617fb9bd7b409814b2d6a6ac452a7e001093ddfda3d20b0b73dbb",
+      "analysis_script_sha256": "03d40a1b1cb3ed2451e6946c2752b0c2b39ff777e462555dba0b51a75b5f7e7f",
+      "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "w4_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+      "native_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+      "runtime": "2306f06403e72999bae05b84aa18055db052caa9"
+    },
+    "candidate_slots": 59,
+    "summary": {
+      "4": {
+        "extinguish": 5
+      },
+      "62": {
+        "guard": 3,
+        "extinguish": 2
+      },
+      "140": {
+        "guard": 4,
+        "extinguish": 1
+      },
+      "145": {
+        "guard": 5
+      }
+    },
+    "local_receipt": "high-direct-scalars-override-boards.json",
+    "receipt_sha256": "a989b3bc38be1d6ef8bd66ebd657f565b7355252d71731a0a4f3d6f171b71a3d"
+  },
+  "prospective_weight_145": {
+    "scope": "Eight new prespecified historical training roots using the same final-256 crossing convention; disjoint from both guard cohorts and earlier geometric and preview fixtures. Both policies start at identical boards and piece streams. Primary outcome: placements restricted to 256 following each root. Tied caps on distinct boards leave natural differences unresolved.",
+    "local_receipt": "direct145-prospective-eight/results.json",
+    "receipt_sha256": "c6ec6f74b43b794be9dea25c5aafbd90d008b4092e233cdedda36a37464ff383",
+    "plan_sha256": "173f1bb76ccb825eca9829b65e04014097aa4af44b0b34ced0c04c21d2d2291a",
+    "roots_sha256": "f73e5d9158a50bd3e405eeb1b40a43a0fb58579546611052717a1c26e40f3141",
+    "summary": {
+      "boards": 8,
+      "distinct_seeds": 8,
+      "changed_action_roots": 8,
+      "total": {
+        "weight4": 1162,
+        "weight145": 1247
+      },
+      "reasons": {
+        "weight4": {
+          "physical_top_out": 5,
+          "cap": 3
+        },
+        "weight145": {
+          "physical_top_out": 5,
+          "cap": 3
+        }
+      },
+      "restricted_wins": 4,
+      "restricted_losses": 1,
+      "restricted_ties": 3,
+      "uncensored_equal": 0,
+      "mean_restricted_difference": 10.625
+    },
+    "rows": [
+      {
+        "seed": 300076,
+        "offset": 7627,
+        "arms": {
+          "weight4": {
+            "placements": 97,
+            "reason": "physical_top_out",
+            "final_board_sha256": "3d7b66ed7508dd794081a78bc4d7547a92c8c05147dc76d24c0438d374c98106",
+            "final_stream_sha256": "e5ac85a017fe4814f131815530eb2f762ca9c3b0054683e71e0da59436597b96"
+          },
+          "weight145": {
+            "placements": 109,
+            "reason": "physical_top_out",
+            "final_board_sha256": "d580fdd4c8357876515a3c0da3329e9ae1847381384b9bb74640a9140ea4dedf",
+            "final_stream_sha256": "3841f51e77662796a32b2ba32b0e56ad58a1b19a18428555f9bdd10a86375c71"
+          }
+        },
+        "first_change_from_root": 6,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 12
+      },
+      {
+        "seed": 300188,
+        "offset": 7245,
+        "arms": {
+          "weight4": {
+            "placements": 61,
+            "reason": "physical_top_out",
+            "final_board_sha256": "f35ca3c828d11c18b13d2ae12e0eec1657dae03200a77c2c1f386063c3b27eb0",
+            "final_stream_sha256": "a97dd4bb799c145b7062578dc67408ee8c22c1dd3627bdeedba62e26dc372900"
+          },
+          "weight145": {
+            "placements": 80,
+            "reason": "physical_top_out",
+            "final_board_sha256": "289a093618dac4838eb5b30dfc91867e9afc40b8617d60b41f6b5b1b8d8db909",
+            "final_stream_sha256": "d066739f70a50cadcb7643ddd7fda7701fae48210901fc674e934b526f7111b6"
+          }
+        },
+        "first_change_from_root": 58,
+        "weight4_origins": 0,
+        "weight145_origins": 1,
+        "paired_restricted_gain": 19
+      },
+      {
+        "seed": 300498,
+        "offset": 5878,
+        "arms": {
+          "weight4": {
+            "placements": 79,
+            "reason": "physical_top_out",
+            "final_board_sha256": "5c8f89b1e9abf3663001c3ecfe1bfcc291b5931adf112567301857782c13f1f5",
+            "final_stream_sha256": "2889abeee4e498298fba0e7be364b585ebd1d9810b557609b090a3ebc2d3e96c"
+          },
+          "weight145": {
+            "placements": 131,
+            "reason": "physical_top_out",
+            "final_board_sha256": "ed2d39af912198efc7b26292d3cbc1596902221d7e12c4e58c3b7fa7a131cf33",
+            "final_stream_sha256": "c59fd1c1d87130c2cc891d729d021da809513182288c5399855de4baecc41327"
+          }
+        },
+        "first_change_from_root": 7,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 52
+      },
+      {
+        "seed": 300248,
+        "offset": 7205,
+        "arms": {
+          "weight4": {
+            "placements": 80,
+            "reason": "physical_top_out",
+            "final_board_sha256": "49339de6ad03c392050166a4133ec8dd7cdb3bee97227bcd1cc5b6c9d341697e",
+            "final_stream_sha256": "b1223f9e78433ed75c0949d7fcb7a0eaa795d3e58600610a2f068602ac6b067b"
+          },
+          "weight145": {
+            "placements": 105,
+            "reason": "physical_top_out",
+            "final_board_sha256": "4c9eac8006dc8f6d6e3eda530f4757984f8b214ce041016efeffcd875dd7ae90",
+            "final_stream_sha256": "85e82120846aa1a53894c767e811e93dd622616e41dc9646eebd0d1719337b6a"
+          }
+        },
+        "first_change_from_root": 8,
+        "weight4_origins": 6,
+        "weight145_origins": 7,
+        "paired_restricted_gain": 25
+      },
+      {
+        "seed": 300184,
+        "offset": 23334,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "99a1fdfa78cbc020ba89e77b7b999853d43965a4977688214bc3e07c532a1675",
+            "final_stream_sha256": "281613c71f2914efb128342fef343b322d8d4cab3b0e5fc0999538c359b133f6"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "df9bb89c7c7cbea9a37fed08d4643dce620254cc0e1b37879466714525600122",
+            "final_stream_sha256": "281613c71f2914efb128342fef343b322d8d4cab3b0e5fc0999538c359b133f6"
+          }
+        },
+        "first_change_from_root": 1,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300208,
+        "offset": 22443,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "786aa476631ece5ad1c92667990ac6c7e56bca1b71f803c3ac250d6dba676f5f",
+            "final_stream_sha256": "b0b2e938411e8d0117afe341afdd866508f1eaa5b81b448dea71d1d209ab2570"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "df164d73ae50a20afd099990946c432c08498196faf19a944a250944234b4604",
+            "final_stream_sha256": "b0b2e938411e8d0117afe341afdd866508f1eaa5b81b448dea71d1d209ab2570"
+          }
+        },
+        "first_change_from_root": 2,
+        "weight4_origins": 7,
+        "weight145_origins": 8,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300166,
+        "offset": 24604,
+        "arms": {
+          "weight4": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "a749c8d1c441b8a307d4f32c089c443f84aa0cc66815a904c6eee91d50078ada",
+            "final_stream_sha256": "f400ecc4898bc38c07726383b06be10a0a778b8f62544fcefe79fc0dedb3c694"
+          },
+          "weight145": {
+            "placements": 256,
+            "reason": "cap",
+            "final_board_sha256": "7efe9c5028883ebf47720e28caf76ab043e5c5fb004c94c61f731b95662678a7",
+            "final_stream_sha256": "f400ecc4898bc38c07726383b06be10a0a778b8f62544fcefe79fc0dedb3c694"
+          }
+        },
+        "first_change_from_root": 13,
+        "weight4_origins": 6,
+        "weight145_origins": 7,
+        "paired_restricted_gain": 0
+      },
+      {
+        "seed": 300486,
+        "offset": 5786,
+        "arms": {
+          "weight4": {
+            "placements": 77,
+            "reason": "physical_top_out",
+            "final_board_sha256": "8af4317b1425c8e1ed5693f1b6a83c02f48c8b8fbe21c2a692440059cfa09d56",
+            "final_stream_sha256": "b812a84cfa9fc6b30274e4d356198651ff3da6256fe3b5e4a6eae16f9db9a060"
+          },
+          "weight145": {
+            "placements": 54,
+            "reason": "physical_top_out",
+            "final_board_sha256": "e75a3af6df74166195e8aedcf89b3d7b57ecbfbe1bc0251285dab9a51a39af89",
+            "final_stream_sha256": "e0c2d7b0438ed7c8cee9143ece31f5a1a7c438aaa03b19d7784ecc794b078fff"
+          }
+        },
+        "first_change_from_root": 10,
+        "weight4_origins": 4,
+        "weight145_origins": 5,
+        "paired_restricted_gain": -23
+      }
+    ],
+    "uncapped_protocol": {
+      "plan_sha256": "a54e02baf2988c2c938b40bfd8f34d87801350633305f3429713ed9e1f26fc50",
+      "prefix_verification_sha256": "c82e31971a4a1c6d79611a3e6b784be1d19adb2d5b0a7bc0e350b646d8b21e24",
+      "seeds": [
+        300184,
+        300208,
+        300166
+      ],
+      "scope": "Each of the six 256-move prefixes reproduced its own original actions, board, stream and target. A separate CPU process resumed the snapshots for uncapped comparison."
+    },
+    "common_horizon_followup": {
+      "scope": "Descriptive follow-up at the common 4,096-placement horizon on the same eight prospective roots. Each of the six arms alive at the original 256 cap either physically ended or reached at least 4,096. Final natural comparison still pending.",
+      "source_cap_sha256": "c6ec6f74b43b794be9dea25c5aafbd90d008b4092e233cdedda36a37464ff383",
+      "source_plan_sha256": "a54e02baf2988c2c938b40bfd8f34d87801350633305f3429713ed9e1f26fc50",
+      "source_progress_sha256": "047b6db9bf5474ecf002924d7328222df1232abdf1fa7ea29630394f09fdf987",
+      "source_progress_depth": 4256,
+      "source_progress_snapshot_sha256": "c2f629641ce31e816085edf5d1aca04c204a0701dc15dc6b285fbd5304a7a7f4",
+      "horizon": 4096,
+      "totals": {
+        "weight4": 12682,
+        "weight145": 12491
+      },
+      "paired_delta": -191,
+      "rows": [
+        {
+          "seed": 300076,
+          "arms": {
+            "weight4": {
+              "restricted": 97,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 97,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 109,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 109,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 12
+        },
+        {
+          "seed": 300188,
+          "arms": {
+            "weight4": {
+              "restricted": 61,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 61,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 80,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 80,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 19
+        },
+        {
+          "seed": 300498,
+          "arms": {
+            "weight4": {
+              "restricted": 79,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 79,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 131,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 131,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 52
+        },
+        {
+          "seed": 300248,
+          "arms": {
+            "weight4": {
+              "restricted": 80,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 80,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 105,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 105,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 25
+        },
+        {
+          "seed": 300184,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            }
+          },
+          "gain": 0
+        },
+        {
+          "seed": 300208,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            }
+          },
+          "gain": 0
+        },
+        {
+          "seed": 300166,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 3820,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 3820,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": -276
+        },
+        {
+          "seed": 300486,
+          "arms": {
+            "weight4": {
+              "restricted": 77,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 77,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 54,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 54,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": -23
+        }
+      ],
+      "local_receipt": "high-weight-4096-restricted.json",
+      "receipt_sha256": "4dcc9028eb0d55dba9bc2c4161e7c70c81d447ed4d1a0368c3f051513964a4d5"
+    },
+    "natural_endpoints": {
+      "local_receipt": "direct145-prospective-eight/natural-continuation/results.json",
+      "receipt_sha256": "04b643bcd6b01534f5ba0c82f1a43cc4cb04b70ef437acf415247938c27fc940",
+      "verified_prefix_sha256": "c82e31971a4a1c6d79611a3e6b784be1d19adb2d5b0a7bc0e350b646d8b21e24",
+      "checkpoint_sha256": "ca0e73db5e0b52167c150314cbe88650f8348cd65b667380af6ffb52d225f772",
+      "prior_receipt_sha256": "c6ec6f74b43b794be9dea25c5aafbd90d008b4092e233cdedda36a37464ff383",
+      "summary": {
+        "boards": 8,
+        "losses": 3,
+        "mean_difference": -80.125,
+        "sum_difference": -641,
+        "ties": 0,
+        "totals": {
+          "weight145": 14028,
+          "weight4": 14669
+        },
+        "wins": 5
+      },
+      "median_paired_difference": 15.5,
+      "relative_change": -0.043697593564660166,
+      "rows": [
+        {
+          "seed": 300076,
+          "paired_difference": 12,
+          "arms": {
+            "weight145": {
+              "placements": 109,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "d580fdd4c8357876515a3c0da3329e9ae1847381384b9bb74640a9140ea4dedf",
+              "stream_sha256": "3841f51e77662796a32b2ba32b0e56ad58a1b19a18428555f9bdd10a86375c71"
+            },
+            "weight4": {
+              "placements": 97,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "3d7b66ed7508dd794081a78bc4d7547a92c8c05147dc76d24c0438d374c98106",
+              "stream_sha256": "e5ac85a017fe4814f131815530eb2f762ca9c3b0054683e71e0da59436597b96"
+            }
+          }
+        },
+        {
+          "seed": 300188,
+          "paired_difference": 19,
+          "arms": {
+            "weight145": {
+              "placements": 80,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "289a093618dac4838eb5b30dfc91867e9afc40b8617d60b41f6b5b1b8d8db909",
+              "stream_sha256": "d066739f70a50cadcb7643ddd7fda7701fae48210901fc674e934b526f7111b6"
+            },
+            "weight4": {
+              "placements": 61,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "f35ca3c828d11c18b13d2ae12e0eec1657dae03200a77c2c1f386063c3b27eb0",
+              "stream_sha256": "a97dd4bb799c145b7062578dc67408ee8c22c1dd3627bdeedba62e26dc372900"
+            }
+          }
+        },
+        {
+          "seed": 300498,
+          "paired_difference": 52,
+          "arms": {
+            "weight145": {
+              "placements": 131,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "ed2d39af912198efc7b26292d3cbc1596902221d7e12c4e58c3b7fa7a131cf33",
+              "stream_sha256": "c59fd1c1d87130c2cc891d729d021da809513182288c5399855de4baecc41327"
+            },
+            "weight4": {
+              "placements": 79,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "5c8f89b1e9abf3663001c3ecfe1bfcc291b5931adf112567301857782c13f1f5",
+              "stream_sha256": "2889abeee4e498298fba0e7be364b585ebd1d9810b557609b090a3ebc2d3e96c"
+            }
+          }
+        },
+        {
+          "seed": 300248,
+          "paired_difference": 25,
+          "arms": {
+            "weight145": {
+              "placements": 105,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "4c9eac8006dc8f6d6e3eda530f4757984f8b214ce041016efeffcd875dd7ae90",
+              "stream_sha256": "85e82120846aa1a53894c767e811e93dd622616e41dc9646eebd0d1719337b6a"
+            },
+            "weight4": {
+              "placements": 80,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "49339de6ad03c392050166a4133ec8dd7cdb3bee97227bcd1cc5b6c9d341697e",
+              "stream_sha256": "b1223f9e78433ed75c0949d7fcb7a0eaa795d3e58600610a2f068602ac6b067b"
+            }
+          }
+        },
+        {
+          "seed": 300184,
+          "paired_difference": -702,
+          "arms": {
+            "weight145": {
+              "placements": 4535,
+              "clears": 6,
+              "reason": "physical_top_out",
+              "board_sha256": "76685114a41eaf315df28abecfca507329704bed692c39cbafa514d604acf702",
+              "stream_sha256": "ce95083be6a7c324ea9723d29ee687f030ccbfd19f095a16d489f60bf7f7c5be"
+            },
+            "weight4": {
+              "placements": 5237,
+              "clears": 7,
+              "reason": "physical_top_out",
+              "board_sha256": "1d2f80a48b094086acef07b34e2dbe3119f730bec06674ac8307eccc49a9ab4c",
+              "stream_sha256": "3bc61d4ddb0bbcd1011f159a1a73aa4f51c22da65220a174b15bfcf283babdde"
+            }
+          }
+        },
+        {
+          "seed": 300208,
+          "paired_difference": 666,
+          "arms": {
+            "weight145": {
+              "placements": 5194,
+              "clears": 7,
+              "reason": "physical_top_out",
+              "board_sha256": "654da36a2da4fc2653965da6dfba26b7215d74c2708efca504d137f4f1b2b209",
+              "stream_sha256": "917a09435f5d240bcee308dc8f5f53d6321bb4944ef93f7698003451ed5aa5f8"
+            },
+            "weight4": {
+              "placements": 4528,
+              "clears": 6,
+              "reason": "physical_top_out",
+              "board_sha256": "35bec6b7160f8416483040132c8d7b450fa32ebf6611f8c06d2036219933e916",
+              "stream_sha256": "41c3c72fb1c228cb01a2306768711fdbff10109b32dd3981769669bf0e04f955"
+            }
+          }
+        },
+        {
+          "seed": 300166,
+          "paired_difference": -690,
+          "arms": {
+            "weight145": {
+              "placements": 3820,
+              "clears": 5,
+              "reason": "physical_top_out",
+              "board_sha256": "b9f9ddb559c321e8991fd199352ec9ae414bf9020e66b02286790ca2b76c6957",
+              "stream_sha256": "595b86c379d20027bc95f5da9af1081144836ad874ad7d9379a9aa2b502f41f3"
+            },
+            "weight4": {
+              "placements": 4510,
+              "clears": 6,
+              "reason": "physical_top_out",
+              "board_sha256": "b9fa843159c9982d772573246666ca6edf54bb0063949beb9a54fe75a5ce727a",
+              "stream_sha256": "171e9a75e7756927a0cf83a7ec17ab1955efa8d0be15509f95644d3c29cd15ed"
+            }
+          }
+        },
+        {
+          "seed": 300486,
+          "paired_difference": -23,
+          "arms": {
+            "weight145": {
+              "placements": 54,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "e75a3af6df74166195e8aedcf89b3d7b57ecbfbe1bc0251285dab9a51a39af89",
+              "stream_sha256": "e0c2d7b0438ed7c8cee9143ece31f5a1a7c438aaa03b19d7784ecc794b078fff"
+            },
+            "weight4": {
+              "placements": 77,
+              "clears": 0,
+              "reason": "physical_top_out",
+              "board_sha256": "8af4317b1425c8e1ed5693f1b6a83c02f48c8b8fbe21c2a692440059cfa09d56",
+              "stream_sha256": "b812a84cfa9fc6b30274e4d356198651ff3da6256fe3b5e4a6eae16f9db9a060"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,572 @@
+{
+  "schema": "cross-survival-ppo-hazard-lifetimes-v1",
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "plan_content_sha256": "fd2b632abde03edc653e061a0d9515a815da2149de8f541c6582492e8ec1e942",
+  "local_source_sha256": {
+    "four-ppo-hazard-plan.json": "778c8da1ec6e5cbfc104808b91c3ef2d6e93ef63147235ddcb42304d1fa8b235",
+    "four-ppo-hazard-results.json": "6e046cdb87687d3ebc0fa421832f530331c27ca59d421d185a3f15da9a67a41d",
+    "four-ppo-hazard-initial-600s.json": "ee429fc1a9458b74597607f75b3a8ba69b0d17a0e7c14409fe7195e441f5a48a",
+    "matched_four_ppo_endpoints.py": "c92f9ad196ba92df25f1b4f4fa698dfcdd6f11824ce0aebe08420b455b7719f8",
+    "sustained-preview-archived-pairs.json": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+    "live-actor-archive-080.json": "cef3ba514cc44dbaa288a3d77a2717ae72638cc55e5021f8bc77b0cffde19715",
+    "offline-aux-critic-results.json": "12ca134a76ac68c3521f933d406c688e01b494fc0a3821f320cc501985a7f47d"
+  },
+  "frozen_root_coordinates_sha256": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+  "arm_order": ["incumbent", "611000-plain", "612000-plain", "611000-cold", "612000-cold"],
+  "checkpoints": {
+    "incumbent": {
+      "sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045"
+    },
+    "611000-plain": {
+      "sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "manifest_sha256": "3dee4404c7453c85ff89f04c6b2114c75674d79868ded8fb4b4fb1e9128203a0",
+      "endpoint_sha256": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5",
+      "observer_sha256": "850cb0845a99b0b9da263c1062b64cdb9057fbc5b2f6cef55330f0085075cf3c",
+      "actor_sha256": "5f4439c9966dff2033e16ff87d6dd6cc52c4adca514a473d33e8d346f829dd7d"
+    },
+    "612000-plain": {
+      "sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "manifest_sha256": "40e6e21aa76c7b35bedf62e99d69971bfd0f3c015c183fd9c52ad30abb2450d4",
+      "endpoint_sha256": "5b19edeb1672dd26e6f82b3b323af457c9f2dc0341d12f2ea61e1afb7170adf6",
+      "observer_sha256": "4a41739b990665c15a598c3283d833db911b5344715ad33466f6eec5467243e6",
+      "actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed"
+    },
+    "611000-cold": {
+      "sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "manifest_sha256": "f09d2de0105fb59e7a61df745032e1f453efed03832687671e925354dfa6a932",
+      "endpoint_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+      "observer_sha256": "5217e0d0aabc28bd5c312d375442df89286ced82da4b381d2426f15c5398d40b",
+      "actor_sha256": "a351a5c3f1c6f84ede3c7c3524a3cd0a9cc6ddbe62fc0e09d2d6987e3220f7f6"
+    },
+    "612000-cold": {
+      "sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "manifest_sha256": "5c2cdd6e74ed9e1531a16f964bd814c1fa47200d5fdce96f9e27fd44640dd0ee",
+      "endpoint_sha256": "18be7491c44a6d7117c0b7c136a4925fa08e09f240854363639c598ae4d2d622",
+      "observer_sha256": "8a8074faa57ac750bbf220c09e122f25771e4b7da2dbb052f86b5c649172425f",
+      "actor_sha256": "79d6b718ad22362f14eede2e22ce88037018db00a6fb8f31b647af9820aee692"
+    }
+  },
+  "methods": {
+    "selection": "Six predetermined training-side archive streams, first downward crossing from more than 84 to at most 84 legal CROSS origins. Original paired roots were frozen before the corresponding endpoint comparisons.",
+    "seed_order": [300322, 300460, 300264, 300576, 500000, 300122],
+    "source_stream_overlap_with_611000_or_612000_danger_curriculum": {
+      "611000": [],
+      "612000": []
+    },
+    "source_stream_overlap_with_registered_screen_qualification_or_holdout": [],
+    "actors": "One incumbent and four update-80 endpoint actors, with frozen FP32 tensors and deterministic greedy selection. CPU native exact two-stage exhaustive shortlisting, evaluator shape 32 x 128, standard physical placement/clears and identical root stream state.",
+    "units": "Survival counts future completed placements from the pre-action root. A critic prediction is its pre-action state value times 1000 in placements and is checked against that same actor’s realized lifetime. Logit margins are raw greedy top score minus runner-up; root action comparisons use one identical shortlist.",
+    "geometry": "Every per-arm array follows arm_order. Root moves are [rotation, x, y, w, z], with z the vertical landing height. Exact uncapped CROSS origin counts were recomputed from the hash-verified original board and each legal recorded move, including layer compaction.",
+    "checks": "No placement cap. All 30 endpoints reached physical top-out with a direct current-piece legality check. Distinct actors shared candidate preparation only on equal board, piece counts, stream, target and public state. Every root and newly diverging pair of previously equal actions was separately checked."
+  },
+  "parity": {
+    "independent_root_or_new_split_decisions": 71,
+    "unique_preparations": 9635,
+    "shared_preparations_saved": 79,
+    "previously_measured_incumbent_and_plain_endpoints_matched_length_clears_and_board_sha256": 12,
+    "previously_measured_root_critic_predictions_bitwise_matched": 12,
+    "physical_endpoints": 30,
+    "right_censored_endpoints": 0,
+    "initial_budget_seconds": 600,
+    "initial_cpu_seconds": 597.43,
+    "initial_physical_endpoints": 25,
+    "initial_censored_seed": 300576,
+    "initial_censored_placements_all_arms": 504,
+    "combined_cpu_seconds": 713.212,
+    "initial_checkpoint_retained": true
+  },
+  "summary": {
+    "incumbent": {
+      "mean_survival_placements": 323.666667,
+      "mean_delta_vs_incumbent": 0,
+      "median_delta_vs_incumbent": 0.0,
+      "wins_ties_losses_vs_incumbent": [0, 6, 0],
+      "own_policy_root_critic_mae": 11090.103353,
+      "own_policy_signed_prediction_bias": 11090.103353,
+      "changed_actions_at_root": 0,
+      "median_root_action_margin": 0.26818275
+    },
+    "611000-plain": {
+      "mean_survival_placements": 333.333333,
+      "mean_delta_vs_incumbent": 9.666667,
+      "median_delta_vs_incumbent": 9.0,
+      "wins_ties_losses_vs_incumbent": [3, 2, 1],
+      "own_policy_root_critic_mae": 201.706174,
+      "own_policy_signed_prediction_bias": -201.706174,
+      "changed_actions_at_root": 3,
+      "median_root_action_margin": 0.29080185
+    },
+    "612000-plain": {
+      "mean_survival_placements": 314.666667,
+      "mean_delta_vs_incumbent": -9,
+      "median_delta_vs_incumbent": -9.5,
+      "wins_ties_losses_vs_incumbent": [1, 1, 4],
+      "own_policy_root_critic_mae": 422.98458,
+      "own_policy_signed_prediction_bias": 366.963785,
+      "changed_actions_at_root": 4,
+      "median_root_action_margin": 0.33309961
+    },
+    "611000-cold": {
+      "mean_survival_placements": 330.5,
+      "mean_delta_vs_incumbent": 6.833333,
+      "median_delta_vs_incumbent": 0.0,
+      "wins_ties_losses_vs_incumbent": [2, 3, 1],
+      "own_policy_root_critic_mae": 1009.247205,
+      "own_policy_signed_prediction_bias": 1009.247205,
+      "changed_actions_at_root": 1,
+      "median_root_action_margin": 0.05104405
+    },
+    "612000-cold": {
+      "mean_survival_placements": 316.833333,
+      "mean_delta_vs_incumbent": -6.833333,
+      "median_delta_vs_incumbent": -3.5,
+      "wins_ties_losses_vs_incumbent": [0, 3, 3],
+      "own_policy_root_critic_mae": 1789.749166,
+      "own_policy_signed_prediction_bias": 1789.749166,
+      "changed_actions_at_root": 1,
+      "median_root_action_margin": 0.10886556
+    }
+  },
+  "per_root": [
+    {
+      "seed": 300322,
+      "archive_game_id": "470217b4f6cdc3e3ae5560fe54c6901fccf28f2608be57cc7c4a99be443db624",
+      "archive_sha256": "4c0bd5603b6bdba8a14e378b35a7a4c294e31cb4101484b493eb3f4b297db442",
+      "pre_action_offset": 7036,
+      "root_board_sha256": "03140919dcf3d25752d083ba2bd4b1042787fbb862f498521ca81c0caa0e6c4c",
+      "root_stream_sha256": "7412538410bb75c94e3d556d4c83c98fae98214837959e880e7245dadc94c53e",
+      "current": "STAIR",
+      "visible": "I",
+      "target_layer": 14,
+      "cross_origins_before_crossing": 87,
+      "cross_origins_at_root": 82,
+      "survival_placements": [200, 169, 200, 200, 193],
+      "survival_delta_from_incumbent": [0, -31, 0, 0, -7],
+      "survival_delta_from_prior_611000_plain": [31, 0, 31, 31, 24],
+      "root_critic_prediction_placements": [11461.59082, 17.842701, 174.91806, 231.791763, 1144.598755],
+      "root_top_two_logit_margin": [0.40572786, 1.12468719, 0.45491564, 0.00545943, 0.07837093],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 0.0, 0.7430656, 0.76721621, 0.40572786],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.0, 0.75086457, 0.00545943, 0.07837093],
+      "root_shortlist_index": [84, 84, 77, 53, 1],
+      "root_move_rotation_x_y_w_z": [[55, 0, 2, 2, 13], [55, 0, 2, 2, 13], [53, 8, 12, 0, 13], [39, 1, 3, 11, 13], [2, 10, 8, 2, 13]],
+      "cross_origins_after_root_move": [82, 82, 80, 82, 81],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [0, 0, 0, 0, 0],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["dedd21a678aac37b9f01a0159ea49d8d83760e97dca51f6d9b7c6ed75d2d3e58", "dcf9885fe11fdfb31c62f31cf20d2abe0bd9c6e68d4a40550cb50bb977e7a7d8", "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4", "91d9f90728656b0f6cb12bcb29f2619e7869b5cad854e7aab64567fed0361095", "d759f6634611cdd4ce7067113004b5ff7aeab6f84624b93b294200d7345db0a8"]
+    },
+    {
+      "seed": 300460,
+      "archive_game_id": "5565ee2e5ac9f9972af18fe755c89b0abee085896fe243e696f164c63198e4a5",
+      "archive_sha256": "f4239c7c70afe4cc4afa685ef1bf63d5112272700bc352edf5a7a5d7ffb16b30",
+      "pre_action_offset": 6124,
+      "root_board_sha256": "243c1e978c4ccf171b2dde358c5973ac0b78e94ea5f17540f5dd9eb82876ac73",
+      "root_stream_sha256": "9771aa683639825cf92f1ac8a28f4d81dbd7def8a4c0e0ab247bb3bf4385e7c0",
+      "current": "FORK",
+      "visible": "B",
+      "target_layer": 7,
+      "cross_origins_before_crossing": 89,
+      "cross_origins_at_root": 82,
+      "survival_placements": [448, 466, 412, 483, 448],
+      "survival_delta_from_incumbent": [0, 18, -36, 35, 0],
+      "survival_delta_from_prior_611000_plain": [-18, 0, -54, 17, -18],
+      "root_critic_prediction_placements": [13149.22168, 104.527565, 1163.720337, 2500.189941, 2490.709717],
+      "root_top_two_logit_margin": [0.12167549, 0.00442171, 0.04238892, 0.03003883, 0.08479357],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 0.12167549, 0.12167549, 0.0, 0.0],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.00442171, 0.27991176, 0.0, 0.0],
+      "root_shortlist_index": [2, 119, 119, 2, 2],
+      "root_move_rotation_x_y_w_z": [[2, 13, 14, 5, 8], [175, 13, 13, 5, 8], [175, 13, 13, 5, 8], [2, 13, 14, 5, 8], [2, 13, 14, 5, 8]],
+      "cross_origins_after_root_move": [82, 82, 82, 82, 82],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [1, 1, 1, 1, 1],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["43189db99e8c295adcd8cf301796d00daeef227c3f0afcf8ac1dc5e185640dfe", "e3c6e9d8bf41e8d2be7d5e94b1e7fbb58f8220569bd6a78bafd88ec92f4a7738", "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363", "e0da35124c7bceebd4f0caf9593f10ecbdc6b303b6199fb29577bea4c7a91b9f", "508e5e731b6d8fdbe8bc0c814e4f3c504612a9a096c307bec65ca38a921a55d1"]
+    },
+    {
+      "seed": 300264,
+      "archive_game_id": "1eefba49543e62f91d158498dd5f5c21f72dbb26c6aa4c57476a69e4bc1d2b18",
+      "archive_sha256": "02e5b334ddd99c201ed6a862aa7bdcce1b1e08ee36842bc4dc207a23f4ebac64",
+      "pre_action_offset": 7064,
+      "root_board_sha256": "5bdc719a651dbfc70ca3b9ee8f01d7b770fc3deba004ec40d6a90f00c4bdb714",
+      "root_stream_sha256": "1cca70b045d31177937aa8800099f27b6cc1e5398d37d83b69be88b427dd99f8",
+      "current": "HOOK",
+      "visible": "B",
+      "target_layer": 14,
+      "cross_origins_before_crossing": 86,
+      "cross_origins_at_root": 84,
+      "survival_placements": [215, 255, 206, 206, 191],
+      "survival_delta_from_incumbent": [0, 40, -9, -9, -24],
+      "survival_delta_from_prior_611000_plain": [-40, 0, -49, -49, -64],
+      "root_critic_prediction_placements": [11600.633789, 99.962234, 560.084595, 495.673523, 1661.619751],
+      "root_top_two_logit_margin": [1.01263118, 0.06262422, 0.38718629, 0.66071606, 0.55785567],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 1.01263118, 0.0, 0.0, 0.0],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.06262422, 0.0, 0.0, 0.0],
+      "root_shortlist_index": [48, 1, 48, 48, 48],
+      "root_move_rotation_x_y_w_z": [[78, 8, 8, 11, 13], [6, 8, 9, 5, 13], [78, 8, 8, 11, 13], [78, 8, 8, 11, 13], [78, 8, 8, 11, 13]],
+      "cross_origins_after_root_move": [84, 84, 84, 84, 84],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [0, 0, 0, 0, 0],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["7aa6da2cdefb5bdddf0bf464289024f575dc0d777f13e3094a3a2eb6001c820b", "904ce50390ddb72948026ba5a92f3108ca9c42bb5e726b985be1206369817ae7", "7d91be673a93067cd1db4406d39f88741eacae71d23023b5da9a1e58a80482cd", "ac5f9672787652a3532201907a4c68248e1059377e3d6b46588964acd09b0f6e", "af3bed338c78278c409be9daf9022907d13b54d1181fa0170052b6329a4d9f59"]
+    },
+    {
+      "seed": 300576,
+      "archive_game_id": "638045123c60051043eedae80cb9bd2434ded899b1adad722ca6841501c2147c",
+      "archive_sha256": "6b5886190d61547b45fe5b372163f87d976a14e985e5dddac0eb740d403d0deb",
+      "pre_action_offset": 6339,
+      "root_board_sha256": "5a82d1b46c67c7102769ad4ffcef6c2512b778e71cb38ff0e06f85b0bf227c47",
+      "root_stream_sha256": "07e65cef4f7829697f4a62fbf8aa9eba2c05408e85d13a00a6e6395a4576ca06",
+      "current": "FORK",
+      "visible": "NOVA",
+      "target_layer": 12,
+      "cross_origins_before_crossing": 87,
+      "cross_origins_at_root": 84,
+      "survival_placements": [608, 608, 593, 608, 608],
+      "survival_delta_from_incumbent": [0, 0, -15, 0, 0],
+      "survival_delta_from_prior_611000_plain": [0, 0, -15, 0, 0],
+      "root_critic_prediction_placements": [12058.06543, 247.9814, 1402.328125, 1108.61731, 3170.633789],
+      "root_top_two_logit_margin": [2.43460345, 1.21278346, 2.24014711, 1.71642745, 1.92965293],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 0.0, 0.0, 0.0, 0.0],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.0, 0.0, 0.0, 0.0],
+      "root_shortlist_index": [47, 47, 47, 47, 47],
+      "root_move_rotation_x_y_w_z": [[72, 1, 0, 7, 12], [72, 1, 0, 7, 12], [72, 1, 0, 7, 12], [72, 1, 0, 7, 12], [72, 1, 0, 7, 12]],
+      "cross_origins_after_root_move": [84, 84, 84, 84, 84],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [1, 1, 1, 1, 1],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["591e65efda39c68e26ad6573f1e8e2b34f08824d6deeec4dc2d7e443f0fa528a", "66266c802c57e919d60fcb56c0f26e73e9702e96e09b2cf99baabbcb13182071", "0d9f3a97a265c910fde86519d956df3d76308ce771385f108c1467a421a7f29c", "936e73f315ccfea7d577e837e8b59c881bfaa4bedc1a37a98c7766eb689b3e74", "05aebbc939c016c7a2eadef2a1f2206f1ff8e87dccb4aa4bd16ac0818af78fcd"]
+    },
+    {
+      "seed": 500000,
+      "archive_game_id": "74d2dbd38e2d627146e64971537997d58f53d2d53bc8a6e4858ca1d46b876ec4",
+      "archive_sha256": "b46d4220e445a57853f6ea19285412ee331da1580413120b3ac1a9bbfe6a98e5",
+      "pre_action_offset": 9611,
+      "root_board_sha256": "b2bf8d3cb73eb91f1c4f2cc294025337ea6feee54065730dcbedb43bf1cd3b6c",
+      "root_stream_sha256": "77a26ad6d1413925de94bdb6e0d42674b48e447cee9c9362b6d4ba56a39bd753",
+      "current": "NOVA",
+      "visible": "BRIDGE",
+      "target_layer": 14,
+      "cross_origins_before_crossing": 85,
+      "cross_origins_at_root": 84,
+      "survival_placements": [232, 263, 222, 247, 222],
+      "survival_delta_from_incumbent": [0, 31, -10, 15, -10],
+      "survival_delta_from_prior_611000_plain": [-31, 0, -41, -16, -41],
+      "root_critic_prediction_placements": [11547.257812, 249.31076, 676.712036, 2322.712402, 2845.095459],
+      "root_top_two_logit_margin": [0.06930995, 0.47476423, 0.07745206, 0.07204926, 0.03237772],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 0.0, 0.06930995, 0.0, 0.0],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.0, 0.21666217, 0.0, 0.0],
+      "root_shortlist_index": [33, 33, 12, 33, 33],
+      "root_move_rotation_x_y_w_z": [[3, 3, 6, 5, 13], [3, 3, 6, 5, 13], [1, 2, 7, 4, 14], [3, 3, 6, 5, 13], [3, 3, 6, 5, 13]],
+      "cross_origins_after_root_move": [84, 84, 84, 84, 84],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [0, 0, 0, 0, 0],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["e821de3f99b79994ebc21394db07979cf0cea772026190f63843914b19d12479", "73aa4a965af70601376bbb43668376241de845fd64a73041bb720653e272ac7e", "ae1a7df4169ab9870269978564b1a7680d9e942ccfe1e01afc6f7a2973760ed6", "6d60601019d72f059144512a6329903898b9013ff45cef259494d7b0922c4b0c", "02c586478808ff367e637f417a4dfbf0b6bef6de2fb55010a99efffad4bc95fe"]
+    },
+    {
+      "seed": 300122,
+      "archive_game_id": "130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f",
+      "archive_sha256": "683c8283ac1ad4b9b7fe701aca0ed7668238ee19c8c852bfb474fec64e23261c",
+      "pre_action_offset": 21278,
+      "root_board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+      "root_stream_sha256": "3d1e23b2a23f0a914eb34e0bc8e2ffdc28df35aa8169854a018ab829610a4f21",
+      "current": "L",
+      "visible": "STAIR",
+      "target_layer": 13,
+      "cross_origins_before_crossing": 85,
+      "cross_origins_at_root": 84,
+      "survival_placements": [239, 239, 255, 239, 239],
+      "survival_delta_from_incumbent": [0, 0, 16, 0, 0],
+      "survival_delta_from_prior_611000_plain": [0, 0, 16, 0, 0],
+      "root_critic_prediction_placements": [8665.850586, 70.138298, 112.019554, 1379.498291, 1326.837524],
+      "root_top_two_logit_margin": [0.13063765, 0.10683948, 0.27901292, 0.01331234, 0.13293755],
+      "root_incumbent_logit_cost_of_selected_move": [0.0, 0.39570045, 0.28869534, 0.0, 0.0],
+      "root_new_policy_advantage_over_incumbent_move": [0.0, 0.10683948, 1.15514791, 0.0, 0.0],
+      "root_shortlist_index": [106, 23, 30, 106, 106],
+      "root_move_rotation_x_y_w_z": [[41, 4, 6, 13, 11], [16, 2, 4, 6, 11], [16, 3, 14, 13, 11], [41, 4, 6, 13, 11], [41, 4, 6, 13, 11]],
+      "cross_origins_after_root_move": [82, 83, 83, 82, 82],
+      "layers_cleared_by_root_move": [0, 0, 0, 0, 0],
+      "subsequent_total_cleared_layers": [0, 0, 0, 0, 0],
+      "piece_at_top_out": ["CROSS", "CROSS", "CROSS", "CROSS", "CROSS"],
+      "final_board_sha256": ["0152903d54392248515c01fad660cf8354dc0ee610ee49f180a669fb2cf49805", "282db9ccd5cf80b9fdfb09066b81cdf6a300148d85f2bea69ce474d2a1f29b17", "d61c9023b9471dcc661753ecdbf30c9068db7c2f38fa9b2233f10aed31c14adb", "3d639254b6393378299b183b18769223b356131fcbb9576cd8cdcbb212994543", "9da2dd6af1de2896123f00454726677b99a56af090f684f5c5493abf35973331"]
+    }
+  ],
+  "caveats": ["The six hazard-conditioned roots were used in previous diagnostics and provide six matched piece streams. The 30 deterministic continuations share those streams.", "Results quantify greedy survival conditional on archived roots and a single future stream per root. They do not estimate mean survival under fresh starts or provide a promotion decision.", "Higher agreement of critic values with own-policy lifetimes on these six roots does not establish that the associated actor improved survival."],
+  "matched_anchored_endpoints": {
+    "receipt": "seven-ppo-hazard-summary.json",
+    "receipt_sha256": "8d367aad74819e87d99f5238d58e1a0a194f1e4964686b1a7941b5b3d4513b94",
+    "coordinate_digest": "e502cf105d3840846af710ee2f3aede29c895c2595c4907908807c85a7c4d5e9",
+    "source_sha256": {
+      "four-ppo-hazard-results.json": "6e046cdb87687d3ebc0fa421832f530331c27ca59d421d185a3f15da9a67a41d",
+      "611000-anchored-six-hazard-plan.json": "199b6a4826f3f0847d5c4881d2e117507f22430bf2a0cb5e8a011430ae21b17a",
+      "611000-anchored-six-hazard-results.json": "07e1644e0c21ed8ced977717a27e5414963352473b3cf9a25b80ecabcd074451",
+      "612000-anchored-six-hazard-plan.json": "cf6aed0de865aeb8558492f7ebc834605c317f8736a1fb56ea7f63220b58cd7d",
+      "612000-anchored-six-hazard-results.json": "2aea8ea63510b5cdc3ba4e1e6a8f8af5403ad31b0fd2712759565bd503ce57e4",
+      "612000-anchored-update80-publications.json": "bea770b320c0e4b2d37d87db9e2c9940d45c80891fb73cd06c0e703e585abab8"
+    },
+    "summary": {
+      "611000-anchored": {
+        "physical": 6,
+        "censored": 0,
+        "mean_observed": 322.6666666666667,
+        "mean_status": "exact",
+        "model_own_action_critic_mae_completed": 2488.4444376627603
+      },
+      "612000-anchored": {
+        "physical": 6,
+        "censored": 0,
+        "mean_observed": 315.6666666666667,
+        "mean_status": "exact",
+        "model_own_action_critic_mae_completed": 267.2913718223572
+      }
+    },
+    "six_paired_roots": [
+      {
+        "seed": 300322,
+        "incumbent": 200,
+        "611000-anchored": {
+          "remaining": 200,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 1291.3197021484375,
+          "critic_placements": 1491.3197021484375,
+          "first_move": [
+            55,
+            0,
+            2,
+            2,
+            13
+          ],
+          "board_sha256": "b3c869fca0e75696af547c98a7536808e6c896312f85041b32d7fb2526f5d833",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "piece_prefix_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47",
+          "best_rank": 1,
+          "worst_rank": 1
+        },
+        "612000-anchored": {
+          "remaining": 200,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -196.2510805130005,
+          "critic_placements": 3.7489194869995117,
+          "first_move": [
+            55,
+            0,
+            2,
+            2,
+            13
+          ],
+          "board_sha256": "c82b389fb79aaa97ae483d098c859016013e2798ad2b702b5c6e486d120f4ae8",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "piece_prefix_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47",
+          "best_rank": 1,
+          "worst_rank": 1
+        }
+      },
+      {
+        "seed": 300460,
+        "incumbent": 448,
+        "611000-anchored": {
+          "remaining": 466,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 3888.474609375,
+          "critic_placements": 4354.474609375,
+          "first_move": [
+            2,
+            13,
+            14,
+            5,
+            8
+          ],
+          "board_sha256": "39142eaaa17fbe597ed20ff0bab60220035768cfbde03a6b05a61ec09bd401ac",
+          "stream_sha256": "49027e0792010e9a8b191d0158a453c9d245772c39241012d9f352b8b4c730bd",
+          "piece_prefix_sha256": "b11114795cdeda87d00e5136fc8eb70ec9d5c55892ac996877205009462a2821",
+          "best_rank": 2,
+          "worst_rank": 2
+        },
+        "612000-anchored": {
+          "remaining": 412,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -330.8845748901367,
+          "critic_placements": 81.11542510986328,
+          "first_move": [
+            2,
+            13,
+            14,
+            5,
+            8
+          ],
+          "board_sha256": "c7fdd66bf9799bc508a70e9ad176ffe5f77f2a71962e4a1eeb92838393fa8568",
+          "stream_sha256": "5575b8d187a59c63040930ccd6c0f8a8c1f1dbeed5f935db388bb59e3876377e",
+          "piece_prefix_sha256": "240a731408f2963f9a146580d0042c17ac35acce7991fb1cd8cbd856c4352e63",
+          "best_rank": 6,
+          "worst_rank": 6
+        }
+      },
+      {
+        "seed": 300264,
+        "incumbent": 215,
+        "611000-anchored": {
+          "remaining": 206,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 1982.640625,
+          "critic_placements": 2188.640625,
+          "first_move": [
+            78,
+            8,
+            8,
+            11,
+            13
+          ],
+          "board_sha256": "44a6bd5479550e5ede36fa5af08d5c0c08dca5def85ad270001ec80a1a0e0ec2",
+          "stream_sha256": "7e572f972084a43557ec0c22b5838e09532a0506f2a345b07794ee0c9413f387",
+          "piece_prefix_sha256": "9710d7a8c2b5281c1b362d3509a993eefc8416313b1b250bcb8dc45c053f555b",
+          "best_rank": 3,
+          "worst_rank": 3
+        },
+        "612000-anchored": {
+          "remaining": 191,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -162.61647033691406,
+          "critic_placements": 28.383529663085938,
+          "first_move": [
+            78,
+            8,
+            8,
+            11,
+            13
+          ],
+          "board_sha256": "63be14af21b9c27f6761333ff1af6ecc174d51bce38533a4994a52054c9c6606",
+          "stream_sha256": "2cab3d933826471933d9e893e2c7041c2f54b991fcc73cbf52302647ace623e4",
+          "piece_prefix_sha256": "908470ad0db6b97bd72f54cb845ee3aa2cbc2be8071e83d5438f69601d654477",
+          "best_rank": 6,
+          "worst_rank": 6
+        }
+      },
+      {
+        "seed": 300576,
+        "incumbent": 608,
+        "611000-anchored": {
+          "remaining": 593,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 3156.094482421875,
+          "critic_placements": 3749.094482421875,
+          "first_move": [
+            72,
+            1,
+            0,
+            7,
+            12
+          ],
+          "board_sha256": "fbfe895a8a0bea2aa77b5ce8e924c32c61da9246bc983155e5c438be8f8df28d",
+          "stream_sha256": "b42c1b1cd106d52bddf6c1214ab37b5e48bdf85e84c18a83e3acb6604df3a00c",
+          "piece_prefix_sha256": "c0abdcdeed05eee1bbbda8961f4ef45d9078c1087be296ba4ab3b25d276c87c0",
+          "best_rank": 6,
+          "worst_rank": 6
+        },
+        "612000-anchored": {
+          "remaining": 630,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -544.8402481079102,
+          "critic_placements": 85.15975189208984,
+          "first_move": [
+            72,
+            1,
+            0,
+            7,
+            12
+          ],
+          "board_sha256": "e24befa0989024b1ab465d6891636f153d36c833b4a028599fd49f743cfe8003",
+          "stream_sha256": "fe65185952d84839356d4216ca8b2d924e90f68286c24dbfd59a87d71ba19a05",
+          "piece_prefix_sha256": "b836fc78e17620a5637086b7b281a2db58a3933b123997da6625e0ff659d2a2f",
+          "best_rank": 1,
+          "worst_rank": 1
+        }
+      },
+      {
+        "seed": 500000,
+        "incumbent": 232,
+        "611000-anchored": {
+          "remaining": 232,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 2496.459716796875,
+          "critic_placements": 2728.459716796875,
+          "first_move": [
+            3,
+            3,
+            6,
+            5,
+            13
+          ],
+          "board_sha256": "160303022e64c5b14614e880a0ec929100b5c647f4c46c2b7ba0dd7484fea82c",
+          "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+          "piece_prefix_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d",
+          "best_rank": 3,
+          "worst_rank": 3
+        },
+        "612000-anchored": {
+          "remaining": 222,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -177.07798385620117,
+          "critic_placements": 44.92201614379883,
+          "first_move": [
+            3,
+            3,
+            6,
+            5,
+            13
+          ],
+          "board_sha256": "6dcbd6934a4a8efc203eb7227111da62a3cb2bd8aa661006a05d95e34603cfc2",
+          "stream_sha256": "4b24bae456b2bc9479500e8c9e569a1cf4b5857dc22f25c751cf908d987d8f51",
+          "piece_prefix_sha256": "60ec85fe1d75d4f9818f86362880602b0da08b261354e827e54fa3b736b7df8a",
+          "best_rank": 5,
+          "worst_rank": 5
+        }
+      },
+      {
+        "seed": 300122,
+        "incumbent": 239,
+        "611000-anchored": {
+          "remaining": 239,
+          "reason": "physical_top_out",
+          "signed_prediction_error": 2115.677490234375,
+          "critic_placements": 2354.677490234375,
+          "first_move": [
+            41,
+            4,
+            6,
+            13,
+            11
+          ],
+          "board_sha256": "55016abac9cb598d13a910af5da4a55ac2f8a0863849fc0d8ea487bc5ee3f1eb",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "piece_prefix_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+          "best_rank": 2,
+          "worst_rank": 2
+        },
+        "612000-anchored": {
+          "remaining": 239,
+          "reason": "physical_top_out",
+          "signed_prediction_error": -192.07787322998047,
+          "critic_placements": 46.92212677001953,
+          "first_move": [
+            41,
+            4,
+            6,
+            13,
+            11
+          ],
+          "board_sha256": "b18efe11f04a0187aebfc45f049418f5289030042db2e0ecf4a68486aa333f7e",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "piece_prefix_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d",
+          "best_rank": 2,
+          "worst_rank": 2
+        }
+      }
+    ],
+    "duplicate_update80_publication_verification": {
+      "name": "612000-anchored-update80-publications.json",
+      "sha256": "bea770b320c0e4b2d37d87db9e2c9940d45c80891fb73cd06c0e703e585abab8",
+      "identical_model_parameters": 23
+    }
+  }
+}

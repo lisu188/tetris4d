@@ -1,0 +1,704 @@
+{
+  "schema": "611000-anchored-KL-check-v1",
+  "step": 10,
+  "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "anchored_sha256": "8607881115c6f7abdc1e460db16054378f79c70a6990ba04c2e842c02e373612",
+  "manifest_sha256": "559c8a85f9b1bb69b89a6167c6a5528818be9663d6f9d9fe24fcf95b96d9ae99",
+  "fixture_sha256": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+  "script_sha256": "ffdae7d8dbab0581fafca5d1d614f3b8f995e34d0a3a007a7b326da7450faec3",
+  "source": {
+    "train_survival.py": "22bf20d63ce5e6e85877ce77fcadc5eabb663ba8049c6e1c626b9d9fa5015293",
+    "train_survival_v2.py": "b9ad77a315ff818f0e81b9ab8c79adec9c9e1b1c6af159bcbd0feb780717a719",
+    "train_survival_v4.py": "6fba01e5afaa91af9e70e88d918dfcc35fef73fec7032911d98dea5a188c7df1",
+    "tools/run_cross_survival.py": "0ee86dbb880af0ca196a7cbc4d32b30d3bab862b2a75e0dfdaedaa06aea5c218"
+  },
+  "training": {
+    "anchored": {
+      "metrics_prefix_sha256": {
+        "10": "877e38af32a96ce275bb32a19147efa771f7404ec78402019691527fb519b47f",
+        "11": "96cf033a1532b2feecb1c6326e80d4d242d028daa1a7807cf15dc4987394bd6d"
+      },
+      "cumulative_through_10": {
+        "final_exact_kl": 0.0016829329516440338,
+        "entropy": 2.810352574242279,
+        "clip_fraction": 0.071630859375,
+        "policy_loss": 1.8407073002890684e-05,
+        "reference_kl": 0.007910025975209577,
+        "final_reference_kl": 0.007411282356861193,
+        "weighted_anchor_term": 0.0003955012987604789
+      },
+      "update_10": {
+        "final_exact_kl": 0.002119335913903342,
+        "entropy": 2.856594817712903,
+        "clip_fraction": 0.1029052734375,
+        "policy_loss": -0.00037888808401476126,
+        "reference_kl": 0.010010522938500799,
+        "final_reference_kl": 0.007939242626889609
+      },
+      "first_pre_step_gradients": {
+        "1": {
+          "actor": 4.862671852111816,
+          "critic": 10.439386367797852,
+          "imitation": 0.0,
+          "secondary": 0.0,
+          "regret": 0.0,
+          "entropy": 0.007924307137727737,
+          "reference_kl": 0.0
+        },
+        "11": {
+          "actor": 5.025061130523682,
+          "critic": 11.089447021484375,
+          "imitation": 0.0,
+          "secondary": 0.0,
+          "regret": 0.0,
+          "entropy": 0.0073528955690562725,
+          "reference_kl": 0.0351041778922081
+        }
+      },
+      "completed_steps": 640,
+      "kl_stops": 0,
+      "observation_sha256": "0a1aedab9cab310aaf278bf3c11ad980a5fccecbc016110c3e202e11ccc2d9b1",
+      "checkpoint_sha256": "8607881115c6f7abdc1e460db16054378f79c70a6990ba04c2e842c02e373612"
+    },
+    "cold": {
+      "metrics_prefix_sha256": {
+        "10": "eb2c5f9aff17f726e8cec8542f70d09b2cf7151f0c59e8854fce9ec94d0416b4",
+        "11": "08c644dab58ca15e9463e01621caf14b454ba8092a5ac2bd296d4b916e7489dd"
+      },
+      "cumulative_through_10": {
+        "final_exact_kl": 0.0016308256841512047,
+        "entropy": 2.7935224674642085,
+        "clip_fraction": 0.067010498046875,
+        "policy_loss": -0.00018310288487555226
+      },
+      "update_10": {
+        "final_exact_kl": 0.001746472310514946,
+        "entropy": 2.835329540539533,
+        "clip_fraction": 0.09063720703125,
+        "policy_loss": -0.0002893079763452988
+      },
+      "first_pre_step_gradients": {
+        "1": {
+          "actor": 4.862671852111816,
+          "critic": 10.439386367797852,
+          "imitation": 0.0,
+          "secondary": 0.0,
+          "regret": 0.0,
+          "entropy": 0.007924307137727737
+        },
+        "11": {
+          "actor": 4.121708869934082,
+          "critic": 2.7350480556488037,
+          "imitation": 0.0,
+          "secondary": 0.0,
+          "regret": 0.0,
+          "entropy": 0.008398367092013359
+        }
+      },
+      "completed_steps": 640,
+      "kl_stops": 0,
+      "observation_sha256": "ce2f1338f3ac294e998b0e4bc148c202cfe3f905422fb421ec16fda56d7c4b13",
+      "checkpoint_sha256": "082e755aa6e50b4b788562d28c6c7b9e3217aef2da4d7ff92d8919d442034ca2"
+    }
+  },
+  "paired_greedy_at_10": {
+    "all": {
+      "boards": 40,
+      "anchored_incumbent_flips": 5,
+      "cold_incumbent_flips": 8,
+      "different_anchored_and_cold": 9
+    },
+    "ordinary": {
+      "boards": 20,
+      "anchored_incumbent_flips": 4,
+      "cold_incumbent_flips": 7,
+      "different_anchored_and_cold": 7
+    },
+    "danger": {
+      "boards": 20,
+      "anchored_incumbent_flips": 1,
+      "cold_incumbent_flips": 1,
+      "different_anchored_and_cold": 2
+    }
+  },
+  "fixed_board_anchor": {
+    "group_metrics": {
+      "all": {
+        "boards": 40,
+        "mean_KL": 0.010707458698061601,
+        "mean_total_variation": 0.04435682114398707,
+        "greedy_changes": 5
+      },
+      "ordinary": {
+        "boards": 20,
+        "mean_KL": 0.006780744335264899,
+        "mean_total_variation": 0.037599036854226144,
+        "greedy_changes": 4
+      },
+      "danger": {
+        "boards": 20,
+        "mean_KL": 0.014634173060858301,
+        "mean_total_variation": 0.051114605433747996,
+        "greedy_changes": 1
+      }
+    },
+    "weighted_anchor_loss": 0.0005353729349030801,
+    "weighted_anchor_gradient_l2": 0.03777263357661183,
+    "gradient_l2_by_actor_block": {
+      "actor_state": 0.0018499042694567279,
+      "candidate": 0.03317080160939993,
+      "spatial_actor": 0.01546177263996213,
+      "rank1": 0.0018011368692602801,
+      "rank_out": 0.008985383403337327
+    },
+    "actor_displacement_l2": 0.21393059499069833,
+    "gradient_cosine_with_actor_displacement": 0.12610232684110315,
+    "FP64_gradient_sha256": "0d83dd3072a6d91ae1969d8f79b751370b33aa0642203bc1c8570492d17fc1a9",
+    "virtual_anchor_descent": {
+      "step_size_fraction_of_actor_displacement": 0.01,
+      "step_l2": 0.0021393059499069836,
+      "full_board_mean_KL_before": 0.010707458698061601,
+      "full_board_mean_KL_after": 0.009248440553665204,
+      "greedy_changes_vs_actual": 4,
+      "incumbent_choices_restored": 3,
+      "new_incumbent_disagreements": 0
+    },
+    "mean_logit_gradient_formula": "0.05*(p_current-p_reference)/0.25 per board, zero on padding; autograd checked against this formula on every valid candidate."
+  },
+  "methods": "All 40 fixed archived training boards, 20 ordinary and 20 danger, fixed original 128-wide padded FP32 actor inputs; temperature 0.25 for both categorical distributions. Anchor loss is 0.05 times KL(frozen incumbent || live). Fixed-board gradient is computed over actual actor parameters, independent of PPO advantages or optimizer. Its one-percent, anchor-only virtual gradient test is in memory. Actual logged component norms are from the first microbatch of 32 examples before an update. Update 11 therefore uses the published update-10 actor, sampled PPO rollout includes 8,192 states. Its first microbatch is not the 40 archived boards. No game evaluation or checkpoint modification.",
+  "provenance": {
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "local_directory": "survival-training.artifacts/cross-survival-24h",
+    "local_receipt": "611000-anchored-regularizer-010.json",
+    "receipt_sha256": "a76a19549079068460915d479b4a49cf3a3e2413707f2b7a7593121839a979e0",
+    "reproduction": "probe-anchored-regularizer.py",
+    "observation_sha256": "0a1aedab9cab310aaf278bf3c11ad980a5fccecbc016110c3e202e11ccc2d9b1"
+  },
+  "endpoint_replication": {
+    "seed": 611000,
+    "temperature": 0.25,
+    "single_training_signature_difference": {
+      "reference_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "reference_kl_direction": "frozen_reference_to_current",
+      "reference_kl_weight": 0.05
+    },
+    "fixture_manifest_sha256": "8bb5bb633c197b38255f7391a9655ad8b0bfe7d4443cb2a42c72931f33a4e8aa",
+    "fixture_sha256": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+    "seeds": [
+      300014,
+      300036,
+      300054,
+      300080,
+      300082,
+      300176,
+      300204,
+      300308,
+      300360,
+      300538
+    ],
+    "mask_valid_candidate_entries": 5028,
+    "actors": {
+      "cold": {
+        "endpoint_json_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+        "manifest_sha256": "f09d2de0105fb59e7a61df745032e1f453efed03832687671e925354dfa6a932",
+        "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+        "optimizer_steps": 5025,
+        "stages": {
+          "10": {
+            "observer_sha256": "ce2f1338f3ac294e998b0e4bc148c202cfe3f905422fb421ec16fda56d7c4b13",
+            "checkpoint_sha256": "082e755aa6e50b4b788562d28c6c7b9e3217aef2da4d7ff92d8919d442034ca2",
+            "actor_sha256": "a73c9e915c192eca91daecc6926261476ee4a67b2eaf3024322ac5737c654a2d"
+          },
+          "40": {
+            "observer_sha256": "184601527765eab5739145a81ce8b6eab886aa3ae72f324b8e1107599bef9ba1",
+            "checkpoint_sha256": "0339f25aa7194f988cef25ddfb36378294047505d2d3f922c551c1a6963b8eac",
+            "actor_sha256": "bccedfa4b9c137be4efb4e5ee760f919b2dff224e4160a52c2fb3a2d97937be3"
+          },
+          "80": {
+            "observer_sha256": "5217e0d0aabc28bd5c312d375442df89286ced82da4b381d2426f15c5398d40b",
+            "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+            "actor_sha256": "a351a5c3f1c6f84ede3c7c3524a3cd0a9cc6ddbe62fc0e09d2d6987e3220f7f6"
+          }
+        }
+      },
+      "anchored": {
+        "endpoint_json_sha256": "60e214b970d1796b5ca214a20396b72b4a5bb2d569249088501ae0343635f2ef",
+        "manifest_sha256": "2711840d96ad76888f284ddcf8ac2e78fe9b38388857aed3f19807e3d14a6350",
+        "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+        "optimizer_steps": 5022,
+        "stages": {
+          "10": {
+            "observer_sha256": "0a1aedab9cab310aaf278bf3c11ad980a5fccecbc016110c3e202e11ccc2d9b1",
+            "checkpoint_sha256": "8607881115c6f7abdc1e460db16054378f79c70a6990ba04c2e842c02e373612",
+            "actor_sha256": "bcaca4138f93f9e13371fb75dcc1669ae6e8e25758a3fc734599955915629bf2"
+          },
+          "40": {
+            "observer_sha256": "b8f118fda273bb359c501cc658b40f5fc777b9b010df82166d69b7771e95e1ea",
+            "checkpoint_sha256": "c696cccf573efb732e269ca32f6d25aace05620e3d2c4f203b91c46f637fa6d3",
+            "actor_sha256": "c5195984a7f8bcaf0d712177fbbc3bddb1fbba610068dbc13a69eb2788ff8877"
+          },
+          "80": {
+            "observer_sha256": "259609528dc50137c292664ceee64a78c10ed1cd77eaa4c7fcaf5cb9d77011c9",
+            "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+            "actor_sha256": "da140bfc3dc51e533fe3f1140b6cc5f7a62cac65f5ec0da5f7b41464a9846c30"
+          }
+        }
+      }
+    },
+    "measurements": {
+      "10": {
+        "all": {
+          "boards": 40,
+          "streams": 10,
+          "anchored_incumbent_flips": 5,
+          "cold_incumbent_flips": 8,
+          "different_anchored_and_cold": 9
+        },
+        "ordinary": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 4,
+          "cold_incumbent_flips": 7,
+          "different_anchored_and_cold": 7
+        },
+        "danger": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 1,
+          "cold_incumbent_flips": 1,
+          "different_anchored_and_cold": 2
+        }
+      },
+      "40": {
+        "all": {
+          "boards": 40,
+          "streams": 10,
+          "anchored_incumbent_flips": 6,
+          "cold_incumbent_flips": 7,
+          "different_anchored_and_cold": 9
+        },
+        "ordinary": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 5,
+          "cold_incumbent_flips": 5,
+          "different_anchored_and_cold": 6
+        },
+        "danger": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 1,
+          "cold_incumbent_flips": 2,
+          "different_anchored_and_cold": 3
+        }
+      },
+      "80": {
+        "all": {
+          "boards": 40,
+          "streams": 10,
+          "anchored_incumbent_flips": 9,
+          "cold_incumbent_flips": 11,
+          "different_anchored_and_cold": 15,
+          "cold_mean_KL_incumbent_to_arm": 0.1980743917869404,
+          "anchored_mean_KL_incumbent_to_arm": 0.03176766391188721,
+          "boards_anchored_KL_below_cold": 37
+        },
+        "ordinary": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 6,
+          "cold_incumbent_flips": 5,
+          "different_anchored_and_cold": 7,
+          "cold_mean_KL_incumbent_to_arm": 0.18587511144578456,
+          "anchored_mean_KL_incumbent_to_arm": 0.02198566113365814,
+          "boards_anchored_KL_below_cold": 19
+        },
+        "danger": {
+          "boards": 20,
+          "streams": 10,
+          "anchored_incumbent_flips": 3,
+          "cold_incumbent_flips": 6,
+          "different_anchored_and_cold": 8,
+          "cold_mean_KL_incumbent_to_arm": 0.21027367212809622,
+          "anchored_mean_KL_incumbent_to_arm": 0.04154966669011628,
+          "boards_anchored_KL_below_cold": 18
+        }
+      }
+    },
+    "endpoint_logits_sha256": {
+      "incumbent": "ef0241543a473e2b52069a6bfee2b77216c3010911c52bee2d3c72dec2b13d37",
+      "cold": "cbced624dc0b55a1fbbdedbb5f76dbf72834077cb349ea0cdd3bc4f015777194",
+      "anchored": "aca75dbb125edf631681798fe24c023d9331618374a284db42db85af6df09995"
+    },
+    "common_cohort_critic": {
+      "cohort": "disjoint_historical_and_both_current",
+      "root_ids_sha256": "1808ac5bbb3960f3ede4fa797132ceee3142626a1fca582975c9ab057b30fdb1",
+      "critic_input_sha256": "ba3fc32b3c5bcc2584bd3e0d2ce03a4809e24ff3abffae5a8adfdad2291a926a",
+      "source_sha256": "495286579c2f2ef5d113aeb93eb8e08abada5c2a4147553840fa53da65c70c0d",
+      "exact_original_reference_verified": true,
+      "original_incumbent_greedy_actions_verified": 48,
+      "scope": "Predictions on fixed pre-action archived boards. Labels are the original incumbent rank-0 greedy continuations on each exact historical stream. Current-policy returns were not collected. Terminal errors are exact and cap cases only give lower bounds. Equal weight per root.",
+      "endpoints": {
+        "incumbent": {
+          "uncensored_mae": 11734.695490056818,
+          "uncensored_bias": 11734.695490056818,
+          "capped_below_observed": 0,
+          "capped_total_shortfall": 0.0,
+          "critic_sha256": "50007ad3b7b79eccf16b90a71f17a0233cd3d92b32f7c451c38b96f9f3495feb"
+        },
+        "cold": {
+          "uncensored_mae": 2788.6034102006392,
+          "uncensored_bias": 2788.6034102006392,
+          "capped_below_observed": 1,
+          "capped_total_shortfall": 65.1826171875,
+          "critic_sha256": "e16fd44fa21784cbe8effbb42169bf11feff45b99a90cde0162ee4cc7591b98d"
+        },
+        "anchored": {
+          "uncensored_mae": 4098.609330610795,
+          "uncensored_bias": 4098.609330610795,
+          "capped_below_observed": 0,
+          "capped_total_shortfall": 0.0,
+          "critic_sha256": "297a3c0dd668ac1bf9527c96f6f09d92787734ba21cd0b09edfb96a95018b24a"
+        }
+      },
+      "roots": 33,
+      "distinct_streams": 29,
+      "uncensored_roots": 22,
+      "uncensored_streams": 21,
+      "censored_roots": 11,
+      "censored_streams": 11,
+      "cap": 3000
+    },
+    "scope": "Greedy choices at all stages come from hash-bound per-board observations. Both endpoint full categorical KL values are independently evaluated on the same original FP32 masked 1x128 inputs, using temperature 0.25 for incumbent and candidate. Endpoint logits hash prefixes each row of little-endian float32 valid logits with its two-byte little-endian valid count, in original fixture order. Early full distributions were not retained; the original update-10 anchored measurement above remains available. Twenty ordinary and twenty danger boards are retrospective samples paired within ten streams. These observations measure policy drift, not survival."
+  },
+  "second_seed": {
+    "receipt": "registered-anchored-second-seed-endpoint.json",
+    "receipt_sha256": "5f7c9e9356462c3410417adc1802365807633f9ad1183666688ad821aaf4be41",
+    "sources": {
+      "inspect-live-weights.py": "0c7a35bd2008e38153dd5729e222a577704f644d31f0859c23dca7273976bed7",
+      "cross_weight_behavior.py": "8b53954eaea424655cdcf16caceaedf0a1f02c6e5c1a90abd99c274b535068fb",
+      "probe-anchored-regularizer.py": "ffdae7d8dbab0581fafca5d1d614f3b8f995e34d0a3a007a7b326da7450faec3",
+      "runtime/train_survival.py": "22bf20d63ce5e6e85877ce77fcadc5eabb663ba8049c6e1c626b9d9fa5015293",
+      "runtime/train_survival_v2.py": "b9ad77a315ff818f0e81b9ab8c79adec9c9e1b1c6af159bcbd0feb780717a719",
+      "runtime/tetris_survival_v4.py": "8db8606455779f7a5dec6a0f535c688eef3452c2f8f21dd7d5cd96cd037c9bfb",
+      "runtime/train_survival_v4.py": "6fba01e5afaa91af9e70e88d918dfcc35fef73fec7032911d98dea5a188c7df1"
+    },
+    "checkpoints": {
+      "611000-cold": {
+        "actor_sha256": "a351a5c3f1c6f84ede3c7c3524a3cd0a9cc6ddbe62fc0e09d2d6987e3220f7f6",
+        "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+        "endpoint_json_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+        "manifest_sha256": "f09d2de0105fb59e7a61df745032e1f453efed03832687671e925354dfa6a932",
+        "observation_sha256": "5217e0d0aabc28bd5c312d375442df89286ced82da4b381d2426f15c5398d40b",
+        "optimizer_steps": 5025
+      },
+      "611000-anchored": {
+        "actor_sha256": "da140bfc3dc51e533fe3f1140b6cc5f7a62cac65f5ec0da5f7b41464a9846c30",
+        "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+        "endpoint_json_sha256": "60e214b970d1796b5ca214a20396b72b4a5bb2d569249088501ae0343635f2ef",
+        "manifest_sha256": "2711840d96ad76888f284ddcf8ac2e78fe9b38388857aed3f19807e3d14a6350",
+        "observation_sha256": "259609528dc50137c292664ceee64a78c10ed1cd77eaa4c7fcaf5cb9d77011c9",
+        "optimizer_steps": 5022
+      },
+      "612000-cold": {
+        "actor_sha256": "79d6b718ad22362f14eede2e22ce88037018db00a6fb8f31b647af9820aee692",
+        "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+        "endpoint_json_sha256": "18be7491c44a6d7117c0b7c136a4925fa08e09f240854363639c598ae4d2d622",
+        "manifest_sha256": "5c2cdd6e74ed9e1531a16f964bd814c1fa47200d5fdce96f9e27fd44640dd0ee",
+        "observation_sha256": "8a8074faa57ac750bbf220c09e122f25771e4b7da2dbb052f86b5c649172425f",
+        "optimizer_steps": 5074
+      },
+      "612000-anchored": {
+        "actor_sha256": "d50cdc8bd85f782cbabcc06dd61227e3eff7fb757a3af5d6e8c13f351bf94bfd",
+        "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+        "endpoint_json_sha256": "8dd666432dbd2142569eeb06f965242d48920ff0fc8ddacadd4ce5a971b42395",
+        "manifest_sha256": "6b3c62014a90f3fef97600a78320283fb0786f61bdf23679a53fd91bc94266b0",
+        "observation_sha256": "1dda94b9047b9bddfdf66aefcb242598d8975e9ca88e80f0beb8b4bbf23b5115",
+        "optimizer_steps": 5120
+      }
+    },
+    "candidate_count": 5028,
+    "actor_diagnostics": {
+      "trajectory": {
+        "10": {
+          "all": {
+            "boards": 40,
+            "anchored_incumbent_flips": 4,
+            "cold_incumbent_flips": 5,
+            "anchored_cold_disagreements": 8
+          },
+          "ordinary": {
+            "boards": 20,
+            "anchored_incumbent_flips": 2,
+            "cold_incumbent_flips": 5,
+            "anchored_cold_disagreements": 6
+          },
+          "danger": {
+            "boards": 20,
+            "anchored_incumbent_flips": 2,
+            "cold_incumbent_flips": 0,
+            "anchored_cold_disagreements": 2
+          }
+        },
+        "40": {
+          "all": {
+            "boards": 40,
+            "anchored_incumbent_flips": 5,
+            "cold_incumbent_flips": 7,
+            "anchored_cold_disagreements": 11
+          },
+          "ordinary": {
+            "boards": 20,
+            "anchored_incumbent_flips": 1,
+            "cold_incumbent_flips": 5,
+            "anchored_cold_disagreements": 5
+          },
+          "danger": {
+            "boards": 20,
+            "anchored_incumbent_flips": 4,
+            "cold_incumbent_flips": 2,
+            "anchored_cold_disagreements": 6
+          }
+        },
+        "80": {
+          "all": {
+            "boards": 40,
+            "anchored_incumbent_flips": 6,
+            "cold_incumbent_flips": 11,
+            "anchored_cold_disagreements": 15,
+            "anchored_mean_KL_incumbent_to_arm": 0.04839928921137471,
+            "cold_mean_KL_incumbent_to_arm": 0.14962997338661807,
+            "boards_anchored_KL_below_cold": 30,
+            "cold_minus_anchored_KL_positive_streams": 9,
+            "cold_minus_anchored_KL_paired_stream_bootstrap95": [
+              0.040006776389382145,
+              0.1685036266996576
+            ]
+          },
+          "ordinary": {
+            "boards": 20,
+            "anchored_incumbent_flips": 2,
+            "cold_incumbent_flips": 9,
+            "anchored_cold_disagreements": 10,
+            "anchored_mean_KL_incumbent_to_arm": 0.019520546309649944,
+            "cold_mean_KL_incumbent_to_arm": 0.17490112766245147,
+            "boards_anchored_KL_below_cold": 17,
+            "cold_minus_anchored_KL_positive_streams": 10,
+            "cold_minus_anchored_KL_paired_stream_bootstrap95": [
+              0.07347131097580131,
+              0.27130597974988624
+            ]
+          },
+          "danger": {
+            "boards": 20,
+            "anchored_incumbent_flips": 4,
+            "cold_incumbent_flips": 2,
+            "anchored_cold_disagreements": 5,
+            "anchored_mean_KL_incumbent_to_arm": 0.07727803211309947,
+            "cold_mean_KL_incumbent_to_arm": 0.12435881911078468,
+            "boards_anchored_KL_below_cold": 13,
+            "cold_minus_anchored_KL_positive_streams": 8,
+            "cold_minus_anchored_KL_paired_stream_bootstrap95": [
+              -0.02597895642684307,
+              0.1350429720088141
+            ]
+          }
+        }
+      },
+      "stages": {
+        "612000-anchored": {
+          "10": {
+            "checkpoint_sha256": "f273cf94262a016154a64e31e0217e38d4ccab3899b67972d935a4d41c454785",
+            "observation_sha256": "b6ce83ea8c19698f88048c7209b98c689de79cefbd301824e7da1e6fed4eb2a4",
+            "actor_sha256": "20c62eac8af2e1913089b4adc85054e7bb891dc64a3a433e7aae8a1717068054",
+            "actor_l2_from_incumbent": 0.23074943146386084
+          },
+          "40": {
+            "checkpoint_sha256": "69b25097f1d788da41421304994e865cdb48cb376dc83d98b9113a0401d5fc30",
+            "observation_sha256": "c4d2e89a28fccf890341a0a72d48fb9adf14731ce88b5493c97a0291839fde00",
+            "actor_sha256": "bbd5d87b4e6f857c8041befd7ff7a0b17f3ac73f764109b1d7ebe887a22eebfe",
+            "actor_l2_from_incumbent": 0.4491842943746371
+          },
+          "80": {
+            "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+            "observation_sha256": "1dda94b9047b9bddfdf66aefcb242598d8975e9ca88e80f0beb8b4bbf23b5115",
+            "actor_sha256": "d50cdc8bd85f782cbabcc06dd61227e3eff7fb757a3af5d6e8c13f351bf94bfd",
+            "actor_l2_from_incumbent": 0.5558948973326788
+          }
+        },
+        "612000-cold": {
+          "10": {
+            "checkpoint_sha256": "c6efbbffcc77dfbd6453a4793e82c18a492a3126d375b9119a9a56beed8b3a14",
+            "observation_sha256": "8c6720c236df217ff4f1798b544a3e4a93235611b893da9fd4f21094bb8f901c",
+            "actor_sha256": "722056fb08038fb31c141b72dd4329350a32df076f363ab87005c44219a39ee2",
+            "actor_l2_from_incumbent": 0.2865258577395893
+          },
+          "40": {
+            "checkpoint_sha256": "f039571756b8ce2e800529de702923bafd0c1a41b72b1e9487da575d55e6282b",
+            "observation_sha256": "3ce38064fac404abcf5386f2a5555ee6d42f6f31fc4808db0080a64d28da32d3",
+            "actor_sha256": "14a4806197a2635c3a2d6e334043a3e95b275d3bfa1aebd413a9b75798910d5c",
+            "actor_l2_from_incumbent": 0.5215515690038907
+          },
+          "80": {
+            "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+            "observation_sha256": "8a8074faa57ac750bbf220c09e122f25771e4b7da2dbb052f86b5c649172425f",
+            "actor_sha256": "79d6b718ad22362f14eede2e22ce88037018db00a6fb8f31b647af9820aee692",
+            "actor_l2_from_incumbent": 0.7309416820765819
+          }
+        }
+      },
+      "endpoint_drift_anchored_vs_cold": {
+        "cosine": 0.14833867295397635,
+        "angle_degrees": 81.4693375161163,
+        "endpoint_distance_l2": 0.8501452448412382
+      },
+      "actor_kl_gradients_actual_first_training_microbatches": {
+        "1": 0.0,
+        "11": 0.05941333994269371,
+        "21": 0.07975766807794571,
+        "31": 0.09629295766353607,
+        "41": 0.07756964862346649,
+        "51": 0.1025746613740921,
+        "61": 0.14916014671325684,
+        "71": 0.10811512172222137
+      },
+      "metrics_sha256": "1d04737728534759969e84ac3bbde4f9f954c032b8a61e25eb08188a83218788",
+      "rollout_final_reference_kl": {
+        "10": 0.010065798822324723,
+        "40": 0.02981665951665491,
+        "80": 0.048896068954491057
+      },
+      "endpoint_archived_actor_only_anchor_gradient": {
+        "weighted_anchor_loss": 0.0024199644605687356,
+        "weighted_anchor_gradient_l2": 0.06600967825052054,
+        "gradient_l2_by_actor_block": {
+          "actor_state": 0.004041186227066238,
+          "candidate": 0.06216825168244022,
+          "spatial_actor": 0.016783927982659808,
+          "rank1": 0.0036331628347107386,
+          "rank_out": 0.013459376235678281
+        },
+        "actor_displacement_l2": 0.5558948973326789,
+        "gradient_cosine_with_actor_displacement": 0.12211323138931328,
+        "FP64_gradient_sha256": "35573d8cb7c48973f6f30cf5888cf2804717c4f2f78c10c122065d4a9b4587ab",
+        "virtual_anchor_descent": {
+          "step_size_fraction_of_actor_displacement": 0.01,
+          "step_l2": 0.005558948973326789,
+          "full_board_mean_KL_before": 0.04839928921137471,
+          "full_board_mean_KL_after": 0.04171315289568156,
+          "greedy_changes_vs_actual": 1,
+          "incumbent_choices_restored": 1,
+          "new_incumbent_disagreements": 0
+        },
+        "mean_logit_gradient_formula": "0.05*(p_current-p_reference)/0.25 per board, zero on padding; autograd checked against this formula on every valid candidate."
+      }
+    },
+    "across_seed_anchored": {
+      "cosine": 0.07046318493468048,
+      "angle_degrees": 85.95940854631787,
+      "endpoint_distance_l2": 0.7268118747918582,
+      "greedy_action_disagreements_on_fixture": {
+        "all": 12,
+        "ordinary": 8,
+        "danger": 4
+      }
+    },
+    "critic_cohort": {
+      "cohort": "disjoint_historical_and_both_current",
+      "root_ids_sha256": "1808ac5bbb3960f3ede4fa797132ceee3142626a1fca582975c9ab057b30fdb1",
+      "critic_input_sha256": "ba3fc32b3c5bcc2584bd3e0d2ce03a4809e24ff3abffae5a8adfdad2291a926a",
+      "endpoints": {
+        "611000-cold": {
+          "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+          "critic_sha256": "e16fd44fa21784cbe8effbb42169bf11feff45b99a90cde0162ee4cc7591b98d",
+          "metrics": {
+            "roots": 33,
+            "distinct_streams": 29,
+            "uncensored_roots": 22,
+            "uncensored_streams": 21,
+            "censored_roots": 11,
+            "censored_streams": 11,
+            "uncensored_mae": 2788.6034102006392,
+            "uncensored_bias": 2788.6034102006392,
+            "uncensored_mean_label": 1346.7272727272727,
+            "uncensored_mean_prediction": 4135.330682927912,
+            "capped_below_observed": 1,
+            "capped_mean_shortfall_all": 5.925692471590909,
+            "capped_mean_shortfall_violators": 65.1826171875,
+            "capped_total_shortfall": 65.1826171875,
+            "cap": 3000
+          }
+        },
+        "612000-cold": {
+          "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+          "critic_sha256": "9985ee91891ed58ea1fe336b267cdb7e4dcd2d6254b677dd6c57825fd55a81ab",
+          "metrics": {
+            "roots": 33,
+            "distinct_streams": 29,
+            "uncensored_roots": 22,
+            "uncensored_streams": 21,
+            "censored_roots": 11,
+            "censored_streams": 11,
+            "uncensored_mae": 3480.5633489435368,
+            "uncensored_bias": 3480.5633489435368,
+            "uncensored_mean_label": 1346.7272727272727,
+            "uncensored_mean_prediction": 4827.29062167081,
+            "capped_below_observed": 1,
+            "capped_mean_shortfall_all": 34.77150656960227,
+            "capped_mean_shortfall_violators": 382.486572265625,
+            "capped_total_shortfall": 382.486572265625,
+            "cap": 3000
+          }
+        },
+        "611000-anchored": {
+          "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+          "critic_sha256": "297a3c0dd668ac1bf9527c96f6f09d92787734ba21cd0b09edfb96a95018b24a",
+          "metrics": {
+            "roots": 33,
+            "distinct_streams": 29,
+            "uncensored_roots": 22,
+            "uncensored_streams": 21,
+            "censored_roots": 11,
+            "censored_streams": 11,
+            "uncensored_mae": 4098.609330610795,
+            "uncensored_bias": 4098.609330610795,
+            "uncensored_mean_label": 1346.7272727272727,
+            "uncensored_mean_prediction": 5445.336603338068,
+            "capped_below_observed": 0,
+            "capped_mean_shortfall_all": 0.0,
+            "capped_mean_shortfall_violators": null,
+            "capped_total_shortfall": 0.0,
+            "cap": 3000
+          }
+        },
+        "612000-anchored": {
+          "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+          "critic_sha256": "9045ddc66d4e26f15f9ee635e0e46c1944f96cf08c72bd2cb8ec33c8b4a044c2",
+          "metrics": {
+            "roots": 33,
+            "distinct_streams": 29,
+            "uncensored_roots": 22,
+            "uncensored_streams": 21,
+            "censored_roots": 11,
+            "censored_streams": 11,
+            "uncensored_mae": 992.5215749307113,
+            "uncensored_bias": -992.5215749307113,
+            "uncensored_mean_label": 1346.7272727272727,
+            "uncensored_mean_prediction": 354.2056977965615,
+            "capped_below_observed": 7,
+            "capped_mean_shortfall_all": 1605.0278864773836,
+            "capped_mean_shortfall_violators": 2522.1866787501745,
+            "capped_total_shortfall": 17655.30675125122,
+            "cap": 3000
+          }
+        }
+      },
+      "missing_observations": []
+    },
+    "interpretation": [
+      "Exact behavior-temperature logits were reevaluated on the prior fixture at both pairs of 80-update published endpoints. Stages 10/40 retain only action index and scalar weight drift from the independent observer.",
+      "All actor angles use the 49,141-coordinate change from the same immutable incumbent in FP64. Gradient measurements on this fixture are full-batch reference-KL gradients only. The virtual descent modifies a disposable in-memory actor copy. Logged component norms come from the first microbatch before that update.",
+      "Bootstrap percentile intervals resample 10 paired historical streams within this fixed fixture, using 10,000 reproducible draws. They do not measure variation across new training seeds or player survival. Critic labels are recorded incumbent-policy futures."
+    ]
+  }
+}

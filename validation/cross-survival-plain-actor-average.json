@@ -1,0 +1,906 @@
+{
+  "schema": "plain-actor-parameter-average-v1",
+  "scope": "Prespecified arithmetic midpoint. The six archived games and forty audit boards are reused development fixtures. They supply no independent promotion evidence.",
+  "plan_sha256": "524334c6259762dd9e3e79a211c2dd676191cbb7cf3f849efbc7f0e86ab11321",
+  "fixture_receipt_sha256": "eba80adf8536a2e8c0a2a5b7adbc11c12f6057dc4d2e313479fb4e7570bce5ad",
+  "games_receipt_sha256": "79b9b7803e3995f0fde9c3dfbaf99babc8e7723f8482f1f3fffe377ecc895a1d",
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "seed_order": [
+    300322,
+    300460,
+    300264,
+    300576,
+    500000,
+    300122
+  ],
+  "roots": [
+    {
+      "seed": 300322,
+      "game_id": "470217b4f6cdc3e3ae5560fe54c6901fccf28f2608be57cc7c4a99be443db624",
+      "file_sha256": "4c0bd5603b6bdba8a14e378b35a7a4c294e31cb4101484b493eb3f4b297db442",
+      "offset": 7036,
+      "before_n": 87,
+      "current_n": 82,
+      "board_sha256": "03140919dcf3d25752d083ba2bd4b1042787fbb862f498521ca81c0caa0e6c4c",
+      "stream_sha256": "7412538410bb75c94e3d556d4c83c98fae98214837959e880e7245dadc94c53e",
+      "source_target": 14,
+      "current": "STAIR",
+      "visible_preview": "I"
+    },
+    {
+      "seed": 300460,
+      "game_id": "5565ee2e5ac9f9972af18fe755c89b0abee085896fe243e696f164c63198e4a5",
+      "file_sha256": "f4239c7c70afe4cc4afa685ef1bf63d5112272700bc352edf5a7a5d7ffb16b30",
+      "offset": 6124,
+      "before_n": 89,
+      "current_n": 82,
+      "board_sha256": "243c1e978c4ccf171b2dde358c5973ac0b78e94ea5f17540f5dd9eb82876ac73",
+      "stream_sha256": "9771aa683639825cf92f1ac8a28f4d81dbd7def8a4c0e0ab247bb3bf4385e7c0",
+      "source_target": 7,
+      "current": "FORK",
+      "visible_preview": "B"
+    },
+    {
+      "seed": 300264,
+      "game_id": "1eefba49543e62f91d158498dd5f5c21f72dbb26c6aa4c57476a69e4bc1d2b18",
+      "file_sha256": "02e5b334ddd99c201ed6a862aa7bdcce1b1e08ee36842bc4dc207a23f4ebac64",
+      "offset": 7064,
+      "before_n": 86,
+      "current_n": 84,
+      "board_sha256": "5bdc719a651dbfc70ca3b9ee8f01d7b770fc3deba004ec40d6a90f00c4bdb714",
+      "stream_sha256": "1cca70b045d31177937aa8800099f27b6cc1e5398d37d83b69be88b427dd99f8",
+      "source_target": 14,
+      "current": "HOOK",
+      "visible_preview": "B"
+    },
+    {
+      "seed": 300576,
+      "game_id": "638045123c60051043eedae80cb9bd2434ded899b1adad722ca6841501c2147c",
+      "file_sha256": "6b5886190d61547b45fe5b372163f87d976a14e985e5dddac0eb740d403d0deb",
+      "offset": 6339,
+      "before_n": 87,
+      "current_n": 84,
+      "board_sha256": "5a82d1b46c67c7102769ad4ffcef6c2512b778e71cb38ff0e06f85b0bf227c47",
+      "stream_sha256": "07e65cef4f7829697f4a62fbf8aa9eba2c05408e85d13a00a6e6395a4576ca06",
+      "source_target": 12,
+      "current": "FORK",
+      "visible_preview": "NOVA"
+    },
+    {
+      "seed": 500000,
+      "game_id": "74d2dbd38e2d627146e64971537997d58f53d2d53bc8a6e4858ca1d46b876ec4",
+      "file_sha256": "b46d4220e445a57853f6ea19285412ee331da1580413120b3ac1a9bbfe6a98e5",
+      "offset": 9611,
+      "before_n": 85,
+      "current_n": 84,
+      "board_sha256": "b2bf8d3cb73eb91f1c4f2cc294025337ea6feee54065730dcbedb43bf1cd3b6c",
+      "stream_sha256": "77a26ad6d1413925de94bdb6e0d42674b48e447cee9c9362b6d4ba56a39bd753",
+      "source_target": 14,
+      "current": "NOVA",
+      "visible_preview": "BRIDGE"
+    },
+    {
+      "seed": 300122,
+      "game_id": "130c9179275a7d347c60741377fba64d03d48959c27035c4b38ac9c971bdf79f",
+      "file_sha256": "683c8283ac1ad4b9b7fe701aca0ed7668238ee19c8c852bfb474fec64e23261c",
+      "offset": 21278,
+      "before_n": 85,
+      "current_n": 84,
+      "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+      "stream_sha256": "3d1e23b2a23f0a914eb34e0bc8e2ffdc28df35aa8169854a018ab829610a4f21",
+      "source_target": 13,
+      "current": "L",
+      "visible_preview": "STAIR"
+    }
+  ],
+  "candidate": "Build exactly one actor in memory. Every non-value.* tensor of the two published final plain endpoints is averaged as (a+b)*0.5 in float32. value.* and all settings are cloned from the incumbent. No coefficient sweeps, optimizer state, new training, conditioning on study outputs, or publication to production.",
+  "evaluation": "Play the single candidate on every frozen root, source order, unguarded greedy 32x128 native two-stage FP32 CPU, original checked commit, physical end with no cap. Compare per root with the three prior verified immutable physical endpoint records. Independently replay all three controls to physical end on first root with full final board, stream and length identity, and verify all 18 control first decisions. Trace first candidate action divergence versus each control while the two paths are identical.",
+  "parameters": {
+    "actor_sha256": {
+      "incumbent": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+      "611000-plain": "5f4439c9966dff2033e16ff87d6dd6cc52c4adca514a473d33e8d346f829dd7d",
+      "612000-plain": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+      "plain-actor-mean": "df55da2f1ea99162dc341790df4910767f88ca969f4d4e311f23b97ff86a288e"
+    },
+    "retained_critic_sha256": "09e9dee62093e8608793937dbe2764bf87f2091e6b29d13dbc57649afc855ebe",
+    "actor_tensors": 15,
+    "critic_tensors": 8,
+    "actor_n": 49141,
+    "critic_n": 53689,
+    "fp64_midpoint_rounded_agreement": "all actor elements",
+    "parent_l2_distance": 1.0115848682673387,
+    "candidate_actor_l2_distance": {
+      "incumbent": 0.515060460987625,
+      "611000-plain": 0.5057924327843255,
+      "612000-plain": 0.5057924355051155
+    }
+  },
+  "fixture_sha256": {
+    "cross_weight_behavior.py": "8b53954eaea424655cdcf16caceaedf0a1f02c6e5c1a90abd99c274b535068fb",
+    "rank-activation-audit.json": "cd8c00681ed78f465e64f5921189f23754277221dec9aa8c8bf30496e043cb68",
+    "direct-weight-archived-decisions.json": "bf0028937a8189c938b60cdeb0d2dcd4bf549e4ac49fff2d87d671eb572666ed",
+    "weight-observations/behavior-fixture.json": "8bb5bb633c197b38255f7391a9655ad8b0bfe7d4443cb2a42c72931f33a4e8aa"
+  },
+  "board_summary": {
+    "all": {
+      "n": 40,
+      "deviations": {
+        "incumbent": 15,
+        "611000-plain": 10,
+        "612000-plain": 8,
+        "mean_parent_logits": 2
+      },
+      "both_parents_same": 23,
+      "differs_from_both": 1,
+      "median_margins": {
+        "incumbent": 0.18987798690795898,
+        "611000-plain": 0.19902420043945312,
+        "612000-plain": 0.4583679437637329,
+        "plain-actor-mean": 0.23356522619724274,
+        "mean_parent_logits": 0.23719924688339233
+      },
+      "max_abs_logit_error_vs_ensemble": 0.28456997871398926,
+      "mean_board_mean_abs_logit_error_vs_ensemble": 0.03132298361742869
+    },
+    "danger": {
+      "n": 20,
+      "deviations": {
+        "incumbent": 8,
+        "611000-plain": 4,
+        "612000-plain": 4,
+        "mean_parent_logits": 1
+      },
+      "both_parents_same": 13,
+      "differs_from_both": 1,
+      "median_margins": {
+        "incumbent": 0.3198097348213196,
+        "611000-plain": 0.28770312666893005,
+        "612000-plain": 0.4810815751552582,
+        "plain-actor-mean": 0.27788886427879333,
+        "mean_parent_logits": 0.2797139436006546
+      },
+      "max_abs_logit_error_vs_ensemble": 0.28456997871398926,
+      "mean_board_mean_abs_logit_error_vs_ensemble": 0.019470123178325593
+    },
+    "ordinary": {
+      "n": 20,
+      "deviations": {
+        "incumbent": 7,
+        "611000-plain": 6,
+        "612000-plain": 4,
+        "mean_parent_logits": 1
+      },
+      "both_parents_same": 10,
+      "differs_from_both": 0,
+      "median_margins": {
+        "incumbent": 0.07276272773742676,
+        "611000-plain": 0.15053343772888184,
+        "612000-plain": 0.3203926086425781,
+        "plain-actor-mean": 0.12670135498046875,
+        "mean_parent_logits": 0.13167023658752441
+      },
+      "max_abs_logit_error_vs_ensemble": 0.253204882144928,
+      "mean_board_mean_abs_logit_error_vs_ensemble": 0.043175844056531784
+    }
+  },
+  "differences": {
+    "incumbent": {
+      "n": 6,
+      "wins": 3,
+      "ties": 2,
+      "losses": 1,
+      "mean": 4.166666666666667,
+      "median": 8.0
+    },
+    "611000-plain": {
+      "n": 6,
+      "wins": 1,
+      "ties": 3,
+      "losses": 2,
+      "mean": -5.5,
+      "median": 0.0
+    },
+    "612000-plain": {
+      "n": 6,
+      "wins": 4,
+      "ties": 0,
+      "losses": 2,
+      "mean": 13.166666666666666,
+      "median": 17.5
+    }
+  },
+  "matched_first_root_controls": true,
+  "runner_sha256": "8a86ffa45d2a222e1524cb6f24964f94caf5dacb83259c9ae42a864d9f33a6d2",
+  "roots_by_seed": {
+    "300322": {
+      "candidate": {
+        "n": 169,
+        "reason": "physical_top_out",
+        "target": 14,
+        "clears": 0,
+        "current": "CROSS",
+        "visible": "BRIDGE",
+        "board_sha256": "6e3ec710c396a7aa878e0b8a80ddd5d6c54ae03d3f2109980f21430b3fa6ec76",
+        "stream_sha256": "8d4c8b82e71a9972fe4255aa1b3d39ec381d4b39df59742267b146ab74ba5e43",
+        "consumed_piece_sha256": "ddab2bf52d0f7eb938f9e717f3d1c3549bd127ca56c0fc02b5ed72a157c62ee2"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 200,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "C",
+          "board_sha256": "dedd21a678aac37b9f01a0159ea49d8d83760e97dca51f6d9b7c6ed75d2d3e58",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "consumed_piece_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47"
+        },
+        "611000-plain": {
+          "n": 169,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "BRIDGE",
+          "board_sha256": "dcf9885fe11fdfb31c62f31cf20d2abe0bd9c6e68d4a40550cb50bb977e7a7d8",
+          "stream_sha256": "8d4c8b82e71a9972fe4255aa1b3d39ec381d4b39df59742267b146ab74ba5e43",
+          "consumed_piece_sha256": "ddab2bf52d0f7eb938f9e717f3d1c3549bd127ca56c0fc02b5ed72a157c62ee2"
+        },
+        "612000-plain": {
+          "n": 200,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "C",
+          "board_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+          "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+          "consumed_piece_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47"
+        }
+      },
+      "first_divergences": {
+        "612000-plain": {
+          "decision_1based": 1,
+          "board_sha256": "03140919dcf3d25752d083ba2bd4b1042787fbb862f498521ca81c0caa0e6c4c",
+          "parent_index": 77,
+          "candidate_index": 84,
+          "parent_move": [
+            53,
+            8,
+            12,
+            0,
+            13
+          ],
+          "candidate_move": [
+            55,
+            0,
+            2,
+            2,
+            13
+          ]
+        },
+        "incumbent": {
+          "decision_1based": 2,
+          "board_sha256": "5f576c14514faadef797d8926dd83cf9a4b9634527cf94e310437654685ba207",
+          "parent_index": 97,
+          "candidate_index": 55,
+          "parent_move": [
+            3,
+            14,
+            15,
+            1,
+            14
+          ],
+          "candidate_move": [
+            1,
+            5,
+            10,
+            8,
+            14
+          ]
+        },
+        "611000-plain": {
+          "decision_1based": 2,
+          "board_sha256": "5f576c14514faadef797d8926dd83cf9a4b9634527cf94e310437654685ba207",
+          "parent_index": 97,
+          "candidate_index": 55,
+          "parent_move": [
+            3,
+            14,
+            15,
+            1,
+            14
+          ],
+          "candidate_move": [
+            1,
+            5,
+            10,
+            8,
+            14
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": -31,
+        "611000-plain": 0,
+        "612000-plain": -31
+      }
+    },
+    "300460": {
+      "candidate": {
+        "n": 466,
+        "reason": "physical_top_out",
+        "target": 14,
+        "clears": 1,
+        "current": "CROSS",
+        "visible": "L",
+        "board_sha256": "7f494b867ccd3a7cadcee0ff28b21a5f88b1e66b6e9611256881a4b3540bbbd5",
+        "stream_sha256": "49027e0792010e9a8b191d0158a453c9d245772c39241012d9f352b8b4c730bd",
+        "consumed_piece_sha256": "b11114795cdeda87d00e5136fc8eb70ec9d5c55892ac996877205009462a2821"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 448,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "S",
+          "board_sha256": "43189db99e8c295adcd8cf301796d00daeef227c3f0afcf8ac1dc5e185640dfe",
+          "stream_sha256": "c7ff3505216903812405705954ef8410753ca3e5002d089a14e31ea4fca6b43e",
+          "consumed_piece_sha256": "afd92d77df05e2d655798920f194db65f284ec4a07d8048d3095b28dcb9c4025"
+        },
+        "611000-plain": {
+          "n": 466,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "L",
+          "board_sha256": "e3c6e9d8bf41e8d2be7d5e94b1e7fbb58f8220569bd6a78bafd88ec92f4a7738",
+          "stream_sha256": "49027e0792010e9a8b191d0158a453c9d245772c39241012d9f352b8b4c730bd",
+          "consumed_piece_sha256": "b11114795cdeda87d00e5136fc8eb70ec9d5c55892ac996877205009462a2821"
+        },
+        "612000-plain": {
+          "n": 412,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "B",
+          "board_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+          "stream_sha256": "5575b8d187a59c63040930ccd6c0f8a8c1f1dbeed5f935db388bb59e3876377e",
+          "consumed_piece_sha256": "240a731408f2963f9a146580d0042c17ac35acce7991fb1cd8cbd856c4352e63"
+        }
+      },
+      "first_divergences": {
+        "incumbent": {
+          "decision_1based": 1,
+          "board_sha256": "243c1e978c4ccf171b2dde358c5973ac0b78e94ea5f17540f5dd9eb82876ac73",
+          "parent_index": 2,
+          "candidate_index": 119,
+          "parent_move": [
+            2,
+            13,
+            14,
+            5,
+            8
+          ],
+          "candidate_move": [
+            175,
+            13,
+            13,
+            5,
+            8
+          ]
+        },
+        "611000-plain": {
+          "decision_1based": 2,
+          "board_sha256": "1d38c68bda5ad9ec7435ed5cb3b0c8083fb18a73bc51a73026b121c9d674fecc",
+          "parent_index": 72,
+          "candidate_index": 51,
+          "parent_move": [
+            16,
+            0,
+            3,
+            7,
+            9
+          ],
+          "candidate_move": [
+            11,
+            3,
+            14,
+            9,
+            8
+          ]
+        },
+        "612000-plain": {
+          "decision_1based": 5,
+          "board_sha256": "0cd7b5ef2be4cdcf8619e9c8bfcc9caca1bca492ae6691992fcd942e6cf6c1da",
+          "parent_index": 17,
+          "candidate_index": 3,
+          "parent_move": [
+            3,
+            0,
+            14,
+            3,
+            14
+          ],
+          "candidate_move": [
+            0,
+            7,
+            8,
+            8,
+            14
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": 18,
+        "611000-plain": 0,
+        "612000-plain": 54
+      }
+    },
+    "300264": {
+      "candidate": {
+        "n": 231,
+        "reason": "physical_top_out",
+        "target": 14,
+        "clears": 0,
+        "current": "CROSS",
+        "visible": "S",
+        "board_sha256": "ef6cf70364cd4b6413e2609ee8e99c2b3c77bf616d5720ae578eac90419eb024",
+        "stream_sha256": "5ad0ca888544684ea4d480ca4203d97950573b4fa0cb5ea5556cd4669b380017",
+        "consumed_piece_sha256": "a51532c81e7dc2d19bad90957302bd0b335b4b65a6071627ee8c31f0b81eb8c4"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 215,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "BRIDGE",
+          "board_sha256": "7aa6da2cdefb5bdddf0bf464289024f575dc0d777f13e3094a3a2eb6001c820b",
+          "stream_sha256": "c7f31ab994e0ce55238cff55e8f6e0e83ff4a84c34a7b64a59de6dcc48a9a683",
+          "consumed_piece_sha256": "a2c6bcb3794feb4e69954946e837e89486ce503e25fb104633d4cc9c34ff4abc"
+        },
+        "611000-plain": {
+          "n": 255,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "C",
+          "board_sha256": "904ce50390ddb72948026ba5a92f3108ca9c42bb5e726b985be1206369817ae7",
+          "stream_sha256": "6d008b098fff10219a73199472a0d3e15056edc856f3dc39957704de613161ab",
+          "consumed_piece_sha256": "3e58836a60f0bce0ba7cedf4127a2650a650637b93a55706d0cd7148e186ca5c"
+        },
+        "612000-plain": {
+          "n": 206,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "S",
+          "board_sha256": "7d91be673a93067cd1db4406d39f88741eacae71d23023b5da9a1e58a80482cd",
+          "stream_sha256": "7e572f972084a43557ec0c22b5838e09532a0506f2a345b07794ee0c9413f387",
+          "consumed_piece_sha256": "9710d7a8c2b5281c1b362d3509a993eefc8416313b1b250bcb8dc45c053f555b"
+        }
+      },
+      "first_divergences": {
+        "611000-plain": {
+          "decision_1based": 1,
+          "board_sha256": "5bdc719a651dbfc70ca3b9ee8f01d7b770fc3deba004ec40d6a90f00c4bdb714",
+          "parent_index": 1,
+          "candidate_index": 48,
+          "parent_move": [
+            6,
+            8,
+            9,
+            5,
+            13
+          ],
+          "candidate_move": [
+            78,
+            8,
+            8,
+            11,
+            13
+          ]
+        },
+        "612000-plain": {
+          "decision_1based": 5,
+          "board_sha256": "2b49e8145b6e0a9f78bde82d3d6e8cbcceb296788b6f2df945c65d2b71a5a561",
+          "parent_index": 39,
+          "candidate_index": 105,
+          "parent_move": [
+            0,
+            0,
+            14,
+            15,
+            14
+          ],
+          "candidate_move": [
+            4,
+            7,
+            11,
+            2,
+            14
+          ]
+        },
+        "incumbent": {
+          "decision_1based": 8,
+          "board_sha256": "23b41e7491214d26bd6d4f96c6698ab1c5e6f5a953af1b9d75939bf7e11ac331",
+          "parent_index": 77,
+          "candidate_index": 99,
+          "parent_move": [
+            9,
+            11,
+            2,
+            9,
+            13
+          ],
+          "candidate_move": [
+            12,
+            7,
+            5,
+            0,
+            13
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": 16,
+        "611000-plain": -24,
+        "612000-plain": 25
+      }
+    },
+    "300576": {
+      "candidate": {
+        "n": 630,
+        "reason": "physical_top_out",
+        "target": 14,
+        "clears": 1,
+        "current": "HYPER",
+        "visible": "S",
+        "board_sha256": "9d45005b0e5b787a46a3a74a37ed8eaa4ba78b33a179c21dd5d2575d9050844b",
+        "stream_sha256": "fe65185952d84839356d4216ca8b2d924e90f68286c24dbfd59a87d71ba19a05",
+        "consumed_piece_sha256": "b836fc78e17620a5637086b7b281a2db58a3933b123997da6625e0ff659d2a2f"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 608,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "RING",
+          "board_sha256": "591e65efda39c68e26ad6573f1e8e2b34f08824d6deeec4dc2d7e443f0fa528a",
+          "stream_sha256": "a2ffd6eb74fff9d19b330a80573decf4b2b12f6b5369bf8463d8316b1604e200",
+          "consumed_piece_sha256": "492788f8ec9f9d3c0e383e9919dac9a66d74833fdba152f0189198b1c4b5b4da"
+        },
+        "611000-plain": {
+          "n": 608,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "RING",
+          "board_sha256": "66266c802c57e919d60fcb56c0f26e73e9702e96e09b2cf99baabbcb13182071",
+          "stream_sha256": "a2ffd6eb74fff9d19b330a80573decf4b2b12f6b5369bf8463d8316b1604e200",
+          "consumed_piece_sha256": "492788f8ec9f9d3c0e383e9919dac9a66d74833fdba152f0189198b1c4b5b4da"
+        },
+        "612000-plain": {
+          "n": 593,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 1,
+          "current": "CROSS",
+          "visible": "STAIR",
+          "board_sha256": "0d9f3a97a265c910fde86519d956df3d76308ce771385f108c1467a421a7f29c",
+          "stream_sha256": "b42c1b1cd106d52bddf6c1214ab37b5e48bdf85e84c18a83e3acb6604df3a00c",
+          "consumed_piece_sha256": "c0abdcdeed05eee1bbbda8961f4ef45d9078c1087be296ba4ab3b25d276c87c0"
+        }
+      },
+      "first_divergences": {
+        "incumbent": {
+          "decision_1based": 3,
+          "board_sha256": "23378a1a3823607c6a7c96faadea96ae6a8146a7bbd075c0e41598bdc34cedba",
+          "parent_index": 90,
+          "candidate_index": 35,
+          "parent_move": [
+            18,
+            3,
+            0,
+            7,
+            12
+          ],
+          "candidate_move": [
+            4,
+            3,
+            0,
+            8,
+            12
+          ]
+        },
+        "612000-plain": {
+          "decision_1based": 3,
+          "board_sha256": "23378a1a3823607c6a7c96faadea96ae6a8146a7bbd075c0e41598bdc34cedba",
+          "parent_index": 90,
+          "candidate_index": 35,
+          "parent_move": [
+            18,
+            3,
+            0,
+            7,
+            12
+          ],
+          "candidate_move": [
+            4,
+            3,
+            0,
+            8,
+            12
+          ]
+        },
+        "611000-plain": {
+          "decision_1based": 7,
+          "board_sha256": "3bf468fd27f00984ae40035cd72f54a32d194271e4c6cd1f6f16493d8eb35b09",
+          "parent_index": 49,
+          "candidate_index": 80,
+          "parent_move": [
+            46,
+            12,
+            10,
+            0,
+            12
+          ],
+          "candidate_move": [
+            64,
+            12,
+            10,
+            0,
+            12
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": 22,
+        "611000-plain": 22,
+        "612000-plain": 37
+      }
+    },
+    "500000": {
+      "candidate": {
+        "n": 232,
+        "reason": "physical_top_out",
+        "target": 14,
+        "clears": 0,
+        "current": "CROSS",
+        "visible": "C",
+        "board_sha256": "89df25b415a613746748a0172f8e6d6f928f46c16e163190b4ce3316f35fb7e7",
+        "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+        "consumed_piece_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 232,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "C",
+          "board_sha256": "e821de3f99b79994ebc21394db07979cf0cea772026190f63843914b19d12479",
+          "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+          "consumed_piece_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d"
+        },
+        "611000-plain": {
+          "n": 263,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "HYPER",
+          "board_sha256": "73aa4a965af70601376bbb43668376241de845fd64a73041bb720653e272ac7e",
+          "stream_sha256": "ecb63c29528c1e945bf66d92e86d23b521f79f1be5e6d6c52a156454d67bf47a",
+          "consumed_piece_sha256": "3eeda67bb626659f466df4b2a5aba6fe7c0bb96ac2138a17cee32b1990370754"
+        },
+        "612000-plain": {
+          "n": 222,
+          "reason": "physical_top_out",
+          "target": 14,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "BRIDGE",
+          "board_sha256": "ae1a7df4169ab9870269978564b1a7680d9e942ccfe1e01afc6f7a2973760ed6",
+          "stream_sha256": "4b24bae456b2bc9479500e8c9e569a1cf4b5857dc22f25c751cf908d987d8f51",
+          "consumed_piece_sha256": "60ec85fe1d75d4f9818f86362880602b0da08b261354e827e54fa3b736b7df8a"
+        }
+      },
+      "first_divergences": {
+        "612000-plain": {
+          "decision_1based": 1,
+          "board_sha256": "b2bf8d3cb73eb91f1c4f2cc294025337ea6feee54065730dcbedb43bf1cd3b6c",
+          "parent_index": 12,
+          "candidate_index": 33,
+          "parent_move": [
+            1,
+            2,
+            7,
+            4,
+            14
+          ],
+          "candidate_move": [
+            3,
+            3,
+            6,
+            5,
+            13
+          ]
+        },
+        "611000-plain": {
+          "decision_1based": 2,
+          "board_sha256": "540e1e3f4c9b3f815746787a1cfad5836b840433afd9c94a718308cf496f0362",
+          "parent_index": 21,
+          "candidate_index": 105,
+          "parent_move": [
+            37,
+            11,
+            6,
+            5,
+            12
+          ],
+          "candidate_move": [
+            151,
+            1,
+            8,
+            9,
+            12
+          ]
+        },
+        "incumbent": {
+          "decision_1based": 3,
+          "board_sha256": "20a5c9320ace50d0ccc58bac5580eb881d4c04f36a6ed7a9c893ab55ba06d6df",
+          "parent_index": 48,
+          "candidate_index": 30,
+          "parent_move": [
+            10,
+            7,
+            14,
+            3,
+            14
+          ],
+          "candidate_move": [
+            5,
+            6,
+            7,
+            11,
+            14
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": 0,
+        "611000-plain": -31,
+        "612000-plain": 10
+      }
+    },
+    "300122": {
+      "candidate": {
+        "n": 239,
+        "reason": "physical_top_out",
+        "target": 13,
+        "clears": 0,
+        "current": "CROSS",
+        "visible": "S",
+        "board_sha256": "5f42f28fb9a4d8e5baaf9703263be253df6b4d1e6c2724c395cfdf575854fd3b",
+        "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+        "consumed_piece_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d"
+      },
+      "controls": {
+        "incumbent": {
+          "n": 239,
+          "reason": "physical_top_out",
+          "target": 13,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "S",
+          "board_sha256": "0152903d54392248515c01fad660cf8354dc0ee610ee49f180a669fb2cf49805",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "consumed_piece_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d"
+        },
+        "611000-plain": {
+          "n": 239,
+          "reason": "physical_top_out",
+          "target": 13,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "S",
+          "board_sha256": "282db9ccd5cf80b9fdfb09066b81cdf6a300148d85f2bea69ce474d2a1f29b17",
+          "stream_sha256": "214cb3437f66efdb9612dc6144dfdfa6ec5b2e0cffb3663d3895a97b86efa315",
+          "consumed_piece_sha256": "6c6ed99936d531501b5c4bfbfeaca0ae6dc9a27031c20c92b8fd39bc58716e9d"
+        },
+        "612000-plain": {
+          "n": 255,
+          "reason": "physical_top_out",
+          "target": 13,
+          "clears": 0,
+          "current": "CROSS",
+          "visible": "S",
+          "board_sha256": "d61c9023b9471dcc661753ecdbf30c9068db7c2f38fa9b2233f10aed31c14adb",
+          "stream_sha256": "5ccb45409abf5e2b5ac292ae15d3e4e41364d91c0d1c8e332bce5dfe25b1cf14",
+          "consumed_piece_sha256": "38fce00d9269df4670a6ec47a59d91ab133985bff2f0863d3f19b7e5325ae659"
+        }
+      },
+      "first_divergences": {
+        "incumbent": {
+          "decision_1based": 1,
+          "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+          "parent_index": 106,
+          "candidate_index": 30,
+          "parent_move": [
+            41,
+            4,
+            6,
+            13,
+            11
+          ],
+          "candidate_move": [
+            16,
+            3,
+            14,
+            13,
+            11
+          ]
+        },
+        "611000-plain": {
+          "decision_1based": 1,
+          "board_sha256": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+          "parent_index": 23,
+          "candidate_index": 30,
+          "parent_move": [
+            16,
+            2,
+            4,
+            6,
+            11
+          ],
+          "candidate_move": [
+            16,
+            3,
+            14,
+            13,
+            11
+          ]
+        },
+        "612000-plain": {
+          "decision_1based": 4,
+          "board_sha256": "fe1dac21da43c91fc331a6cc21e521c0e9ac6b4043c0fbd4621b755db06221de",
+          "parent_index": 29,
+          "candidate_index": 48,
+          "parent_move": [
+            12,
+            2,
+            11,
+            8,
+            13
+          ],
+          "candidate_move": [
+            17,
+            11,
+            10,
+            2,
+            13
+          ]
+        }
+      },
+      "lifetime_deltas": {
+        "incumbent": 0,
+        "611000-plain": 0,
+        "612000-plain": -16
+      }
+    }
+  }
+}

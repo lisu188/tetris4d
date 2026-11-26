@@ -1,0 +1,1701 @@
+{
+  "schema": "public-cross-terminal-mass-v1",
+  "scope": "Physical top-outs on the same eight fresh public streams. Terminal piece and occupied cell count reconstructed from the seeded expanded bag, placement count and layer clears. Topology and terminal-move avoidability are unknown from these scalars. Endpoints share seeds. Scores selected on these data require independent evaluation.",
+  "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+  "game_runtime_sha256": "c8d7045602cea535b6f5f639db2c1b5247dc1016995b27ad69edf1a04c085048",
+  "script_sha256": "ae83742d069963f1b465b0da0bd147c46807b64b5c4343d47125009a962b058e",
+  "board_cells": 65536,
+  "cells_per_layer": 4096,
+  "seeds": [
+    48200001,
+    48200003,
+    48200005,
+    48200007,
+    48200009,
+    48200011,
+    48200013,
+    48200015
+  ],
+  "players": {
+    "incumbent": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 31474,
+          "clears": 35,
+          "placed_cells": 188841,
+          "occupied_cells": 45481,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 47315,
+          "clears": 57,
+          "placed_cells": 283884,
+          "occupied_cells": 50412,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 34032,
+          "clears": 39,
+          "placed_cells": 204181,
+          "occupied_cells": 44437,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 39273,
+          "clears": 45,
+          "placed_cells": 235633,
+          "occupied_cells": 51313,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 29669,
+          "clears": 33,
+          "placed_cells": 178011,
+          "occupied_cells": 42843,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 28812,
+          "clears": 32,
+          "placed_cells": 172873,
+          "occupied_cells": 41801,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 46056,
+          "clears": 55,
+          "placed_cells": 276334,
+          "occupied_cells": 51054,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 36944,
+          "clears": 43,
+          "placed_cells": 221661,
+          "occupied_cells": 45533,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "mean_terminal_cells": 46609.25,
+      "pooled_clears_per_1000": 1.1547304777314145,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "weight-0.25": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 31424,
+          "clears": 35,
+          "placed_cells": 188541,
+          "occupied_cells": 45181,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 49470,
+          "clears": 60,
+          "placed_cells": 296820,
+          "occupied_cells": 51060,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 34032,
+          "clears": 39,
+          "placed_cells": 204181,
+          "occupied_cells": 44437,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 39273,
+          "clears": 45,
+          "placed_cells": 235633,
+          "occupied_cells": 51313,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 29669,
+          "clears": 33,
+          "placed_cells": 178011,
+          "occupied_cells": 42843,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 28812,
+          "clears": 32,
+          "placed_cells": 172873,
+          "occupied_cells": 41801,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 44639,
+          "clears": 53,
+          "placed_cells": 267831,
+          "occupied_cells": 50743,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 37758,
+          "clears": 44,
+          "placed_cells": 226547,
+          "occupied_cells": 46323,
+          "blocked_piece": "HYPER"
+        }
+      ],
+      "receipt_sha256": "923347310d15dc5ace07189712f898732cef18674fa1df8ff30283543ef54c3b",
+      "checkpoint_sha256": "2724b5b2db4668109c3727851c5122042cbcb495fd4f0b0d992593d59b408505",
+      "mean_terminal_cells": 46712.625,
+      "pooled_clears_per_1000": 1.1556305642256088,
+      "blocked_pieces": {
+        "CROSS": 7,
+        "HYPER": 1
+      }
+    },
+    "weight-1": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 31436,
+          "clears": 35,
+          "placed_cells": 188603,
+          "occupied_cells": 45243,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 51632,
+          "clears": 63,
+          "placed_cells": 309789,
+          "occupied_cells": 51741,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 34032,
+          "clears": 39,
+          "placed_cells": 204181,
+          "occupied_cells": 44437,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 39973,
+          "clears": 46,
+          "placed_cells": 239837,
+          "occupied_cells": 51421,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 29673,
+          "clears": 33,
+          "placed_cells": 178037,
+          "occupied_cells": 42869,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 31161,
+          "clears": 35,
+          "placed_cells": 186960,
+          "occupied_cells": 43600,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 46090,
+          "clears": 55,
+          "placed_cells": 276533,
+          "occupied_cells": 51253,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 36883,
+          "clears": 43,
+          "placed_cells": 221293,
+          "occupied_cells": 45165,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "ab68082fce606ec427287453fbf5d6f6250a26e6d36832a1cf74624af4e76297",
+      "checkpoint_sha256": "a02d25fd74e59837ca6fa1c10d1522a00a366918554a3e3c9c22099d6ff48c07",
+      "mean_terminal_cells": 46966.125,
+      "pooled_clears_per_1000": 1.1599308694496144,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "weight-4": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 31441,
+          "clears": 35,
+          "placed_cells": 188648,
+          "occupied_cells": 45288,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 50151,
+          "clears": 61,
+          "placed_cells": 300901,
+          "occupied_cells": 51045,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 39423,
+          "clears": 46,
+          "placed_cells": 236538,
+          "occupied_cells": 48122,
+          "blocked_piece": "HYPER"
+        },
+        {
+          "seed": 48200007,
+          "placements": 41361,
+          "clears": 48,
+          "placed_cells": 248172,
+          "occupied_cells": 51564,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 29673,
+          "clears": 33,
+          "placed_cells": 178037,
+          "occupied_cells": 42869,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 32617,
+          "clears": 37,
+          "placed_cells": 195695,
+          "occupied_cells": 44143,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 46787,
+          "clears": 56,
+          "placed_cells": 280721,
+          "occupied_cells": 51345,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 37023,
+          "clears": 43,
+          "placed_cells": 222133,
+          "occupied_cells": 46005,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "0e2c7e99c6d24f2d58ed44ed21d8c7292f1eba9cf63a808488481f31944a0a6c",
+      "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "mean_terminal_cells": 47547.625,
+      "pooled_clears_per_1000": 1.163785837471959,
+      "blocked_pieces": {
+        "CROSS": 7,
+        "HYPER": 1
+      }
+    },
+    "611000-plain": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 35548,
+          "clears": 41,
+          "placed_cells": 213286,
+          "occupied_cells": 45350,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 16846,
+          "clears": 16,
+          "placed_cells": 101076,
+          "occupied_cells": 35540,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 39161,
+          "clears": 46,
+          "placed_cells": 234966,
+          "occupied_cells": 46550,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 19361,
+          "clears": 19,
+          "placed_cells": 116165,
+          "occupied_cells": 38341,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 35236,
+          "clears": 40,
+          "placed_cells": 211414,
+          "occupied_cells": 47574,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 47868,
+          "clears": 57,
+          "placed_cells": 287214,
+          "occupied_cells": 53742,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 43163,
+          "clears": 51,
+          "placed_cells": 258967,
+          "occupied_cells": 50071,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 28637,
+          "clears": 32,
+          "placed_cells": 171822,
+          "occupied_cells": 40750,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "444c4e7f64af53aaf3a81a357969a781660e38e80a7f6c360b68f805099b44b5",
+      "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "mean_terminal_cells": 44739.75,
+      "pooled_clears_per_1000": 1.1361071401700398,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "612000-plain": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 60856,
+          "clears": 75,
+          "placed_cells": 365135,
+          "occupied_cells": 57935,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 57366,
+          "clears": 71,
+          "placed_cells": 344202,
+          "occupied_cells": 53386,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 27887,
+          "clears": 31,
+          "placed_cells": 167323,
+          "occupied_cells": 40347,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 46139,
+          "clears": 56,
+          "placed_cells": 276831,
+          "occupied_cells": 47455,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 63631,
+          "clears": 79,
+          "placed_cells": 381784,
+          "occupied_cells": 58200,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 52186,
+          "clears": 63,
+          "placed_cells": 313116,
+          "occupied_cells": 55068,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 41040,
+          "clears": 48,
+          "placed_cells": 246240,
+          "occupied_cells": 49632,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 42266,
+          "clears": 50,
+          "placed_cells": 253597,
+          "occupied_cells": 48797,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "923439f3a13fe1ad6fce68be793433bd4d1276576b3660844443af239472a699",
+      "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "mean_terminal_cells": 51352.5,
+      "pooled_clears_per_1000": 1.2085719176944638,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "611000-cold": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 46246,
+          "clears": 55,
+          "placed_cells": 277474,
+          "occupied_cells": 52194,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 45008,
+          "clears": 53,
+          "placed_cells": 270043,
+          "occupied_cells": 52955,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 32830,
+          "clears": 37,
+          "placed_cells": 196983,
+          "occupied_cells": 45431,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 35632,
+          "clears": 41,
+          "placed_cells": 213798,
+          "occupied_cells": 45862,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 38051,
+          "clears": 44,
+          "placed_cells": 228297,
+          "occupied_cells": 48073,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 35101,
+          "clears": 40,
+          "placed_cells": 210604,
+          "occupied_cells": 46764,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 32007,
+          "clears": 36,
+          "placed_cells": 192042,
+          "occupied_cells": 44586,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 48787,
+          "clears": 58,
+          "placed_cells": 292722,
+          "occupied_cells": 55154,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "49c94521b0706a28ec2e866fa132ede0de5077cd74455941478ddab5966707a7",
+      "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "mean_terminal_cells": 48877.375,
+      "pooled_clears_per_1000": 1.1604848531221506,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "612000-cold": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 41930,
+          "clears": 49,
+          "placed_cells": 251578,
+          "occupied_cells": 50874,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 30386,
+          "clears": 34,
+          "placed_cells": 182319,
+          "occupied_cells": 43055,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 32613,
+          "clears": 37,
+          "placed_cells": 195677,
+          "occupied_cells": 44125,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 41626,
+          "clears": 49,
+          "placed_cells": 249758,
+          "occupied_cells": 49054,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 46913,
+          "clears": 56,
+          "placed_cells": 281479,
+          "occupied_cells": 52103,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 33157,
+          "clears": 38,
+          "placed_cells": 198943,
+          "occupied_cells": 43295,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 32129,
+          "clears": 36,
+          "placed_cells": 192771,
+          "occupied_cells": 45315,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 51915,
+          "clears": 63,
+          "placed_cells": 311490,
+          "occupied_cells": 53442,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "536e26e4f51a1aa219316a63d8168797009fb3c42a66defc91672fb55fec2478",
+      "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "mean_terminal_cells": 47657.875,
+      "pooled_clears_per_1000": 1.1652272997949586,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "611000-anchored": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 36736,
+          "clears": 43,
+          "placed_cells": 220414,
+          "occupied_cells": 44286,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 35649,
+          "clears": 41,
+          "placed_cells": 213888,
+          "occupied_cells": 45952,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 23564,
+          "clears": 25,
+          "placed_cells": 141381,
+          "occupied_cells": 38981,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 31143,
+          "clears": 35,
+          "placed_cells": 186858,
+          "occupied_cells": 43498,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 45286,
+          "clears": 54,
+          "placed_cells": 271714,
+          "occupied_cells": 50530,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 50165,
+          "clears": 61,
+          "placed_cells": 300982,
+          "occupied_cells": 51126,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 46434,
+          "clears": 56,
+          "placed_cells": 278594,
+          "occupied_cells": 49218,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 35029,
+          "clears": 40,
+          "placed_cells": 210182,
+          "occupied_cells": 46342,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "409f671734e5db5ff35f44527f1e0d4aec050bc719738539b44ee19260e309a5",
+      "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+      "mean_terminal_cells": 46241.625,
+      "pooled_clears_per_1000": 1.167740110392558,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "612000-anchored": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 32767,
+          "clears": 38,
+          "placed_cells": 196594,
+          "occupied_cells": 40946,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 39364,
+          "clears": 46,
+          "placed_cells": 236179,
+          "occupied_cells": 47763,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 29475,
+          "clears": 33,
+          "placed_cells": 176850,
+          "occupied_cells": 41682,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 37902,
+          "clears": 44,
+          "placed_cells": 227412,
+          "occupied_cells": 47188,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 43449,
+          "clears": 51,
+          "placed_cells": 260699,
+          "occupied_cells": 51803,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 49518,
+          "clears": 60,
+          "placed_cells": 297110,
+          "occupied_cells": 51350,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 42430,
+          "clears": 50,
+          "placed_cells": 254584,
+          "occupied_cells": 49784,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 50735,
+          "clears": 61,
+          "placed_cells": 304401,
+          "occupied_cells": 54545,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "3cae061533ba46d0a28fe9ed42418a449a32979a65541a40649198d0f97123aa",
+      "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+      "mean_terminal_cells": 48132.625,
+      "pooled_clears_per_1000": 1.1761454366785407,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    },
+    "611000-residual": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 52569,
+          "clears": 64,
+          "placed_cells": 315416,
+          "occupied_cells": 53272,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 37791,
+          "clears": 44,
+          "placed_cells": 226745,
+          "occupied_cells": 46521,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 39499,
+          "clears": 46,
+          "placed_cells": 236991,
+          "occupied_cells": 48575,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 24264,
+          "clears": 26,
+          "placed_cells": 145569,
+          "occupied_cells": 39073,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 40137,
+          "clears": 47,
+          "placed_cells": 240820,
+          "occupied_cells": 48308,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 37112,
+          "clears": 43,
+          "placed_cells": 222670,
+          "occupied_cells": 46542,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 44264,
+          "clears": 53,
+          "placed_cells": 265581,
+          "occupied_cells": 48493,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 27316,
+          "clears": 30,
+          "placed_cells": 163906,
+          "occupied_cells": 41026,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "eebdd1b6765fdd15333deafa64cf86146f8a7a6d139737d2faa2e79ae40e5f55",
+      "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+      "mean_terminal_cells": 46476.25,
+      "pooled_clears_per_1000": 1.1652010879611292,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
+    }
+  },
+  "snapshot_crosschecks": [
+    {
+      "player": "612000-plain",
+      "seed": 48200001,
+      "placement": 8283,
+      "occupied_cells": 8732
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200001,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200001,
+      "placement": 8672,
+      "occupied_cells": 11068
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200001,
+      "placement": 9311,
+      "occupied_cells": 14907
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200001,
+      "placement": 10300,
+      "occupied_cells": 20845
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200001,
+      "placement": 10540,
+      "occupied_cells": 18184
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200001,
+      "placement": 32978,
+      "occupied_cells": 34024
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200001,
+      "placement": 33054,
+      "occupied_cells": 38585
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200001,
+      "placement": 33194,
+      "occupied_cells": 39421
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200001,
+      "placement": 34004,
+      "occupied_cells": 40186
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200001,
+      "placement": 34230,
+      "occupied_cells": 33348
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200003,
+      "placement": 8283,
+      "occupied_cells": 8738
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200003,
+      "placement": 8400,
+      "occupied_cells": 17632
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200003,
+      "placement": 8672,
+      "occupied_cells": 15177
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200003,
+      "placement": 9311,
+      "occupied_cells": 14905
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200003,
+      "placement": 10300,
+      "occupied_cells": 16747
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200003,
+      "placement": 10540,
+      "occupied_cells": 18190
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200003,
+      "placement": 32978,
+      "occupied_cells": 38115
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200003,
+      "placement": 33047,
+      "occupied_cells": 42635
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200003,
+      "placement": 33194,
+      "occupied_cells": 39421
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200003,
+      "placement": 34004,
+      "occupied_cells": 40186
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200003,
+      "placement": 34230,
+      "occupied_cells": 33348
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200005,
+      "placement": 8283,
+      "occupied_cells": 16938
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200005,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200005,
+      "placement": 8672,
+      "occupied_cells": 19260
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200005,
+      "placement": 9311,
+      "occupied_cells": 18994
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200005,
+      "placement": 10300,
+      "occupied_cells": 16743
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200005,
+      "placement": 10540,
+      "occupied_cells": 18187
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200005,
+      "placement": 32978,
+      "occupied_cells": 42210
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200007,
+      "placement": 8283,
+      "occupied_cells": 12840
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200007,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200007,
+      "placement": 8672,
+      "occupied_cells": 19261
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200007,
+      "placement": 9311,
+      "occupied_cells": 14907
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200007,
+      "placement": 10300,
+      "occupied_cells": 16740
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200007,
+      "placement": 10540,
+      "occupied_cells": 14086
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200007,
+      "placement": 33047,
+      "occupied_cells": 38546
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200007,
+      "placement": 33054,
+      "occupied_cells": 38590
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200007,
+      "placement": 34004,
+      "occupied_cells": 40182
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200007,
+      "placement": 34230,
+      "occupied_cells": 37444
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200009,
+      "placement": 8283,
+      "occupied_cells": 12829
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200009,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200009,
+      "placement": 8672,
+      "occupied_cells": 11068
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200009,
+      "placement": 9311,
+      "occupied_cells": 14895
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200009,
+      "placement": 10300,
+      "occupied_cells": 12636
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200009,
+      "placement": 10540,
+      "occupied_cells": 14096
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200009,
+      "placement": 32978,
+      "occupied_cells": 38123
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200009,
+      "placement": 33047,
+      "occupied_cells": 38539
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200009,
+      "placement": 33054,
+      "occupied_cells": 38590
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200009,
+      "placement": 33194,
+      "occupied_cells": 39421
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200009,
+      "placement": 34004,
+      "occupied_cells": 40182
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200009,
+      "placement": 34230,
+      "occupied_cells": 33348
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200011,
+      "placement": 8283,
+      "occupied_cells": 12831
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200011,
+      "placement": 8400,
+      "occupied_cells": 17632
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200011,
+      "placement": 8672,
+      "occupied_cells": 15165
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200011,
+      "placement": 9311,
+      "occupied_cells": 14913
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200011,
+      "placement": 10300,
+      "occupied_cells": 16732
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200011,
+      "placement": 10540,
+      "occupied_cells": 14071
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200011,
+      "placement": 32978,
+      "occupied_cells": 38116
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200011,
+      "placement": 33047,
+      "occupied_cells": 34438
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200011,
+      "placement": 33194,
+      "occupied_cells": 35321
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200011,
+      "placement": 34004,
+      "occupied_cells": 44270
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200011,
+      "placement": 34230,
+      "occupied_cells": 37444
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200013,
+      "placement": 8283,
+      "occupied_cells": 12829
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200013,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200013,
+      "placement": 8672,
+      "occupied_cells": 11082
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200013,
+      "placement": 9311,
+      "occupied_cells": 14898
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200013,
+      "placement": 10300,
+      "occupied_cells": 12653
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200013,
+      "placement": 10540,
+      "occupied_cells": 18181
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200013,
+      "placement": 32978,
+      "occupied_cells": 38114
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200013,
+      "placement": 33047,
+      "occupied_cells": 38535
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200013,
+      "placement": 33194,
+      "occupied_cells": 35321
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200013,
+      "placement": 34230,
+      "occupied_cells": 41540
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200015,
+      "placement": 8283,
+      "occupied_cells": 8745
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200015,
+      "placement": 8400,
+      "occupied_cells": 17632
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200015,
+      "placement": 8672,
+      "occupied_cells": 15166
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200015,
+      "placement": 9311,
+      "occupied_cells": 10813
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200015,
+      "placement": 10300,
+      "occupied_cells": 12639
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200015,
+      "placement": 10540,
+      "occupied_cells": 14093
+    },
+    {
+      "player": "612000-anchored",
+      "seed": 48200015,
+      "placement": 33047,
+      "occupied_cells": 38540
+    },
+    {
+      "player": "612000-cold",
+      "seed": 48200015,
+      "placement": 33054,
+      "occupied_cells": 34475
+    },
+    {
+      "player": "611000-anchored",
+      "seed": 48200015,
+      "placement": 33194,
+      "occupied_cells": 39410
+    },
+    {
+      "player": "611000-cold",
+      "seed": 48200015,
+      "placement": 34004,
+      "occupied_cells": 36085
+    },
+    {
+      "player": "612000-plain",
+      "seed": 48200015,
+      "placement": 34230,
+      "occupied_cells": 37444
+    }
+  ],
+  "612000_plain_contrasts": {
+    "incumbent": {
+      "placed_cells": 73351.25,
+      "clears": 16.75,
+      "occupied_cells": 4743.25,
+      "placements": 12224.5,
+      "fraction_of_net_extra_cells_cleared": 0.9353351169884631
+    },
+    "weight-4": {
+      "placed_cells": 62172.875,
+      "clears": 14.25,
+      "occupied_cells": 3804.875,
+      "placements": 10361.875,
+      "fraction_of_net_extra_cells_cleared": 0.9388016880351762
+    },
+    "611000-plain": {
+      "placed_cells": 94164.75,
+      "clears": 21.375,
+      "occupied_cells": 6612.75,
+      "placements": 15693.875,
+      "fraction_of_net_extra_cells_cleared": 0.9297746768297054
+    }
+  },
+  "public_tail_replays": {
+    "scope": "One shortest available retained tail per preregistered actor. CPU and GPU can differ in floating-point ranking. An identical scalar endpoint independently checks length and clears; the official GPU terminal board was not retained.",
+    "registration_sha256": "60460d2d429d0752d08dad9cd8b4227cf8928939a388b75bf6299a319ad732ef",
+    "cases": [
+      {
+        "arm": "611000-cold",
+        "seed": 48200003,
+        "start": 44498,
+        "gap": 510,
+        "snapshot": "public-terminal-replay/611000-cold-48200003.json.gz",
+        "snapshot_sha256": "83baaa5e6bc2fff67753a071394ff451bfd4d7be79509d8fdc7ab2342d4b977e",
+        "receipt_sha256": "49c94521b0706a28ec2e866fa132ede0de5077cd74455941478ddab5966707a7",
+        "checkpoint": {
+          "path": "/home/andrz/git/tetris4d/survival-training.artifacts/cross-survival-24h/training/611000-cold/last.pt",
+          "sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+          "mode": "greedy"
+        },
+        "published_placements": 45008,
+        "published_clears": 53,
+        "other_available_gaps": [
+          510,
+          1018,
+          1097,
+          1628,
+          1748,
+          4289,
+          21467,
+          22290
+        ]
+      },
+      {
+        "arm": "612000-plain",
+        "seed": 48200013,
+        "start": 34230,
+        "gap": 6810,
+        "snapshot": "public-ppo-screen-snapshots/snapshots/57c9f10989ab120bee126c4472c309d28de625d933080ff7bd4ce78b86c0b678.json.gz",
+        "snapshot_sha256": "a7300c2195941a0221a4e9a0bfb9856679482b9c8bb0bc779e4a39da3b80a342",
+        "receipt_sha256": "923439f3a13fe1ad6fce68be793433bd4d1276576b3660844443af239472a699",
+        "checkpoint": {
+          "path": "/home/andrz/git/tetris4d/survival-training.artifacts/cross-survival-24h/training/612000-plain/last.pt",
+          "sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+          "mode": "greedy"
+        },
+        "published_placements": 41040,
+        "published_clears": 48,
+        "other_available_gaps": [
+          6810,
+          8036,
+          11909,
+          17956,
+          19604,
+          23136,
+          26626,
+          29401
+        ]
+      }
+    ],
+    "results": {
+      "611000-cold": {
+        "status": "complete",
+        "registration_sha256": "60460d2d429d0752d08dad9cd8b4227cf8928939a388b75bf6299a319ad732ef",
+        "scope": "Uncapped CPU replay of public GPU snapshot",
+        "arm": "611000-cold",
+        "seed": 48200003,
+        "placements": 45008,
+        "clears": 53,
+        "wall_seconds": 44.96880587900523,
+        "loss_events": 1,
+        "last_origin_loss": {
+          "placement": 45008,
+          "before": 1,
+          "after": 0,
+          "chosen": {
+            "piece": "BRIDGE",
+            "rotation": 137,
+            "x": 8,
+            "y": 9,
+            "w": 10,
+            "z": 12,
+            "layers": 0,
+            "score": -34362.19073441284
+          },
+          "shortlist": 128,
+          "saving_actions": 110,
+          "best_saving_action": {
+            "piece": "BRIDGE",
+            "rotation": 165,
+            "x": 14,
+            "y": 11,
+            "w": 11,
+            "z": 12,
+            "layers": 0,
+            "score": -34362.24144400984
+          },
+          "bag_visible": "CROSS"
+        },
+        "blocked_piece": "CROSS",
+        "terminal_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+        "terminal_requested_target": 13,
+        "terminal_selected_target": 13,
+        "terminal_options": 128,
+        "terminal_saving_actions": 110,
+        "terminal_cross_before": 1,
+        "terminal_chosen": {
+          "piece": "BRIDGE",
+          "rotation": 137,
+          "x": 8,
+          "y": 9,
+          "w": 10,
+          "z": 12,
+          "layers": 0,
+          "score": -34362.19073441284
+        },
+        "public_end_matches": true
+      },
+      "612000-plain": {
+        "status": "complete",
+        "registration_sha256": "60460d2d429d0752d08dad9cd8b4227cf8928939a388b75bf6299a319ad732ef",
+        "scope": "Uncapped CPU replay of public GPU snapshot",
+        "arm": "612000-plain",
+        "seed": 48200013,
+        "placements": 45330,
+        "clears": 54,
+        "wall_seconds": 982.1648187420215,
+        "loss_events": 6,
+        "last_origin_loss": {
+          "placement": 45327,
+          "before": 1,
+          "after": 0,
+          "chosen": {
+            "piece": "CROSS",
+            "rotation": 0,
+            "x": 2,
+            "y": 6,
+            "w": 5,
+            "z": 13,
+            "layers": 0,
+            "score": -36675.560226463356
+          },
+          "shortlist": 1,
+          "saving_actions": 0,
+          "best_saving_action": null,
+          "bag_visible": "NOVA"
+        },
+        "blocked_piece": "CROSS",
+        "terminal_board_sha256": "58ebe17d0ae6e87fee445836e0efbfbc153fda091c79b0b53ec283c2b7c6d984",
+        "terminal_requested_target": 14,
+        "terminal_selected_target": 14,
+        "terminal_options": 128,
+        "terminal_saving_actions": 0,
+        "terminal_cross_before": 0,
+        "terminal_chosen": {
+          "piece": "C",
+          "rotation": 59,
+          "x": 2,
+          "y": 13,
+          "w": 14,
+          "z": 14,
+          "layers": 0,
+          "score": -36684.00927157359
+        },
+        "public_end_matches": false,
+        "receipt_sha256": "b1215437d3691eb4e756666c167fc92b5670df698ec13f4b335d4b4749d0915b",
+        "interpretation": "CPU replay started from the same saved board at 34230. Its lifetime exceeded the official GPU endpoint of 41040. No later official board or action trace is available on this seed to identify the first differing decision or its cause."
+      }
+    },
+    "cold_rescue_followup": {
+      "scope": "Selected after observing an avoidable fatal move in the shortest available CPU replay of the first cold public screen. Same board, hidden RNG and downstream visible-next rescue rule. One case.",
+      "registration_sha256": "9b6e3be8b60ae6e00870438e8cedcef7a1ddbea347dca47db138f58319f160f6",
+      "first_override_sha256": "7936eff660bacca29f6c5dc1b495c208e67e9792fe04073420e438ed904819c7",
+      "first_override": {
+        "all_logits_sha256": "b8ed53c4879fe7bb57c80823a5525171045e672a89eafc5ec23e0c0cc661e499",
+        "all_raw_counts_sha256": "95b4d0ac93835080bf3fe5bbd6f1ca667d4014618cafcb523d5dafb44bc75396",
+        "baseline": {
+          "clears": 53,
+          "current": "CROSS",
+          "physical_top_out": true,
+          "placements": 45008,
+          "relative_to_public_root": 510,
+          "stream_sha256": "cef9124fcea52935c797235b7c842285643b697c56072e227185ce1050e316df",
+          "target": 13,
+          "terminal_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+          "visible": "HYPER"
+        },
+        "before_cross": 1,
+        "current": "BRIDGE",
+        "effective_target": 13,
+        "greedy": {
+          "action": {
+            "layers": 0,
+            "piece": "BRIDGE",
+            "rotation": 137,
+            "score": -34362.19073441284,
+            "w": 10,
+            "x": 8,
+            "y": 9,
+            "z": 12
+          },
+          "after_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+          "after_cross_origins": 0,
+          "index": 101,
+          "logit": -3.5282490253448486,
+          "rank": 1,
+          "visible_fits": false
+        },
+        "greedy_minus_rescue_logit": 0.1561875343322754,
+        "placement": 45008,
+        "plan": "9b6e3be8b60ae6e00870438e8cedcef7a1ddbea347dca47db138f58319f160f6",
+        "preboard_sha256": "4db43d0d36c372a2a46c78cab8cacade60cfc79978727830903b3149e4c67337",
+        "preterminal_sha256": "f1e864bf23c4e5182a45a8cb64bf804977b0b476923d02edfc47e6cc7f20fa66",
+        "requested_target": 13,
+        "rescue": {
+          "action": {
+            "layers": 0,
+            "piece": "BRIDGE",
+            "rotation": 165,
+            "score": -34362.24144400984,
+            "w": 11,
+            "x": 14,
+            "y": 11,
+            "z": 12
+          },
+          "after_board_sha256": "8cfba3299e0ceae5e0d8c5d2d4839d2b0ba559b62473a5e4aaeeab6ae81779f3",
+          "after_cross_origins": 1,
+          "index": 119,
+          "logit": -3.684436559677124,
+          "rank": 4,
+          "visible_fits": true
+        },
+        "runner": "af629b5c929f838b3cf83f112754d38fe0aa1ce3e0c6d22626c6adc81606681f",
+        "saving_actions": 110,
+        "seed": 48200003,
+        "shortlist": 128,
+        "shortlist_sha256": "572601a4551d3f269a73242d95d1236662a92969f085440900eb6732adef576b",
+        "stream_sha256": "64d424079e7963d506aeb6f82e5faada8734fb0b037a7a443c28a2222b33e289",
+        "visible": "CROSS"
+      },
+      "receipt_sha256": "efe0c60a5f1bdf3647d2588152edc1944fdde9ede83517880ff3f8ff13f8fc6e",
+      "outcome": {
+        "clears": 54,
+        "counters": {
+          "decisions": 1376,
+          "immediate_losses": 2,
+          "immediate_rescues": 1,
+          "planner_overrides": 1,
+          "planner_triggers": 2
+        },
+        "cuda_initialized": false,
+        "delta_to_reconstructed_baseline": 866,
+        "first_override_sha256": "7936eff660bacca29f6c5dc1b495c208e67e9792fe04073420e438ed904819c7",
+        "from_public_snapshot": 1376,
+        "gain_clears": 1,
+        "gain_placements": 866,
+        "known_baseline": {
+          "clears": 53,
+          "current": "CROSS",
+          "physical_top_out": true,
+          "placements": 45008,
+          "relative_to_public_root": 510,
+          "stream_sha256": "cef9124fcea52935c797235b7c842285643b697c56072e227185ce1050e316df",
+          "target": 13,
+          "terminal_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+          "visible": "HYPER"
+        },
+        "latest_board_sha256": "a34b24c3ddd9c64405e8fb669f18b95121842797c772784e03e7bf0626b2faab",
+        "latest_stream_sha256": "f11f1962d46adfe1cc7ab66792313d86087b45f38d675cc3c1cd7d12ce23a7d5",
+        "placements": 45874,
+        "plan": "9b6e3be8b60ae6e00870438e8cedcef7a1ddbea347dca47db138f58319f160f6",
+        "preterminal_sha256": "f1e864bf23c4e5182a45a8cb64bf804977b0b476923d02edfc47e6cc7f20fa66",
+        "rescue_endpoint": {
+          "clears": 54,
+          "current": "CROSS",
+          "physical_top_out": true,
+          "placements": 45874,
+          "relative_to_public_root": 1376,
+          "stream_sha256": "f11f1962d46adfe1cc7ab66792313d86087b45f38d675cc3c1cd7d12ce23a7d5",
+          "target": 13,
+          "terminal_board_sha256": "a34b24c3ddd9c64405e8fb669f18b95121842797c772784e03e7bf0626b2faab",
+          "visible": "RING"
+        },
+        "rolling_trace": "82fa06e581c12f5fb8f9c330e16d3cd090da76b74cc1374396562ee4b070830d",
+        "runner": "af629b5c929f838b3cf83f112754d38fe0aa1ce3e0c6d22626c6adc81606681f",
+        "status": "complete",
+        "wall_seconds": 133.00232967798365
+      }
+    },
+    "checkout_replay": {
+      "receipt_sha256": "419f0735100d25da6e8d672bffef38f996de60189e50a0d0bfb9188c077d3630",
+      "scope": "New checked CPU spatial descriptors and terminal transition via normal evaluate_fresh, full uncapped greedy and rescue from exactly the fork. Actual topology verified against independent prior natural endpoints.",
+      "runner_sha256": "0b541120874e73555e4e04c09b8a5773ed386b01e6165294191f8253d868ed4f",
+      "files": {
+        "tetris_survival_v4.py": "320a53c332c893935866b4d6b6a68c5100ca1cd62ccca3fafb44dd88e9231368",
+        "tetris_neural.py": "9196f68f7c38ecaccc0c8addba8af0370f93a0c66fc1df2bd13775101149dbb1",
+        "tools/evaluate_afterstate_td.py": "e4af8c77bf1ceee2be5a083849169f0ca888ba8ad8e68611a6d0752aa4ace0ea"
+      },
+      "preterminal_sha256": "f1e864bf23c4e5182a45a8cb64bf804977b0b476923d02edfc47e6cc7f20fa66",
+      "original_results_sha256": "efe0c60a5f1bdf3647d2588152edc1944fdde9ede83517880ff3f8ff13f8fc6e",
+      "results": {
+        "known_baseline": {
+          "placements": 45008,
+          "clears": 53,
+          "from_fork": 1,
+          "terminal_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+          "preterminal_board_sha256": "4db43d0d36c372a2a46c78cab8cacade60cfc79978727830903b3149e4c67337",
+          "raw_after_board_sha256": "89a33b55aea8c682c4cb6a1ad9fa112fd76b61cd9ba988d066a7cd8529e8e260",
+          "blocked": "CROSS",
+          "witness_bytes": 6317,
+          "cpu_seconds": 0.08580864199999994,
+          "paired_greedy": null
+        },
+        "rescue_endpoint": {
+          "placements": 45874,
+          "clears": 54,
+          "from_fork": 867,
+          "terminal_board_sha256": "a34b24c3ddd9c64405e8fb669f18b95121842797c772784e03e7bf0626b2faab",
+          "preterminal_board_sha256": "5d20db9b25a69f9e2cc08105b02854671fbe246119f5bce8749d60539e529835",
+          "raw_after_board_sha256": "a34b24c3ddd9c64405e8fb669f18b95121842797c772784e03e7bf0626b2faab",
+          "blocked": "CROSS",
+          "witness_bytes": 6349,
+          "cpu_seconds": 42.912699652,
+          "paired_greedy": {
+            "placements": 45008,
+            "reason": "top_out",
+            "physical_top_out": true
+          }
+        }
+      },
+      "cuda_initialized": false
+    }
+  }
+}

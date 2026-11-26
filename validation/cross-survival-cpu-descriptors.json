@@ -1,0 +1,700 @@
+{
+  "schema": "checked-cpu-candidate-spatial-descriptors-v1",
+  "performance": {
+    "script_sha256": "e83ff21c5d52d25c7478ec0624ecc3a4042cb7eddab9df583a9dcb9c1d473186",
+    "parent_sha256": "e50984b6349d0e45f6e0507f1ce2d27f293defcf0cd73d5b936e85da7204d486",
+    "source_sha256": {
+      "tetris_neural.py": "079bf2351ac36feadd21a6b7aad4528783c9fcce95ce8593c55cef514678fffd",
+      "tetris_survival_v4.py": "320a53c332c893935866b4d6b6a68c5100ca1cd62ccca3fafb44dd88e9231368",
+      "tests/test_survival_v4.py": "48982046cb528ee38aa872366133b6426d8ea27c4b0ff58f337051797908b13d"
+    },
+    "scope": "Actual checkout neural.prepare with checked_shortlist=True vs original physical full geometry on the same checkout. Identical complete per-position digests to immutable pilot for each actor and all eight roots, three measured paired rounds plus one warmup. Single real row scored in frozen 32 x 128 shape, full checked commit. All timing process CPU ms/decision.",
+    "models": {
+      "plain": {
+        "original": [
+          92.0973,
+          84.9115,
+          87.2491
+        ],
+        "checkout": [
+          44.0302,
+          42.3474,
+          42.7878
+        ],
+        "median": {
+          "original": 87.2491,
+          "checkout": 42.7878
+        }
+      },
+      "w4": {
+        "original": [
+          88.7149,
+          86.186,
+          96.7641
+        ],
+        "checkout": [
+          41.9374,
+          42.4968,
+          42.9758
+        ],
+        "median": {
+          "original": 88.7149,
+          "checkout": 42.4968
+        }
+      }
+    },
+    "receipt_sha256": "ed4d080a9770b62a2b9825164d6ba6172224bdcda831201ad1fe7bb03f48d2fe"
+  },
+  "lane_comparison": {
+    "scope": "Eight frozen public 612000-plain 8192-threshold boards, rearranged across 32 CPU V4 batch lanes. Per-board lane-zero duplicate padding in the original fixed evaluator compared to 32 real rows formed by rotating those eight boards four times. No fresh or sealed data. Only the optional near-tie diagnostic changes an in-memory legal prior scale; no game or optimization.",
+    "hardware": {
+      "cpu": "AVX2",
+      "torch": "2.14.1+cu130",
+      "precision": "highest",
+      "threads": 1
+    },
+    "receipt_sha256": "d0440ac93e97f78850ed29df56c730da396838ae8b2e167ac86f00208b86eead",
+    "runner_sha256": "31683c105e250b96033631331729fc2b33d4fa64f305220425c09824509ca00c",
+    "actors": {
+      "plain": {
+        "source_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+        "deployed_prior_scale": 0.125,
+        "near_tie": {
+          "board": 0,
+          "seed": 48200001,
+          "offset": 8283,
+          "lane": 31,
+          "original_and_changed_teacher_prior_scale": [
+            0.125,
+            0.9483385682106018
+          ],
+          "shortlist_size": 128,
+          "single_grouped_winners": [
+            64,
+            20
+          ],
+          "single_scores_for_i_j": [
+            23.203580856323242,
+            23.203577041625977
+          ],
+          "group_scores_for_i_j": [
+            23.203580856323242,
+            23.203580856323242
+          ],
+          "options": [
+            [
+              "CROSS",
+              0,
+              7,
+              12,
+              8,
+              1,
+              0,
+              -5467.352252734777
+            ],
+            [
+              "CROSS",
+              0,
+              10,
+              12,
+              2,
+              1,
+              0,
+              -5466.687652003065
+            ]
+          ],
+          "single_logits_sha256": "3011c64b1f499dc96d83a0d813a1e1a5eb0f74043d16cf68afd00dd9a15c31a6",
+          "grouped_logits_sha256": "aab17ebf8aa8e16b9834130e215804ea55b6efe8e656a0aa3e9dc88e84d6bef0"
+        },
+        "deployed": {
+          "checks": 80,
+          "distinct_public_boards": 8,
+          "lanes_checked": [
+            0,
+            6,
+            7,
+            15,
+            16,
+            23,
+            24,
+            29,
+            30,
+            31
+          ],
+          "rows_with_changed_valid_logits": 16,
+          "mismatched_lanes": [
+            30,
+            31
+          ],
+          "top1_flips": 0,
+          "max_abs": 7.62939453125e-06,
+          "raw_sha256": "27a4fa82a9f9da5488d37265f8c3f3b369f71bdd909924c79c02a41404927e46"
+        },
+        "first_layer_example": {
+          "board": 7,
+          "lane": 31,
+          "layers": {
+            "actor_state.0": {
+              "in": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "actor_state.1": {
+              "in": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": false,
+                "elements": 64,
+                "different": 58,
+                "max_abs": 1.430511474609375e-06
+              }
+            },
+            "actor_state.2": {
+              "in": {
+                "equal": false,
+                "elements": 64,
+                "different": 58,
+                "max_abs": 1.430511474609375e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 64,
+                "different": 56,
+                "max_abs": 1.9073486328125e-06
+              }
+            },
+            "candidate.0": {
+              "in": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.1": {
+              "in": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.2": {
+              "in": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.3": {
+              "in": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.4": {
+              "in": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "spatial_actor": {
+              "in": {
+                "equal": true,
+                "elements": 2304,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "rank1": {
+              "in": {
+                "equal": false,
+                "elements": 16384,
+                "different": 7168,
+                "max_abs": 1.9073486328125e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 8192,
+                "different": 5309,
+                "max_abs": 1.9073486328125e-06
+              }
+            },
+            "rank_out": {
+              "in": {
+                "equal": false,
+                "elements": 8192,
+                "different": 5267,
+                "max_abs": 2.384185791015625e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 128,
+                "different": 51,
+                "max_abs": 1.9073486328125e-06
+              }
+            }
+          }
+        }
+      },
+      "w4": {
+        "source_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+        "deployed_prior_scale": 0.125,
+        "near_tie": {
+          "board": 7,
+          "seed": 48200015,
+          "offset": 8283,
+          "lane": 31,
+          "original_and_changed_teacher_prior_scale": [
+            0.125,
+            0.05879901349544525
+          ],
+          "shortlist_size": 128,
+          "single_grouped_winners": [
+            99,
+            52
+          ],
+          "single_scores_for_i_j": [
+            10.197489738464355,
+            10.197488784790039
+          ],
+          "group_scores_for_i_j": [
+            10.197489738464355,
+            10.197489738464355
+          ],
+          "options": [
+            [
+              "FORK",
+              155,
+              7,
+              13,
+              5,
+              1,
+              0,
+              -5439.64396468374
+            ],
+            [
+              "FORK",
+              96,
+              5,
+              10,
+              8,
+              1,
+              0,
+              -5439.483248572006
+            ]
+          ],
+          "single_logits_sha256": "872eb1d200cba88f377b27e57cb625292d9323fa7ae0780a727e766c9a8a8c23",
+          "grouped_logits_sha256": "05dbe70e6b4ae906949b176a7931544e456458287a9a4fb5d6bcb1c5e46bb135"
+        },
+        "deployed": {
+          "checks": 80,
+          "distinct_public_boards": 8,
+          "lanes_checked": [
+            0,
+            6,
+            7,
+            15,
+            16,
+            23,
+            24,
+            29,
+            30,
+            31
+          ],
+          "rows_with_changed_valid_logits": 16,
+          "mismatched_lanes": [
+            30,
+            31
+          ],
+          "top1_flips": 0,
+          "max_abs": 7.62939453125e-06,
+          "raw_sha256": "ac271c08aa21e5cb5787fafe829c81a656ae98ed066a9565e0d78f0918f6115c"
+        },
+        "first_layer_example": {
+          "board": 7,
+          "lane": 31,
+          "layers": {
+            "actor_state.0": {
+              "in": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "actor_state.1": {
+              "in": {
+                "equal": true,
+                "elements": 150,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": false,
+                "elements": 64,
+                "different": 55,
+                "max_abs": 1.9073486328125e-06
+              }
+            },
+            "actor_state.2": {
+              "in": {
+                "equal": false,
+                "elements": 64,
+                "different": 55,
+                "max_abs": 1.9073486328125e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 64,
+                "different": 49,
+                "max_abs": 2.1457672119140625e-06
+              }
+            },
+            "candidate.0": {
+              "in": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.1": {
+              "in": {
+                "equal": true,
+                "elements": 20992,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.2": {
+              "in": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.3": {
+              "in": {
+                "equal": true,
+                "elements": 16384,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "candidate.4": {
+              "in": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "spatial_actor": {
+              "in": {
+                "equal": true,
+                "elements": 2304,
+                "different": 0,
+                "max_abs": 0.0
+              },
+              "out": {
+                "equal": true,
+                "elements": 8192,
+                "different": 0,
+                "max_abs": 0.0
+              }
+            },
+            "rank1": {
+              "in": {
+                "equal": false,
+                "elements": 16384,
+                "different": 6272,
+                "max_abs": 2.1457672119140625e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 8192,
+                "different": 5300,
+                "max_abs": 1.430511474609375e-06
+              }
+            },
+            "rank_out": {
+              "in": {
+                "equal": false,
+                "elements": 8192,
+                "different": 5220,
+                "max_abs": 2.384185791015625e-06
+              },
+              "out": {
+                "equal": false,
+                "elements": 128,
+                "different": 38,
+                "max_abs": 9.5367431640625e-07
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "singleton_fixed_actor_geometry": {
+    "method": "Compute the raw singleton board and affected-column geometry once, then duplicate deterministic pooled/local features. Every learned FP32 operation still receives the original contiguous fixed batch/candidate shape; each independent game stays in lane zero.",
+    "scope": "Eight frozen public 612000-plain 8192-threshold positions. Same native exhaustive two-stage candidate prepare, single-row strict 32 x 128 inference, checked standard commit. Cache reset per board. One warmup and five alternating paired rounds per actor. Medians of the eight-position average process CPU milliseconds per decision; entries ordered prior then candidate. Excludes loading, hashing, persistence and evaluator queue overhead.",
+    "hardware": {
+      "cpu_affinity": [
+        0
+      ],
+      "niceness": 15,
+      "torch": "2.14.1+cu130",
+      "device": "cpu",
+      "torch_threads": 1,
+      "cuda_initialized": false,
+      "cpu_model": "Intel(R) Core(TM) i5-14400F",
+      "matmul_precision": "highest"
+    },
+    "seeds": [
+      48200001,
+      48200003,
+      48200005,
+      48200007,
+      48200009,
+      48200011,
+      48200013,
+      48200015
+    ],
+    "sources_sha256": {
+      "tetris_survival_v4.py": "b6a1daf0d6b9b809ddf8beee9960fe76aa911cf0d0226c3eb9180c8684ae5280",
+      "tools/evaluate_afterstate_td.py": "a131fe0ade923433a1ac9ea097243c06199d354e7c286d9e05b481c08038f5b6",
+      "tetris_neural.py": "0992eb5c18370549f6483203e8ec775a7dfaf8380e05f8fc3ad8d86d652ba813",
+      "tests/test_spatial_curriculum.py": "fa79a4ea438c6415b75a904a11faf2faaf9703ec9258a0d3f76e667c0fbb387a"
+    },
+    "original_sources_sha256": {
+      "tetris_survival_v4.py": "fdb3d88a7fceea11ca4ae0589e7f98e6b0d38eda1d49c232235f1ff188d33cde",
+      "tools/evaluate_afterstate_td.py": "23e9365f17289f7396c5682f17ba40babc0cf74967cacc2b6bed316b1d52d266"
+    },
+    "models_and_medians": {
+      "plain": {
+        "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+        "actor_ms": [
+          44.7236,
+          9.3091
+        ],
+        "e2e_ms": [
+          58.4286,
+          22.4099
+        ],
+        "e2e_speedup": 2.607
+      },
+      "w4": {
+        "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+        "actor_ms": [
+          45.4921,
+          9.4156
+        ],
+        "e2e_ms": [
+          60.3438,
+          23.7911
+        ],
+        "e2e_speedup": 2.536
+      }
+    },
+    "parity": "Every measured round reproduced the archived byte digest of all candidate arrays, ordered placements, every base/adjusted logit, choices and the checked board/stream/RNG snapshot for each actor and seed. W4 preserve-last-cross also matched on all eight.",
+    "normal_entrypoint": {
+      "public_seeds": [
+        48200001,
+        48200003
+      ],
+      "start_placement": 8283,
+      "end_placement": 8286,
+      "controls": [
+        "plain greedy",
+        "W4 greedy",
+        "W4 preserve-last-cross",
+        "W4 rescue-only"
+      ],
+      "compared": "Six selected moves/targets, committed board/stream/RNG snapshots, decision counters, reasons and cap lengths for each control.",
+      "fixed_near_tie_controls": {
+        "plain": {
+          "logits_sha256": "3011c64b1f499dc96d83a0d813a1e1a5eb0f74043d16cf68afd00dd9a15c31a6",
+          "choice": 64,
+          "original_alternate_lane_choice": 20
+        },
+        "w4": {
+          "logits_sha256": "872eb1d200cba88f377b27e57cb625292d9323fa7ae0780a727e766c9a8a8c23",
+          "choice": 99,
+          "original_alternate_lane_choice": 52
+        }
+      }
+    },
+    "fallback": "Only a raw CPU singleton, fixed size greater than one, exact Spatial V4 class in evaluation mode, disabled gradients and CPU autocast. Real multi-row batches, CUDA, subclasses, cached inputs and training retain the original route.",
+    "limits": "Single CPU, one thread and eight archived playing positions. Timings describe these independent fixed-shape decisions; GPU, optimizer and natural-game wall time were outside this comparison. Current CPU pilots each preregistered immutable executable manifest ef9c792541bf84ce3f53d000ae52585038aa5da3919e43e5ca6adeb5d0ef1dd5. Switching their code would change that identity.",
+    "local_reproduction": {
+      "directory": "survival-training.artifacts/cross-survival-24h/cpu-fixed-actor-geometry",
+      "benchmark": "bench.py checkout",
+      "entrypoint": "entrypoint.py",
+      "command_prefix": "env CUDA_VISIBLE_DEVICES=-1 TETRIS4D_GAME_LIBRARY=off PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 taskset -c 0 .venv/bin/python -Bu",
+      "files_sha256": {
+        "bench.py": "0b0597e4785ee5de3ef4658f011ac354acc97d8dc677378aa05bb4cb74f64534",
+        "checkout.json": "4177c4eb60b68b2c9174c1098e5479ed49d0be3e74e496306f94380071866293",
+        "entrypoint.py": "e2a01c322c31d31d530e3d920e81e45ca54c66da61c80c00cbce538b713f5d52",
+        "entrypoint.json": "9e253e47047a83797a16256a5142c32ef818831bb98f5c1451c6dd9d92a04dae"
+      },
+      "fixture_sha256": "e50984b6349d0e45f6e0507f1ce2d27f293defcf0cd73d5b936e85da7204d486",
+      "fixture_loader_sha256": "ad3a741f1853ecf7760973dd851b93cac37683ccf2bd204e91e217b5551c8014"
+    },
+    "two_natural_games": {
+      "root_plan_sha256": "433097e1cea72b09fad89aac2e3c9453d8595d43cb711299b48afc99a48fc8ce",
+      "receipt_sha256": "5ccb5a0eea317e01741b3de30e46aa40f6af834b3dc118ed9a55d4cdf78cdf69",
+      "previous_terminal_reference_sha256": "b3b7ebe80ba04d746b71fe2768dc18689d61faf69d1ee597e7d8f800fe06eaa4",
+      "pairs": [
+        {
+          "seed": 300322,
+          "previous": {
+            "outcome": {
+              "n": 200,
+              "placements": 7236,
+              "clears": 3,
+              "reason": "top_out",
+              "terminal_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+              "logits": "cb9debb30e2fb8385e40c7bd1b227b707bcc66abed1e0984358602eb16b5a937",
+              "actions_and_boards": "833eb5c4ae01e4b051e5bb8889848ca37106bfdd81d51d74b6ae9ebf761f9d5e"
+            },
+            "process_seconds": 10.637692702999999
+          },
+          "current": {
+            "outcome": {
+              "n": 200,
+              "placements": 7236,
+              "clears": 3,
+              "reason": "top_out",
+              "terminal_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+              "logits": "cb9debb30e2fb8385e40c7bd1b227b707bcc66abed1e0984358602eb16b5a937",
+              "actions_and_boards": "833eb5c4ae01e4b051e5bb8889848ca37106bfdd81d51d74b6ae9ebf761f9d5e"
+            },
+            "process_seconds": 3.859459455999996
+          }
+        },
+        {
+          "seed": 300460,
+          "current": {
+            "outcome": {
+              "n": 412,
+              "placements": 6536,
+              "clears": 2,
+              "reason": "top_out",
+              "terminal_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+              "logits": "7ec737eb4e98ad50559e89cdaeb7d5c122ca7bf369adb9212b26746ecdc95dad",
+              "actions_and_boards": "00c70fde7328f4e77811fd31c95a814e12b79d2ef37d7e1a2715f4ea59e8fe22"
+            },
+            "process_seconds": 8.857647993
+          },
+          "previous": {
+            "outcome": {
+              "n": 412,
+              "placements": 6536,
+              "clears": 2,
+              "reason": "top_out",
+              "terminal_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+              "logits": "7ec737eb4e98ad50559e89cdaeb7d5c122ca7bf369adb9212b26746ecdc95dad",
+              "actions_and_boards": "00c70fde7328f4e77811fd31c95a814e12b79d2ef37d7e1a2715f4ea59e8fe22"
+            },
+            "process_seconds": 20.60528276000001
+          }
+        }
+      ],
+      "pooled_cpu_speedup": 2.45676743617172,
+      "scope": "First two archived hazard starts in their original registered order, strongest 612000-plain actor. Whole natural continuations with strict 32x128 fixed-shape scoring and native standard commit. AB then BA; descriptive CPU timing. All per-placement logits and per-placement chosen moves and boards hash identically; both physical lengths and final board hashes reproduce earlier independent endpoints."
+    }
+  }
+}

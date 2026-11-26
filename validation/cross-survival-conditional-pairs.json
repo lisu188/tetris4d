@@ -1,0 +1,819 @@
+{
+  "schema": "selective-ranker-training-pairs-v1",
+  "validated_sources_sha256": {
+    "register.py": "e7802b1b5527b4bc07e6bcaecc74dafa71709de03124813bf063960f069e8df6",
+    "screen.py": "a281256fb358e700f83ad308f36e3ddccae35562a20b67fd7b4d6951fcbe796b",
+    "follow.py": "0f17b6476363c64bf8d143d0a247076ed86ff07f4dd0bbeb358f30c9cd1d69d0",
+    "label.py": "5625225a6cd1010a67b2f2cbd23598cd6ca6f0816194de434ab7b65ace560763",
+    "export.py": "2a2166b44b44f3f2d0bf1272799e8f2d6ca094bfae10a27c88ebdc5ed6382a4b",
+    "plan.json": "e1bc35e05c32341a2fbc1e4c682d5cd359dfe5799c9b85bc97e9a21295c4f931",
+    "onpolicy-plan.json": "6ecf433aec4eba6c1a369dc3d71bf3f3bc7a12ac98e39a7cd5de62069d441cd0",
+    "examples-frozen.json": "d530a2d45a0f6a9a61914d7b4026b2be3eeb715946e39020efde28590bcb0861",
+    "combined-examples.json": "822d02e64290e13a7a1f6e35540ad5101efe2bfb0349b383f36e816812627dae",
+    "prelabel-stream-exclusions.json": "e7f79c321eac1a56d1ad15d3ab3eed48e3e0ea26d9113af72a422b6d5cc103aa",
+    "eligible-inputs.json": "5a7c8a0faf240a512af9c48ea72c20932c6ce200d265429c17c6dbe17eaeed03",
+    "continuations.json": "eb2acfe10f7f7763628c512798d2534f03bf06b4ee49c8d4757d75fac5cf3790"
+  },
+  "public_dataset_sha256": {
+    "train-pairs.jsonl": "9301839f8a1fbecf2f604e8932dcca5de140a381196e4362e677d774396cf659",
+    "development-pairs.jsonl": "f190f86643481096e1715a122952d5d561814a8779ecc002387106222b54fd7f"
+  },
+  "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "coverage": {
+    "train": {
+      "reserved_streams": 35,
+      "archives": {
+        "visited": 4480,
+        "origins_over_16": 1511,
+        "origins_1_to_16": 2645,
+        "origins_zero": 324,
+        "scored": 2645,
+        "greedy_keeps_positive": 2625,
+        "selected": 4,
+        "greedy_extinctions": 20,
+        "forced_extinctions": 16,
+        "actionable_extinctions": 4
+      },
+      "own_policy": {
+        "decisions": 3662,
+        "positive": 3504,
+        "greedy_extinctions": 18,
+        "forced_extinctions": 13,
+        "actionable": 5
+      },
+      "own_policy_stop_reasons": {
+        "physical_top_out": 11,
+        "new_actionable_event": 5,
+        "128_decisions": 16,
+        "no_positive_source_window": 3
+      },
+      "labeled_rows": 9,
+      "labeled_distinct_streams": 7,
+      "labeled_stream_ids": [
+        300168,
+        300312,
+        300318,
+        300352,
+        300382,
+        300524,
+        300526
+      ],
+      "by_generation": {
+        "archived": 4,
+        "onpolicy": 5
+      },
+      "pair_directions": {
+        "tie": 6,
+        "win": 3
+      },
+      "arm_stop_reasons": {
+        "physical_top_out": 18
+      },
+      "exact_signed_gains": [
+        0,
+        0,
+        29,
+        14,
+        10,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "development": {
+      "reserved_streams": 12,
+      "archives": {
+        "visited": 1536,
+        "origins_over_16": 529,
+        "origins_1_to_16": 901,
+        "origins_zero": 106,
+        "scored": 901,
+        "greedy_keeps_positive": 896,
+        "selected": 0,
+        "greedy_extinctions": 5,
+        "forced_extinctions": 5
+      },
+      "own_policy": {
+        "decisions": 1259,
+        "positive": 1184,
+        "greedy_extinctions": 7,
+        "actionable": 1,
+        "forced_extinctions": 6
+      },
+      "own_policy_stop_reasons": {
+        "new_actionable_event": 1,
+        "128_decisions": 5,
+        "physical_top_out": 5,
+        "no_positive_source_window": 1
+      },
+      "labeled_rows": 1,
+      "labeled_distinct_streams": 1,
+      "labeled_stream_ids": [
+        300200
+      ],
+      "by_generation": {
+        "onpolicy": 1
+      },
+      "pair_directions": {
+        "win": 1
+      },
+      "arm_stop_reasons": {
+        "physical_top_out": 1,
+        "placement_cap": 1
+      },
+      "exact_signed_gains": []
+    }
+  },
+  "training_only_replay_sha256": "202abb832cf3ca77b76bbaef0c3a0b2f1af2e44326c13d7231fce1357241159b",
+  "label_definition": "Only the first action differs; later decisions are deterministic unguarded weight 4. Gain = preserving lifetime minus greedy lifetime counted from immediately before the two actions. Both arms consume the same retrospective piece stream. Exact labels require physical top-out on both branches. A capped arm is a lower bound; planner blocks are unresolved.",
+  "input_policy": "Use public_inputs and predecision actions as model inputs. Source identifiers, grouping seed, post-outcome fields and label are excluded from features. Source RNG and remaining bag appear only in ignored private replay files, never in either JSONL. Each stream belongs to exactly one split and examples on one stream are correlated.",
+  "interpretation": "Only boards where the greedy move extinguished existing CROSS landings and a preserving retained move existed are present. This is a conditional training pilot; frequencies are specific to the sampled suffixes and trajectory starts. No ranker was fitted, no official seeds used for fitting or evaluation.",
+  "local_receipt": "selective-ranker-training/data-report.json",
+  "receipt_sha256": "50ebfaa236fddd3620d86f72dd4a6090813db133ab70af09f93dd79d83daaf1f",
+  "pairs": [
+    {
+      "example": "300318-6090",
+      "split": "train",
+      "seed": 300318,
+      "record_id": "c20d1d320fe2db854fb1cdf81ea3bacee9423c6380273c852694273ea9658126",
+      "offset": 6090,
+      "board_sha256": "ec6bbd988fb7da92731ca0f7ca3aaf8c7927e34d77b4c4a3c840c83ea6efa2c5",
+      "current": "CROSS",
+      "preview": "HOOK",
+      "greedy_actor_logit": 0.3135141134262085,
+      "preserve_actor_logit": -32.17744827270508,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 16,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "c9059d4031683373a6f7d17548340159074ec6b2e437e97d8c0ff9e730ba3817",
+          "stream_sha256": "02fad1a7e0d34b4955ae870d21a63211c440b583e9751ebf193cd92258017d0e",
+          "consumed_prefix_sha256": "ff5f87ebe37e334421c7ce2ab77a07ee1d8525537bfef0992bbb6108fc08726c"
+        },
+        "preserve": {
+          "n": 16,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "fd63b866e1bee1cebd68e27eaf99b2631e347f53af4be934a5f6a152b503ddb2",
+          "stream_sha256": "02fad1a7e0d34b4955ae870d21a63211c440b583e9751ebf193cd92258017d0e",
+          "consumed_prefix_sha256": "ff5f87ebe37e334421c7ce2ab77a07ee1d8525537bfef0992bbb6108fc08726c"
+        }
+      }
+    },
+    {
+      "example": "300352-6027",
+      "split": "train",
+      "seed": 300352,
+      "record_id": "451023ef8df776bf5ce071cf13f953d9ffd80e459b841bc7b697f1e8ce10087f",
+      "offset": 6027,
+      "board_sha256": "c2d4e5bc67f14721f5e372fbfae97fba6d09e16626caa28aec36bb7adf8086d6",
+      "current": "BRIDGE",
+      "preview": "B",
+      "greedy_actor_logit": 1.4570364952087402,
+      "preserve_actor_logit": 0.9410867094993591,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 12,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "3c4a69860b39a4503272ab8c58536e2bd0695a2f32baffd3f381deda19c49e5f",
+          "stream_sha256": "9fa1eddaee219fed1a933eddaaebbc0ca81f83022fb8b4f16ec9d5a4785f511f",
+          "consumed_prefix_sha256": "71fd6e3836c8a6ff158a7d6cf442e86dbb138d5e91d574c393cda93a7f17eeb6"
+        },
+        "preserve": {
+          "n": 12,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "07255e76fec01d50a83b82af28dae66f3d3590de90b9a63012cf6124d4ff9a4b",
+          "stream_sha256": "9fa1eddaee219fed1a933eddaaebbc0ca81f83022fb8b4f16ec9d5a4785f511f",
+          "consumed_prefix_sha256": "71fd6e3836c8a6ff158a7d6cf442e86dbb138d5e91d574c393cda93a7f17eeb6"
+        }
+      }
+    },
+    {
+      "example": "300352-6032",
+      "split": "train",
+      "seed": 300352,
+      "record_id": "451023ef8df776bf5ce071cf13f953d9ffd80e459b841bc7b697f1e8ce10087f",
+      "offset": 6032,
+      "board_sha256": "3a5d455ef197c59bcdf26891a77e4333fa59cb5d60bd651299553d58a182c279",
+      "current": "BRIDGE",
+      "preview": "L",
+      "greedy_actor_logit": 2.4441072940826416,
+      "preserve_actor_logit": 2.2119314670562744,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "win",
+        "gain": 29
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 7,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "eee2076deacfa6d03bff3d3f41282750d3d55301ad8df37b680f2ddf387240ef",
+          "stream_sha256": "9fa1eddaee219fed1a933eddaaebbc0ca81f83022fb8b4f16ec9d5a4785f511f",
+          "consumed_prefix_sha256": "c4b8c9d93baf0ce27af07e19bbf5e150dc81e50479f05691eb8c100f5d1ba810"
+        },
+        "preserve": {
+          "n": 36,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "f1b358eb3a41ed2ad3e325cd56195ddd077df2fed3166d8e89f1868c52fee153",
+          "stream_sha256": "22bcda5ca476d533472f39c0ee590a4736e4d4e7501db4ae8749679674ff0f31",
+          "consumed_prefix_sha256": "d5a8311b1d7b29d082c6e12025734fe095bcf48594b6f122f2b0aa22b85ffe27"
+        }
+      }
+    },
+    {
+      "example": "300524-5989",
+      "split": "train",
+      "seed": 300524,
+      "record_id": "df00080aabacaf160e5e5df213fa6e246f294ebbcca63a34b79c6fe6092a95bb",
+      "offset": 5989,
+      "board_sha256": "6b2f3f605921e125fa2bec468c86f49221c852b24ba814453a4920dc84027964",
+      "current": "CROSS",
+      "preview": "NOVA",
+      "greedy_actor_logit": -6.5451860427856445,
+      "preserve_actor_logit": -9.123138427734375,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "win",
+        "gain": 14
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 15,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "91e176b1288daab6fa00bc524a49c059bc4abc9ba9d20ec93e0a814a85c5b086",
+          "stream_sha256": "0a8bfb7d846f05d5f74c6ad18e2347ab42ee02661240a3565560690a5a928325",
+          "consumed_prefix_sha256": "8385b9e705a00ab61a0baececdb56f75c84ba22f8bba238a339e0b6ffa739eb6"
+        },
+        "preserve": {
+          "n": 29,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "1290f628376d5a6cc89a20a1ca057fa2194d3b88b1d773bbd764098365b90c28",
+          "stream_sha256": "b7916313a4da00a83252984d6064545ac9721bc2b0591e6ce6aad487ce22e747",
+          "consumed_prefix_sha256": "6cec00216ec95f3051bba2381ae05c262c3f5e1ec1a20748959529099e950d6f"
+        }
+      }
+    },
+    {
+      "example": "300168-7442-93459ee4c0",
+      "split": "train",
+      "seed": 300168,
+      "record_id": "414c19cdc00489d235a3f75b9c58297b700f8c01a4b04239a8c4ab5bcc2317f4",
+      "offset": 7442,
+      "board_sha256": "93459ee4c02a72aeba6f7e6f7be86eb24ad9ed0b0852aee72b9e043498b9e306",
+      "current": "CROSS",
+      "preview": "HYPER",
+      "greedy_actor_logit": -1.5022258758544922,
+      "preserve_actor_logit": -28.009471893310547,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 2,
+      "label": {
+        "kind": "exact",
+        "direction": "win",
+        "gain": 10
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 20,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "4558c63e4c3c8d00d3e7672e71e80363e1d1366528e371870ef8a6dc277e6d7a",
+          "stream_sha256": "ec9ced54bcacae7260e05cb958c522295d15cb19fa7cb035b6ebea9f2753c109",
+          "consumed_prefix_sha256": "9b69849a85072aea5ba5f618cfeaf03a64dfbc6babfc67f4cffeff0a789859cc"
+        },
+        "preserve": {
+          "n": 30,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "61f0b268ff743291979bc5c7a90b1ae73dec8c6c62f03190f5fd39c5029e8d80",
+          "stream_sha256": "61059e40cea644c4485b5f677402d4c583fd651dba2c3b96a95f36615943f495",
+          "consumed_prefix_sha256": "78a5c3799d56f6358067d060e17fd4f9853e6445c1cd3f2ee70f82d173824882"
+        }
+      }
+    },
+    {
+      "example": "300382-5998-bbd744299e",
+      "split": "train",
+      "seed": 300382,
+      "record_id": "505b9f95493e5934b8245e5810be0bd2e86975842a6aa305dfe84f0dfa7e9d48",
+      "offset": 5998,
+      "board_sha256": "bbd744299ed573a359ccc9d3524ec0071cd78ca446f90808304d64606bfe1cab",
+      "current": "B",
+      "preview": "FORK",
+      "greedy_actor_logit": -1.9469163417816162,
+      "preserve_actor_logit": -2.908327102661133,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 15,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "c4095935af72b312d1cd980b48c551a0af55e61e64f4bafaaa15acba30098a85",
+          "stream_sha256": "48ad49719c1cacadc7b81988438a54b573af51faa79c4c5d8e5f26e3d2e693a6",
+          "consumed_prefix_sha256": "a275c31a9926e62fc0ddefece198daa2f540d31b2df17736a7a770933fc92f73"
+        },
+        "preserve": {
+          "n": 15,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "d4091ffbfca5b5387a65460ac046ce196b5899ec9f1fce3aabd73377c716a5ef",
+          "stream_sha256": "48ad49719c1cacadc7b81988438a54b573af51faa79c4c5d8e5f26e3d2e693a6",
+          "consumed_prefix_sha256": "a275c31a9926e62fc0ddefece198daa2f540d31b2df17736a7a770933fc92f73"
+        }
+      }
+    },
+    {
+      "example": "300526-5915-6cde53ce3a",
+      "split": "train",
+      "seed": 300526,
+      "record_id": "fe1b0956f28fc31d15cf9b459f5925a421dd58b3c6873b23ea27493a649aeabf",
+      "offset": 5915,
+      "board_sha256": "6cde53ce3ac5fec632293bfadebb3454579246d81c79b25a7e145e95d4e07234",
+      "current": "C",
+      "preview": "L",
+      "greedy_actor_logit": -2.8483638763427734,
+      "preserve_actor_logit": -12.285625457763672,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 2,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 18,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "ca714af4b8beaa3ec0b979139dbbd6652717f5853a2bc8257fe3a122c1bd1ada",
+          "stream_sha256": "7659a3b9425a7109c45ef303eb45a12729247e591b8d9e3d60331a62ceeab5b0",
+          "consumed_prefix_sha256": "4a12d7af89cf0f830aebe14413315e5ab233521e46d908b91299f217369b590f"
+        },
+        "preserve": {
+          "n": 18,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "dc5814fa3ae2666172b8c29869ab1b5461339c779aaf1b10fd666a3b37296656",
+          "stream_sha256": "7659a3b9425a7109c45ef303eb45a12729247e591b8d9e3d60331a62ceeab5b0",
+          "consumed_prefix_sha256": "4a12d7af89cf0f830aebe14413315e5ab233521e46d908b91299f217369b590f"
+        }
+      }
+    },
+    {
+      "example": "300312-7120-ded0404ed5",
+      "split": "train",
+      "seed": 300312,
+      "record_id": "5ec35d935f3285f4e93e2a5212443dc0d946e4f23a8042615c0a82d1875fa609",
+      "offset": 7120,
+      "board_sha256": "ded0404ed51b73c1eb1fb2cd78ab1cd6076dd030805eef59f38691e773a9f25c",
+      "current": "C",
+      "preview": "NOVA",
+      "greedy_actor_logit": -2.4756040573120117,
+      "preserve_actor_logit": -15.302979469299316,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 5,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "d0694526a6e5b1f42f53a1b004c45c4d02756f1caf73206b5671bcaa591cf591",
+          "stream_sha256": "5432056c9b299d6a15c454c2fe265968edec5cae84e3fe0e6c6d2220cef47037",
+          "consumed_prefix_sha256": "d543c1490318a551a7a2e01d692bf6c76d826faf5b26d918c566c569cb78daf1"
+        },
+        "preserve": {
+          "n": 5,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "4769914e6aa2cf3538644a26292c8c32bfd316d0b519763096361f043442d72e",
+          "stream_sha256": "5432056c9b299d6a15c454c2fe265968edec5cae84e3fe0e6c6d2220cef47037",
+          "consumed_prefix_sha256": "d543c1490318a551a7a2e01d692bf6c76d826faf5b26d918c566c569cb78daf1"
+        }
+      }
+    },
+    {
+      "example": "300318-6108-2a5ed34b87",
+      "split": "train",
+      "seed": 300318,
+      "record_id": "c20d1d320fe2db854fb1cdf81ea3bacee9423c6380273c852694273ea9658126",
+      "offset": 6108,
+      "board_sha256": "2a5ed34b8752a8b89d125a7ece01848296db18fd0037de52f7229976c927d4c3",
+      "current": "HOOK",
+      "preview": "HYPER",
+      "greedy_actor_logit": -0.8894283771514893,
+      "preserve_actor_logit": -3.310894727706909,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 2,
+      "label": {
+        "kind": "exact",
+        "direction": "tie",
+        "gain": 0
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 15,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "d11ff8692bb691dafb48492399ed515f93f4dbfc401cce0342fb3ef97c980ea0",
+          "stream_sha256": "03149469d1f0b45c61deb326864f2f3ec5b9c760943ac97b0a66f2c1a7bb3db6",
+          "consumed_prefix_sha256": "a85b00e4e2c4d57c79f7b4844966c7ccf02d57d3b1be47e99fe3492fb0b51521"
+        },
+        "preserve": {
+          "n": 15,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "179dea9c3eebe156183cb2636a37084b581c4b06d5d23ac97fa30b45bc3eadac",
+          "stream_sha256": "03149469d1f0b45c61deb326864f2f3ec5b9c760943ac97b0a66f2c1a7bb3db6",
+          "consumed_prefix_sha256": "a85b00e4e2c4d57c79f7b4844966c7ccf02d57d3b1be47e99fe3492fb0b51521"
+        }
+      }
+    },
+    {
+      "example": "300200-19382-99159f600b",
+      "split": "development",
+      "seed": 300200,
+      "record_id": "32612c81f99652bfc98e54595c8d529c0845a98a2bfbf9aabcf3ca9d2c8f7f05",
+      "offset": 19382,
+      "board_sha256": "99159f600b1daa38713b2c1fc4d5cb68a2b80e64f6b1ec8e283d8e1a762352b7",
+      "current": "I",
+      "preview": "B",
+      "greedy_actor_logit": -2.7463321685791016,
+      "preserve_actor_logit": -3.123638391494751,
+      "greedy_after_origins": 0,
+      "preserve_after_origins": 1,
+      "label": {
+        "kind": "lower_bound",
+        "direction": "win",
+        "gain_lower_bound": 2044
+      },
+      "endpoints": {
+        "greedy": {
+          "n": 4,
+          "reason": "physical_top_out",
+          "clears": 0,
+          "board_sha256": "32cbe45b34eaf7084e57b56ed38772916965e6fa6e4cb020a37f5741b2b7b4d6",
+          "stream_sha256": "fb45619451de8074de4697b81f14268ccde3753fc4bb5eb850fe33e83e4d1086",
+          "consumed_prefix_sha256": "ef4a05b06f44bd1b7ec289441b02bfe4c6e074fc43290ea92895968d4eb5f89e"
+        },
+        "preserve": {
+          "n": 2048,
+          "reason": "placement_cap",
+          "clears": 3,
+          "board_sha256": "56ec13af312e4bbc195f98e21d9f6ab14ce046a8ea801f7aa9202c64410f9f59",
+          "stream_sha256": "933aad289a7d7a20ee36621f6f3ac1e9212020baab1c7fcc3133eb3ca3d4b134",
+          "consumed_prefix_sha256": "6db21e81618031e3f7e4789903a386a86b4acf1198bc64620909ed14bbf70e2e"
+        }
+      }
+    }
+  ],
+  "training_future_sensitivity": {
+    "scope": "36 paired unseen futures nested within nine fixed train choices from seven archival streams. Each correlation cluster is an original source game.",
+    "local_receipt": "selective-ranker-training/future-sensitivity-results.json",
+    "receipt_sha256": "a8a908edb6aacef0439da714d01de3fe850e1975261b83b0c3ad442557efd96c",
+    "plan_sha256": "9d7c590d1d4f54520b69bf60e42db999f9e62b24e9e3728561d98d93fd6caffc",
+    "runner_sha256": "36d470b990dfd951f111f8f7ea5f00217b29a2e460cfc5a3ebfb098d6bdd504d",
+    "outcomes": {
+      "tie": 23,
+      "win": 13
+    },
+    "stop_reasons": {
+      "greedy_physical_top_out": 36,
+      "preserve_physical_top_out": 36
+    },
+    "rows": [
+      {
+        "example": "300318-6090",
+        "seed": 300318,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 22,
+            "preserve": 22,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 29,
+            "preserve": 29,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 15,
+            "preserve": 15,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300352-6027",
+        "seed": 300352,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 10,
+            "preserve": 43,
+            "gain": 33
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 17,
+            "preserve": 35,
+            "gain": 18
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 3,
+            "preserve": 41,
+            "gain": 38
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 7,
+            "preserve": 7,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300352-6032",
+        "seed": 300352,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 10,
+            "preserve": 29,
+            "gain": 19
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 3,
+            "preserve": 34,
+            "gain": 31
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 4,
+            "preserve": 35,
+            "gain": 31
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 2,
+            "preserve": 34,
+            "gain": 32
+          }
+        ]
+      },
+      {
+        "example": "300524-5989",
+        "seed": 300524,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 18,
+            "preserve": 18,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 25,
+            "preserve": 25,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 11,
+            "preserve": 33,
+            "gain": 22
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 15,
+            "preserve": 15,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300168-7442-93459ee4c0",
+        "seed": 300168,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 20,
+            "preserve": 29,
+            "gain": 9
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 27,
+            "preserve": 34,
+            "gain": 7
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 13,
+            "preserve": 35,
+            "gain": 22
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 17,
+            "preserve": 34,
+            "gain": 17
+          }
+        ]
+      },
+      {
+        "example": "300382-5998-bbd744299e",
+        "seed": 300382,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 9,
+            "preserve": 9,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 16,
+            "preserve": 16,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 2,
+            "preserve": 20,
+            "gain": 18
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 6,
+            "preserve": 6,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300526-5915-6cde53ce3a",
+        "seed": 300526,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 17,
+            "preserve": 17,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 24,
+            "preserve": 24,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 10,
+            "preserve": 10,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 14,
+            "preserve": 14,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300312-7120-ded0404ed5",
+        "seed": 300312,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 12,
+            "preserve": 12,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 5,
+            "preserve": 5,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 9,
+            "preserve": 9,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300318-6108-2a5ed34b87",
+        "seed": 300318,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 26,
+            "preserve": 26,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 12,
+            "preserve": 12,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 16,
+            "preserve": 16,
+            "gain": 0
+          }
+        ]
+      }
+    ]
+  },
+  "held_development_natural_followup": {
+    "local_receipt": "selective-ranker-training/development-natural-extension.json",
+    "receipt_sha256": "0452236695dde4a3e5ea8a87ce6b3a484032859537c4960cfbe9a6c72562eefd",
+    "example_id": "300200-19382-99159f600b",
+    "split": "development",
+    "purpose": "Independent descriptive continuation only; frozen capped primary record remains unchanged. Excluded from sensitivity, ranker fitting and tuning.",
+    "baseline_n": 4,
+    "baseline_reason": "physical_top_out",
+    "original_censor_n": 2048,
+    "n": 5197,
+    "stop": "physical_top_out",
+    "gain_exact_if_physical": 5193,
+    "observed_gain_lower_bound": null,
+    "board_sha256": "7d1c5c18195f8bbf750ac09271150ee7fa1fcec377afe733c82de2a8fda89b68",
+    "stream_sha256": "eb4837460f09299432bfb193826e79d1521503bbfa4550148794ca5fa0669f2e",
+    "original_board_sha256": "56ec13af312e4bbc195f98e21d9f6ab14ce046a8ea801f7aa9202c64410f9f59",
+    "original_stream_sha256": "933aad289a7d7a20ee36621f6f3ac1e9212020baab1c7fcc3133eb3ca3d4b134",
+    "source_sha256": "eb2acfe10f7f7763628c512798d2534f03bf06b4ee49c8d4757d75fac5cf3790",
+    "runner_sha256": "cc1722f9a891dcbac45b1442793b94419bd2ddec465f4213a95be079d8d44074",
+    "model_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+    "original_frozen_report_sha256": "50ebfaa236fddd3620d86f72dd4a6090813db133ab70af09f93dd79d83daaf1f",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "wall_seconds": 226.7274756889674,
+    "cuda_initialized": false
+  }
+}

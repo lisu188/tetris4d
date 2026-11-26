@@ -1,0 +1,496 @@
+{
+  "schema": "cross-arrival-public-bag-and-real-recovery-v1",
+  "local_plan": "public-cross-clock-plan.json",
+  "plan_sha256": "d2cb8c35a1d9eccdaeabc568edfc073f02aa35a78224d30d8765874d3ac8e1aa",
+  "local_raw_rows": "public-cross-clock.json",
+  "raw_sha256": "684329813ffeab47f72f086a883c83ec1325060995f2f780ca66852b3fa88b80",
+  "protocol": {
+    "raw_sources": {
+      "terminal-rescue-archive-plan.json": "799e38f587e1b23fdf1bf7aac3bbee2b2f3ac35dcc1e35501636fecf13216454",
+      "terminal-rescue-archive.json": "5cc3bb18d1590b2a217a3407f3c3cab9de104d5a13ab5cd14127d99daa2a8fe0",
+      "audit_public_cross_clock.py": "1625b55739ab780b7051d2b616fb754d412ef66fa2666be296700aa734b5961f",
+      "sparse_tetris_4d_optimized.py": "c8d7045602cea535b6f5f639db2c1b5247dc1016995b27ad69edf1a04c085048",
+      "tetris_cross_survival.py": "1340993d9b8659b8914c82a108a8a7779bb4b2f569946f5305338ec5a6172bfa"
+    },
+    "inputs": "All 64 previously frozen, distinct historical training streams. No new roster or selection on recovery. Enumerate every positive-to-zero crossing through the full recorded lifetime.",
+    "question": "How often is zero legal CROSS mobility reversed by a clear, and how tightly can public bag evidence bound the arrival of CROSS? At zero origins, without a clear, another CROSS cannot be played.",
+    "public_prediction": "Use only placed count, CROSS placement count, current and visible preview. Distance one denotes visible preview. Validate finite conditional distribution by independent enumeration of every bag phase and CROSS slot in two bags.",
+    "scoring": "Fixed first 16 full bags per seed, 15,360 predictions; correlated moves per seed. Compare full public forecast with the exact optimal forecast conditioned only on the two explicit residual flags, against actual next CROSS within 4, 8 and 16 placements. No fitting. Per-seed scores retained.",
+    "gpu": false
+  },
+  "measurements": {
+    "frozen_plan_sha256": "d2cb8c35a1d9eccdaeabc568edfc073f02aa35a78224d30d8765874d3ac8e1aa",
+    "placements": 652639,
+    "streams": 64,
+    "bag_size": 15,
+    "public_state_classes_exhaustively_verified": 58,
+    "complete_bag_configurations": 3375,
+    "exposures": 67,
+    "recoveries": 3,
+    "terminal_bouts": 64,
+    "streams_with_recovery": 3,
+    "recovery_duration_including_first_and_clear": {
+      "n": 3,
+      "min": 10,
+      "median": 11,
+      "max": 16
+    },
+    "terminal_duration_including_first_and_final": {
+      "n": 64,
+      "min": 1,
+      "median": 12.0,
+      "max": 26
+    },
+    "terminal_public_distance_width": {
+      "n": 64,
+      "min": 1,
+      "median": 15.0,
+      "max": 15
+    },
+    "terminal_piece_counts": {
+      "CROSS": 64
+    },
+    "brier_full_public_and_two_flags": {
+      "4": [
+        0.1111403059187053,
+        0.13922822165989784
+      ],
+      "8": [
+        0.13946899226553847,
+        0.18999912822887013
+      ],
+      "16": [
+        0.07389670138888886,
+        0.11019235399710091
+      ]
+    },
+    "cpu_seconds": 6.2139177750000005
+  },
+  "per_seed_uncertainty": {
+    "4": {
+      "mean_brier_reduction": 0.028087915741192623,
+      "paired_stream_bootstrap_95": [
+        0.02653324643358295,
+        0.02967524964238802
+      ],
+      "streams_with_lower_full_public_brier": 64
+    },
+    "8": {
+      "mean_brier_reduction": 0.05053013596333164,
+      "paired_stream_bootstrap_95": [
+        0.048647680867547484,
+        0.05254383204447938
+      ],
+      "streams_with_lower_full_public_brier": 64
+    },
+    "16": {
+      "mean_brier_reduction": 0.036295652608212034,
+      "paired_stream_bootstrap_95": [
+        0.032576532068588515,
+        0.03996720905636863
+      ],
+      "streams_with_lower_full_public_brier": 64
+    }
+  },
+  "paired_forecast_scope": "Compare the exact public-history forecast of a CROSS within the horizon with the theoretical optimal probability given only preview-is-CROSS and CROSS-still-in-current-bag. Other parts of the trained network also see context. 16 full opening bags per stream. Bootstrap resamples the 64 whole streams, seed 64991, 10000 draws. Brier measures arrival prediction and does not score survival.",
+  "mechanism": "After the last landing is consumed, further placements can only add occupied cells until a layer clears. A later CROSS cannot be placed without an intervening clear restoring a landing. Public counts give a distribution over when that piece arrives.",
+  "selection_limit": "All 64 historical games were selected from training records that ultimately topped out. The 3 of 67 recovery rate is descriptive for those policies and streams.",
+  "recovered_intervals": [
+    {
+      "offset": 21191,
+      "current": "STAIR",
+      "preview": "C",
+      "origins_before": 1,
+      "cross_distance_min": 4,
+      "cross_distance_max": 18,
+      "actual_cross_distance": 18,
+      "end": "recovered",
+      "placements_through_recovery": 16,
+      "cleared_on_recovery": 1,
+      "seed": 300106
+    },
+    {
+      "offset": 16275,
+      "current": "C",
+      "preview": "STAIR",
+      "origins_before": 1,
+      "cross_distance_min": 2,
+      "cross_distance_max": 14,
+      "actual_cross_distance": 14,
+      "end": "recovered",
+      "placements_through_recovery": 10,
+      "cleared_on_recovery": 1,
+      "seed": 300250
+    },
+    {
+      "offset": 24117,
+      "current": "FORK",
+      "preview": "I",
+      "origins_before": 1,
+      "cross_distance_min": 3,
+      "cross_distance_max": 17,
+      "actual_cross_distance": 16,
+      "end": "recovered",
+      "placements_through_recovery": 11,
+      "cleared_on_recovery": 1,
+      "seed": 300052
+    }
+  ],
+  "direct_coefficient_intervention": {
+    "raw_receipt": "public-bag-weight-results.json",
+    "sha256": "992f989c0cf1c446d8c44ae5e9e4dca304777ff8241fd576bceacf0dcbb83a05",
+    "plan": {
+      "script_sha256": "61daa3349ea48801441a76cfbcd3cb54c7e0070d9a1bde9bb133b5b7b596a097",
+      "clock_script_sha256": "1625b55739ab780b7051d2b616fb754d412ef66fa2666be296700aa734b5961f",
+      "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "constant_baseline_receipt_sha256": "a1b669c28c6e491a32dda8798d02434d38a9a980a6fe607bb850613792836936",
+      "coordinates_sha256": "2da768067e348f592d646b8191c853e038ef75e0d16f02b9024339fbdc7d2125",
+      "training_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+      "horizon": 8,
+      "cap": 1024,
+      "reference_chance_numerator_denominator": [
+        1716,
+        3375
+      ],
+      "rule": "Effective mobility weight = 4 * P(next CROSS within eight moves | public history and preview) / unconditional probability over all 3375 bag phase and CROSS slot combinations. Same actor, shortlist and greedy tie rules. No fitted weights.",
+      "contrast": "All eight earlier frozen <=16-origin board roots in source order. Their constant-weight control outcomes are known. Six streams disjoint from the 64 timing games form the primary archive subset; 300520 and 300026 are overlapping and reported separately. No registered fresh evaluation games. Assess capped paired gain and censoring.",
+      "validation": "Check every constant-4 score against normal actor forward. At roots and each first changed choice cross-check the public scalar through actual model config on the identical fixed-shape tensor. Carry identical newly drawn pieces while matched. Check full piece prefixes and terminal/board hashes against independently recorded constant-4 where lengths and actions match.",
+      "limits": "One low priority CPU, cap 1024 incl each move, 480s wall for this pilot. Any partial or censored row is labeled. GPU remains reserved."
+    },
+    "groups": {
+      "disjoint": {
+        "roots": 6,
+        "wins": 1,
+        "losses": 1,
+        "restricted_gain": 19,
+        "physical_ends": 5,
+        "tied_censored": 1,
+        "gain_by_seed": {
+          "300192": 0,
+          "300402": 26,
+          "300060": 0,
+          "300510": 0,
+          "300528": -7,
+          "300220": 0
+        }
+      },
+      "overlap": {
+        "roots": 2,
+        "wins": 0,
+        "losses": 1,
+        "restricted_gain": -16,
+        "physical_ends": 1,
+        "tied_censored": 1,
+        "gain_by_seed": {
+          "300026": 0,
+          "300520": -16
+        }
+      },
+      "all": {
+        "roots": 8,
+        "wins": 1,
+        "losses": 2,
+        "restricted_gain": 3,
+        "physical_ends": 6,
+        "tied_censored": 2,
+        "gain_by_seed": {
+          "300192": 0,
+          "300402": 26,
+          "300060": 0,
+          "300510": 0,
+          "300026": 0,
+          "300528": -7,
+          "300520": -16,
+          "300220": 0
+        }
+      }
+    },
+    "rows": [
+      {
+        "seed": 300192,
+        "in_timing_archive": false,
+        "absolute_offset": 6088,
+        "baseline": {
+          "placements": 143,
+          "reason": "physical_top_out",
+          "board_sha256": "d3be97468140b8e305f88dbca1c7cdb7569932e22491a768b8d5fa1f6d352cb4",
+          "stream_sha256": "10740c2872b24d37ec537605af2c758e99c73457f1b4be6d16f0042141e36a39",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "conditional": {
+          "placements": 143,
+          "reason": "physical_top_out",
+          "board_sha256": "c49b7dafc0a96f9a6f1a424d13aed65e2b9841abd707749ec65f516408d76252",
+          "stream_sha256": "10740c2872b24d37ec537605af2c758e99c73457f1b4be6d16f0042141e36a39",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "restricted_gain": 0,
+        "local_different_choices": 1,
+        "first_change": {
+          "placement": 63,
+          "before_sha256": "0b02f8715a614da66e67efdecff1b4780d5ad5adfc2c13b80a0ff6c7d88ae895",
+          "current": "HYPER",
+          "preview": "CROSS",
+          "arrival_interval": [
+            1,
+            1
+          ],
+          "weight": 7.8671328671328675,
+          "constant_choice": 42,
+          "conditional_choice": 15
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300402,
+        "in_timing_archive": false,
+        "absolute_offset": 5673,
+        "baseline": {
+          "placements": 441,
+          "reason": "physical_top_out",
+          "board_sha256": "957b94af58ca43706535e8fdf38d48cbbbefa7353598bc27804977004c55cbdf",
+          "stream_sha256": "b7559d90372d98e821011d8277d5f8ca787c2a0c5cc001f0c3e27c54520e5981",
+          "final_piece": "CROSS",
+          "clears": 1
+        },
+        "conditional": {
+          "placements": 467,
+          "reason": "physical_top_out",
+          "board_sha256": "4523e1ad0972c827ad2c0bc4571265399a5e4f6e02817e5dbde8876bfec79f30",
+          "stream_sha256": "1edbd475beda2c6444c6ac460cb9bc3cd2823e90669aba07272a2d80b6b130a3",
+          "final_piece": "CROSS",
+          "clears": 1
+        },
+        "restricted_gain": 26,
+        "local_different_choices": 4,
+        "first_change": {
+          "placement": 344,
+          "before_sha256": "c3d1852e5dabc8dd831802868abff702045e6c68bcb4cc709ae58698a8abb6df",
+          "current": "S",
+          "preview": "BRIDGE",
+          "arrival_interval": [
+            14,
+            28
+          ],
+          "weight": 0.0,
+          "constant_choice": 94,
+          "conditional_choice": 114
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300060,
+        "in_timing_archive": false,
+        "absolute_offset": 11504,
+        "baseline": {
+          "placements": 1024,
+          "reason": "right_censored",
+          "board_sha256": "e821494c0b7784e8751d4b867e94a4386dc6d259efa36de2cdc6334c336bf2b5",
+          "stream_sha256": "98c4dc1692195bae140facd248f9a8c72bf1f6778aa431cbf0d1aacd4a4bef0e",
+          "final_piece": "BRIDGE",
+          "clears": 2
+        },
+        "conditional": {
+          "placements": 1024,
+          "reason": "cap",
+          "board_sha256": "93d5973e0b9fdf94b262169a2bc3f303673ad2f3c5d5c61b7280d49139bc9168",
+          "stream_sha256": "98c4dc1692195bae140facd248f9a8c72bf1f6778aa431cbf0d1aacd4a4bef0e",
+          "final_piece": "BRIDGE",
+          "clears": 2
+        },
+        "restricted_gain": 0,
+        "local_different_choices": 8,
+        "first_change": {
+          "placement": 35,
+          "before_sha256": "370291678c911d1fa15ca354418646cf089d3a3e8f19988a4c5e2020dc15311a",
+          "current": "I",
+          "preview": "T",
+          "arrival_interval": [
+            2,
+            11
+          ],
+          "weight": 5.506993006993007,
+          "constant_choice": 89,
+          "conditional_choice": 102
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300510,
+        "in_timing_archive": false,
+        "absolute_offset": 5756,
+        "baseline": {
+          "placements": 97,
+          "reason": "physical_top_out",
+          "board_sha256": "e179993358125ecd90266074e44281ab72b7fb96e236e4c45c7d469daef1949b",
+          "stream_sha256": "fcc87f5a753298ff0a771deeec3af8dc2b76902363bef43167fb0083f495d149",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "conditional": {
+          "placements": 97,
+          "reason": "physical_top_out",
+          "board_sha256": "43be86c8c725e152d1f7c3469a7e60c32d8e4655f6f0707ebbbf03f0d1c9f9ba",
+          "stream_sha256": "fcc87f5a753298ff0a771deeec3af8dc2b76902363bef43167fb0083f495d149",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "restricted_gain": 0,
+        "local_different_choices": 1,
+        "first_change": {
+          "placement": 51,
+          "before_sha256": "8bceb36b0b0ac7a7acd4f17ed0a4b5a267d598eb304d8f4a41e14c6a17b6cf91",
+          "current": "I",
+          "preview": "CROSS",
+          "arrival_interval": [
+            1,
+            1
+          ],
+          "weight": 7.8671328671328675,
+          "constant_choice": 127,
+          "conditional_choice": 2
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300026,
+        "in_timing_archive": true,
+        "absolute_offset": 28530,
+        "baseline": {
+          "placements": 1024,
+          "reason": "right_censored",
+          "board_sha256": "5007c22fa422f41b06bd514d648de559e5dd434eb1464d68735ca6a9d482e15a",
+          "stream_sha256": "ee3908cb20cb261175c1143088d94bf54e0c3c6d552e1e1e17531153d3ecadf3",
+          "final_piece": "T",
+          "clears": 2
+        },
+        "conditional": {
+          "placements": 1024,
+          "reason": "cap",
+          "board_sha256": "6298634d1c4a33d0c1ac5f52f41777755e225de7fb2baf277e63ba0006f84130",
+          "stream_sha256": "ee3908cb20cb261175c1143088d94bf54e0c3c6d552e1e1e17531153d3ecadf3",
+          "final_piece": "T",
+          "clears": 2
+        },
+        "restricted_gain": 0,
+        "local_different_choices": 5,
+        "first_change": {
+          "placement": 11,
+          "before_sha256": "7509147d0eb5b701c5c4fbb1b38272c8e5e0872de024190f66f6669319c73fe4",
+          "current": "FORK",
+          "preview": "HYPER",
+          "arrival_interval": [
+            5,
+            19
+          ],
+          "weight": 2.097902097902098,
+          "constant_choice": 15,
+          "conditional_choice": 68
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300528,
+        "in_timing_archive": false,
+        "absolute_offset": 5456,
+        "baseline": {
+          "placements": 381,
+          "reason": "physical_top_out",
+          "board_sha256": "30fa6fa8d639546d06fd58f29a38543e5e5d8f7cbbbbd24160a748641b82379f",
+          "stream_sha256": "1a4262778bc93b691cd6cb6bc05f42a70963a00386a9511632f4f57dd6f7a9cb",
+          "final_piece": "CROSS",
+          "clears": 1
+        },
+        "conditional": {
+          "placements": 374,
+          "reason": "physical_top_out",
+          "board_sha256": "7a81c4a47b720cbaf20b1b78e7713fea9b930b5982027e1f946931b8f20c542f",
+          "stream_sha256": "ba66270409a258f0231baec5ddd9a248d275e9300957f5ff99764c7fb342e50d",
+          "final_piece": "CROSS",
+          "clears": 1
+        },
+        "restricted_gain": -7,
+        "local_different_choices": 4,
+        "first_change": {
+          "placement": 264,
+          "before_sha256": "717aacb391be88044d8f56dd9a1d69eb5c0948453dbd7c28aa0e278a3222222b",
+          "current": "CROSS",
+          "preview": "I",
+          "arrival_interval": [
+            11,
+            25
+          ],
+          "weight": 0.0,
+          "constant_choice": 5,
+          "conditional_choice": 11
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300520,
+        "in_timing_archive": true,
+        "absolute_offset": 5726,
+        "baseline": {
+          "placements": 118,
+          "reason": "physical_top_out",
+          "board_sha256": "415cfd345c0ee2d559d3d5d4bc5102974d55ed70a3de0ff96183493c77efd4a7",
+          "stream_sha256": "268ae6438f77a8ea44d2b168b1e91d711a891d981a78042cbe373d21bf13e3a7",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "conditional": {
+          "placements": 102,
+          "reason": "physical_top_out",
+          "board_sha256": "20bb75ba70567d5a9e69907056931404ae34639de03d4ed7a30ddba2e52bc294",
+          "stream_sha256": "daf941001155873734242c22fab2dc03febbfa8b1431ef283cfc0d91c1880690",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "restricted_gain": -16,
+        "local_different_choices": 1,
+        "first_change": {
+          "placement": 68,
+          "before_sha256": "1401e3b96e00797ffc385ed8c575649de368455bec27fdf8658100c8043482d8",
+          "current": "B",
+          "preview": "T",
+          "arrival_interval": [
+            2,
+            11
+          ],
+          "weight": 5.506993006993007,
+          "constant_choice": 103,
+          "conditional_choice": 81
+        },
+        "independent_config_checks": 2
+      },
+      {
+        "seed": 300220,
+        "in_timing_archive": false,
+        "absolute_offset": 7526,
+        "baseline": {
+          "placements": 110,
+          "reason": "physical_top_out",
+          "board_sha256": "b9e5a359cf4a094227d5ad621f8d89d92bd97a17ec60cfe53c4f190a281b5b5f",
+          "stream_sha256": "5232bf04bd77640239ad3c6f429aed99130cc6fe54aae6ae4a6f43570d08f427",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "conditional": {
+          "placements": 110,
+          "reason": "physical_top_out",
+          "board_sha256": "b9e5a359cf4a094227d5ad621f8d89d92bd97a17ec60cfe53c4f190a281b5b5f",
+          "stream_sha256": "5232bf04bd77640239ad3c6f429aed99130cc6fe54aae6ae4a6f43570d08f427",
+          "final_piece": "CROSS",
+          "clears": 0
+        },
+        "restricted_gain": 0,
+        "local_different_choices": 0,
+        "first_change": null,
+        "independent_config_checks": 1
+      }
+    ],
+    "scope": "All 8 roots predate this comparison. Six are disjoint from the 64 timing streams. The other two are measured separately. Known comparisons are capped at 1024. Detection of an imminent CROSS does not imply a given preserving move maximizes long-term survival."
+  }
+}

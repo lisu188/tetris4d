@@ -1,0 +1,802 @@
+{
+  "baseline_revision": "39292969e031226c68e53757ed4379ee5c9f2dee",
+  "candidate_manifest_sha256": "8202d020b6c9f9240154b0d7ce915b2e7f619c0459ae20328d73f471d3ebd96c",
+  "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "parity": true,
+  "workloads": {
+    "opening": {
+      "pairs": 5,
+      "per_pair": [
+        0.7374419076708314,
+        1.0460711796115003,
+        1.4401716731088914,
+        1.3789538830150452,
+        1.1226116376679678
+      ],
+      "median_speedup": 1.1226116376679678,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 340.5509765790056,
+        "median_peak_reserved_mib": 2306.0,
+        "greedy_placements_per_second": 279.2304569975916
+      },
+      "combined": {
+        "median_placements_per_second": 393.2214565106534,
+        "median_peak_reserved_mib": 1354.0,
+        "greedy_placements_per_second": 203.5489305665896
+      },
+      "greedy": {
+        "per_pair": [
+          0.31346944853481545,
+          0.7051290091450385,
+          0.8655107697372321,
+          1.1612140788764114,
+          0.7289639273424433
+        ],
+        "median_speedup": 0.7289639273424433,
+        "median_placements_per_second": {
+          "reference": 279.2304569975916,
+          "combined": 203.5489305665896
+        }
+      }
+    },
+    "boundaries": {
+      "pairs": 5,
+      "per_pair": [
+        0.8596992940442009,
+        1.2222852868345562,
+        1.153533804244902,
+        1.0672595682468466,
+        1.2268581594549774
+      ],
+      "median_speedup": 1.153533804244902,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 279.13694163406427,
+        "median_peak_reserved_mib": 2636.0
+      },
+      "combined": {
+        "median_placements_per_second": 314.58449764684536,
+        "median_peak_reserved_mib": 2456.0
+      }
+    },
+    "late": {
+      "pairs": 5,
+      "per_pair": [
+        0.4762091974109367,
+        1.3483845748938652,
+        1.169159095676203,
+        1.2877975340627053,
+        1.3769888127672336
+      ],
+      "median_speedup": 1.2877975340627053,
+      "passes": true,
+      "reference": {
+        "median_placements_per_second": 291.26889940403146,
+        "median_peak_reserved_mib": 2788.0
+      },
+      "combined": {
+        "median_placements_per_second": 331.2852340743678,
+        "median_peak_reserved_mib": 1422.0
+      }
+    }
+  },
+  "receipt_sha256": {
+    "opening/1-reference.json": "982af587b24265573f6eee8b445b12d043fcbc5e8f1dd5f0d9b3ffc277099261",
+    "opening/1-combined.json": "0713d4021290252bc22d7bbd9050cfc2841e5ace4702990ee810c78fe7e08335",
+    "opening/2-reference.json": "bcca4abbdd78f033e9d0028d64f2a493aa212fdcd7762fb84534cf2acf10a73e",
+    "opening/2-combined.json": "f31d25428ef34a36fa3b8a3f43257c343bfc1c95c717d9db6a29b6b3d677a4ec",
+    "opening/3-reference.json": "4f8874b36088b20d69809b493322ffb5c607345050d816a06d08c08b1e68829f",
+    "opening/3-combined.json": "63e77ca4974d2121ff45e80747bea351784c00f75572e71b4ae443eee690914d",
+    "opening/4-reference.json": "b7474e5c25526c17cdee140ff3f329fe5ae6ff66780e6b4d2f97f0e937c41699",
+    "opening/4-combined.json": "1b8c81dfe2c1d87f7d71c067d61195043abcc4c65dde848acd84348d39520c60",
+    "opening/5-reference.json": "cf7ddbc7babc0ed3da823ddf569e3218070cd4dd1b686a09ccddf3deb6327844",
+    "opening/5-combined.json": "f6fe4b4abdeb4dc02bef610de5ade1815972407ee9c7bf29f5b64ea5e2bf14b9",
+    "boundaries/1-reference.json": "4994fb32fd57fccceb2baa4f2924b938b1917ca866f8996aa6f38e4700df41c1",
+    "boundaries/1-combined.json": "82d15c4def2f999f34bed48b2c98f568d8f6f521b04620c7ef855a629205e83d",
+    "boundaries/2-reference.json": "4a66435200a211075a53c8fa731ded6bb013c3976897d33bfe6de49df54d03a5",
+    "boundaries/2-combined.json": "a5c620272f2c76497c8b17ca0849d0fa684536a6ccb490186f13e03f822f540d",
+    "boundaries/3-reference.json": "18cde4375fd7d96ecfb3970d7d493b5522f6a7ae900ad093579c1acb39d6cb3b",
+    "boundaries/3-combined.json": "13fd679ed761faa794d119cac2b72c7b87cc103290b585b824f7bb8eba2373a9",
+    "boundaries/4-reference.json": "5beb9e528f2039f307ecabbe6cfad37b11ffdcec71a430abf29017167f169882",
+    "boundaries/4-combined.json": "21275cb5f323059bd5b9faf39e17847fc99ec1aad1fb8e1c849e5cc35c14cc1a",
+    "boundaries/5-reference.json": "95ec9f3e7a30854a59ad627a8ad5e03fc98626f8864dc9e7d6d79bd63ce7c03e",
+    "boundaries/5-combined.json": "e2dbaa9053c6d79e29466d3f732c8e960fb968e84f18e0251429e144821a773a",
+    "late/1-reference.json": "3484c0faf8472414d1b1923e171dc1890964b902f7db7d75495a8d9129d135ae",
+    "late/1-combined.json": "6fba3e49629a20560a033ad9758b1dec60157e3113a62855d9851992aa69b051",
+    "late/2-reference.json": "a09ff04eb330d6a7db57bfbf38422073b8a635a7e7f5fa4d8f17e1055e153c8b",
+    "late/2-combined.json": "a2875232a36cd7853053ce2d723212e9b8b4b7fc9b938719652af621b944a19e",
+    "late/3-reference.json": "2a839fdb096e824eb717cfb57b740a3ce70adf60788a9d016ed81077075077fc",
+    "late/3-combined.json": "30b09fad5cf82303e9f5a733a2d68abf42fad21e8aa3c75b30be832865978944",
+    "late/4-reference.json": "756d81ffb34346e62066c0cf7dc6a9e5ea8411f241ca7bcc00a46720d6c1dbc6",
+    "late/4-combined.json": "d4375a9b3c1c8995eb13935c024d8689cae9044a7cb97d6e0bc02e6c63110c12",
+    "late/5-reference.json": "90732dc23154a2e4c6010b875a09dbc3bb0124cf54083203b24ba8d2362cee09",
+    "late/5-combined.json": "c6ed978773ecefabccf5a9bacaa12997f6d3131228f072ebcc85ef5ad475fcbf"
+  },
+  "enabled": {
+    "two_stage": true,
+    "headless": true
+  },
+  "greedy_enabled": {
+    "two_stage": false,
+    "headless": false
+  },
+  "gate_sha256": "ef991d7550b58dd223369d65656ac2b573447283b11aab94879bcd72285bd3ef",
+  "preparation_seconds": 2023,
+  "native_replay": {
+    "game_id": "006454ab20eb3b13ff2cb82526956caabcdd68ed2332ae8a5ba8ec5bb700d314",
+    "seed": 300018,
+    "placements": 11020,
+    "checked_returned_moves": 11020,
+    "board_sha256_chain": "dd0d8029931c3edcae6d1a5f5f6c06b29e98195427f8d59541d0a7cd5b820f94",
+    "native_commit_seconds": 1.5682082974235527,
+    "terminal": true,
+    "last_board_sha256": "e67ffef92ad9ae44a2bde642dec9016033703364f229f6e7f0ddd78f3f85478f",
+    "matched_archive_terminal_sha256": true
+  },
+  "preview_latency": {
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. Every position and mode runs once to warm before timed pass.",
+    "positions": 12,
+    "modes": [
+      {
+        "device": "cpu",
+        "preview": false,
+        "p50_ms": 42.430805,
+        "p95_ms": 55.60408694999999,
+        "triggers": 0
+      },
+      {
+        "device": "cuda",
+        "preview": false,
+        "p50_ms": 7.541195500000001,
+        "p95_ms": 8.192013399999999,
+        "triggers": 0
+      },
+      {
+        "device": "cpu",
+        "preview": true,
+        "p50_ms": 50.155181999999996,
+        "p95_ms": 96.38253029999997,
+        "triggers": 8
+      },
+      {
+        "device": "cuda",
+        "preview": true,
+        "p50_ms": 12.502906,
+        "p95_ms": 60.78901914999997,
+        "triggers": 8
+      }
+    ],
+    "cross_weight": 0.5,
+    "two_stage": true,
+    "headless": true
+  },
+  "reference_cache_smoke": {
+    "schema": "real-cuda-v4-frozen-reference-cache-v1",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "torch": "2.14.1+cu130",
+    "cuda": "13.0",
+    "source": "b9ad77a315ff818f0e81b9ab8c79adec9c9e1b1c6af159bcbd0feb780717a719",
+    "actor_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "critic_checkpoint_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+    "reference_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "locked_actor_digest": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+    "base_actor_digest_at_start": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+    "behavior_temperature": 0.25,
+    "reference_kl_weight": 0.05,
+    "runner_updates": 1,
+    "optimizer_steps": 2,
+    "placements": 4,
+    "reference_forward_batch_sizes": [
+      2,
+      2
+    ],
+    "retained_reference_shape": [
+      4,
+      128
+    ],
+    "retained_reference_dtype": "torch.float32",
+    "rollout_cache": {
+      "requested": true,
+      "enabled": true,
+      "storage": "fixed_features",
+      "bytes": 383008,
+      "frozen_reference": {
+        "enabled": true,
+        "bytes": 2048
+      }
+    },
+    "gpu_preparations": {
+      "batch_calls": 3,
+      "environment_calls": 6,
+      "cpu_fallbacks": {}
+    },
+    "gather_matched_direct_fp32": true,
+    "gather_matched_behavior_fp32": true,
+    "training_kl": 0.001883884659036994,
+    "diagnostic_kl_with_cache": 0.001883884659036994,
+    "diagnostic_kl_without_cache": 0.001883884659036994,
+    "seconds": 44.13478371500969
+  },
+  "cpu_gameplay_ablation": {
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. Every position and mode runs once to warm before timed pass.",
+    "positions": 12,
+    "cross_weight": 0.5,
+    "same_actions_and_triggers": true,
+    "modes": {
+      "reference": {
+        "sha256": "7bc080c2419a1d2433e66aaa51c1e2668407e9345a7ad84a1b075f1165328024",
+        "two_stage": false,
+        "headless": false,
+        "greedy": {
+          "p50_ms": 269.0647525,
+          "p95_ms": 1446.6095837499993
+        },
+        "lookahead": {
+          "p50_ms": 779.4752685,
+          "p95_ms": 3880.7528272999975
+        }
+      },
+      "renderable": {
+        "sha256": "6400c1df18afb439ef5fab2562d251f8f77eebacb85c9ec11c504fd77ecc12bf",
+        "two_stage": true,
+        "headless": false,
+        "greedy": {
+          "p50_ms": 46.276386,
+          "p95_ms": 73.52612794999999
+        },
+        "lookahead": {
+          "p50_ms": 69.37284,
+          "p95_ms": 141.42778214999993
+        }
+      },
+      "fast": {
+        "sha256": "b7e95d78d0d9dd05c88af3d14ea83fe5d78ce985f2df5a855b91485c30cf8669",
+        "two_stage": true,
+        "headless": true,
+        "greedy": {
+          "p50_ms": 51.348817499999996,
+          "p95_ms": 63.80417369999999
+        },
+        "lookahead": {
+          "p50_ms": 66.52908,
+          "p95_ms": 117.90356964999997
+        }
+      }
+    }
+  },
+  "greedy_commit_replay": {
+    "schema": "cross-greedy-commit-only-v1",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "source_sha256": "102b59d7032f632b9d52bfe922530757e31c2972b356f06dd7efbd9c79ec0015",
+    "native_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+    "game_id": "006454ab20eb3b13ff2cb82526956caabcdd68ed2332ae8a5ba8ec5bb700d314",
+    "seed": 300018,
+    "record_sha256": "54d5c520632251fa66864ff93ea38e561cc97d4e1e19ec066e5ad6fdf9135010",
+    "moves": 11020,
+    "clears": 6,
+    "score": 600,
+    "natural_terminal": true,
+    "board_chain_sha256": "9521a5a0fb8e2cc95afd50f1fbcbbf5a82b6ba4e066db109612be6db595bd648",
+    "final_board_sha256": "e67ffef92ad9ae44a2bde642dec9016033703364f229f6e7f0ddd78f3f85478f",
+    "pairs": [
+      {
+        "standard": 5.04858993,
+        "native": 1.415190184
+      },
+      {
+        "native": 1.462294838,
+        "standard": 5.38759823
+      },
+      {
+        "standard": 4.795573811,
+        "native": 1.463917143
+      },
+      {
+        "native": 1.779657028,
+        "standard": 5.170520399
+      },
+      {
+        "standard": 4.810495433,
+        "native": 1.791204848
+      }
+    ],
+    "paired_median_speedup": 3.275850572507436,
+    "median_ms_per_move": {
+      "standard": 0.45812975771324865,
+      "native": 0.1328418460072595
+    },
+    "scope": "CPU placement, clear, next-piece legality, and render-history discard using the two evaluator commit paths. Candidate preparation, model inference, target recovery and digest verification are outside measured time. Does not change the run simulator."
+  },
+  "production_by_recipe": {
+    "scope": "Updates 24-32 inclusive, 73,728 placements per arm. Observational sequential production windows, each matched by hash to its baseline and nine raw update records. Device utilization is device-wide sampled activity. Each arm encounters its own boards; phase and optimizer work can vary.",
+    "arms": {
+      "611000-anchored": {
+        "local_receipt": "hardware-profile/611000-anchored.json",
+        "receipt_sha256": "49d1ff8bdb0fe4bda67c400689ff9c34a8f12f05272d774d74f266095cbe45fb",
+        "wall_seconds": 158.77358702203492,
+        "placements_per_second": 464.3593520990861,
+        "phase_percent": {
+          "prepare_seconds": 43.729,
+          "inference_transfer_seconds": 7.968,
+          "commit_seconds": 5.533,
+          "bootstrap_seconds": 0.127,
+          "update": 41.586
+        },
+        "optimizer_steps": 531,
+        "kl_stops": 1,
+        "device_utilization_median_pct": 33.0,
+        "cpu_cores": 0.9972311380018525
+      },
+      "611000-cold": {
+        "local_receipt": "hardware-profile/611000-cold.json",
+        "receipt_sha256": "26baf0a50f128d867b34c0a8ca4924f99dd54457ca59d6801ce523889c64d10d",
+        "wall_seconds": 147.36333103396464,
+        "placements_per_second": 500.3144234233345,
+        "phase_percent": {
+          "prepare_seconds": 48.275,
+          "inference_transfer_seconds": 8.454,
+          "commit_seconds": 6.134,
+          "bootstrap_seconds": 0.142,
+          "update": 35.797
+        },
+        "optimizer_steps": 481,
+        "kl_stops": 2,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0029814663315433
+      },
+      "611000-plain": {
+        "local_receipt": "hardware-profile/611000-plain.json",
+        "receipt_sha256": "ae8ab15742dcfe9e242ce5b353f29dc5f58c6b2b2d1c53f683bd67c86cd770e8",
+        "wall_seconds": 152.0120405589696,
+        "placements_per_second": 485.01421156437215,
+        "phase_percent": {
+          "prepare_seconds": 45.996,
+          "inference_transfer_seconds": 8.031,
+          "commit_seconds": 5.884,
+          "bootstrap_seconds": 0.136,
+          "update": 38.75
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0010086368125222
+      },
+      "611000-residual": {
+        "local_receipt": "hardware-profile/611000-residual.json",
+        "receipt_sha256": "29c0c7130c4e33512a6fe57d851587ea51135f98f93f2f094951aa12819f1b68",
+        "wall_seconds": 163.59919203299796,
+        "placements_per_second": 450.66237237363043,
+        "phase_percent": {
+          "prepare_seconds": 46.147,
+          "inference_transfer_seconds": 8.376,
+          "commit_seconds": 5.641,
+          "bootstrap_seconds": 0.126,
+          "update": 38.639
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 34.0,
+        "cpu_cores": 0.9995308841003835
+      },
+      "612000-anchored": {
+        "local_receipt": "hardware-profile/612000-anchored.json",
+        "receipt_sha256": "1c132c6751b78aed4fb7f3874810cbbdad2e18dcbc49ee95390037dc713f3ceb",
+        "wall_seconds": 155.18103609600803,
+        "placements_per_second": 475.1096000827425,
+        "phase_percent": {
+          "prepare_seconds": 43.304,
+          "inference_transfer_seconds": 8.15,
+          "commit_seconds": 5.121,
+          "bootstrap_seconds": 0.119,
+          "update": 42.335
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 34.0,
+        "cpu_cores": 1.004154518035075
+      },
+      "612000-cold": {
+        "local_receipt": "hardware-profile/612000-cold.json",
+        "receipt_sha256": "eb4dc79905b80a0f457a020f91f3a87165e3b911441a547b22e2fb9ab86a62e6",
+        "wall_seconds": 159.69257830799324,
+        "placements_per_second": 461.6870788935695,
+        "phase_percent": {
+          "prepare_seconds": 45.255,
+          "inference_transfer_seconds": 8.039,
+          "commit_seconds": 5.767,
+          "bootstrap_seconds": 0.15,
+          "update": 39.759
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 0.9980079148666355
+      },
+      "612000-plain": {
+        "local_receipt": "hardware-profile/612000-plain.json",
+        "receipt_sha256": "23ab38f4600e8c875341a8fda8766d14b3d66841d4b043c6208e3f53160e724a",
+        "wall_seconds": 152.52268817502772,
+        "placements_per_second": 483.39037871790777,
+        "phase_percent": {
+          "prepare_seconds": 45.692,
+          "inference_transfer_seconds": 8.154,
+          "commit_seconds": 6.13,
+          "bootstrap_seconds": 0.143,
+          "update": 38.759
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 35.0,
+        "cpu_cores": 1.0020056922526557
+      },
+      "612000-residual": {
+        "local_receipt": "hardware-profile/612000-residual.json",
+        "receipt_sha256": "30befd0ed72179bcc753e1bf1c947e304abda88dab859032a19f26397dc54dd8",
+        "wall_seconds": 148.99099908198696,
+        "placements_per_second": 494.8486851841893,
+        "phase_percent": {
+          "prepare_seconds": 44.682,
+          "inference_transfer_seconds": 8.583,
+          "commit_seconds": 5.473,
+          "bootstrap_seconds": 0.132,
+          "update": 40.207
+        },
+        "optimizer_steps": 576,
+        "kl_stops": 0,
+        "device_utilization_median_pct": 33.0,
+        "cpu_cores": 0.9997163518515023
+      }
+    }
+  },
+  "capped_cross_mobility": {
+    "reference": "c7689882400663b3185fad7701294e0f03278f07",
+    "script_sha256": "6b55d93cc3de967dda9884b3c612ff94571dda544e16837d88486bef24efefda",
+    "cpu_sha256": "1bd382cf61f576348ac5026d82d67674be96989ed83f3b6de8464d2948c8fa0e",
+    "gpu_sha256": "86f65c5b549c94734a22a15a1b63c33bd23fd08b3c255bf865ff9b760e9ccfc4",
+    "gpu_callsite_sha256": "71eb11fbe1074cb32404df12ef426d2463a580a576dcde162d96b0a8bc500790",
+    "model_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "max_loss": 35,
+    "total_moves": 1324,
+    "boards": [
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4,
+        "seed": 300440,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 100,
+        "seed": 300440,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4102,
+        "seed": 300440,
+        "options": 1,
+        "before": 1,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4126,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4132,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4133,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 4,
+        "seed": 300414,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 100,
+        "seed": 300414,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5203,
+        "seed": 300414,
+        "options": 128,
+        "before": 4,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5227,
+        "seed": 300414,
+        "options": 43,
+        "before": 2,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5233,
+        "seed": 300414,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5234,
+        "seed": 300414,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      }
+    ],
+    "timing": {
+      "features": {
+        "paired_ms_per_12": [
+          [
+            1.787455,
+            1.644242
+          ],
+          [
+            1.7717429999999998,
+            1.528989
+          ],
+          [
+            1.809324,
+            1.574935
+          ],
+          [
+            1.778111,
+            1.812393
+          ],
+          [
+            1.9596049999999998,
+            2.121739
+          ],
+          [
+            1.815799,
+            1.613551
+          ],
+          [
+            1.7021629999999999,
+            1.546287
+          ],
+          [
+            1.811461,
+            1.509279
+          ],
+          [
+            2.0312959999999998,
+            1.545821
+          ],
+          [
+            2.105667,
+            1.625974
+          ],
+          [
+            1.7846989999999998,
+            1.610951
+          ],
+          [
+            1.772627,
+            1.607794
+          ],
+          [
+            2.0785549999999997,
+            1.617202
+          ],
+          [
+            2.0028349999999997,
+            1.6731699999999998
+          ],
+          [
+            2.162441,
+            1.602687
+          ],
+          [
+            1.9335669999999998,
+            1.6051419999999998
+          ],
+          [
+            1.7259959999999999,
+            1.570026
+          ],
+          [
+            1.999263,
+            1.629664
+          ],
+          [
+            2.077388,
+            1.5956169999999998
+          ],
+          [
+            1.865268,
+            2.521255
+          ],
+          [
+            2.957224,
+            3.337357
+          ],
+          [
+            3.527938,
+            3.871399
+          ],
+          [
+            1.921052,
+            2.042467
+          ],
+          [
+            1.968675,
+            1.747414
+          ],
+          [
+            2.395124,
+            1.75556
+          ],
+          [
+            2.101574,
+            1.613302
+          ],
+          [
+            2.889897,
+            1.806371
+          ],
+          [
+            3.7564539999999997,
+            2.302149
+          ],
+          [
+            1.796103,
+            1.8547099999999999
+          ],
+          [
+            1.8496359999999998,
+            1.514263
+          ],
+          [
+            1.8985139999999998,
+            1.551686
+          ]
+        ],
+        "paired_median_speedup": 1.1587676562748326,
+        "prior_median_ms": 1.9335669999999998,
+        "candidate_median_ms": 1.617202
+      },
+      "full_decision_and_materialize": {
+        "paired_ms_per_12": [
+          [
+            1009.204316,
+            1024.0801609999999
+          ],
+          [
+            1030.7863399999999,
+            1061.193291
+          ],
+          [
+            1000.070832,
+            1106.966453
+          ],
+          [
+            1015.7253959999999,
+            1009.621369
+          ],
+          [
+            923.998654,
+            1093.410819
+          ],
+          [
+            1074.8118299999999,
+            1034.475308
+          ],
+          [
+            1036.856563,
+            1026.7670779999999
+          ],
+          [
+            978.131485,
+            959.4513
+          ],
+          [
+            1026.950233,
+            899.9316839999999
+          ]
+        ],
+        "paired_median_speedup": 1.0060458575733653,
+        "prior_median_ms": 1015.7253959999999,
+        "candidate_median_ms": 1026.7670779999999
+      }
+    },
+    "fixed40_fixture_sha256": "4cef86039843b11d563632508808e399092cec07fb1957500373323fcd089ec3",
+    "fixed40_cpu_eligibility": {
+      "all": {
+        "boards": 40,
+        "cpu_shortcut_boards": 30,
+        "candidates": 5028,
+        "cpu_shortcut_candidates": 3840
+      },
+      "danger": {
+        "boards": 20,
+        "cpu_shortcut_boards": 10,
+        "candidates": 2468,
+        "cpu_shortcut_candidates": 1280
+      },
+      "ordinary": {
+        "boards": 20,
+        "cpu_shortcut_boards": 20,
+        "candidates": 2560,
+        "cpu_shortcut_candidates": 2560
+      }
+    },
+    "local_receipt": "capped-cross-cpu-replay.json",
+    "receipt_sha256": "93022d1b9f3f52cbe9aae60a4713c4700d1d4923c66cf85921c67ee1773cb4e6",
+    "offline_compile_receipt": "capped-cross-offline-compile.json",
+    "offline_compile_sha256": "1a9fa0382cab61f117090a57b6b45b297397d379291624bdc375a5bc6ca0e626",
+    "sm89_compilations": [
+      {
+        "cap": 0,
+        "cubin_sha256": "09ed0f9b6d6dbebfc2e5b1e25a6b1df9115a29c81fa1a455e0edda625a71a300",
+        "bytes": 292768,
+        "shared_memory_bytes": 16384
+      },
+      {
+        "cap": 16,
+        "cubin_sha256": "80bdb2a9ac22148262b25cf0cd8a40da65360535b475fc90890a78c9d716a2ae",
+        "bytes": 290848,
+        "shared_memory_bytes": 16384
+      }
+    ],
+    "scope": "CPU timing covers twelve fixed archived boards, in alternating pairs after warmup, on one CPU core. The full-decision measurement includes preparation, fixed-shape FP32 actor, exact guard choice, materialization and hashing the resulting board. It excludes the subsequent game-stream commit. The Triton interpreter checked clearing, scarce and saturated boards and padded options. Ahead-of-time compilation for sm_89 checks lowering, without a hardware timing measurement."
+  }
+}

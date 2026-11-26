@@ -1,0 +1,652 @@
+{
+  "schema": "cross-survival-preview-search-cost-v1",
+  "question": "CPU cost and decision parity of exact optimizations for registered one-visible-piece reply search.",
+  "provenance": {
+    "local_artifact_directory": "survival-training.artifacts/cross-survival-24h",
+    "input_receipts_sha256": {
+      "reply-bound-cpu.json": "fae70621443cfbbae8f15a40e75576f4833c4a1426be9ca9ab58b65c00e9cb95",
+      "native-replies-cpu.json": "504a91ce20ab469c212fd354953c55e140d06e8a1409f6fb41b80240596f984e",
+      "workspace-preview-parity.json": "13da1f5e846b96c7a5ca9d12ba2b5c2270655756b96ccc9d41a6f16299f2e8fb"
+    },
+    "experiment_scripts_sha256": {
+      "bench_reply_bound_cpu.py": "54f71160bf4c95a7d9fd84d495f161d6741e467b1f0c4f970c5dbe2c333b6e79",
+      "bench_native_replies_cpu.py": "e88b62e6f1d8400b112f707bfc2aafb6be8b20d417483bd0f8908bfbea72da4b",
+      "verify_workspace_preview.py": "9a00c098606786acff7a9acccb12d5335c2730fefa61d896eb6d4b920ade8f9b"
+    },
+    "frozen_runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "frozen_sources_sha256": {
+      "tetris_cross_survival.py": "1340993d9b8659b8914c82a108a8a7779bb4b2f569946f5305338ec5a6172bfa",
+      "tools/evaluate_afterstate_td.py": "66e67423c360817676bf65222ac5de1d763a41774e81ee891416dfe9d98f1311",
+      "tetris_neural.py": "441a5bc61e19180c466290f8e6749bf858eb4f20bd9730f06219d67a127fdaec",
+      "tetris_survival_v4.py": "8db8606455779f7a5dec6a0f535c688eef3452c2f8f21dd7d5cd96cd037c9bfb",
+      "sparse_tetris_4d_optimized.py": "c8d7045602cea535b6f5f639db2c1b5247dc1016995b27ad69edf1a04c085048",
+      "tetris_game_library.py": "8bc5ea4056d4a78cd7830a422a419124554462249c86c1bd3170cb1b1f8072bc",
+      "native/libtetris4d_native.so": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+      "models/trained-sigmoid.json": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb"
+    },
+    "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "archived_game_sources": {
+      "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565": {
+        "file_sha256": "74f5a8cca56ebee103674178e9c76636a4a53ee97929aa992a0f3467dd6dc911",
+        "terminal_sha256": "eb1b7399494152edeee254483d782e1f165a81a754c55996cba513c0927f6cd5"
+      },
+      "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8": {
+        "file_sha256": "ccaf00ed06fc8d3a6b2add8a59f99e54ffe767a384396b69cc47ab5bedba392e",
+        "terminal_sha256": "1f617dd3544f7455fce1f39ae0263adc3f28a950f138623b2b9d7cdef9ad9023"
+      }
+    },
+    "sustained_preview_roots_sha256": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+    "prior_latency_positions_receipt_sha256": "6b390bc33eae3c810094e3729de7968a7a3b7fe1ffcceb51d0a683e78ca126cd"
+  },
+  "settings": {
+    "device": "cpu",
+    "pytorch_threads": 1,
+    "niceness": 15,
+    "cuda_initialized": false,
+    "outer_actor_shape": [
+      32,
+      128
+    ],
+    "outer_real_boards_per_decision": 1,
+    "actor_precision": "FP32",
+    "outer_two_stage": false,
+    "headless_commit": false,
+    "reply_policy": "four teacher-ranked exhaustive survival-feature-v3 placements for the visible piece",
+    "scope": "Wall time from outer candidate preparation through standard checked commit. Fixture restoration, model loading and parity instrumentation are outside the timing. Per-block suites run each selected board once."
+  },
+  "variants": {
+    "dense": "Frozen dense preparation for current and visible pieces.",
+    "bound": "Dense preparation with an exact suffix cutoff. Stop once the next actor logit plus the maximum normalized reply bonus is at most the best observed score. Actor order resolves ties.",
+    "native_reply": "Exact native two-stage selection for the visible-piece teacher shortlist only.",
+    "native_reply_bound": "Reply-only native selection and the exact suffix cutoff."
+  },
+  "cpu_four_way": {
+    "cpu": 1,
+    "block_orders": [
+      [
+        "dense",
+        "bound",
+        "native_reply_bound",
+        "native_reply"
+      ],
+      [
+        "bound",
+        "native_reply",
+        "dense",
+        "native_reply_bound"
+      ],
+      [
+        "native_reply",
+        "native_reply_bound",
+        "bound",
+        "dense"
+      ],
+      [
+        "native_reply_bound",
+        "dense",
+        "native_reply",
+        "bound"
+      ]
+    ],
+    "measured_seconds": 191.073,
+    "results": {
+      "all": {
+        "boards": 14,
+        "modes": {
+          "dense": {
+            "median_mean_board_ms": 1323.357,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              18.54845,
+              18.628113,
+              17.866135,
+              18.505546
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 990.971,
+            "median_paired_speedup": 1.3394,
+            "speedup_range": [
+              1.3273,
+              1.3987
+            ],
+            "suite_seconds_per_block": [
+              13.804724,
+              13.952204,
+              12.77316,
+              13.942451
+            ]
+          },
+          "native_reply": {
+            "median_mean_board_ms": 581.298,
+            "median_paired_speedup": 2.2665,
+            "speedup_range": [
+              2.1652,
+              2.3836
+            ],
+            "suite_seconds_per_block": [
+              7.781796,
+              8.364479,
+              8.251359,
+              8.024981
+            ]
+          },
+          "native_reply_bound": {
+            "median_mean_board_ms": 547.286,
+            "median_paired_speedup": 2.4067,
+            "speedup_range": [
+              2.34,
+              2.4821
+            ],
+            "suite_seconds_per_block": [
+              7.688912,
+              7.758219,
+              7.635087,
+              7.455587
+            ]
+          }
+        }
+      },
+      "triggered": {
+        "boards": 10,
+        "modes": {
+          "dense": {
+            "median_mean_board_ms": 1463.267,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              14.541383,
+              15.022208,
+              13.92776,
+              14.723952
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 996.718,
+            "median_paired_speedup": 1.4829,
+            "speedup_range": [
+              1.4341,
+              1.5117
+            ],
+            "suite_seconds_per_block": [
+              9.888297,
+              10.046053,
+              9.213221,
+              10.267331
+            ]
+          },
+          "native_reply": {
+            "median_mean_board_ms": 413.46,
+            "median_paired_speedup": 3.5366,
+            "speedup_range": [
+              3.3641,
+              3.7275
+            ],
+            "suite_seconds_per_block": [
+              3.901085,
+              4.283072,
+              4.140126,
+              4.129079
+            ]
+          },
+          "native_reply_bound": {
+            "median_mean_board_ms": 370.759,
+            "median_paired_speedup": 3.9042,
+            "speedup_range": [
+              3.654,
+              4.0975
+            ],
+            "suite_seconds_per_block": [
+              3.979605,
+              3.705445,
+              3.709744,
+              3.593367
+            ]
+          }
+        }
+      },
+      "ordinary": {
+        "boards": 4,
+        "modes": {
+          "dense": {
+            "median_mean_board_ms": 964.996,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              4.007067,
+              3.605904,
+              3.938374,
+              3.781594
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 947.659,
+            "median_paired_speedup": 1.0261,
+            "speedup_range": [
+              0.9231,
+              1.1063
+            ],
+            "suite_seconds_per_block": [
+              3.916427,
+              3.906152,
+              3.559939,
+              3.67512
+            ]
+          },
+          "native_reply": {
+            "median_mean_board_ms": 997.164,
+            "median_paired_speedup": 0.9643,
+            "speedup_range": [
+              0.8835,
+              1.0326
+            ],
+            "suite_seconds_per_block": [
+              3.880711,
+              4.081407,
+              4.111232,
+              3.895902
+            ]
+          },
+          "native_reply_bound": {
+            "median_mean_board_ms": 973.445,
+            "median_paired_speedup": 0.9912,
+            "speedup_range": [
+              0.8897,
+              1.0803
+            ],
+            "suite_seconds_per_block": [
+              3.709308,
+              4.052774,
+              3.925343,
+              3.862219
+            ]
+          }
+        }
+      }
+    },
+    "separately_instrumented_reply_preparation_mean_ms_per_trigger": {
+      "dense": 1098.523,
+      "bound": 631.255,
+      "native_reply": 21.093,
+      "native_reply_bound": 12.129
+    },
+    "reply_parity_counts": {
+      "dense": {
+        "reply_inputs": 113,
+        "nonempty": 113,
+        "retained_candidates": 404,
+        "primary_tie_states": 97,
+        "prior_tie_states": 0,
+        "native_selections": 0
+      },
+      "bound": {
+        "reply_inputs": 48,
+        "nonempty": 48,
+        "retained_candidates": 156,
+        "primary_tie_states": 36,
+        "prior_tie_states": 0,
+        "native_selections": 0
+      },
+      "native_reply": {
+        "reply_inputs": 113,
+        "nonempty": 113,
+        "retained_candidates": 404,
+        "primary_tie_states": 97,
+        "prior_tie_states": 0,
+        "native_selections": 113
+      },
+      "native_reply_bound": {
+        "reply_inputs": 48,
+        "nonempty": 48,
+        "retained_candidates": 156,
+        "primary_tie_states": 36,
+        "prior_tie_states": 0,
+        "native_selections": 48
+      }
+    },
+    "reply_parity": "Every dense versus native reply input matched the complete ordered candidate specifications and FP64 scores, teacher index, FP32 priors and stable ordering, effective target, evaluation count and fallback flag. The two cutoff modes visited equal prefixes of the dense reply sequence."
+  },
+  "separate_bound_benchmark": {
+    "cpu": 5,
+    "block_orders": [
+      [
+        "baseline",
+        "bound"
+      ],
+      [
+        "bound",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "bound"
+      ],
+      [
+        "bound",
+        "baseline"
+      ]
+    ],
+    "measured_seconds": 131.722,
+    "results": {
+      "all": {
+        "boards": 14,
+        "modes": {
+          "baseline": {
+            "median_mean_board_ms": 1354.89,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              18.441087,
+              19.08954,
+              18.847393,
+              19.131113
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 996.411,
+            "median_paired_speedup": 1.3438,
+            "speedup_range": [
+              1.313,
+              1.3842
+            ],
+            "suite_seconds_per_block": [
+              14.04532,
+              14.383824,
+              13.85419,
+              13.820897
+            ]
+          }
+        }
+      },
+      "triggered": {
+        "boards": 10,
+        "modes": {
+          "baseline": {
+            "median_mean_board_ms": 1508.955,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              14.544406,
+              15.248465,
+              14.930632,
+              15.370762
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 1015.651,
+            "median_paired_speedup": 1.4576,
+            "speedup_range": [
+              1.4489,
+              1.5225
+            ],
+            "suite_seconds_per_block": [
+              10.038496,
+              10.488463,
+              10.217277,
+              10.095738
+            ]
+          }
+        }
+      },
+      "ordinary": {
+        "boards": 4,
+        "modes": {
+          "baseline": {
+            "median_mean_board_ms": 967.219,
+            "median_paired_speedup": 1.0,
+            "speedup_range": [
+              1.0,
+              1.0
+            ],
+            "suite_seconds_per_block": [
+              3.89668,
+              3.841075,
+              3.916761,
+              3.760351
+            ]
+          },
+          "bound": {
+            "median_mean_board_ms": 952.565,
+            "median_paired_speedup": 0.9978,
+            "speedup_range": [
+              0.9725,
+              1.0769
+            ],
+            "suite_seconds_per_block": [
+              4.006824,
+              3.895361,
+              3.636913,
+              3.72516
+            ]
+          }
+        }
+      }
+    }
+  },
+  "working_copy_parity": {
+    "checkout_sources_sha256": {
+      "tetris_cross_survival.py": "769e875583c9d58c3f705e741c5424c7cd0b8dc59571dd5741d067912a0e29d7",
+      "tetris_neural.py": "cbd72d9642e9fa930b597890c706039197be24373be7d27e2c05ff35fa210fc7",
+      "tools/evaluate_afterstate_td.py": "66e67423c360817676bf65222ac5de1d763a41774e81ee891416dfe9d98f1311"
+    },
+    "cases_matched": 14,
+    "triggered_matched": 10,
+    "compared": [
+      "ordered chosen placement including FP64 teacher score",
+      "planner decision counters",
+      "next target",
+      "terminal flag",
+      "committed board",
+      "piece stream and RNG"
+    ],
+    "path": "Repository evaluation API with reply-only native teacher selection plus the upper bound, dense outer preparation, fixed FP32 32x128 and standard checked commit.",
+    "measurement": "Each case was checked once. The paired timing tables above measure the separate offline prototypes."
+  },
+  "fixture": {
+    "selection": "Twelve fixed opening and late states in two archived training games, followed by placements 203 and 239 on the frozen greedy continuation of training seed 300122. The second continuation state exercises immediate rescue.",
+    "case_columns": [
+      "case",
+      "training_seed",
+      "placements_completed",
+      "current",
+      "visible",
+      "planner_triggered",
+      "unbounded_reply_inputs",
+      "bounded_reply_inputs",
+      "dense_primary_tie_states",
+      "outcome_sha256"
+    ],
+    "outcome_hash_input": "SHA256 of sorted-key compact JSON [candidate tuple, decision counters, next target, terminal flag, committed board SHA256, committed stream SHA256].",
+    "cases": [
+      [
+        "fedf8ddf-4",
+        300440,
+        4,
+        "HOOK",
+        "S",
+        0,
+        0,
+        0,
+        0,
+        "ab1579be4567ad0523fc7e152f36179eea931fe024b96d35793e392b1bdf20ed"
+      ],
+      [
+        "fedf8ddf-100",
+        300440,
+        100,
+        "L",
+        "CROSS",
+        0,
+        0,
+        0,
+        0,
+        "990981e21c03a537688ff884cc9d72c0e313d07401bc664e86976c3777d11dca"
+      ],
+      [
+        "fedf8ddf-4102",
+        300440,
+        4102,
+        "CROSS",
+        "STAIR",
+        1,
+        1,
+        1,
+        1,
+        "3691b4a2511fe870933cf128d067d21b02cc0d0c72d35fcb68c3635c838dd2b2"
+      ],
+      [
+        "fedf8ddf-4126",
+        300440,
+        4126,
+        "O",
+        "HYPER",
+        1,
+        16,
+        1,
+        16,
+        "119925173390c12c562c7ef9c0bc5cb97e15a46d4d1905bb809470e966273f3f"
+      ],
+      [
+        "fedf8ddf-4132",
+        300440,
+        4132,
+        "RING",
+        "B",
+        1,
+        16,
+        1,
+        16,
+        "10608f97d2942f8e57092788764b4cc5aa9effc387b134f4d0f359efeebf6a0f"
+      ],
+      [
+        "fedf8ddf-4133",
+        300440,
+        4133,
+        "B",
+        "CROSS",
+        1,
+        0,
+        0,
+        0,
+        "324212e58b957775db07e61ebba4838631f1537a1906cd9dc108388988e947c6"
+      ],
+      [
+        "2faba978-4",
+        300414,
+        4,
+        "B",
+        "C",
+        0,
+        0,
+        0,
+        0,
+        "ad80e9cd9c1303fef5c4728ba53c1602a23a8b008d1e21819bf719e1770b62dd"
+      ],
+      [
+        "2faba978-100",
+        300414,
+        100,
+        "C",
+        "S",
+        0,
+        0,
+        0,
+        0,
+        "9ca0e39524d17526c45c482a9b2a1eaa8bcba6cd555795af9826293296ba7af1"
+      ],
+      [
+        "2faba978-5203",
+        300414,
+        5203,
+        "L",
+        "T",
+        1,
+        16,
+        4,
+        16,
+        "0303357dc1dc6319c2ed7d33412518c8dba33dff95326a3236ba157d3db8a4c1"
+      ],
+      [
+        "2faba978-5227",
+        300414,
+        5227,
+        "HYPER",
+        "B",
+        1,
+        16,
+        1,
+        16,
+        "fabc2fa6108195011147e3bc03a55037d5de4d23a5c3bd281e71dd031f8b454d"
+      ],
+      [
+        "2faba978-5233",
+        300414,
+        5233,
+        "STAIR",
+        "BRIDGE",
+        1,
+        16,
+        16,
+        16,
+        "c931e752242c0b30a3ca5aaea014719f29c43e5d3307d6b8f7877beb775e9821"
+      ],
+      [
+        "2faba978-5234",
+        300414,
+        5234,
+        "BRIDGE",
+        "CROSS",
+        1,
+        0,
+        0,
+        0,
+        "1d350ab9b9bf22c9cc345310e5c6433eb55231b771c68f1b247a927c41b7d1e2"
+      ],
+      [
+        "300122-greedy-203",
+        300122,
+        21480,
+        "HOOK",
+        "CROSS",
+        1,
+        16,
+        12,
+        16,
+        "9d79901cfdc1a00ad9abbaf0dc6dc8aa4996dc48a0a93c951521423876a87000"
+      ],
+      [
+        "300122-greedy-239",
+        300122,
+        21516,
+        "FORK",
+        "CROSS",
+        1,
+        16,
+        12,
+        0,
+        "450bcb7e33c56f00c10a10422f4c3f75a37f30d3535cb43f78a4bcc852bba8a6"
+      ]
+    ]
+  },
+  "limits": [
+    "Single-thread CPU measurements on 14 selected boards, including ten planner triggers. Mixed-suite speeds depend on that composition.",
+    "Reply preparation stage timings are separately instrumented first-pass samples. Timing blocks measure uninstrumented whole decisions.",
+    "CUDA batch throughput, fresh complete-game latency, survival outcomes and performance on other devices require separate measurement."
+  ]
+}

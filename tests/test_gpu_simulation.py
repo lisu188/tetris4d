@@ -1,4 +1,6 @@
 import os
+import random
+from types import SimpleNamespace
 import unittest
 
 import numpy as np
@@ -36,6 +38,100 @@ class SamplingContractTests(unittest.TestCase):
     def test_cpu_device_rejected_before_allocations(self):
         with self.assertRaisesRegex(ValueError, "requires CUDA"):
             gpu.GpuPreparer(device="cpu")
+
+    def test_reference_only_plain_actor_provides_requested_cross_mobility(self):
+        import tetris_cross_survival as cross
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        preparer.config = neural.Config(architecture="survival-spatial-v4", candidates=48, shortlist=4)
+        preparer.require_cross_mobility = True
+        state = game.Game(37)
+        expected = neural.prepare(state, 1, preparer.config)
+        self.assertNotIn("cross_mobility", expected.arrays)
+        batch = preparer._reference_batch([state], [1], "candidate_budget_bound")
+        np.testing.assert_array_equal(batch.batch["cross_mobility"][0].numpy(),
+                                      cross.mobility_features(state.board, expected.options))
+        self.assertEqual(tuple(batch.prepared[0].options), tuple(expected.options))
+
+    def test_screen_shortlist_matches_dense_ranking_with_padding_ties_and_random_slots(self):
+        crowded = (0, 2, 6, 11, 13, 18, 24, 29, 31, 38, 44, 50, 59, 62)
+        legal = ((), (0,), (37,), (0, 12, 33), crowded[:5], crowded, crowded, crowded)
+        width = 64
+        primary = torch.full((len(legal), width), torch.iinfo(torch.int32).min, dtype=torch.int32)
+        scores = torch.zeros(primary.shape, dtype=torch.float64)
+        states = [SimpleNamespace(seed=1 + i, pieces=5 * i) for i in range(len(legal))]
+        for i, ids in enumerate(legal):
+            for j in ids:
+                primary[i, j] = 4 if j in (13, 18) else 3
+                # Distinguish j=38 from its lower-ID ties only at FP64 precision.
+                scores[i, j] = (j % 3) + (1e-12 if j == 38 else 0.)
+
+        def packed_scores(span, packed):
+            self.assertEqual(packed.shape, (len(legal), span))
+            return None, scores.gather(1, packed.long().clamp_min(0)).masked_fill(packed < 0, -torch.inf)
+
+        # Exercise the production tensor selector on CPU without allocating CUDA geometry tables.
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        for mode in ("teacher-random", "teacher-top"):
+            preparer.config = SimpleNamespace(shortlist_mode=mode)
+            for shortlist in (1, 5, 6):
+                with self.subTest(mode=mode, shortlist=shortlist):
+                    actual = preparer._screen_shortlist(primary, states, shortlist, packed_scores)
+                    self.assertIsNotNone(actual)
+                    for i, ids in enumerate(legal):
+                        ranked = sorted(ids, key=lambda j: (-int(primary[i, j]), -float(scores[i, j]), j))
+                        chosen = ranked[:shortlist]
+                        if mode == "teacher-random" and len(ranked) > shortlist:
+                            keep = max(1, shortlist // 2)
+                            best = ranked[:keep]
+                            remaining = [j for j in ids if j not in best]
+                            rng = random.Random(states[i].seed * 8191 + states[i].pieces)
+                            chosen = best + rng.sample(remaining, shortlist - keep)
+                        expected = sorted(chosen) + [-1] * (shortlist - len(chosen))
+                        self.assertEqual(actual[i].tolist(), expected, f"lane {i}")
+
+    def test_final_shortlist_preserves_sampling_and_rng_for_dense_and_packed_rows(self):
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        shortlist = 5
+        states = [game.Game(3700 + i) for i in range(5)]
+        python_rng = random.getstate()
+        numpy_rng = np.random.get_state()
+        torch_rng = torch.get_rng_state()
+        bag_rng = [s.stream.rng.getstate() for s in states]
+        for width in (shortlist, 17):
+            valid = torch.zeros((len(states), width), dtype=torch.bool)
+            for i, ids in enumerate(((), (1,), range(5), range(0, width, 2), range(width))):
+                valid[i, list(ids)] = True
+            # Shuffle the teacher ranking relative to original IDs, keeping invalid entries last.
+            priorities = (torch.arange(width) * 3 % 7).expand_as(valid).masked_fill(~valid, -1)
+            ranked = priorities.argsort(dim=1, descending=True, stable=True)
+            counts = valid.sum(1, dtype=torch.int32)
+            summaries = [[count] for count in counts.tolist()]
+            references = {4: None}
+            for mode in ("teacher-top", "teacher-random"):
+                preparer.config = SimpleNamespace(shortlist_mode=mode)
+                chosen = preparer._final_shortlist(ranked, valid, counts, summaries, states,
+                                                   references, shortlist)
+                if width == shortlist or mode == "teacher-top":
+                    self.assertEqual(chosen.data_ptr(), ranked.data_ptr())
+                for i, state in enumerate(states):
+                    n = summaries[i][0]
+                    expected = ranked[i, :shortlist].tolist()
+                    if n > shortlist and mode == "teacher-random":
+                        keep = max(1, shortlist // 2)
+                        teachers = expected[:keep]
+                        rest = [j for j in range(width) if valid[i, j] and j not in teachers]
+                        # Recovery rows use placeholder indices pending native replacement.
+                        sampled = ([rest[0]] * (shortlist - keep) if i in references else
+                                   random.Random(state.seed * 8191 + state.pieces).sample(rest, shortlist - keep))
+                        expected = teachers + sampled
+                    self.assertEqual(chosen[i].tolist(), expected)
+        self.assertEqual(random.getstate(), python_rng)
+        np.testing.assert_equal(np.random.get_state(), numpy_rng)
+        self.assertTrue(torch.equal(torch.get_rng_state(), torch_rng))
+        self.assertEqual([s.stream.rng.getstate() for s in states], bag_rng)
 
     def test_merge_interleaved_and_empty_groups_with_ragged_shortlists(self):
         def batch(indices, counts):
@@ -111,6 +207,31 @@ class CudaPreparationContractTests(unittest.TestCase):
             selected = result.selected_candidates(result.teachers)
             self.assertEqual(selected, tuple(references[i].options[references[i].teacher] for i in result.environment_indices))
         return result
+
+    def test_staged_exhaustive_matches_dense_for_ties_recovery_and_ragged_groups(self):
+        states = [game.Game(840000 + i) for i in range(7)]
+        for i, (piece, board) in enumerate((
+            ('BRIDGE', game.EMPTY_BOARD), ('L', (0, 1, 3, 7) * 1024),
+            ('FORK', (3, 7, 1, 0) * 1024), ('I', (0,) + (65535,) * 4095),
+            ('CROSS', (65535,) * 4096), ('I', (2,) * 4096), ('I', (0,) + (32767,) * 4095))):
+            states[i].current, states[i].board = piece, board
+        for mode, width in (('teacher-random', 17), ('teacher-top', 128)):
+            config = neural.Config(screening='exhaustive', recover_target=True, shortlist=width, shortlist_mode=mode)
+            preparer = gpu.GpuPreparer(config, group_exhaustive=True, two_stage=True)
+            reference = gpu.GpuPreparer(config, group_exhaustive=True)
+            targets = [1, 1, 1, 15, 13, 0, 15]
+            expected, actual = reference.prepare_batch(states, targets), preparer.prepare_batch(states, targets)
+            self.assertGreater(preparer.two_stage_counts['screened_groups'], 0)
+            self.assertEqual(actual.environment_indices, expected.environment_indices)
+            self.assertEqual(actual.cpu_fallbacks, expected.cpu_fallbacks)
+            self.assertEqual(actual.targets, expected.targets)
+            for key, value in expected.batch.items():
+                torch.testing.assert_close(actual.batch[key], value, rtol=0, atol=0)
+            for field in ('teachers', '_option_specs', '_option_scores'):
+                torch.testing.assert_close(getattr(actual, field), getattr(expected, field), rtol=0, atol=0)
+            for a, b in zip(actual.prepared, expected.prepared):
+                if b is not None:
+                    self.assertEqual((a.evaluations, a.fallback), (b.evaluations, b.fallback))
 
     def test_all_pieces_and_retained_records(self):
         config = neural.Config(candidates=2048, shortlist=128)

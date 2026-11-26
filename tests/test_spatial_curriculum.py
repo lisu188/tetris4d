@@ -79,6 +79,76 @@ class EvaluationCacheTests(unittest.TestCase):
         self.assertEqual(choices.tolist(), [1, 0])
         self.assertTrue(torch.equal(actor.values[0], actor.values[3]))
 
+    def test_single_cpu_board_reuses_only_geometry_in_strict_actor_shapes(self):
+        neural = ev.neural
+        cases = ((128, 128, 'neural', 0., False),
+                 (19, 11, 'teacher-prior', 4., False),
+                 (3, 64, 'teacher-residual', 0., True))
+        with torch.inference_mode(), torch.random.fork_rng(devices=[]):
+            torch.manual_seed(374)
+            for width, chunk, policy, weight, residual in cases:
+                with self.subTest(width=width, policy=policy):
+                    config = neural.Config(architecture='survival-spatial-v4', spatial_actor=True,
+                                           regional_critic=True, shortlist=128, chunk=chunk,
+                                           policy_mode=policy, cross_weight=weight, cross_residual=residual)
+                    model = neural.create_model(config).eval()
+                    if residual:
+                        # Use a nonzero learned correction as it would be after training.
+                        model.cross_head[-1].weight.normal_()
+                    valid = torch.ones(1, width, dtype=torch.bool)
+                    valid[:, 1::5] = False
+                    columns = torch.rand(1, width, neural.COLUMNS) > .5
+                    columns[:, :, 0] = True
+                    indices = torch.randint(4096, columns.shape)
+                    indices[~columns] = -1
+                    batch = dict(boards=torch.randint(65536, (1, 4096), dtype=torch.int32),
+                                 targets=torch.tensor([9]), context=torch.randn(1, neural.CONTEXT),
+                                 indices=indices, column_mask=columns, valid=valid,
+                                 features=torch.randn(1, width, neural.FEATURES),
+                                 spatial_delta=torch.randn(1, width, model.spatial_actor.in_features),
+                                 teacher_prior=torch.randn(1, width), cross_mobility=torch.rand(1, width, 2))
+                    # Raw reference duplicates the board before encoding, as the original evaluator did.
+                    full = {}
+                    for name, value in batch.items():
+                        if name in neural.CANDIDATE_FIELDS:
+                            shape = (1, config.shortlist - width, *value.shape[2:])
+                            value = torch.cat((value, value.new_zeros(shape)), dim=1)
+                        full[name] = value.expand(32, *value.shape[1:]).contiguous()
+                    calls = []
+                    def capture_state_input(module, inputs):
+                        calls.append(inputs[0].clone())
+                    hook = model.actor_state.register_forward_pre_hook(capture_state_input)
+                    try:
+                        expected = model.actor_logits(full, return_base=True)
+                        with patch.object(model, 'fixed_inputs', wraps=model.fixed_inputs) as cache:
+                            actual = ev._fixed_actor_logits(model, batch, 32, return_base=True)
+                            cache.assert_called_once_with(batch, actor_only=True)
+                    finally:
+                        hook.remove()
+                    self.assertEqual(calls[0].shape[0], 32)
+                    self.assertTrue(torch.equal(calls[0], calls[1]))
+                    for result, reference in zip(actual, expected):
+                        self.assertTrue(torch.equal(result, reference[:1, :width]))
+                        self.assertEqual(result.argmax().item(), reference[0].argmax().item())
+
+    def test_fixed_actor_keeps_original_path_for_real_peers_training_and_subclasses(self):
+        class OtherActor(ev.SurvivalSpatialPolicy):
+            pass
+        config = ev.neural.Config(architecture='survival-spatial-v4', shortlist=2)
+        for cls, rows, size, training, grad in (
+                (ev.SurvivalSpatialPolicy, 2, 3, False, False),
+                (ev.SurvivalSpatialPolicy, 1, 1, False, False),
+                (ev.SurvivalSpatialPolicy, 1, 2, True, False),
+                (ev.SurvivalSpatialPolicy, 1, 2, False, True),
+                (OtherActor, 1, 2, False, False)):
+            with self.subTest(cls=cls.__name__, rows=rows, size=size, training=training, grad=grad):
+                model = cls(config).train(training)
+                batch = {'valid': torch.ones(rows, 2, dtype=torch.bool)}
+                with torch.set_grad_enabled(grad), patch.object(model, 'fixed_inputs') as cache, \
+                     patch.object(model, 'actor_logits', side_effect=lambda fixed: fixed['valid'].float()):
+                    self.assertEqual(tuple(ev._fixed_actor_logits(model, batch, size).shape), (rows, 2))
+                    cache.assert_not_called()
+
 
 class CurriculumTests(unittest.TestCase):
     def test_completed_arm_resumes_from_its_pinned_endpoint(self):

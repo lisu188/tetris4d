@@ -1,0 +1,889 @@
+{
+  "schema": "cross-survival-calibration-results-v1",
+  "gate_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+  "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "donor_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+  "calibration_driver_sha256": "f65114c1cc2035f3a11e9d88616d749e5a43d58ec6fbe64b19ccdd8ac653d3f6",
+  "actor": "incumbent sampled on identical eight piece seeds at each temperature",
+  "units": "placements; equal weight per completed game",
+  "acceptance": "improved last-512 mean absolute error and <=5% first-quarter error growth at both temperatures",
+  "selected": "incumbent",
+  "temperatures": {
+    "1.0": {
+      "mae": {
+        "early": {
+          "incumbent": 2074.7090874638607,
+          "donor": 13464.904846083948
+        },
+        "late": {
+          "incumbent": 10048.406799316406,
+          "donor": 303.05013513565063
+        },
+        "all": {
+          "incumbent": 6214.786921223639,
+          "donor": 8604.376016777445
+        }
+      },
+      "passes": false
+    },
+    "0.25": {
+      "mae": {
+        "early": {
+          "incumbent": 11567.739987307727,
+          "donor": 3210.3777999624513
+        },
+        "late": {
+          "incumbent": 10509.508056640625,
+          "donor": 1907.979887008667
+        },
+        "all": {
+          "incumbent": 6870.037842392041,
+          "donor": 4689.756922089839
+        }
+      },
+      "passes": true
+    }
+  },
+  "mean_sampled_survival": {
+    "1.0": 23872,
+    "0.25": 38861.5
+  },
+  "relative_difference": 0.6279113605898123,
+  "lower_temperature_longer_seeds": 8,
+  "per_seed": {
+    "48100001": {
+      "1.0": {
+        "placements": 22784,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 178,
+        "cache_sha256": "b799f10065dada7f083b040a6ba4cee6d339eb0caa83e0f9648f7e56a14b56c0"
+      },
+      "0.25": {
+        "placements": 33224,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 260,
+        "cache_sha256": "66ab9159bbedb201fea31f138f56719c408fcb07f338d0e7a63c7b2297057875"
+      }
+    },
+    "48100003": {
+      "1.0": {
+        "placements": 24847,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 195,
+        "cache_sha256": "30b72b9fc20fd2cecaad0cc01bb5e76fc64795aabb4a0219b86ddc2a47ff12f8"
+      },
+      "0.25": {
+        "placements": 39444,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 309,
+        "cache_sha256": "9c35c1e168167e830a5410901486cb1dcd9d331ff40323cfbd763287e33ed99b"
+      }
+    },
+    "48100005": {
+      "1.0": {
+        "placements": 23264,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 182,
+        "cache_sha256": "e5e4940db371aa0620860bda4551bd93ad583a5ee349799b18168281dc8f6120"
+      },
+      "0.25": {
+        "placements": 34986,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 274,
+        "cache_sha256": "23855ee6e59281bfdf16451b647e64d4ac9b32263397709a7b2b3b33e35aaba4"
+      }
+    },
+    "48100007": {
+      "1.0": {
+        "placements": 23463,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 184,
+        "cache_sha256": "598decb50a83e34cf7d2b6b4621bbb00bf74870f601c2ace4d6fce7e71b9ef10"
+      },
+      "0.25": {
+        "placements": 48185,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 377,
+        "cache_sha256": "668073072ca9515615356a792c82cc91c76568b64141a37412f7681c63f1eabb"
+      }
+    },
+    "48100009": {
+      "1.0": {
+        "placements": 25673,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 201,
+        "cache_sha256": "e18f5e7fb0f5bb8077b180105f5b41f67fd7c549a9bdc154d441738a52d2ee66"
+      },
+      "0.25": {
+        "placements": 42228,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 330,
+        "cache_sha256": "a55d1fe04a2f7a3769b49deb33d966e7373924680110639ec0eea177cb8c89e8"
+      }
+    },
+    "48100011": {
+      "1.0": {
+        "placements": 22952,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 180,
+        "cache_sha256": "78277245b7908a8cb55267bc07f967a2d3ab6e2f8417e2a0d3ec8a4d5aeacb1c"
+      },
+      "0.25": {
+        "placements": 37460,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 293,
+        "cache_sha256": "963c801c5369d337b5541bf8935c0af88ab5f99db468e08b98553f6e55ac80ba"
+      }
+    },
+    "48100013": {
+      "1.0": {
+        "placements": 28127,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 220,
+        "cache_sha256": "bcf144380f396dfab09534f150b5a4a0562c19d7de9c142b3bdb510e8ee06274"
+      },
+      "0.25": {
+        "placements": 37600,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 294,
+        "cache_sha256": "246be4f8852fd85c660434ace41ffd6b9bc7fc5ee2e73de444fec3380dc786ce"
+      }
+    },
+    "48100015": {
+      "1.0": {
+        "placements": 19866,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 156,
+        "cache_sha256": "ee06a6d81d546b3c9cbe195e27546b51bb82c75b3d4e2a6d3a0a097996c99a79"
+      },
+      "0.25": {
+        "placements": 37765,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 296,
+        "cache_sha256": "550f292a59b37357f83b38e3aaad116616c7a9867dd39b6a10a6b578067d0461"
+      }
+    }
+  },
+  "exploratory_blend": {
+    "classifier": "clip((1024-donor_prediction_in_placements)/512,0,1)",
+    "weights": "linear blend of the two scalar predictions",
+    "ppo_input": false,
+    "source_sha256": "dcc64a963f88433a62f52e32c36ea388ed1e1a1bf26ac412e2129578de792449",
+    "hypothesis": "Set after seeing the complete temperature-1 gate and before any temperature-.25 game completed.",
+    "summaries": {
+      "0.25": {
+        "games": 8,
+        "mae": {
+          "early": {
+            "incumbent": 11567.739987307727,
+            "donor": 3210.3777999624513,
+            "blend": 11567.739987307727
+          },
+          "late": {
+            "incumbent": 10509.508056640625,
+            "donor": 1907.979887008667,
+            "blend": 10063.646908390414
+          },
+          "all": {
+            "incumbent": 6870.037842392041,
+            "donor": 4689.756922089839,
+            "blend": 6863.178440111269
+          }
+        },
+        "mean_fraction_using_donor": 0.0014423076923076924
+      },
+      "1.0": {
+        "games": 8,
+        "mae": {
+          "early": {
+            "incumbent": 2074.7090874638607,
+            "donor": 13464.904846083948,
+            "blend": 2074.7090874638607
+          },
+          "late": {
+            "incumbent": 10048.406799316406,
+            "donor": 303.05013513565063,
+            "blend": 1799.1447443066522
+          },
+          "all": {
+            "incumbent": 6214.786921223639,
+            "donor": 8604.376016777445,
+            "blend": 5910.247919586101
+          }
+        },
+        "mean_fraction_using_donor": 0.03695256945333049
+      }
+    }
+  },
+  "stage_and_behavior": {
+    "schema": "matched-calibration-critic-stage-errors-v1",
+    "units": "remaining completed placements; signed error = forecast minus realized remaining (length - offset)",
+    "limits": "Eight paired random streams, one stochastic rollout per seed and temperature. Eight distinct greedy streams. Matching stream IDs/opening observations does not match later boards. Forecast error uses a single realized continuation, not a state-specific expected value, and retrospective bands cannot be used as live risk features. No lifetime cap, sampled only predecision frames at stride 128.",
+    "evidence": {
+      "cache_file_sha256": {
+        "0.25": {
+          "48100001": "66ab9159bbedb201fea31f138f56719c408fcb07f338d0e7a63c7b2297057875",
+          "48100003": "9c35c1e168167e830a5410901486cb1dcd9d331ff40323cfbd763287e33ed99b",
+          "48100005": "23855ee6e59281bfdf16451b647e64d4ac9b32263397709a7b2b3b33e35aaba4",
+          "48100007": "668073072ca9515615356a792c82cc91c76568b64141a37412f7681c63f1eabb",
+          "48100009": "a55d1fe04a2f7a3769b49deb33d966e7373924680110639ec0eea177cb8c89e8",
+          "48100011": "963c801c5369d337b5541bf8935c0af88ab5f99db468e08b98553f6e55ac80ba",
+          "48100013": "246be4f8852fd85c660434ace41ffd6b9bc7fc5ee2e73de444fec3380dc786ce",
+          "48100015": "550f292a59b37357f83b38e3aaad116616c7a9867dd39b6a10a6b578067d0461"
+        },
+        "1.0": {
+          "48100001": "b799f10065dada7f083b040a6ba4cee6d339eb0caa83e0f9648f7e56a14b56c0",
+          "48100003": "30b72b9fc20fd2cecaad0cc01bb5e76fc64795aabb4a0219b86ddc2a47ff12f8",
+          "48100005": "e5e4940db371aa0620860bda4551bd93ad583a5ee349799b18168281dc8f6120",
+          "48100007": "598decb50a83e34cf7d2b6b4621bbb00bf74870f601c2ace4d6fce7e71b9ef10",
+          "48100009": "e18f5e7fb0f5bb8077b180105f5b41f67fd7c549a9bdc154d441738a52d2ee66",
+          "48100011": "78277245b7908a8cb55267bc07f967a2d3ab6e2f8417e2a0d3ec8a4d5aeacb1c",
+          "48100013": "bcf144380f396dfab09534f150b5a4a0562c19d7de9c142b3bdb510e8ee06274",
+          "48100015": "ee06a6d81d546b3c9cbe195e27546b51bb82c75b3d4e2a6d3a0a097996c99a79"
+        }
+      },
+      "calibration_data": "Every terminal row keeps placement, clears, terminal piece/reason and all strided incumbent and donor scalars. No action list, game trajectory, per-sample board or terminal board was retained by the actual driver. Active recovery entries were unlinked on completion; its game library was disabled.",
+      "calibration_driver_sha256": "f65114c1cc2035f3a11e9d88616d749e5a43d58ec6fbe64b19ccdd8ac653d3f6",
+      "calibration_sampling_source": "calibration-driver/tools/calibrate_cross_critics.py:75-80,103-151; torch.multinomial softmax(raw incumbent logits/T), per-seed CUDA generator seed+2701, unchanged head before each 128th placement. Incumbent/donor values on shared incumbent board features, reward scale .001. Expanded piece streams seeded per game, one advance per commit.",
+      "checkpoints": {
+        "donor": {
+          "path": "spatial-ppo-improvements/experiment/control/last.pt",
+          "sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8"
+        },
+        "incumbent": {
+          "path": "v4-enhanced-run/ppo/best.pt",
+          "sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9"
+        }
+      },
+      "gate_file_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+      "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+      "public_incumbent_opening_arm_canonical_sha256": "3e9d8f9a2480388f2c7e11fd37b39752ce3d0fe12385fa7b3bfae11aa20d6d75",
+      "public_incumbent_screen_file_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "public_measurement_source_sha256": "0e13638d679c4648eef57379da2f05b2be2977461db76f3d042982d2b4870c4e",
+      "runtime_files_sha256_verified": {
+        "evaluate_afterstate_td.py": "6e347fbc35f06c34f3d147aa66306ece76b73769a53a85afeaa5bdeb8f87b6b5",
+        "libtetris4d_native.so": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+        "sparse_tetris_4d_optimized.py": "8e4db008a170f4e91e6316f6d2fd9868260c5a6d376951c458ca1556f0cc434a",
+        "tetris_afterstate_td.py": "b9d1e9b219d62030c9b6dd2794d7a1153e76f6a82b68f0227d2d13ed533204e7",
+        "tetris_game_library.py": "8bc5ea4056d4a78cd7830a422a419124554462249c86c1bd3170cb1b1f8072bc",
+        "tetris_gpu_board_features.py": "2ae29d48dc3948ecaad9c7bd9470eb9d4ca3cf2f9be7dcee907aa444091726ed",
+        "tetris_gpu_encoding.py": "04fa826a37d843d022fe88d74eb32769c155790b6254bec9ce6e5f8a3ff28a72",
+        "tetris_gpu_simulation.py": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+        "tetris_gpu_spatial.py": "8a9e16bc5e3a08f3dc527c294f0bee3b340f8dfbb9328a19396af0f6ee4ed9e0",
+        "tetris_neural.py": "7b17ba11a00de24e8d52e468e3805b05d9f6bfe535d15b678ad91806314b81c8",
+        "tetris_survival_v3.py": "6e1950c9bac50f099b56db0394231c1df44c3e662191c63e872ff343376fc6e7",
+        "tetris_survival_v4.py": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+        "tetris_survival_v5.py": "a23a5dce38b23615f07d499281c4cada023684ef3fedbd71a3829d382da8bcdd",
+        "train_overnight.py": "224c1f88cb3c48602d42073819ccdf2c2c4cb16c14c879a31476c1301ee36887",
+        "train_survival_v4.py": "0869d4af9e1d10015a7c930f58e6b00cf5b784df689b96af7cc8e2984c0d3dc1"
+      },
+      "script_sha256": "61a2fabeee0d95a64872556127ab08e8f66492ae98639c46a071486a6f555f33"
+    },
+    "calibration_pairs": [
+      {
+        "seed": 48100001,
+        "shared_opening_forecast": 17611.68359375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -8852.943,
+              -2684.002,
+              2558.261,
+              7957.193
+            ],
+            "clears": 38,
+            "lifetime": 33224,
+            "samples": 260,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              1707.729,
+              5387.611,
+              8537.57,
+              9965.428
+            ],
+            "clears": 23,
+            "lifetime": 22784,
+            "samples": 178,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100003,
+        "shared_opening_forecast": 17599.47265625,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -11199.704,
+              -3941.75,
+              2713.522,
+              7954.982
+            ],
+            "clears": 46,
+            "lifetime": 39444,
+            "samples": 309,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              36.593,
+              2954.179,
+              5616.967,
+              9155.828
+            ],
+            "clears": 26,
+            "lifetime": 24847,
+            "samples": 195,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100005,
+        "shared_opening_forecast": 17634.048828125,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -8086.931,
+              -408.784,
+              5803.902,
+              9346.211
+            ],
+            "clears": 40,
+            "lifetime": 34986,
+            "samples": 274,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              846.267,
+              3893.334,
+              7170.321,
+              10137.025
+            ],
+            "clears": 24,
+            "lifetime": 23264,
+            "samples": 182,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100007,
+        "shared_opening_forecast": 17601.53515625,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -18225.631,
+              -8392.897,
+              126.637,
+              8046.059
+            ],
+            "clears": 58,
+            "lifetime": 48185,
+            "samples": 377,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              1054.844,
+              4798.605,
+              7815.741,
+              10371.394
+            ],
+            "clears": 24,
+            "lifetime": 23463,
+            "samples": 184,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100009,
+        "shared_opening_forecast": 17596.1171875,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -14478.663,
+              -5788.187,
+              1784.616,
+              7993.408
+            ],
+            "clears": 50,
+            "lifetime": 42228,
+            "samples": 330,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              -834.236,
+              3867.491,
+              7066.951,
+              10044.564
+            ],
+            "clears": 27,
+            "lifetime": 25673,
+            "samples": 201,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100011,
+        "shared_opening_forecast": 17611.427734375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -9748.188,
+              -1951.895,
+              4996.33,
+              10294.088
+            ],
+            "clears": 43,
+            "lifetime": 37460,
+            "samples": 293,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              2349.519,
+              6123.576,
+              8825.127,
+              10606.019
+            ],
+            "clears": 23,
+            "lifetime": 22952,
+            "samples": 180,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100013,
+        "shared_opening_forecast": 17675.9375,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -11224.323,
+              -3780.271,
+              2745.559,
+              8053.118
+            ],
+            "clears": 43,
+            "lifetime": 37600,
+            "samples": 294,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              -1690.622,
+              3208.578,
+              7436.396,
+              10378.063
+            ],
+            "clears": 30,
+            "lifetime": 28127,
+            "samples": 220,
+            "terminal_piece": "CROSS"
+          }
+        }
+      },
+      {
+        "seed": 48100015,
+        "shared_opening_forecast": 17640.03125,
+        "temps": {
+          "0.25": {
+            "bias_by_quarter": [
+              -10725.539,
+              -3155.669,
+              3691.217,
+              8933.719
+            ],
+            "clears": 44,
+            "lifetime": 37765,
+            "samples": 296,
+            "terminal_piece": "CROSS"
+          },
+          "1.0": {
+            "bias_by_quarter": [
+              5084.538,
+              7643.914,
+              10264.142,
+              11226.508
+            ],
+            "clears": 19,
+            "lifetime": 19866,
+            "samples": 156,
+            "terminal_piece": "CROSS"
+          }
+        }
+      }
+    ],
+    "greedy_public_openings": {
+      "scope": "Different eight development streams. CPU-scored predecision genesis; uncapped GPU greedy lifetime from published screen. No matched-temperature estimate of a greedy effect.",
+      "seeds": [
+        48200001,
+        48200003,
+        48200005,
+        48200007,
+        48200009,
+        48200011,
+        48200013,
+        48200015
+      ],
+      "summary": {
+        "actual": 36696.875,
+        "bias": -19080.492877960205,
+        "forecast": 17616.382122039795,
+        "games": 8,
+        "games_mean_under_forecast": 8,
+        "mae": 19080.492877960205,
+        "samples": 8
+      }
+    },
+    "receipt_sha256": "b3a08c88095b2ac36549a7f009479f4afb586b08b3821dcc99ea930ab3703c43",
+    "stage_definitions": {
+      "opening": "age 0",
+      "both_alive_nonopening_common_ages": "identical positive placement offsets on the same stream where both games are still alive; their boards and actions can differ.",
+      "last_512": "1 to 512 actual remaining"
+    },
+    "stages": {
+      "0.25": {
+        "opening": {
+          "actual": 38861.5,
+          "bias": -21240.21826171875,
+          "forecast": 17621.28173828125,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 21240.21826171875,
+          "samples": 8
+        },
+        "both_alive_nonopening_common_ages": {
+          "actual": 26893.5,
+          "bias": -5969.40379472983,
+          "forecast": 20924.09620527017,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 6949.399016648501,
+          "samples": 1488
+        },
+        "last_512": {
+          "actual": 253.5,
+          "bias": 10509.508056640625,
+          "forecast": 10763.008056640625,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 10509.508056640625,
+          "samples": 32
+        }
+      },
+      "1.0": {
+        "opening": {
+          "actual": 23872,
+          "bias": -6250.71826171875,
+          "forecast": 17621.28173828125,
+          "games": 8,
+          "games_mean_under_forecast": 8,
+          "mae": 6250.71826171875,
+          "samples": 8
+        },
+        "both_alive_nonopening_common_ages": {
+          "actual": 11904,
+          "bias": 6027.726129026089,
+          "forecast": 17931.72612902609,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 6216.2063048066975,
+          "samples": 1488
+        },
+        "last_512": {
+          "actual": 256,
+          "bias": 10048.406799316406,
+          "forecast": 10304.406799316406,
+          "games": 8,
+          "games_mean_under_forecast": 0,
+          "mae": 10048.406799316406,
+          "samples": 32
+        }
+      }
+    },
+    "matched_cold_minus_warm": {
+      "opening": {
+        "colder_larger_absolute_error": 8,
+        "games": 8,
+        "mean": {
+          "actual": 14989.5,
+          "bias": -14989.5,
+          "forecast": 0.0,
+          "mae": 14989.5
+        },
+        "range": {
+          "actual": [
+            9473,
+            24722
+          ],
+          "bias": [
+            -24722.0,
+            -9473.0
+          ],
+          "forecast": [
+            0.0,
+            0.0
+          ],
+          "mae": [
+            9473.0,
+            24722.0
+          ]
+        }
+      },
+      "both_alive_nonopening_common_ages": {
+        "colder_larger_absolute_error": 4,
+        "games": 8,
+        "mean": {
+          "actual": 14989.5,
+          "bias": -11997.12992375592,
+          "forecast": 2992.3700762440812,
+          "mae": 733.1927118418038
+        },
+        "range": {
+          "actual": [
+            9473,
+            24722
+          ],
+          "bias": [
+            -19577.598387337774,
+            -7524.6991162379145
+          ],
+          "forecast": [
+            335.3113248146183,
+            5144.40161266223
+          ],
+          "mae": [
+            -2066.127047631049,
+            7396.0491109545765
+          ]
+        }
+      },
+      "last_512": {
+        "colder_larger_absolute_error": 6,
+        "games": 8,
+        "mean": {
+          "actual": -2.5,
+          "bias": 461.10125732421875,
+          "forecast": 458.60125732421875,
+          "mae": 461.10125732421875
+        },
+        "range": {
+          "actual": [
+            -56,
+            44
+          ],
+          "bias": [
+            -981.857177734375,
+            2195.220947265625
+          ],
+          "forecast": [
+            -1037.857177734375,
+            2213.220947265625
+          ],
+          "mae": [
+            -981.857177734375,
+            2195.220947265625
+          ]
+        }
+      }
+    }
+  },
+  "cross_validated_auxiliary_readout": {
+    "gate_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+    "inputs": [
+      "bias",
+      "incumbent_value_thousands",
+      "elapsed_thousands",
+      "is_cold"
+    ],
+    "input_columns": {
+      "with_critic": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "age_and_temperature": [
+        0,
+        2,
+        3
+      ]
+    },
+    "full_fit": {
+      "with_critic": [
+        -0.9008404846908418,
+        1.0942059826497008,
+        -0.567063631275036,
+        11.103674806193567
+      ],
+      "age_and_temperature": [
+        23.092030320165343,
+        -0.9344783535085177,
+        14.498349737899852
+      ]
+    },
+    "held_out_summary": {
+      "1.0": {
+        "opening": {
+          "incumbent": {
+            "mae": 6250.71826171875,
+            "bias": -6250.71826171875
+          },
+          "donor": {
+            "mae": 7475.323974609375,
+            "bias": 7475.323974609375
+          },
+          "with_critic": {
+            "mae": 5366.3640116224215,
+            "bias": -5366.3640116224215
+          },
+          "age_and_temperature": {
+            "mae": 1890.0418149783413,
+            "bias": -761.9010238503856
+          }
+        },
+        "all": {
+          "incumbent": {
+            "mae": 6214.786921223639,
+            "bias": 5962.0481467663085
+          },
+          "donor": {
+            "mae": 8604.376016777445,
+            "bias": 8281.79608387546
+          },
+          "with_critic": {
+            "mae": 1818.9757982664219,
+            "bias": 124.50497136820526
+          },
+          "age_and_temperature": {
+            "mae": 1906.7490637175933,
+            "bias": 38.51302208777031
+          }
+        },
+        "last_512": {
+          "incumbent": {
+            "mae": 10048.406799316406,
+            "bias": 10048.406799316406
+          },
+          "donor": {
+            "mae": 303.05013513565063,
+            "bias": 281.88687658309937
+          },
+          "with_critic": {
+            "mae": 256.0,
+            "bias": -256.0
+          },
+          "age_and_temperature": {
+            "mae": 1470.1653495146224,
+            "bias": 1300.801984424341
+          }
+        }
+      },
+      "0.25": {
+        "opening": {
+          "incumbent": {
+            "mae": 21240.21826171875,
+            "bias": -21240.21826171875
+          },
+          "donor": {
+            "mae": 7514.176025390625,
+            "bias": -7514.176025390625
+          },
+          "with_critic": {
+            "mae": 9169.086211589489,
+            "bias": -9169.086211589489
+          },
+          "age_and_temperature": {
+            "mae": 3429.7094027023004,
+            "bias": -1243.987482870266
+          }
+        },
+        "all": {
+          "incumbent": {
+            "mae": 6870.037842392041,
+            "bias": -946.0646555755343
+          },
+          "donor": {
+            "mae": 4689.756922089839,
+            "bias": 4026.7716978748695
+          },
+          "with_critic": {
+            "mae": 3103.78453707893,
+            "bias": 17.522604688217626
+          },
+          "age_and_temperature": {
+            "mae": 3585.8799672084856,
+            "bias": 115.11617573724564
+          }
+        },
+        "last_512": {
+          "incumbent": {
+            "mae": 10509.508056640625,
+            "bias": 10509.508056640625
+          },
+          "donor": {
+            "mae": 1907.979887008667,
+            "bias": 1907.979887008667
+          },
+          "with_critic": {
+            "mae": 888.3582137752906,
+            "bias": 674.0760389735603
+          },
+          "age_and_temperature": {
+            "mae": 2745.849815272948,
+            "bias": 2606.599815272948
+          }
+        }
+      }
+    },
+    "zero_with_over_512_left": {
+      "1.0": 80,
+      "0.25": 58
+    },
+    "design": {
+      "study": "incumbent-auxiliary-value-readout-v1",
+      "registered_utc": "2026-11-26T16:33:22+00:00",
+      "scope": "Retrospective diagnostic following inspection of the summarized errors on these eight paired piece streams. No independent new games.",
+      "seeds": [
+        48100001,
+        48100003,
+        48100005,
+        48100007,
+        48100009,
+        48100011,
+        48100013,
+        48100015
+      ],
+      "temperature": [
+        1.0,
+        0.25
+      ],
+      "model": "max(0, 1000*(a + b*v/1000 + c*age/1000 + d*is_cold)) with v from the unchanged incumbent head in placements, age from placements already played and cold indicating T=0.25. Fit four unconstrained coefficients by ordinary least squares with total observation weight one per training game. Target realized remaining placements in thousands. Also fit the nested model omitting v.",
+      "control": [
+        "unchanged incumbent",
+        "unchanged donor",
+        "fitted age + temperature without critic"
+      ],
+      "fold": "Leave one original piece seed and both of its temperatures out of fitting. Score every retained sample of the held-out stream. Refit once using all seeds for explicit illustrative coefficients.",
+      "metrics": "Mean within game then average equally over games. Report MAE and signed bias by temperature at opening, all sampled frames and last 512. Full-fit coefficients only for a future independent test.",
+      "no_outcome_as_input": true
+    },
+    "design_sha256": "9b9b755c59c362aa27a025a539bc11d255e69ee679f6dc54f8d67a4f4335643f",
+    "receipt_sha256": "5af2efc17c41f3073ee01cb105d8c952e9373482555d78e3f194738e794d9781",
+    "runner_sha256": "37425bd7d1b153af46d683cb583193e73be4f2b028b8d4e2407a19be38694c8f",
+    "independent_verification": {
+      "case_count": 3929,
+      "folds": 8,
+      "method": "Independently solved the game-weighted normal equations and reproduced all 16 held-out, per-game mean absolute errors to within 0.00001 placements. Float32 torch.nn.Linear(3,1) followed by ReLU reproduced the full-fit float64 predictions over all sampled frames.",
+      "max_fp32_discrepancy_placements_rounded": 0.00464
+    }
+  }
+}

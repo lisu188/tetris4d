@@ -149,6 +149,48 @@ int t4_compact(const uint16_t *input, uint16_t *output, unsigned cleared, int us
     return 0;
 }
 
+/* Validate a chosen rigid drop, apply it once, and return statistics of the compacted board. */
+int t4_checked_apply(const uint16_t *before, const int32_t *shape, int x, int y, int w, int z,
+                     uint16_t *after, int32_t *heights, int32_t *counts, int32_t *totals,
+                     int32_t *differences, int32_t *clear_mask, int use_bmi2) {
+    if (!before || !shape || !after || !heights || !counts || !totals || !differences || !clear_mask
+        || t4_validate_shapes(shape, 1) != 0 || x < 0 || y < 0 || w < 0 || z < 0
+        || x > 16-shape[0] || y > 16-shape[1] || w > 16-shape[3] || z > HEIGHT-shape[2]) return -1;
+    const int base = x + 16*y + 256*w;
+    int landing = -HEIGHT;
+    for (int i=0; i<shape[4]; ++i) {
+        const int32_t *column = shape + HEADER + i*COLUMN_STRIDE;
+        unsigned old = before[base + column[0]];
+        int height = old ? 32-__builtin_clz(old) : 0;
+        int bottom = height - column[2];
+        if (bottom > landing) landing = bottom;
+        if (old & ((unsigned) column[1] << z)) return -2;
+    }
+    if (landing != z) return -3;
+    memcpy(after, before, AREA * sizeof(*after));
+    for (int i=0; i<shape[4]; ++i) {
+        const int32_t *column = shape + HEADER + i*COLUMN_STRIDE;
+        after[base+column[0]] |= (uint16_t)((unsigned) column[1] << z);
+    }
+    unsigned full = 65535u;
+    for (int i=0; full && i<AREA; ++i) full &= after[i];
+    *clear_mask = (int32_t)full;
+    if (full && t4_compact(after, after, full, use_bmi2)) return -4;
+    return board_features(after, heights, counts, totals, differences);
+}
+
+int t4_has_move(const int32_t *heights, const int32_t *shapes, int shape_count) {
+    if (!heights || !shapes || shape_count < 1 || shape_count > 1024) return -1;
+    for (int r=0; r<shape_count; ++r) {
+        const int32_t *shape = shapes + r*SHAPE_STRIDE;
+        for (int w=0; w<=16-shape[3]; ++w)
+            for (int y=0; y<=16-shape[1]; ++y)
+                for (int x=0; x<=16-shape[0]; ++x)
+                    if (landing_scalar(heights, shape, x+16*y+256*w) <= HEIGHT-shape[2]) return 1;
+    }
+    return 0;
+}
+
 int t4_scores(const uint16_t *board, const int32_t *heights, const int32_t *counts,
               const int32_t *shapes, int shape_count, const int32_t *specs, int n,
               int target, double board_score, double height_weight, double holes_weight,
@@ -242,6 +284,54 @@ int t4_scores(const uint16_t *board, const int32_t *heights, const int32_t *coun
 
 /* Preserve every row, including illegal/blocked drops: the neural shortlist
  * applies its own legality filter after combining these integer metrics. */
+static void target_metrics(const int32_t *heights, const int32_t *s, int base, int landing, int target,
+                           int64_t *gain_out, uint8_t *blocked_out, int64_t *future_out) {
+    int relative = target-landing, above = relative+1;
+    if (above < 0) above = 0;
+    if (above > HEIGHT+1) above = HEIGHT+1;
+    int64_t gain = 0, future = 0;
+    int buried = 0;
+    for (int i = 0; i < s[4]; ++i) {
+        const int32_t *c = s + HEADER + i*COLUMN_STRIDE;
+        int old = heights[base+c[0]], top = landing+c[3];
+        int on_target = relative >= 0 && relative < HEIGHT && ((unsigned)c[1] & (1u << relative));
+        int gap = old <= target;
+        gain += gap && on_target;
+        buried |= gap && top > target && !on_target;
+        int floor = old > target+1 ? old : target+1;
+        if (top > floor) future += top-floor;
+        future -= __builtin_popcount((unsigned)c[1] >> above);
+    }
+    *gain_out = gain;
+    *blocked_out = (uint8_t)buried;
+    *future_out = future;
+}
+
+/* Return exhaustive primary utilities in canonical rotation, W, Y, X order. */
+int t4_exhaustive_primary(const int32_t *heights, const int32_t *shapes, int shape_count,
+                          int target, int protect, int penalty, int32_t *primary, int n) {
+    if (!heights || !shapes || !primary || shape_count < 1 || shape_count > 1024
+        || target < 0 || target >= HEIGHT || penalty < 0 || penalty > 4096 || n < 1) return -1;
+    int row = 0;
+    for (int r=0; r<shape_count; ++r) {
+        const int32_t *s = shapes + r*SHAPE_STRIDE;
+        for (int w=0; w<=16-s[3]; ++w) for (int y=0; y<=16-s[1]; ++y) for (int x=0; x<=16-s[0]; ++x) {
+            if (row >= n) return -2;
+            int base = x + 16*y + 256*w;
+            int landing = landing_scalar(heights, s, base);
+            int32_t utility = INT32_MIN;
+            if (landing >= 0 && landing <= HEIGHT-s[2]) {
+                int64_t gain, future;
+                uint8_t blocked;
+                target_metrics(heights, s, base, landing, target, &gain, &blocked, &future);
+                if (!protect || !blocked) utility = (int32_t)(gain - penalty*future);
+            }
+            primary[row++] = utility;
+        }
+    }
+    return row == n ? 0 : -3;
+}
+
 int t4_sustained_metrics(const int32_t *heights, const int32_t *shapes, int shape_count,
                          const int32_t *specs, const int32_t *z, int n, int target,
                          int64_t *gains, uint8_t *blocked, int64_t *future_holes) {
@@ -254,25 +344,7 @@ int t4_sustained_metrics(const int32_t *heights, const int32_t *shapes, int shap
         if (p[1] < 0 || p[1] > 16-s[0] || p[2] < 0 || p[2] > 16-s[1]
             || p[3] < 0 || p[3] > 16-s[3] || z[row] < -HEIGHT || z[row] > HEIGHT) return -3;
         int base = p[1] + p[2]*16 + p[3]*256;
-        int relative = target-z[row], above = relative+1;
-        if (above < 0) above = 0;
-        if (above > HEIGHT+1) above = HEIGHT+1;
-        int64_t gain = 0, future = 0;
-        int buried = 0;
-        for (int i = 0; i < s[4]; ++i) {
-            const int32_t *c = s + HEADER + i*COLUMN_STRIDE;
-            int old = heights[base+c[0]], top = z[row]+c[3];
-            int on_target = relative >= 0 && relative < HEIGHT && ((unsigned)c[1] & (1u << relative));
-            int gap = old <= target;
-            gain += gap && on_target;
-            buried |= gap && top > target && !on_target;
-            int floor = old > target+1 ? old : target+1;
-            if (top > floor) future += top-floor;
-            future -= __builtin_popcount((unsigned)c[1] >> above);
-        }
-        gains[row] = gain;
-        blocked[row] = (uint8_t)buried;
-        future_holes[row] = future;
+        target_metrics(heights, s, base, z[row], target, &gains[row], &blocked[row], &future_holes[row]);
     }
     return 0;
 }

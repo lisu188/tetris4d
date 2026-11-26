@@ -95,13 +95,17 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
                       starts, strides, inverses, piece_ids, piece_offsets,
                       sample_counts, vertical_rotations, targets, board_scores,
                       rough_delta, weights, specs_out, scores_out, gains_out,
-                      future_out, delta_out, clear_out, valid_out,
+                      future_out, delta_out, clear_out, valid_out, selected_rows,
                       CANDIDATES: tl.constexpr, SAMPLES: tl.constexpr, TEMPLATE_STRIDE: tl.constexpr,
                       ROTATIONS: tl.constexpr, PROTECT: tl.constexpr,
-                      BLOCK: tl.constexpr):
-    row = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
+                      BLOCK: tl.constexpr, PRIMARY_ONLY: tl.constexpr, SELECTED: tl.constexpr, PENALTY: tl.constexpr):
+    slot = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
     env = tl.program_id(1)
-    live = row < CANDIDATES
+    if SELECTED:
+        row = tl.load(selected_rows + env * CANDIDATES + slot, slot < CANDIDATES, -1)
+    else:
+        row = slot
+    live = (slot < CANDIDATES) & (row >= 0)
     piece = tl.load(piece_ids + env)
     samples = tl.load(sample_counts + piece)
     sampled = live & (row < samples)
@@ -163,22 +167,28 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
         future += tl.where(present, tl.maximum(top - tl.maximum(old, target + 1), 0), 0)
         future -= tl.extra.cuda.libdevice.popc((mask >> above).to(tl.int32))
         delta += tl.where(present, top - old, 0)
-        # Preserve t4_scores' column/direction FP64 accumulation order.
-        for d in tl.static_range(6):
-            coordinate = (index >> ((d // 2) * 4)) & 15
-            step = (-1 if d % 2 == 0 else 1) * (1 << ((d // 2) * 4))
-            neighbor = index + step
-            partner = tl.load(shapes + shape + 26 + i * 10 + d, present, -1)
-            edge = present & legal & ((coordinate > 0) if d % 2 == 0 else (coordinate < 15))
-            edge &= (partner < 0) | (neighbor > index)
-            neighbor_old = tl.load(heights + env * 4096 + neighbor, edge, 0)
-            partner_top = tl.load(
-                shapes + shape + 25 + tl.maximum(partner, 0) * 10,
-                edge & (partner >= 0), 0) + z
-            neighbor_new = tl.where(partner >= 0, partner_top, neighbor_old)
-            before = tl.abs(neighbor_old - old)
-            after = tl.abs(neighbor_new - top)
-            rough += tl.load(rough_delta + after * 17 + before, edge, 0.0)
+        if not PRIMARY_ONLY:
+            # Preserve t4_scores' column/direction FP64 accumulation order.
+            for d in tl.static_range(6):
+                coordinate = (index >> ((d // 2) * 4)) & 15
+                step = (-1 if d % 2 == 0 else 1) * (1 << ((d // 2) * 4))
+                neighbor = index + step
+                partner = tl.load(shapes + shape + 26 + i * 10 + d, present, -1)
+                edge = present & legal & ((coordinate > 0) if d % 2 == 0 else (coordinate < 15))
+                edge &= (partner < 0) | (neighbor > index)
+                neighbor_old = tl.load(heights + env * 4096 + neighbor, edge, 0)
+                partner_top = tl.load(
+                    shapes + shape + 25 + tl.maximum(partner, 0) * 10,
+                    edge & (partner >= 0), 0) + z
+                neighbor_new = tl.where(partner >= 0, partner_top, neighbor_old)
+                before = tl.abs(neighbor_old - old)
+                after = tl.abs(neighbor_new - top)
+                rough += tl.load(rough_delta + after * 17 + before, edge, 0.0)
+    valid = legal & (~blocked if PROTECT else True)
+    if PRIMARY_ONLY:
+        # Integer eligibility is independent of roughness and layer-clear scores.
+        tl.store(gains_out + env * CANDIDATES + slot, tl.where(valid, gain - PENALTY * future, -2147483648), slot < CANDIDATES)
+        return
     cleared = tl.full((BLOCK,), 0, tl.int32)
     for dz in tl.static_range(16):
         amount = tl.load(shapes + shape + 6 + dz, legal & (dz < extent_z), 0)
@@ -190,16 +200,15 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
     score = score + tl.load(weights + 2) * rough
     # Clear rows force the environment's CPU reference path before selection.
     score = tl.where(cleared != 0, 0.0, score)
-    valid = legal & (~blocked if PROTECT else True)
-    tl.store(scores_out + env * CANDIDATES + row, tl.where(valid, score, -float("inf")), row < CANDIDATES)
-    tl.store(gains_out + env * CANDIDATES + row, gain, row < CANDIDATES)
-    tl.store(future_out + env * CANDIDATES + row, future, row < CANDIDATES)
-    tl.store(delta_out + env * CANDIDATES + row, delta, row < CANDIDATES)
-    tl.store(clear_out + env * CANDIDATES + row, cleared, row < CANDIDATES)
-    tl.store(valid_out + env * CANDIDATES + row, valid, row < CANDIDATES)
+    tl.store(scores_out + env * CANDIDATES + slot, tl.where(valid, score, -float("inf")), slot < CANDIDATES)
+    tl.store(gains_out + env * CANDIDATES + slot, gain, slot < CANDIDATES)
+    tl.store(future_out + env * CANDIDATES + slot, future, slot < CANDIDATES)
+    tl.store(delta_out + env * CANDIDATES + slot, delta, slot < CANDIDATES)
+    tl.store(clear_out + env * CANDIDATES + slot, cleared, slot < CANDIDATES)
+    tl.store(valid_out + env * CANDIDATES + slot, valid, slot < CANDIDATES)
     for field in tl.static_range(6):
         value = rotation if field == 0 else x if field == 1 else y if field == 2 else w if field == 3 else z if field == 4 else 0
-        tl.store(specs_out + (env * CANDIDATES + row) * 6 + field, value, row < CANDIDATES)
+        tl.store(specs_out + (env * CANDIDATES + slot) * 6 + field, value, slot < CANDIDATES)
 
 
 @triton.jit
@@ -439,8 +448,9 @@ class DevicePreparedBatch:
 class GpuPreparer:
     """Per-call owned output tensors; retained rollout records remain valid."""
 
-    def __init__(self, config=None, device="cuda", *, group_exhaustive=False):
+    def __init__(self, config=None, device="cuda", *, group_exhaustive=False, two_stage=False, require_cross_mobility=False):
         self.config = neural.Config() if config is None else config
+        self.require_cross_mobility = require_cross_mobility
         self.device = torch.device(device)
         if self.device.type != "cuda":
             raise ValueError("GpuPreparer requires CUDA")
@@ -450,6 +460,8 @@ class GpuPreparer:
         self.rotations = max(map(len, game.SHAPES.values()))
         self.budget = self.config.screening_budget
         self.group_exhaustive = group_exhaustive
+        self.two_stage = two_stage
+        self.two_stage_counts = {"screened_groups": 0, "dense_groups": 0}
         self._teacher_parameters = game.network_parameters()
         self._reference_only_reason = (
             "candidate_budget_bound" if self.budget > MAX_GPU_CANDIDATES else
@@ -460,7 +472,7 @@ class GpuPreparer:
         self.spatial = self.config.architecture in neural.SPATIAL_ARCHITECTURES
         # Exact CPU fallback rows skip the slow host afterstate pass; V4 descriptors
         # for every row are recomputed on device from the final options.
-        self._fallback_config = (replace(self.config, architecture="survival-feature-v3")
+        self._fallback_config = (replace(self.config, architecture="survival-feature-v3", cross_weight=0., cross_residual=False)
                                  if self.spatial else self.config)
         if self._reference_only_reason is not None:
             return
@@ -544,6 +556,69 @@ class GpuPreparer:
         specifications[env, slot, 5] = integers[:, 2]
         clears[env, slot] = 0  # resolved exactly; no reference fallback needed
 
+    def _screen_shortlist(self, primary, states, shortlist, score):
+        """Choose original exhaustive IDs, scoring all ties at the integer cutoff."""
+        n, width = primary.shape
+        keep = shortlist if self.config.shortlist_mode == "teacher-top" else max(1, shortlist // 2)
+        minimum = torch.iinfo(primary.dtype).min
+        valid = primary != minimum
+        counts = valid.sum(1)
+        threshold = primary.topk(keep, dim=1).values[:, -1:]
+        eligible = valid & ((primary >= threshold) | (counts[:, None] <= shortlist))
+        sizes = torch.stack((counts, eligible.sum(1)), dim=1).cpu().tolist()
+        largest = max(length for _, length in sizes)
+        # A dense cutoff tie costs more to pack and rescore than the original sort.
+        if largest * 2 >= width:
+            return None
+        # A few power-of-two capacities bound Triton specialization on dynamic game states.
+        span = triton.next_power_of_2(max(shortlist, largest))
+        packed = torch.full((n, span), -1, dtype=torch.int32, device=self.device)
+        owners, original = eligible.nonzero(as_tuple=True)
+        offsets = np.cumsum([0] + [length for _, length in sizes[:-1]], dtype=np.int64)
+        columns = torch.arange(len(owners), device=self.device) - self._device(offsets)[owners]
+        packed[owners, columns] = original.to(torch.int32)
+        scores = score(span, packed)[1]
+        by_score = torch.argsort(scores, dim=1, descending=True, stable=True)
+        priorities = primary.gather(1, packed.long().clamp_min(0)).masked_fill(packed < 0, minimum)
+        by_primary = torch.argsort(priorities.gather(1, by_score), dim=1, descending=True, stable=True)
+        ranked = packed.gather(1, by_score.gather(1, by_primary))
+        first = ranked[:, :shortlist]
+        if keep == shortlist:
+            choices = first
+        else:
+            top = first[:, :keep]
+            rest = valid.clone()
+            # Padded top IDs occur only in lanes that use first and discard sampled.
+            rest.scatter_(1, top.long().clamp_min_(0), False)
+            random_ranks = np.zeros((n, shortlist - keep), dtype=np.int32)
+            for env, (count, _) in enumerate(sizes):
+                if count > shortlist:
+                    rng = random.Random(states[env].seed * 8191 + states[env].pieces)
+                    random_ranks[env] = rng.sample(range(count - keep), shortlist - keep)
+            ordinal = torch.cumsum(rest, dim=1, dtype=torch.int32)
+            sampled = torch.searchsorted(ordinal, self._device(random_ranks) + 1).to(torch.int32)
+            choices = torch.where((counts <= shortlist)[:, None], first, torch.cat((top, sampled), dim=1))
+        ordered = torch.where(choices < 0, width, choices).sort(dim=1).values
+        return torch.where(ordered == width, -1, ordered)
+
+    def _final_shortlist(self, ranked, valid, counts, summaries, states, references, shortlist):
+        first = ranked[:, :shortlist]
+        # A successful two-stage screen has already selected its seeded random slots.
+        if ranked.shape[1] == shortlist or self.config.shortlist_mode == "teacher-top":
+            return first
+        half = max(1, shortlist // 2)
+        top = first[:, :half]
+        top_mask = torch.zeros_like(valid)
+        top_mask.scatter_(1, top, True)
+        rest_rank = torch.cumsum(valid & ~top_mask, dim=1, dtype=torch.int64)
+        positions = np.zeros((len(states), shortlist - half), dtype=np.int32)
+        for env, (number, *_) in enumerate(summaries):
+            if number > shortlist and env not in references:
+                rng = random.Random(states[env].seed * 8191 + states[env].pieces)
+                positions[env] = rng.sample(range(number - half), shortlist - half)
+        exploration = torch.searchsorted(rest_rank, self._device(positions) + 1)
+        return torch.where(counts[:, None] <= shortlist, first, torch.cat((top, exploration), dim=1))
+
     def _spatial_arrays(self, boards, targets, piece_ids, option_specs, valid):
         from tetris_survival_v4 import device_afterstate_descriptors
         specs = option_specs.long()
@@ -563,6 +638,11 @@ class GpuPreparer:
             return DevicePreparedBatch(
                 references, (), {}, torch.empty(0, dtype=torch.int64, device=self.device),
                 (reason,) * len(states), targets)
+        if self.require_cross_mobility and not (self.config.cross_weight or self.config.cross_residual):
+            from tetris_cross_survival import mobility_features
+            for env in envs:
+                reference = references[env]
+                reference.arrays['cross_mobility'] = mobility_features(states[env].board, reference.options)
         batch = neural.collate([references[i].arrays for i in envs], self.device)
         maximum = batch["features"].shape[1]
         integers = np.zeros((len(envs), maximum, 6), dtype=np.int32)
@@ -646,10 +726,14 @@ class GpuPreparer:
             contexts[env, 15:30] = [name == state.next_piece for name in self.names]
             contexts[env, 30:45] = [name in names and state.piece_counts[name] == completed for name in self.names]
             contexts[env, 81] = (state.pieces % len(names)) / len(names)
-        board_values = np.asarray([s.board for s in states])
-        if (board_values.shape != (n, 4096) or board_values.dtype.kind not in "iub"
-                or np.any(board_values < 0) or np.any(board_values > 65535)):
-            raise ValueError("Expected 4096 integer column masks in [0, 65535] per environment")
+        packed = [s.packed_board for s in states] if game.HEADLESS_COMMIT else ()
+        if packed and all(board is not None for board in packed):
+            board_values = np.stack(packed)
+        else:
+            board_values = np.asarray([s.board for s in states])
+            if (board_values.shape != (n, 4096) or board_values.dtype.kind not in "iub"
+                    or np.any(board_values < 0) or np.any(board_values > 65535)):
+                raise ValueError("Expected 4096 integer column masks in [0, 65535] per environment")
         boards = self._device(board_values.astype(np.int32, copy=False))
         device_targets = self._device(np.asarray(targets, dtype=np.int64))
         device_pieces = self._device(np.asarray(piece_ids, dtype=np.int32))
@@ -661,19 +745,38 @@ class GpuPreparer:
         _board_kernel[(n,)](boards, heights, counts, context, board_scores, statistics,
                             device_targets, self.weights, self.ticks_low, self.ticks_high,
                             CONTEXT=neural.CONTEXT, BLOCK=4096, enable_fp_fusion=False, num_warps=8)
-        specifications = torch.empty((n, candidates, 6), dtype=torch.int32, device=self.device)
-        scores = torch.empty((n, candidates), dtype=torch.float64, device=self.device)
-        gains, future, deltas, clears = [torch.empty((n, candidates), dtype=torch.int32, device=self.device) for _ in range(4)]
-        valid = torch.empty((n, candidates), dtype=torch.bool, device=self.device)
-        _candidate_kernel[(triton.cdiv(candidates, 128), n)](
-            boards, heights, counts, statistics, self.shapes, self.templates,
-            self._device(starts), self._device(strides), self._device(inverse_take),
-            device_pieces, self.shape_offsets, self.sample_counts, self.vertical_rotations,
-            device_targets, board_scores, self.rough_delta, self.weights, specifications,
-            scores, gains, future, deltas, clears, valid, CANDIDATES=candidates,
-            SAMPLES=samples, TEMPLATE_STRIDE=self.samples, ROTATIONS=self.rotations, PROTECT=self.config.protect_target,
-            BLOCK=128, enable_fp_fusion=False, num_warps=4)
-        self._score_clearing(boards, device_pieces, specifications, scores, clears, valid)
+        kernel_inputs = (boards, heights, counts, statistics, self.shapes, self.templates,
+                         self._device(starts), self._device(strides), self._device(inverse_take),
+                         device_pieces, self.shape_offsets, self.sample_counts, self.vertical_rotations,
+                         device_targets, board_scores, self.rough_delta, self.weights)
+
+        def launch(width, outputs, ids=None, primary_only=False):
+            _candidate_kernel[(triton.cdiv(width, 128), n)](
+                *kernel_inputs, *outputs, ids if ids is not None else device_pieces, CANDIDATES=width,
+                SAMPLES=samples, TEMPLATE_STRIDE=self.samples, ROTATIONS=self.rotations,
+                PROTECT=self.config.protect_target, BLOCK=128, PRIMARY_ONLY=primary_only, SELECTED=ids is not None, PENALTY=game.FUTURE_HOLE_PENALTY,
+                enable_fp_fusion=False, num_warps=4)
+
+        def score(width, ids=None):
+            specifications = torch.empty((n, width, 6), dtype=torch.int32, device=self.device)
+            scores = torch.empty((n, width), dtype=torch.float64, device=self.device)
+            gains, future, deltas, clears = [torch.empty((n, width), dtype=torch.int32, device=self.device) for _ in range(4)]
+            valid = torch.empty((n, width), dtype=torch.bool, device=self.device)
+            outputs = (specifications, scores, gains, future, deltas, clears, valid)
+            launch(width, outputs, ids)
+            self._score_clearing(boards, device_pieces, specifications, scores, clears, valid)
+            return outputs
+
+        ids = None
+        if self.two_stage and not self.budget and candidates > SUMMARY_KERNEL_LIMIT:
+            primary = torch.empty((n, candidates), dtype=torch.int32, device=self.device)
+            launch(candidates, (primary,) * 7, primary_only=True)
+            ids = self._screen_shortlist(primary, states, shortlist, score)
+            self.two_stage_counts["dense_groups" if ids is None else "screened_groups"] += 1
+            del primary
+            if ids is not None:
+                candidates = shortlist
+        specifications, scores, gains, future, deltas, clears, valid = score(candidates, ids)
         if candidates <= SUMMARY_KERNEL_LIMIT:
             summary = torch.empty((n, 5), dtype=torch.int32, device=self.device)
             _summary_kernel[(n,)](valid, clears, statistics, counts, device_pieces,
@@ -705,25 +808,10 @@ class GpuPreparer:
         by_score = torch.argsort(scores, dim=1, descending=True, stable=True)
         by_primary = torch.argsort(primary.gather(1, by_score), dim=1, descending=True, stable=True)
         ranked = by_score.gather(1, by_primary)
-        half = max(1, shortlist // 2)
-        top = ranked[:, :half]
-        top_mask = torch.zeros_like(valid)
-        top_mask.scatter_(1, top, True)
-        rest_mask = valid & ~top_mask
-        positions = np.zeros((n, shortlist - half), dtype=np.int64)
-        for env, (number, *_rest) in enumerate(summaries):
-            if number > shortlist and env not in references and self.config.shortlist_mode != "teacher-top":
-                rng = random.Random(states[env].seed * 8191 + states[env].pieces)
-                positions[env] = rng.sample(range(number - half), shortlist - half)
-        rest_rank = torch.cumsum(rest_mask.to(torch.int32), dim=1)
-        exploration = torch.searchsorted(rest_rank.contiguous(), self._device(positions).to(torch.int32) + 1)
-        chosen = torch.cat((top, exploration), dim=1)
-        raw_count = self._device(np.asarray([s[0] for s in summaries], dtype=np.int64))
-        first = ranked[:, :shortlist]
-        chosen = first if self.config.shortlist_mode == "teacher-top" else torch.where((raw_count <= shortlist)[:, None], first, chosen)
-        padding = torch.arange(shortlist, device=self.device)[None, :] >= self._device(np.asarray(lengths, dtype=np.int64))[:, None]
-        chosen = torch.where(padding, candidates, chosen).sort(dim=1).values
+        chosen = self._final_shortlist(ranked, valid, summary[:, 0], summaries, states, references, shortlist)
         length_tensor = self._device(np.asarray(lengths, dtype=np.int32))
+        padding = torch.arange(shortlist, device=self.device)[None, :] >= length_tensor[:, None]
+        chosen = torch.where(padding, candidates, chosen).sort(dim=1).values
         features = torch.empty((n, shortlist, neural.FEATURES), dtype=torch.float32, device=self.device)
         indices = torch.empty((n, shortlist, neural.COLUMNS), dtype=torch.int64, device=self.device)
         column_mask = torch.empty((n, shortlist, neural.COLUMNS), dtype=torch.bool, device=self.device)
@@ -754,7 +842,7 @@ class GpuPreparer:
             if p is None:
                 continue
             for name, value in p.arrays.items():
-                if name.startswith("spatial_"):
+                if name.startswith("spatial_") or name == "cross_mobility":
                     continue  # recomputed on device below from the final options
                 tensor = self._device(value)
                 if name in candidate_fields:
@@ -766,6 +854,16 @@ class GpuPreparer:
             option_specs[env, :len(p.options)].copy_(self._device(np.asarray(
                 [(c.rotation, c.x, c.y, c.w, c.z, c.layers) for c in p.options], dtype=np.int32)))
             option_scores[env, :len(p.options)].copy_(self._device(np.asarray([c.score for c in p.options], dtype=np.float64)))
+        if self.require_cross_mobility or self.config.cross_weight or self.config.cross_residual:
+            from tetris_cross_survival import MOBILITY_CAP, MOBILITY_VALUES
+            from tetris_gpu_cross import candidate_counts
+            before, after = candidate_counts(boards, option_specs, device_pieces, self.shapes,
+                                             self.shape_offsets, ~padding, capped=True)
+            if not hasattr(self, "_cross_values"):
+                self._cross_values = self._device(MOBILITY_VALUES)
+            start = self._cross_values[before.clamp_max(MOBILITY_CAP).long()][:, None].expand_as(after)
+            end = self._cross_values[after.long()]
+            all_arrays["cross_mobility"] = torch.stack((start, end), -1).masked_fill(padding[..., None], 0.)
         if self.spatial:
             all_arrays["spatial_board"], all_arrays["spatial_delta"] = self._spatial_arrays(
                 boards, device_targets, device_pieces, option_specs, ~padding)
@@ -879,8 +977,8 @@ def compile_offline():
         (_candidate_kernel,
          ["*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32",
           "*i32", "*i32", "*i32", "*i32", "*i64", "*fp64", "*fp64", "*fp64", "*i32",
-          "*fp64", "*i32", "*i32", "*i32", "*i32", "*i1"],
-         {"CANDIDATES": 6144, "SAMPLES": 2048, "TEMPLATE_STRIDE": 2048, "ROTATIONS": 192, "PROTECT": True, "BLOCK": 128}, 4),
+          "*fp64", "*i32", "*i32", "*i32", "*i32", "*i1", "*i32"],
+         {"PRIMARY_ONLY": False, "SELECTED": False, "PENALTY": game.FUTURE_HOLE_PENALTY, "CANDIDATES": 6144, "SAMPLES": 2048, "TEMPLATE_STRIDE": 2048, "ROTATIONS": 192, "PROTECT": True, "BLOCK": 128}, 4),
         (_summary_kernel,
          ["*i1", "*i32", "*i32", "*i32", "*i32", "*i32", "*i64", "*i32"],
          {"CANDIDATES": 6144, "BLOCK": 8192}, 8),

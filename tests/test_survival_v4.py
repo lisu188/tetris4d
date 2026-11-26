@@ -65,6 +65,64 @@ class SpatialV4Tests(unittest.TestCase):
         np.testing.assert_allclose(record.arrays['spatial_delta'][0], delta, atol=1e-7)
         np.testing.assert_allclose(record.arrays['spatial_board'], initial.mean(1)[0].numpy(), atol=1e-7)
 
+    def test_local_descriptors_match_full_geometry_on_holes_boundaries_and_shared_edges(self):
+        game = neural.game
+        board = tuple((0, 5, 1, 2, 3)[(x + 2 * y + w) % 5]
+                      for w in range(16) for y in range(16) for x in range(16))
+        context = game.evaluate_board(board)
+        options = []
+        for piece, shapes in game.SHAPES.items():
+            rotation = max(range(len(shapes)), key=lambda i: len(shapes[i].columns))
+            sx, sy, _, sw = shapes[rotation].extents
+            for x, y, w in ((0, 0, 0), (16 - sx, 16 - sy, 16 - sw)):
+                options.append(game.score_candidate(context, piece, rotation, x, y, w))
+        self.assertTrue(all(c is not None and not c.layers for c in options))
+        options = (options[-1], *options, options[-1])
+        read_only = np.asarray(board, dtype=np.int32)
+        read_only.flags.writeable = False
+        for target in (0, 7, 15):
+            reference = afterstate_descriptors(board, options, target)
+            for _ in range(2):
+                board_features, delta = afterstate_descriptors(read_only, options, target, checked_shortlist=True)
+                self.assertEqual((board_features.tobytes(), delta.tobytes()),
+                                 tuple(value.tobytes() for value in reference))
+                np.testing.assert_array_equal(delta[0], delta[-1])
+        np.testing.assert_array_equal(read_only, board)
+
+    def test_local_descriptors_preserve_mixed_multilayer_clears_and_direct_validation(self):
+        game = neural.game
+        rotation = next(i for i, shape in enumerate(game.SHAPES['I']) if len(shape.columns) == 1)
+        for layers in (0b1010, 0b1111):
+            board = (0,) + (layers,) * (game.AREA - 1)
+            context = game.evaluate_board(board)
+            options = tuple(game.score_candidate(context, 'I', rotation, i, i, i) for i in (0, 15))
+            self.assertEqual([c.layers for c in options], [layers.bit_count(), 0])
+            reference = afterstate_descriptors(board, options, 15)
+            actual = afterstate_descriptors(board, options, 15, checked_shortlist=True)
+            for a, b in zip(actual, reference):
+                self.assertEqual(a.tobytes(), b.tobytes())
+        with self.assertRaises(ValueError):
+            afterstate_descriptors(board, [replace(options[0], x=-1)], 15)
+
+    def test_prepared_spatial_inputs_preserve_training_outputs_and_gradients(self):
+        config = self.config()
+        state = neural.game.Game(710052)
+        record = neural.prepare(state, 1, config)
+        board, delta = afterstate_descriptors(state.board, record.options, int(record.arrays['targets']))
+        reference = dict(record.arrays, spatial_board=board, spatial_delta=delta)
+        model = SurvivalSpatialPolicy(config).train()
+        results = []
+        for arrays in (reference, record.arrays):
+            with torch.random.fork_rng(devices=[]):
+                output = model(neural.collate([arrays], 'cpu'))
+                model.zero_grad(set_to_none=True)
+                (output['logits'].sum() + output['value'].sum()).backward()
+                results.append([output['logits'].detach(), output['value'].detach(),
+                                *(p.grad.clone() for p in model.parameters() if p.grad is not None)])
+        self.assertEqual(len(results[0]), len(results[1]))
+        for baseline, actual in zip(*results):
+            self.assertTrue(torch.equal(baseline, actual))
+
     def test_teacher_and_actor_ranking_preserved_at_initialization(self):
         state = neural.game.Game(710043)
         config = self.config()

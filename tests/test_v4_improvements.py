@@ -144,6 +144,55 @@ class TrainerHarness(unittest.TestCase):
 
 class TrainerTests(TrainerHarness):
 
+    def test_gae_horizon_retains_bootstrap_and_real_episode_boundaries(self):
+        rewards = np.ones((5, 2), np.float32)
+        values = np.array([[10, 20], [11, 21], [12, 22], [13, 23], [14, 24]], np.float32)
+        following = np.array([[11, 21], [12, 999], [100, 23], [14, 24], [15, 25]], np.float32)
+        terminal = np.zeros(rewards.shape, dtype=bool)
+        terminal[1, 1] = True
+        truncated = np.zeros_like(terminal)
+        truncated[2, 0] = True
+        inputs = rewards, values, following, terminal, truncated
+        advantage, returns = v4.v2.survival_gae(*inputs, .5, horizon=2)
+        # Frame 2 (1-based) bootstraps lane 0 at 12; lane 1 dies and ignores 999.
+        # The real time limit at frame 3 bootstraps at 100 before that lane resets.
+        expected = np.array([[3, -8], [2, -20], [89, 3], [2, 2], [2, 2]], np.float32)
+        np.testing.assert_array_equal(advantage, expected)
+        np.testing.assert_array_equal(returns, values + expected)
+        np.testing.assert_array_equal(np.argwhere(truncated), [[2, 0]])
+        old = v4.neural.gae(*inputs, 1., .5)
+        for horizon in (0, 5, 8):  # The budget may shorten the final rollout.
+            actual = v4.v2.survival_gae(*inputs, .5, horizon=horizon)
+            self.assertEqual([x.tobytes() for x in actual], [x.tobytes() for x in old])
+        for invalid in (-1, 1.5):
+            with self.assertRaisesRegex(ValueError, 'GAE horizon'):
+                v4.v2.survival_gae(*inputs, .5, horizon=invalid)
+
+    def test_gae_horizon_checkpoint_and_rollout_contract(self):
+        old_args = self.arguments()
+        del old_args.gae_horizon
+        old = v4.SurvivalTrainer(old_args, v4.base.Budget(.1))
+        old.save()
+        self.assertNotIn('gae_horizon', old.signature)
+        self.assertEqual(self.trainer('--gae-horizon', '3').signature, old.signature)
+        with self.assertRaisesRegex(ValueError, 'Run settings or source changed'):
+            self.trainer('--gae-horizon', '2')
+        path = ['--run-dir', str(self.directory / 'segmented')]
+        trainer = self.trainer(*path, '--gae-horizon', '2', '--pieces', '0')
+        with patch.object(v4.v2, 'survival_gae', wraps=v4.v2.survival_gae) as estimate:
+            rollout = trainer.rollout(False)
+        self.assertEqual(estimate.call_count, 1)
+        self.assertEqual(estimate.call_args.kwargs['horizon'], 2)
+        self.assertEqual(len(rollout.choices), 6)  # Three frames and two lanes in one update.
+        self.assertFalse(rollout.truncations.any())
+        trainer.save()
+        self.assertEqual(self.trainer(*path, '--gae-horizon', '2', '--pieces', '0').signature['gae_horizon'], 2)
+        with self.assertRaisesRegex(ValueError, 'Run settings or source changed'):
+            self.trainer(*path, '--pieces', '0')
+        for invalid in ('-1', '4', '1.5'):
+            with self.subTest(invalid=invalid), self.assertRaises(SystemExit), patch('sys.stderr'):
+                self.arguments('--gae-horizon', invalid)
+
     def test_uncapped_rollouts_keep_playing_across_old_placement_limit(self):
         trainer = self.trainer('--pieces', '0')
         original = list(trainer.environments)
@@ -503,6 +552,36 @@ class DangerStartTests(TrainerHarness):
                 self.assertEqual(event['start_kind'], 'library')
                 self.assertEqual(event['start_pieces'], episode.start['offset'])
                 self.assertEqual(event['own_placements'], episode.state.pieces + 7 - episode.start['offset'])
+
+    def test_update_exposure_includes_partial_episodes_and_resumes_without_double_counting(self):
+        options = ('--danger-starts', '.9999', '--danger-window', '5', '20', '--danger-pool', '4', '--pieces', '0')
+        trainer = self.trainer(*options)
+        initial_count = len(trainer.environments)
+        self.assertTrue(all(e.start for e in trainer.environments))
+        self.assertTrue(trainer.calibrate())
+
+        def update(owner):
+            owner.update(owner.rollout(False), False)
+            return [r for line in owner.metrics.read_text().splitlines() if (r := json.loads(line))['event'] == 'update'][-1]
+
+        first = update(trainer)
+        placements = initial_count * trainer.args.rollout
+        self.assertEqual(first['finished_episodes'], 0)
+        self.assertEqual(first['danger_starts_this_update'], initial_count)
+        self.assertEqual(first['danger_placements_this_update'], placements)
+        self.assertEqual(first['fresh_placements_this_update'], 0)
+        trainer.save('partial_danger_episodes')
+        resumed = self.trainer(*options)
+        # Force a reset for each live episode after one more move; every replacement is fresh.
+        resumed.args.pieces = 1
+        with patch.object(resumed, '_next_danger_start', return_value=None):
+            second = update(resumed)
+        self.assertEqual(second['danger_starts_this_update'], 0)
+        self.assertEqual(second['danger_placements_this_update'], initial_count)
+        self.assertEqual(second['fresh_placements_this_update'], placements - initial_count)
+        self.assertEqual(second['danger_placements_total'], placements + initial_count)
+        self.assertEqual(second['fresh_starts_this_update'], placements)
+        self.assertEqual(second['danger_placements_total'] + second['fresh_placements_total'], second['placements'])
 
     def test_fresh_runs_never_touch_the_library(self):
         trainer = self.trainer()

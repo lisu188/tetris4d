@@ -1,0 +1,488 @@
+{
+  "schema": "cross-survival-last-cross-v1",
+  "question": "On historical expanded training games that physically topped out, could a single alternative placement have preserved the next visible drop at the final move, or a CROSS origin at the last recorded positive-to-zero crossing?",
+  "provenance": {
+    "artifact_directory": "survival-training.artifacts/cross-survival-24h",
+    "runtime_git_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "host_files_sha256": {
+      "terminal-rescue-archive-plan.json": "799e38f587e1b23fdf1bf7aac3bbee2b2f3ac35dcc1e35501636fecf13216454",
+      "terminal-rescue-archive.json": "5cc3bb18d1590b2a217a3407f3c3cab9de104d5a13ab5cd14127d99daa2a8fe0",
+      "terminal_rescue_geometry.py": "d7b57d33937d22819971fc8d83e3b71fedc52b6691e1316d9da9b163eef7174e",
+      "resume_terminal_rescue_geometry.py": "533a9d3dfd5054ec2fc0cb1e5feb25bfc04fd3ab3635749e1190965c44861b97",
+      "reproduce_last_cross.py": "708d04bb5b508c9dafc3552a9ab73f5245eb2142013cb163c141762ecf949c95",
+      "benchmark_shared_direct_cpu.py": "806532e30ba5222cdddf4147f659bc254301ee8c69f506247fd6ddf007738755",
+      "compare_sustained_preview_from_archive.py": "fb3e93b1f6ab6904e37d6e190b249180fa77deaa36e23f2a4091813d341969e3"
+    },
+    "archive_index_sha256": "c24d7865c60c890d5672d927cc7691d9d69f5754b5ac14b4c4e392a8d55730a0",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "checkpoints_sha256": {
+      "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "weight-4": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae"
+    },
+    "native_library_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56",
+    "protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+    "exclusion_source_sha256": "b9fb7bfc650c93e3d07144f1cb555e6196b832443b7bf1648886f930e2a23be8",
+    "frozen_seed_exclusions_sha256": "9ae022baffc7c1d516931b2590ff32379ce160c569d8c2e94ad904a8a311122f",
+    "frozen_spec_sha256": "da936ef64ecf604db899f6aa88948f1dbf491ca3ee417bede9908b89a4c4ee3d",
+    "raw_trajectory_identity": "The frozen plan lists each selected seed, record ID, archive-relative filename, byte SHA-256 and length. The detailed receipt records input board/stream hashes, targets, recorded and both selected physical actions, and final board hashes."
+  },
+  "roster": {
+    "selection": "Sort eligible seeds by SHA256(salt|seed|seed_number), take first 64. For each use smallest SHA256(salt|record|seed_number|record_id).",
+    "salt": "cross-rescue-physical-training-stream-v1",
+    "exclusions": "One expanded physical top-out training recording per distinct seed. Exclude nontraining seed overlaps, frozen current protocol, prior discovery/pilot/risk records and allocated production training ranges. No screening or holdout outcomes.",
+    "eligible_seeds": 163,
+    "eligible_records": 241,
+    "selected_seeds": 64,
+    "replayed_placements": 652639,
+    "observed_loss_transitions": 64,
+    "left_censored": 0,
+    "suffix_moves_examined": 512
+  },
+  "method": [
+    "Gravity, orientation, bounds, occupancy, clears, seeded piece order, catalog and final board hashes were checked for every recorded trajectory, as was physical inability to place the final piece.",
+    "Each counterfactual starts at the unchanged recorded board and layer target. Native exact two-stage teacher selection retains up to 128 actions. Both players used fixed-shape CPU FP32 (32 x 128). The weight-4 checkpoint returned an unweighted actor output identical to the incumbent on every input.",
+    "For every shortlist without a viable action, canonical untargeted native scoring enumerates all physical actions, except when zero prior CROSS mobility cannot increase because no placement can clear a layer. All enumerations finished. EN denotes impossibility established by exhaustive search. NC denotes impossibility established by insufficient cells for any layer clear. OK denotes a viable shortlist alternative. On OK boards, the examination covered the shortlist."
+  ],
+  "summary": {
+    "terminal": {
+      "boards": 64,
+      "shortlist_rescuable": 4,
+      "shortlist_unrescuable": 60,
+      "incumbent_preserves": 4,
+      "weight4_preserves": 4,
+      "recorded_in_shortlist": 26,
+      "incumbent_matches_recorded": 4,
+      "w4_matches_recorded": 4,
+      "outside_status": {
+        "impossible_no_single_move_clear": 48,
+        "impossible_exhausted": 12
+      }
+    },
+    "cross_loss": {
+      "boards": 64,
+      "shortlist_rescuable": 26,
+      "shortlist_unrescuable": 38,
+      "incumbent_preserves": 21,
+      "weight4_preserves": 23,
+      "recorded_in_shortlist": 57,
+      "incumbent_matches_recorded": 40,
+      "w4_matches_recorded": 39,
+      "outside_status": {
+        "impossible_exhausted": 38
+      }
+    },
+    "transition_status": {
+      "observed": 64
+    },
+    "terminal_pieces": {
+      "CROSS": 64
+    }
+  },
+  "physical_global_scope": {
+    "terminal_full_enumerated_specs": 4430874,
+    "crossing_full_enumerated_specs": 104272,
+    "outside_only_rescue_boards": 0,
+    "last_move_rescues_requiring_a_clear_from_zero": 2,
+    "forced_current_CROSS_boards": 38,
+    "forced_with_single_legal_physical_drop": 37,
+    "post_crossing_recorded_moves_median": 11.0,
+    "post_crossing_recorded_moves_range": [
+      0,
+      25
+    ]
+  },
+  "incumbent_misses_on_viable_crossings": [
+    {
+      "seed": 300574,
+      "current": "CROSS",
+      "visible": "B",
+      "viable_options": 1,
+      "incumbent_logit_cost": 32.62189483642578,
+      "weight4_corrected": false
+    },
+    {
+      "seed": 300270,
+      "current": "CROSS",
+      "visible": "RING",
+      "viable_options": 1,
+      "incumbent_logit_cost": 38.73895263671875,
+      "weight4_corrected": false
+    },
+    {
+      "seed": 300196,
+      "current": "B",
+      "visible": "BRIDGE",
+      "viable_options": 115,
+      "incumbent_logit_cost": 0.07675790786743164,
+      "weight4_corrected": true
+    },
+    {
+      "seed": 300520,
+      "current": "HYPER",
+      "visible": "L",
+      "viable_options": 2,
+      "incumbent_logit_cost": 36.517730712890625,
+      "weight4_corrected": false
+    },
+    {
+      "seed": 300242,
+      "current": "HYPER",
+      "visible": "C",
+      "viable_options": 26,
+      "incumbent_logit_cost": 0.21898651123046875,
+      "weight4_corrected": true
+    }
+  ],
+  "per_stream_columns": [
+    "seed",
+    "recorded_placements",
+    "subsequent_recorded_moves_after_loss",
+    "final_shortlist",
+    "final_viable",
+    "final_i_preserves",
+    "final_w4_preserves",
+    "final_geometry",
+    "crossing_current",
+    "crossing_origins_before",
+    "crossing_shortlist",
+    "crossing_viable",
+    "crossing_i_preserves",
+    "crossing_w4_preserves",
+    "crossing_geometry"
+  ],
+  "interpretation_limits": [
+    "These seed-selected top-outs describe historical behavior conditional on physical failure. No evaluation outcomes or new games entered the sample.",
+    "Preserving an origin for one move establishes a geometric possibility. Counterfactual survival lengths require trajectory tests. Two games have identical terminal and crossing boards. Each decision type has its own denominator of 64.",
+    "Margin is the incumbent FP32 argmax logit minus the highest logit of any viable retained alternative. The observed five misses are descriptive. No model or threshold was fit."
+  ],
+  "reproduction": {
+    "command": "nice -n 15 taskset -c 1 .venv/bin/python -B survival-training.artifacts/cross-survival-24h/reproduce_last_cross.py <existing-empty-output-directory>",
+    "prerequisites": "Pinned local runtime and native binary, immutable archive files, frozen plan, teacher, and both checkpoints at the directories named in the SHA-pinned local inputs. New result/plan names must be unused.",
+    "rerun_verified": {"all_64_rows_and_summary_identical": true, "canonical_sorted_json_rows_sha256": "5f75863d4f83d7e23c7686e2d0b402160b28ef57e4916182d1a00207e5ec37b1"},
+    "initial_run": "Optional geometry originally requested batches of 2048 at an interface limited to 512. The receipt records the recovery and reran identical canonical ranges in 512-row sub-batches under the original deadline. The reproduction wrapper applies this chunking directly.",
+    "elapsed_freeze_to_receipt_seconds": 168.63780093193054,
+    "cuda_initialized": false
+  },
+  "per_stream": [
+    [300296, 7235, 6, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300480, 7120, 12, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300390, 6714, 21, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300026, 28596, 8, 128, 0, 0, 0, "NC", "BRIDGE", 1, 128, 119, 1, 1, "OK"],
+    [300406, 5608, 25, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300398, 6123, 13, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300222, 24292, 18, 128, 0, 0, 0, "NC", "L", 1, 128, 122, 1, 1, "OK"],
+    [300554, 6728, 8, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300044, 12705, 1, 128, 0, 0, 0, "EN", "STAIR", 1, 128, 121, 1, 1, "OK"],
+    [300316, 7176, 9, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300210, 18633, 5, 128, 0, 0, 0, "NC", "C", 1, 128, 118, 1, 1, "OK"],
+    [300032, 6806, 11, 128, 0, 0, 0, "NC", "FORK", 1, 128, 127, 1, 1, "OK"],
+    [300094, 7495, 8, 128, 0, 0, 0, "NC", "HYPER", 1, 17, 12, 1, 1, "OK"],
+    [300106, 22010, 15, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300350, 6024, 2, 128, 0, 0, 0, "NC", "HYPER", 2, 20, 16, 1, 1, "OK"],
+    [300574, 5793, 12, 29, 0, 0, 0, "NC", "CROSS", 3, 3, 1, 0, 0, "OK"],
+    [300250, 17187, 14, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300112, 9715, 12, 128, 0, 0, 0, "EN", "CROSS", 3, 2, 0, 0, 0, "EN"],
+    [300366, 7105, 15, 128, 0, 0, 0, "NC", "HYPER", 1, 21, 19, 1, 1, "OK"],
+    [300432, 6085, 20, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300282, 7348, 21, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300238, 7252, 0, 16, 11, 1, 1, "OK", "HYPER", 1, 16, 11, 1, 1, "OK"],
+    [300270, 6380, 18, 128, 0, 0, 0, "NC", "CROSS", 2, 2, 1, 0, 0, "OK"],
+    [300376, 6300, 1, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300468, 5841, 17, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300306, 7101, 18, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300196, 23497, 8, 128, 0, 0, 0, "EN", "B", 1, 128, 115, 0, 1, "OK"],
+    [300074, 25819, 11, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300154, 7553, 9, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300354, 7314, 1, 128, 0, 0, 0, "NC", "BRIDGE", 1, 128, 127, 1, 1, "OK"],
+    [300164, 22466, 2, 128, 0, 0, 0, "NC", "FORK", 1, 128, 113, 1, 1, "OK"],
+    [300262, 7379, 15, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300022, 12347, 3, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300160, 19541, 8, 128, 0, 0, 0, "EN", "T", 1, 128, 119, 1, 1, "OK"],
+    [300386, 7231, 13, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300302, 7266, 9, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300520, 5851, 3, 128, 0, 0, 0, "NC", "HYPER", 1, 7, 2, 0, 0, "OK"],
+    [300378, 5467, 15, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300242, 7325, 5, 128, 0, 0, 0, "NC", "HYPER", 2, 32, 26, 0, 1, "OK"],
+    [300556, 6486, 6, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300522, 6621, 2, 128, 0, 0, 0, "NC", "HYPER", 1, 29, 26, 1, 1, "OK"],
+    [300088, 23392, 8, 128, 0, 0, 0, "NC", "S", 1, 128, 122, 1, 1, "OK"],
+    [300578, 6622, 20, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300138, 7065, 13, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300202, 7456, 14, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300362, 6716, 8, 128, 0, 0, 0, "NC", "RING", 1, 128, 124, 1, 1, "OK"],
+    [500008, 10565, 7, 128, 0, 0, 0, "NC", "HOOK", 1, 128, 127, 1, 1, "OK"],
+    [300470, 5433, 4, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300546, 7005, 7, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300052, 25047, 17, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300012, 12220, 19, 128, 5, 1, 1, "OK", "L", 1, 128, 122, 1, 1, "OK"],
+    [300514, 7165, 20, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300102, 24341, 4, 128, 0, 0, 0, "EN", "NOVA", 1, 128, 120, 1, 1, "OK"],
+    [300258, 7323, 13, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300328, 6065, 10, 128, 0, 0, 0, "NC", "NOVA", 2, 128, 127, 1, 1, "OK"],
+    [300504, 6845, 9, 128, 0, 0, 0, "EN", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300310, 7288, 17, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300294, 7259, 11, 128, 0, 0, 0, "NC", "BRIDGE", 1, 128, 128, 1, 1, "OK"],
+    [300462, 5458, 23, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300508, 6072, 25, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300388, 6768, 3, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300040, 11504, 25, 128, 4, 1, 1, "OK", "CROSS", 1, 1, 0, 0, 0, "EN"],
+    [300304, 7034, 0, 128, 126, 1, 1, "OK", "T", 1, 128, 126, 1, 1, "OK"],
+    [300042, 6461, 13, 128, 0, 0, 0, "NC", "CROSS", 1, 1, 0, 0, 0, "EN"]
+  ],
+  "two_drop_predecessors": {
+    "question": "One recorded placement before each of the 38 forced CROSS crossings, can a retained alternative leave room to place the publicly visible CROSS and then a second hypothetical CROSS?",
+    "provenance": {
+      "source_files_sha256": {
+        "two-cross-predecessor-plan.json": "9d500d1e08c1507ffd11a1c10e83c5080f3d0f3f3ea64cc47d3e76be281fb1b2",
+        "two-cross-predecessor.json": "9d69c840714cc3dbf74e84daa224eff444c330f2d27eb3c814675509b008d38c",
+        "two_cross_predecessor.py": "a649d8e74af34138695d015f641795700ed7b337707841fe269fa1769ad2763d"
+      },
+      "spec_sha256": "6700c55c9321f86d944cef202e7d4e0b8b7b316b2c31286fa0765dae58a09959",
+      "parent_receipt_sha256": "5cc3bb18d1590b2a217a3407f3c3cab9de104d5a13ab5cd14127d99daa2a8fe0",
+      "runtime_and_inputs": "Same pinned native binary, teacher and both checkpoint hashes as the 64-stream study above. Root roster frozen in parent order before policy scoring. Each recorded alternative reached the parent receipt\u2019s forced CROSS board and stream hashes exactly."
+    },
+    "hypothesis": "Two initially legal landing centers may interfere when the first piece lands. Availability of two legal centers could overstate ability to accommodate two CROSS drops in sequence.",
+    "method": [
+      "For the recorded action and each teacher-shortlisted current placement, materialize its afterboard and count legal CROSS centers. Raw positive means at least two centers before the first CROSS.",
+      "On that afterboard, enumerate all legal first CROSS landings in fixed spatial order until finding a successful first and second drop or exhausting the set. Engine moves apply any completed layer clears before the next test. Every positive result materialized both moves."
+    ],
+    "sample": {
+      "root_streams": 38,
+      "complete_roots": 38,
+      "current_placement_candidates": 4448,
+      "exactly_classified_candidates": 4448,
+      "unknown_candidates": 0,
+      "unknown_boards": 0,
+      "recorded_current_actions_in_shortlist": 14,
+      "first_CROSS_drops_tested_over_shortlisted_candidates": 4643,
+      "tested_first_CROSS_drops_clearing_layers": 0,
+      "cpu_seconds": 23.54933308,
+      "wall_seconds": 22.71417961397674,
+      "cuda_initialized": false
+    },
+    "candidate_counts": {
+      "raw_positive_exact_positive": 17,
+      "raw_positive_exact_negative": 129,
+      "raw_negative_exact_positive": 0,
+      "raw_negative_exact_negative": 4302
+    },
+    "board_counts": {
+      "denominator_each": 38,
+      "any_shortlisted_current_placement": {
+        "raw_positive": 4,
+        "exact_positive": 3
+      },
+      "recorded_placement": {
+        "raw_positive": 1,
+        "exact_positive": 0
+      },
+      "incumbent_choice": {
+        "raw_positive": 4,
+        "exact_positive": 3
+      },
+      "weight4_choice": {
+        "raw_positive": 4,
+        "exact_positive": 3
+      }
+    },
+    "exceptional_streams": [
+      {
+        "seed": 300112,
+        "current": "O",
+        "visible": "CROSS",
+        "shortlisted": 128,
+        "raw_at_least_two": 128,
+        "true_two_drop_count": 0,
+        "recorded": {
+          "raw_origins": 3,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        },
+        "incumbent": {
+          "raw_origins": 3,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        },
+        "weight4": {
+          "raw_origins": 3,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        }
+      },
+      {
+        "seed": 300282,
+        "current": "HYPER",
+        "visible": "CROSS",
+        "shortlisted": 15,
+        "raw_at_least_two": 11,
+        "true_two_drop_count": 10,
+        "recorded": {
+          "raw_origins": 1,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        },
+        "incumbent": {
+          "raw_origins": 3,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 0
+        },
+        "weight4": {
+          "raw_origins": 3,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 0
+        }
+      },
+      {
+        "seed": 300504,
+        "current": "L",
+        "visible": "CROSS",
+        "shortlisted": 128,
+        "raw_at_least_two": 5,
+        "true_two_drop_count": 5,
+        "recorded": {
+          "raw_origins": 1,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        },
+        "incumbent": {
+          "raw_origins": 381,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 1
+        },
+        "weight4": {
+          "raw_origins": 381,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 1
+        }
+      },
+      {
+        "seed": 300040,
+        "current": "NOVA",
+        "visible": "CROSS",
+        "shortlisted": 128,
+        "raw_at_least_two": 2,
+        "true_two_drop_count": 2,
+        "recorded": {
+          "raw_origins": 1,
+          "can_drop_twice": false,
+          "current_placement_layers_cleared": 0
+        },
+        "incumbent": {
+          "raw_origins": 558,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 1
+        },
+        "weight4": {
+          "raw_origins": 558,
+          "can_drop_twice": true,
+          "current_placement_layers_cleared": 1
+        }
+      }
+    ],
+    "limits": [
+      "The second CROSS is a hypothetical stress case. The test used only the currently public CROSS preview and did not look up the subsequent draw. Actual bag sequences and survival lengths were untested.",
+      "The denominator is 38 already-forced historical crossings. Of those, 35 predecessor boards lacked an exact two-drop option in the teacher shortlist. Unretained current placements were examined only when they were the historical recorded action.",
+      "Candidate totals weight each board by its shortlist size. Seed 300112 accounts for 128 of the 129 false-positive current placements. Both policies selected a successful action on all three boards where the shortlist offered one."
+    ]
+  },
+  "same_stream_preserving_intervention": {
+    "population": "All three prior weight-4 misses on the 26 preserving-choice boards in the 64-stream study. Each pair changes only the first move. Later decisions use ordinary weight-4 greedy. The 128-placement limit includes the first move.",
+    "plan_sha256": "ceb38a619f502a05f126e4e4e33c3c239aba2d766c165c5097556034121aea76",
+    "receipt_sha256": "1e44927f0a09b17d6ef80d49d13a9ae9e4443b85fcfad76b4118ac807071b0ff",
+    "script_sha256": "66310559611707644bb298eb2cce6950020d8d9349ebaa3e36d788454658439d",
+    "plan_file": "preserving-three-plan.json",
+    "receipt_file": "preserving-three-continuations.json",
+    "script_file": "continue_preserving_three.py",
+    "verified_complete_pair_records_and_independent_replay": true,
+    "outcomes": [
+      {
+        "seed": 300574,
+        "archived_placements": 5780,
+        "first_action_included": true,
+        "common_piece_stream_digest": "e949aea51523a2fb27f380fcc290bda3ce3d666400eb2fa8d56513ed2c4d91a4",
+        "arms": {
+          "greedy": {
+            "observed_placements": 13,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "4e518b47b3ffceda5081d05733ff3341cd52798a71c80b2b3530d4deb9749caf",
+            "final_stream_sha256": "963c70fd28e7954ee70d620a7cea3ed91d4a744119894ec526896a3a5857822d",
+            "final_piece": "CROSS",
+            "actions_sha256": "88c5b2a4b2d3831219706e9c76e05a0f58fb5c4d0d1c8267c52b48dda9ff06bb",
+            "origins_after_first_placement": 0
+          },
+          "preserve": {
+            "observed_placements": 13,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "edd5bb7ea3b902fc5907824e8d2711ee689813c2f38350960740fa405f235a96",
+            "final_stream_sha256": "963c70fd28e7954ee70d620a7cea3ed91d4a744119894ec526896a3a5857822d",
+            "final_piece": "CROSS",
+            "actions_sha256": "d6df9672344f123971d98e78fb925ace75d395c503ba67772d4726d0efb52740",
+            "origins_after_first_placement": 2
+          }
+        },
+        "gain_placements": 0
+      },
+      {
+        "seed": 300270,
+        "archived_placements": 6361,
+        "first_action_included": true,
+        "common_piece_stream_digest": "582c4d12e70bddb91ba66f41d65c28ca351a37626a3de9b9d50d0af71125fe13",
+        "arms": {
+          "greedy": {
+            "observed_placements": 19,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "85dd979b86b299be56dea77ed2fa034f5721efab6c6b10cff01ecacf72adbfd4",
+            "final_stream_sha256": "8207da033475d67e3f9c081e7a747fe133979cfb3297143a63d65ba0f6b9e3e6",
+            "final_piece": "CROSS",
+            "actions_sha256": "fdfe258a17c786e41105ba3354ae1dda680e1f09d89be6ed9d031455fe0e0d93",
+            "origins_after_first_placement": 0
+          },
+          "preserve": {
+            "observed_placements": 31,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "e10a81c07a67ee72abe4bf4cf0ecf4383045d7d72b5bb468059762526ffdd1c9",
+            "final_stream_sha256": "cd69eb4f6c3c6c3f6d20bf708602348ea05ba850364fbeeb06769cd1f2c40fdb",
+            "final_piece": "CROSS",
+            "actions_sha256": "4aff82dfb667fe98fdf4226f5ba2e7199a4ee9e08e53005d108d6b3f268b8941",
+            "origins_after_first_placement": 1
+          }
+        },
+        "gain_placements": 12
+      },
+      {
+        "seed": 300520,
+        "archived_placements": 5847,
+        "first_action_included": true,
+        "common_piece_stream_digest": "7454fd586d5413a2f08d45742c56328740b278a6411a11223460842481a9df11",
+        "arms": {
+          "greedy": {
+            "observed_placements": 4,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "db6b02a53760182b76315a717abc8751efc505aeb130d407f9b35a7bfa492392",
+            "final_stream_sha256": "e0b0cf5bc57e731789d685dacd402bf30abe2df24b346b00e67dfad57c6cc9bb",
+            "final_piece": "CROSS",
+            "actions_sha256": "45eb77328eeb12ab0fb4bdc07aedf35c8a72ca6b8f384991c324445b2cb2d4e6",
+            "origins_after_first_placement": 0
+          },
+          "preserve": {
+            "observed_placements": 19,
+            "reason": "physical_top_out",
+            "root_inclusive_clears": 0,
+            "final_board_sha256": "12f65315ff305140923b1d14510871d11a26da0d5ca3a6ff3a3a18e3232badec",
+            "final_stream_sha256": "e072bf165bb0f8d2527328e3ae7204f6ea4a7ed005cc8b545066ffa07c58a888",
+            "final_piece": "HYPER",
+            "actions_sha256": "1a791c363baf240b7263d4a5a6a1cf92ca7f86bf8f9b8d955c78b1db88995a89",
+            "origins_after_first_placement": 1
+          }
+        },
+        "gain_placements": 15
+      }
+    ],
+    "interpretation": "Two survivors played the next scheduled CROSS. On the tied board both preserved origins disappeared before that draw. All six branches reached physical top-out and none cleared a layer. The three conditional cases do not estimate a game-wide gain."
+  }
+}

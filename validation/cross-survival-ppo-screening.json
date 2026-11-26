@@ -1,0 +1,1644 @@
+{
+  "schema": "cross-survival-ppo-public-screens-v1",
+  "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+  "seeds": [
+    48200001,
+    48200003,
+    48200005,
+    48200007,
+    48200009,
+    48200011,
+    48200013,
+    48200015
+  ],
+  "scope": "Only officially completed public development screens. Each actor plays eight common uncapped games. Bootstrap intervals describe within-screen uncertainty on these eight seeds; recipe ranking requires both training seeds and promotion uses a separate final comparison.",
+  "controls": {
+    "incumbent": {
+      "receipt_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "mean": 36696.875,
+      "median": 35488.0,
+      "placements": [
+        31474,
+        47315,
+        34032,
+        39273,
+        29669,
+        28812,
+        46056,
+        36944
+      ]
+    },
+    "weight-4": {
+      "receipt_sha256": "0e2c7e99c6d24f2d58ed44ed21d8c7292f1eba9cf63a808488481f31944a0a6c",
+      "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "mean": 38559.5,
+      "median": 38223.0,
+      "placements": [
+        31441,
+        50151,
+        39423,
+        41361,
+        29673,
+        32617,
+        46787,
+        37023
+      ]
+    }
+  },
+  "endpoints": {
+    "611000-plain": {
+      "receipt_sha256": "444c4e7f64af53aaf3a81a357969a781660e38e80a7f6c360b68f805099b44b5",
+      "endpoint_sha256": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5",
+      "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "mean": 33227.5,
+      "median": 35392.0,
+      "placements": [
+        35548,
+        16846,
+        39161,
+        19361,
+        35236,
+        47868,
+        43163,
+        28637
+      ],
+      "clears": [
+        41,
+        16,
+        46,
+        19,
+        40,
+        57,
+        51,
+        32
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 944.8945560160209,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -3469.375,
+          "relative_gain": -0.09454142893638763,
+          "paired_bootstrap_95": [
+            -13977.875,
+            6528.125
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -5332.0,
+          "relative_gain": -0.13827980134597181,
+          "paired_bootstrap_95": [
+            -15883.012499999999,
+            4351.5
+          ],
+          "wins": 3,
+          "ties": 0
+        }
+      }
+    },
+    "612000-plain": {
+      "receipt_sha256": "923439f3a13fe1ad6fce68be793433bd4d1276576b3660844443af239472a699",
+      "endpoint_sha256": "5b19edeb1672dd26e6f82b3b323af457c9f2dc0341d12f2ea61e1afb7170adf6",
+      "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "mean": 48921.375,
+      "median": 49162.5,
+      "placements": [
+        60856,
+        57366,
+        27887,
+        46139,
+        63631,
+        52186,
+        41040,
+        42266
+      ],
+      "clears": [
+        75,
+        71,
+        31,
+        56,
+        79,
+        63,
+        48,
+        50
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1233.6941578299738,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 12224.5,
+          "relative_gain": 0.33312100826024016,
+          "paired_bootstrap_95": [
+            2486.375,
+            22058.0
+          ],
+          "wins": 6,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 10361.875,
+          "relative_gain": 0.26872430918450707,
+          "paired_bootstrap_95": [
+            -83.54374999999939,
+            20748.5
+          ],
+          "wins": 6,
+          "ties": 0
+        }
+      }
+    },
+    "611000-cold": {
+      "receipt_sha256": "49c94521b0706a28ec2e866fa132ede0de5077cd74455941478ddab5966707a7",
+      "endpoint_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+      "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "mean": 39207.75,
+      "median": 36841.5,
+      "placements": [
+        46246,
+        45008,
+        32830,
+        35632,
+        38051,
+        35101,
+        32007,
+        48787
+      ],
+      "clears": [
+        55,
+        53,
+        37,
+        41,
+        44,
+        40,
+        36,
+        58
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1019.3598014589516,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2510.875,
+          "relative_gain": 0.06842203866133015,
+          "paired_bootstrap_95": [
+            -3936.925,
+            8576.5
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 648.25,
+          "relative_gain": 0.016811680649386013,
+          "paired_bootstrap_95": [
+            -6081.940625,
+            7468.625
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
+    },
+    "612000-cold": {
+      "receipt_sha256": "536e26e4f51a1aa219316a63d8168797009fb3c42a66defc91672fb55fec2478",
+      "endpoint_sha256": "18be7491c44a6d7117c0b7c136a4925fa08e09f240854363639c598ae4d2d622",
+      "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "mean": 38833.625,
+      "median": 37391.5,
+      "placements": [
+        41930,
+        30386,
+        32613,
+        41626,
+        46913,
+        33157,
+        32129,
+        51915
+      ],
+      "clears": [
+        49,
+        34,
+        37,
+        49,
+        56,
+        38,
+        36,
+        63
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1290.9596760120476,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2136.75,
+          "relative_gain": 0.05822702886826194,
+          "paired_bootstrap_95": [
+            -6170.0625,
+            9858.693749999999
+          ],
+          "wins": 5,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 274.125,
+          "relative_gain": 0.007109143012746535,
+          "paired_bootstrap_95": [
+            -8621.6875,
+            8815.634375
+          ],
+          "wins": 5,
+          "ties": 0
+        }
+      }
+    },
+    "611000-anchored": {
+      "receipt_sha256": "409f671734e5db5ff35f44527f1e0d4aec050bc719738539b44ee19260e309a5",
+      "endpoint_sha256": "60e214b970d1796b5ca214a20396b72b4a5bb2d569249088501ae0343635f2ef",
+      "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+      "mean": 38000.75,
+      "median": 36192.5,
+      "placements": [
+        36736,
+        35649,
+        23564,
+        31143,
+        45286,
+        50165,
+        46434,
+        35029
+      ],
+      "clears": [
+        43,
+        41,
+        25,
+        35,
+        54,
+        61,
+        56,
+        40
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1205.0327003949787,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 1303.875,
+          "relative_gain": 0.03553095461125777,
+          "paired_bootstrap_95": [
+            -6233.875,
+            9577.628124999996
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -558.75,
+          "relative_gain": -0.014490592461001829,
+          "paired_bootstrap_95": [
+            -8705.775,
+            7845.625
+          ],
+          "wins": 3,
+          "ties": 0
+        }
+      }
+    },
+    "612000-anchored": {
+      "receipt_sha256": "3cae061533ba46d0a28fe9ed42418a449a32979a65541a40649198d0f97123aa",
+      "endpoint_sha256": "8dd666432dbd2142569eeb06f965242d48920ff0fc8ddacadd4ce5a971b42395",
+      "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b",
+      "mean": 40705,
+      "median": 40897.0,
+      "placements": [
+        32767,
+        39364,
+        29475,
+        37902,
+        43449,
+        49518,
+        42430,
+        50735
+      ],
+      "clears": [
+        38,
+        46,
+        33,
+        44,
+        51,
+        60,
+        50,
+        61
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1324.0630694210413,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 4008.125,
+          "relative_gain": 0.10922251554117346,
+          "paired_bootstrap_95": [
+            -2481.0,
+            11079.784375
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2145.5,
+          "relative_gain": 0.055641281655623126,
+          "paired_bootstrap_95": [
+            -4976.0,
+            9473.709374999997
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
+    },
+    "611000-residual": {
+      "receipt_sha256": "eebdd1b6765fdd15333deafa64cf86146f8a7a6d139737d2faa2e79ae40e5f55",
+      "endpoint_sha256": "d5cf5a5aeb4d6539f8180a7abe234cdb0dfa90e5c01db5773275bdbb971439d5",
+      "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+      "mean": 37869,
+      "median": 38645.0,
+      "placements": [
+        52569,
+        37791,
+        39499,
+        24264,
+        40137,
+        37112,
+        44264,
+        27316
+      ],
+      "clears": [
+        64,
+        44,
+        46,
+        26,
+        47,
+        43,
+        53,
+        30
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1391.5875517000095,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 1172.125,
+          "relative_gain": 0.031940730648045645,
+          "paired_bootstrap_95": [
+            -6574.471875,
+            9175.106249999997
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -690.5,
+          "relative_gain": -0.017907389877980785,
+          "paired_bootstrap_95": [
+            -8561.54375,
+            7750.375
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
+    }
+  },
+  "behavior_cohorts": {
+    "scope": "Weights scored on identical public development boards saved after each exposure threshold. Repeated snapshots from the same streams are descriptive and exclude games already ended.",
+    "registration_sha256": "961602bcb7de71b9052519299abf30300862656ff1eaea0ca8cc43eeb719f3d9",
+    "actors": {
+      "611000-anchored": {
+        "actor_sha256": "da140bfc3dc51e533fe3f1140b6cc5f7a62cac65f5ec0da5f7b41464a9846c30",
+        "base_actor_sha256": "da140bfc3dc51e533fe3f1140b6cc5f7a62cac65f5ec0da5f7b41464a9846c30",
+        "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c"
+      },
+      "611000-cold": {
+        "actor_sha256": "a351a5c3f1c6f84ede3c7c3524a3cd0a9cc6ddbe62fc0e09d2d6987e3220f7f6",
+        "base_actor_sha256": "a351a5c3f1c6f84ede3c7c3524a3cd0a9cc6ddbe62fc0e09d2d6987e3220f7f6",
+        "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9"
+      },
+      "611000-plain": {
+        "actor_sha256": "5f4439c9966dff2033e16ff87d6dd6cc52c4adca514a473d33e8d346f829dd7d",
+        "base_actor_sha256": "5f4439c9966dff2033e16ff87d6dd6cc52c4adca514a473d33e8d346f829dd7d",
+        "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819"
+      },
+      "611000-residual": {
+        "actor_sha256": "7463cf00f155614589de8a181c5fd06198360c61aed5bb4a486089404bc810d0",
+        "base_actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f"
+      },
+      "612000-anchored": {
+        "actor_sha256": "d50cdc8bd85f782cbabcc06dd61227e3eff7fb757a3af5d6e8c13f351bf94bfd",
+        "base_actor_sha256": "d50cdc8bd85f782cbabcc06dd61227e3eff7fb757a3af5d6e8c13f351bf94bfd",
+        "checkpoint_sha256": "18372afec4e7ae674b140f8e103300a915b78a64eec1f57c1fe6facbfac5ae5b"
+      },
+      "612000-cold": {
+        "actor_sha256": "79d6b718ad22362f14eede2e22ce88037018db00a6fb8f31b647af9820aee692",
+        "base_actor_sha256": "79d6b718ad22362f14eede2e22ce88037018db00a6fb8f31b647af9820aee692",
+        "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543"
+      },
+      "612000-plain": {
+        "actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "base_actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f"
+      },
+      "612000-residual": {
+        "actor_sha256": "ea7eb0d684fe1eb14d40aee223369a1f0fc7c40686421ee68b9e8fd99a6ef637",
+        "base_actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "checkpoint_sha256": "161bafd3240cbee5261d76ae5eb1a402587701f8c693501b0589d0567ff04d27"
+      },
+      "incumbent": {
+        "actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "base_actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9"
+      },
+      "weight-4": {
+        "actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "base_actor_sha256": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+        "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae"
+      }
+    },
+    "cohorts": {
+      "612000-plain-8192": {
+        "members": [
+          {
+            "pieces": 8283,
+            "record_sha256": "e88307335c2ec4740abb27f8add799b6f822df083da3712d52147b1f2bf783de",
+            "scored_row_gzip_sha256": "bd1426f596b91af78c70451ba81e4ed43279e0a7b27e9fe9f6682b40c6b53965",
+            "seed": 48200001,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "170c908650fbfa85ab957213807429d617c269b5424b9c102e64fccdc9471809",
+            "scored_row_gzip_sha256": "8636753c1b980d6f2761685b67707dcfc649b3dd69e50750525d17e491b72606",
+            "seed": 48200003,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "462c6df2a837433700441f307b2f97232b9da1b53dcaddf79d35ec0342a763db",
+            "scored_row_gzip_sha256": "24be23a90b512d148980aa0230528af6cb688f228f15fa0b5f68930c5c790565",
+            "seed": 48200005,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "e5fcf2dadc79512626cc38ccfe9ca54b590547c319e26d235eedc5252fc8fab1",
+            "scored_row_gzip_sha256": "8dcbb7dd891220abb550787f92f4ae3322d3fc2e9a5105707dbcc2cb5cda70eb",
+            "seed": 48200007,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "90d17a019cdb43cc8c4b3607d54e715573053a2c2af0aff816c073f3853d256a",
+            "scored_row_gzip_sha256": "a923ccf24d25b28416fbad99676df50d211d7b242c170e9ec2a2b978f8ed5131",
+            "seed": 48200009,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "81c0ca32346899f26d8133c68c06c3c4f4db48623af5f84dec8f4c41ff87138c",
+            "scored_row_gzip_sha256": "3b9ddde0a76dc5d48a0dd38b4ad08b1c846ef9f017821d81ed57d8a1c3d826e0",
+            "seed": 48200011,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "0021f8b998607411f63dff1af81847c547dc1c862b6e85a30c015424aa6be00a",
+            "scored_row_gzip_sha256": "1b91078c88a82ddd55f29b5704abd64a7207d16c2710e9df8babf1d41ee94de2",
+            "seed": 48200013,
+            "status": "captured"
+          },
+          {
+            "pieces": 8283,
+            "record_sha256": "ddd05422218e2dd3e4a465edd974ab086a4383404d28e24462339bec28b5ea9d",
+            "scored_row_gzip_sha256": "de62fe81922b53cef1459f64dc4c5cf5da1004f43743892e54ed7a72b039125e",
+            "seed": 48200015,
+            "status": "captured"
+          }
+        ],
+        "snapshots": 8,
+        "total_legal_candidates": 1024,
+        "per_seed_raw_cross_before": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2744
+        ],
+        "per_seed_raw_cross_after_range": [
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2744,
+            2744
+          ]
+        ],
+        "capped_after_equals_before_candidates": 1024,
+        "grouped_vs_single_verifications": 80,
+        "independent_afterstate_count_verifications": 20,
+        "cohort_sha256": "2476b034d8d461cad1f5900a9480cc57a872ebe3e377b7f6e90879629d4452e2",
+        "actors": {
+          "611000-anchored": {
+            "adjusted_greedy_differs": 1,
+            "uncorrected_base_differs": 1,
+            "mean_centered_rms": 0.5072607942006847,
+            "largest_abs_logit_change": 2.37353515625
+          },
+          "611000-cold": {
+            "adjusted_greedy_differs": 1,
+            "uncorrected_base_differs": 1,
+            "mean_centered_rms": 0.8221070560330357,
+            "largest_abs_logit_change": 5.405242919921875
+          },
+          "611000-plain": {
+            "adjusted_greedy_differs": 2,
+            "uncorrected_base_differs": 2,
+            "mean_centered_rms": 0.5441248713010336,
+            "largest_abs_logit_change": 2.4337158203125
+          },
+          "611000-residual": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0033069339923460055,
+            "largest_abs_logit_change": 0.027523040771484375
+          },
+          "612000-anchored": {
+            "adjusted_greedy_differs": 1,
+            "uncorrected_base_differs": 1,
+            "mean_centered_rms": 0.33533111623910705,
+            "largest_abs_logit_change": 1.735687255859375
+          },
+          "612000-cold": {
+            "adjusted_greedy_differs": 2,
+            "uncorrected_base_differs": 2,
+            "mean_centered_rms": 0.9993302186815852,
+            "largest_abs_logit_change": 3.6091670989990234
+          },
+          "612000-plain": {
+            "adjusted_greedy_differs": 7,
+            "uncorrected_base_differs": 7,
+            "mean_centered_rms": 0.5228182640662885,
+            "largest_abs_logit_change": 3.6720333099365234
+          },
+          "612000-residual": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.005908870335766445,
+            "largest_abs_logit_change": 0.037311553955078125
+          },
+          "incumbent": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0,
+            "largest_abs_logit_change": 0.0
+          },
+          "weight-4": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0,
+            "largest_abs_logit_change": 0.0
+          }
+        }
+      },
+      "612000-plain-32768": {
+        "members": [
+          {
+            "pieces": 34230,
+            "record_sha256": "f5f59644e0cb5f8edf63240a99f0f7c3983865bb58f1fdb215600d81c027a4bc",
+            "scored_row_gzip_sha256": "012f7841fb919857623fb4b17d508247a5e68f28f7cd55f61f736051d3f88984",
+            "seed": 48200001,
+            "status": "captured"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "3728ee3f70989e46bc8a5c3a1ea52052dc8935ea8b3f0da47fc4dbf2388227a8",
+            "scored_row_gzip_sha256": "7dc34fa1583dfbd80114f225c0d72cf2586ff6b791963fd8082341217e280365",
+            "seed": 48200003,
+            "status": "captured"
+          },
+          {
+            "final_placements": 27887,
+            "seed": 48200005,
+            "status": "completed_below_threshold"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "7b7da4986b34ff695753b8e2b56b4bfaa4ca3af7bd60f45d18b3859ce3372460",
+            "scored_row_gzip_sha256": "2f481eedacf236d2051e498d85b901048ae4b34efd151eeb94e0fa649bcedb7f",
+            "seed": 48200007,
+            "status": "captured"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "5a619f6190be888b066f736b24ce8cf877e930f5be3f0f9d910ef4f3b07f7712",
+            "scored_row_gzip_sha256": "9c6d1b6ba24659e019926c6d23e3ef377e83f0ff97b149559ef49b26e255d4c7",
+            "seed": 48200009,
+            "status": "captured"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "c34ed0d80b3394ff124085f8cf3936a25739917edb74138675985f59b471a654",
+            "scored_row_gzip_sha256": "19c5640364c06a05594a723db0a45e5e38f5e65871a11c554225256dd79f29aa",
+            "seed": 48200011,
+            "status": "captured"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "57c9f10989ab120bee126c4472c309d28de625d933080ff7bd4ce78b86c0b678",
+            "scored_row_gzip_sha256": "008439c58d4257b79fcec10fbe851ee406ef6aa7d26ce98237f430b805d17b5d",
+            "seed": 48200013,
+            "status": "captured"
+          },
+          {
+            "pieces": 34230,
+            "record_sha256": "b75cf50b6398c66e09a5a1d487727038b53a99c3c9b2e1bd85394b870bb931dc",
+            "scored_row_gzip_sha256": "a76c2f77361e5acb1e37aca90faacfd519a774003a2ee90c38dbd4d2af60c10e",
+            "seed": 48200015,
+            "status": "captured"
+          }
+        ],
+        "snapshots": 7,
+        "total_legal_candidates": 896,
+        "per_seed_raw_cross_before": [
+          2744,
+          2744,
+          2604,
+          2744,
+          2744,
+          2689,
+          2744
+        ],
+        "per_seed_raw_cross_after_range": [
+          [
+            2744,
+            2744
+          ],
+          [
+            2731,
+            2744
+          ],
+          [
+            2588,
+            2604
+          ],
+          [
+            2744,
+            2744
+          ],
+          [
+            2740,
+            2744
+          ],
+          [
+            2671,
+            2689
+          ],
+          [
+            2737,
+            2744
+          ]
+        ],
+        "capped_after_equals_before_candidates": 896,
+        "grouped_vs_single_verifications": 70,
+        "independent_afterstate_count_verifications": 18,
+        "cohort_sha256": "29f94e7b4d9636536509f7c2cd584d40fe4b388af9133eb13e56a401453d2b74",
+        "actors": {
+          "611000-anchored": {
+            "adjusted_greedy_differs": 1,
+            "uncorrected_base_differs": 1,
+            "mean_centered_rms": 0.35847389054691947,
+            "largest_abs_logit_change": 1.662567138671875
+          },
+          "611000-cold": {
+            "adjusted_greedy_differs": 1,
+            "uncorrected_base_differs": 1,
+            "mean_centered_rms": 1.0674209926354317,
+            "largest_abs_logit_change": 3.1398797035217285
+          },
+          "611000-plain": {
+            "adjusted_greedy_differs": 3,
+            "uncorrected_base_differs": 3,
+            "mean_centered_rms": 0.5750544326991944,
+            "largest_abs_logit_change": 2.873353958129883
+          },
+          "611000-residual": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0008155408871922158,
+            "largest_abs_logit_change": 0.0059814453125
+          },
+          "612000-anchored": {
+            "adjusted_greedy_differs": 2,
+            "uncorrected_base_differs": 2,
+            "mean_centered_rms": 0.2578432354519172,
+            "largest_abs_logit_change": 1.152252197265625
+          },
+          "612000-cold": {
+            "adjusted_greedy_differs": 2,
+            "uncorrected_base_differs": 2,
+            "mean_centered_rms": 0.6141124223611306,
+            "largest_abs_logit_change": 2.081390380859375
+          },
+          "612000-plain": {
+            "adjusted_greedy_differs": 5,
+            "uncorrected_base_differs": 5,
+            "mean_centered_rms": 0.477184116647724,
+            "largest_abs_logit_change": 3.281055450439453
+          },
+          "612000-residual": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.003554283589094101,
+            "largest_abs_logit_change": 0.013117313385009766
+          },
+          "incumbent": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0,
+            "largest_abs_logit_change": 0.0
+          },
+          "weight-4": {
+            "adjusted_greedy_differs": 0,
+            "uncorrected_base_differs": 0,
+            "mean_centered_rms": 0.0,
+            "largest_abs_logit_change": 0.0
+          }
+        }
+      }
+    }
+  },
+  "completed_recipe_scores": {
+    "plain": {
+      "mean": 41074.4375,
+      "mean_of_medians": 42277.25,
+      "mean_by_game_seed": [
+        48202,
+        37106,
+        33524,
+        32750,
+        49433.5,
+        50027,
+        42101.5,
+        35451.5
+      ],
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 4377.5625,
+          "relative_gain": 0.11928978966192626,
+          "paired_bootstrap_95": [
+            -3516.478125,
+            13077.5625
+          ],
+          "wins": 3,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2514.9375,
+          "relative_gain": 0.06522225391926763,
+          "paired_bootstrap_95": [
+            -5746.0,
+            11624.168749999997
+          ],
+          "wins": 3,
+          "ties": 0
+        }
+      },
+      "replicate_comparison": {
+        "control": "ppo",
+        "cap": 0,
+        "mean_difference": 15693.875,
+        "relative_gain": 0.47231585283274397,
+        "paired_bootstrap_95": [
+          4283.181250000001,
+          27247.290624999998
+        ],
+        "wins": 6,
+        "ties": 0
+      },
+      "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-plain."
+    },
+    "cold": {
+      "mean": 39020.6875,
+      "mean_of_medians": 37116.5,
+      "mean_by_game_seed": [
+        44088,
+        37697,
+        32721.5,
+        38629,
+        42482,
+        34129,
+        32068,
+        50351
+      ],
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2323.8125,
+          "relative_gain": 0.06332453376479605,
+          "paired_bootstrap_95": [
+            -4633.7921875,
+            9089.678124999997
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 461.1875,
+          "relative_gain": 0.011960411831066274,
+          "paired_bootstrap_95": [
+            -6946.125,
+            7883.381249999993
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      },
+      "replicate_comparison": {
+        "control": "ppo",
+        "cap": 0,
+        "mean_difference": -374.125,
+        "relative_gain": -0.009542118586248892,
+        "paired_bootstrap_95": [
+          -5368.5,
+          3912.125
+        ],
+        "wins": 4,
+        "ties": 0
+      },
+      "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-cold."
+    },
+    "anchored": {
+      "mean": 39352.875,
+      "mean_of_medians": 38544.75,
+      "mean_by_game_seed": [
+        34751.5,
+        37506.5,
+        26519.5,
+        34522.5,
+        44367.5,
+        49841.5,
+        44432,
+        42882
+      ],
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2656.0,
+          "relative_gain": 0.07237673507621561,
+          "paired_bootstrap_95": [
+            -4047.0046875,
+            10078.5
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 793.375,
+          "relative_gain": 0.02057534459731065,
+          "paired_bootstrap_95": [
+            -6599.615624999999,
+            8398.189062499989
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      },
+      "replicate_comparison": {
+        "control": "ppo",
+        "cap": 0,
+        "mean_difference": 2704.25,
+        "relative_gain": 0.07116306914995099,
+        "paired_bootstrap_95": [
+          -1374.875,
+          7462.5
+        ],
+        "wins": 4,
+        "ties": 0
+      },
+      "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-anchored."
+    }
+  },
+  "second_plain_block_swaps": {
+    "schema": "612000-plain-bidirectional-public-block-attribution-v1",
+    "plan_sha256": "6180b45ff3ccb778fca17a9698566c5c36699ae5cb49af49293a260a7c35e87c",
+    "runner_sha256": "3e9e695f16c4646daaf3093b4e8c59023112484fb43520232c6931d7091189ba",
+    "controls_exact_full_valid_logit_vectors": {
+      "612000-plain<-incumbent|all_actor": 15,
+      "612000-plain<-incumbent|critic_only": 15,
+      "incumbent<-612000-plain|all_actor": 15,
+      "incumbent<-612000-plain|critic_only": 15
+    },
+    "original_source_and_recomputed_logits_bitwise": 30,
+    "parameter_sizes": {
+      "actor_state": 9964,
+      "candidate": 29704,
+      "spatial_actor": 1152,
+      "rank_hidden": 8256,
+      "rank_output": 65,
+      "all_actor": 49141,
+      "critic_only": 53689
+    },
+    "row_order": [
+      {
+        "id": 0,
+        "seed": 48200001,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 64,
+          "612000-plain": 64
+        },
+        "n": 128
+      },
+      {
+        "id": 1,
+        "seed": 48200003,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 87,
+          "612000-plain": 38
+        },
+        "n": 128
+      },
+      {
+        "id": 2,
+        "seed": 48200005,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 9,
+          "612000-plain": 30
+        },
+        "n": 128
+      },
+      {
+        "id": 3,
+        "seed": 48200007,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 71,
+          "612000-plain": 86
+        },
+        "n": 128
+      },
+      {
+        "id": 4,
+        "seed": 48200009,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 56,
+          "612000-plain": 55
+        },
+        "n": 128
+      },
+      {
+        "id": 5,
+        "seed": 48200011,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 61,
+          "612000-plain": 90
+        },
+        "n": 128
+      },
+      {
+        "id": 6,
+        "seed": 48200013,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 109,
+          "612000-plain": 106
+        },
+        "n": 128
+      },
+      {
+        "id": 7,
+        "seed": 48200015,
+        "offset": 8283,
+        "actors": {
+          "incumbent": 37,
+          "612000-plain": 76
+        },
+        "n": 128
+      },
+      {
+        "id": 8,
+        "seed": 48200001,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 61,
+          "612000-plain": 80
+        },
+        "n": 128
+      },
+      {
+        "id": 9,
+        "seed": 48200003,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 99,
+          "612000-plain": 99
+        },
+        "n": 128
+      },
+      {
+        "id": 10,
+        "seed": 48200007,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 4,
+          "612000-plain": 9
+        },
+        "n": 128
+      },
+      {
+        "id": 11,
+        "seed": 48200009,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 26,
+          "612000-plain": 85
+        },
+        "n": 128
+      },
+      {
+        "id": 12,
+        "seed": 48200011,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 88,
+          "612000-plain": 88
+        },
+        "n": 128
+      },
+      {
+        "id": 13,
+        "seed": 48200013,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 69,
+          "612000-plain": 70
+        },
+        "n": 128
+      },
+      {
+        "id": 14,
+        "seed": 48200015,
+        "offset": 34230,
+        "actors": {
+          "incumbent": 21,
+          "612000-plain": 90
+        },
+        "n": 128
+      }
+    ],
+    "swap_actions": {
+      "612000-plain<-incumbent": {
+        "actor_state": [
+          64,
+          38,
+          30,
+          86,
+          55,
+          90,
+          106,
+          76,
+          80,
+          99,
+          9,
+          85,
+          88,
+          70,
+          90
+        ],
+        "candidate": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          105,
+          52,
+          110,
+          99,
+          4,
+          119,
+          88,
+          69,
+          21
+        ],
+        "spatial_actor": [
+          64,
+          77,
+          30,
+          86,
+          55,
+          98,
+          60,
+          76,
+          82,
+          99,
+          9,
+          85,
+          88,
+          70,
+          127
+        ],
+        "rank_hidden": [
+          64,
+          87,
+          30,
+          86,
+          55,
+          90,
+          106,
+          76,
+          82,
+          99,
+          9,
+          85,
+          88,
+          70,
+          90
+        ],
+        "rank_output": [
+          64,
+          38,
+          30,
+          86,
+          55,
+          90,
+          106,
+          76,
+          80,
+          99,
+          9,
+          85,
+          88,
+          70,
+          90
+        ],
+        "all_actor": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          109,
+          37,
+          61,
+          99,
+          4,
+          26,
+          88,
+          69,
+          21
+        ],
+        "critic_only": [
+          64,
+          38,
+          30,
+          86,
+          55,
+          90,
+          106,
+          76,
+          80,
+          99,
+          9,
+          85,
+          88,
+          70,
+          90
+        ]
+      },
+      "incumbent<-612000-plain": {
+        "actor_state": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          109,
+          37,
+          61,
+          99,
+          4,
+          26,
+          88,
+          69,
+          21
+        ],
+        "candidate": [
+          64,
+          77,
+          30,
+          86,
+          55,
+          90,
+          60,
+          9,
+          82,
+          99,
+          9,
+          85,
+          88,
+          70,
+          127
+        ],
+        "spatial_actor": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          105,
+          52,
+          110,
+          99,
+          4,
+          119,
+          88,
+          69,
+          21
+        ],
+        "rank_hidden": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          109,
+          37,
+          61,
+          99,
+          4,
+          26,
+          88,
+          69,
+          21
+        ],
+        "rank_output": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          109,
+          37,
+          61,
+          99,
+          4,
+          26,
+          88,
+          69,
+          21
+        ],
+        "all_actor": [
+          64,
+          38,
+          30,
+          86,
+          55,
+          90,
+          106,
+          76,
+          80,
+          99,
+          9,
+          85,
+          88,
+          70,
+          90
+        ],
+        "critic_only": [
+          64,
+          87,
+          9,
+          71,
+          56,
+          61,
+          109,
+          37,
+          61,
+          99,
+          4,
+          26,
+          88,
+          69,
+          21
+        ]
+      }
+    },
+    "receipt_sha256": "bc8c9fb12565dd415310fd73f7bf1ca74d0c0bcdcbb359862c9d018cb08516fa",
+    "blocks": {
+      "actor_state": [
+        "actor_state."
+      ],
+      "candidate": [
+        "candidate."
+      ],
+      "spatial_actor": [
+        "spatial_actor."
+      ],
+      "rank_hidden": [
+        "rank1."
+      ],
+      "rank_output": [
+        "rank_out."
+      ],
+      "all_actor": [
+        "actor_state.",
+        "candidate.",
+        "spatial_actor.",
+        "rank1.",
+        "rank_out."
+      ],
+      "critic_only": [
+        "value."
+      ]
+    },
+    "intervention": "For each disjoint actor module independently, load its entire set of named tensors from the other actor into the receiving actor; all remaining parameters stay with recipient. Compare legal greedy argmax on the same fixed 32x128 FP32 CPU batch, forward and reverse. Separate all-actor and critic-only bitwise controls. No fitness outcomes or continuations.",
+    "combined_counts": {
+      "612000-plain<-incumbent": {
+        "actor_state": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "candidate": {
+          "donor_on_original_difference": 8,
+          "recipient_on_original_difference": 0,
+          "third_on_original_difference": 4,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "spatial_actor": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 7,
+          "third_on_original_difference": 5,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "rank_hidden": {
+          "donor_on_original_difference": 1,
+          "recipient_on_original_difference": 10,
+          "third_on_original_difference": 1,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "rank_output": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "all_actor": {
+          "donor_on_original_difference": 12,
+          "recipient_on_original_difference": 0,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "critic_only": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        }
+      },
+      "incumbent<-612000-plain": {
+        "actor_state": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "candidate": {
+          "donor_on_original_difference": 7,
+          "recipient_on_original_difference": 0,
+          "third_on_original_difference": 5,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "spatial_actor": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 8,
+          "third_on_original_difference": 4,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "rank_hidden": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "rank_output": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "all_actor": {
+          "donor_on_original_difference": 12,
+          "recipient_on_original_difference": 0,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        },
+        "critic_only": {
+          "donor_on_original_difference": 0,
+          "recipient_on_original_difference": 12,
+          "third_on_original_difference": 0,
+          "new_change_on_original_agreement": 0,
+          "kept_on_original_agreement": 3
+        }
+      }
+    }
+  },
+  "six_hour_evaluation_projection": {
+    "scope": "Conditional 144-pair greedy projection using observed public mean lengths and earlier 32-lane evaluation rate model. Excludes hardware-gate time and assumes no changes in tail lengths or per-position cost. The tournament-selected champion may use a different evaluator.",
+    "modelled_rate": 578.1032348978929,
+    "source": "cross-survival-plain-replicates.json#modelled_gpu_budget",
+    "controls": {
+      "incumbent": {
+        "projected_placements_both": 12329028.0,
+        "required_aggregate_placements_s_for_six_hours": 570.7883333333333,
+        "hours_at_prior_model_rate": 5.924080325557927
+      },
+      "weight-4": {
+        "projected_placements_both": 12597246.0,
+        "required_aggregate_placements_s_for_six_hours": 583.2058333333333,
+        "hours_at_prior_model_rate": 6.052958691051176
+      }
+    }
+  },
+  "plain_minus_cold_recipe": {
+    "scope": "Two fixed training replicas per recipe, averaged within each of the eight shared public streams. Resample streams; interval is conditional on these actors.",
+    "seed": 20261123,
+    "resamples": 10000,
+    "per_stream_diff": [
+      4114.0,
+      -591.0,
+      802.5,
+      -5879.0,
+      6951.5,
+      15898.0,
+      10033.5,
+      -14899.5
+    ],
+    "mean_difference": 2053.75,
+    "wins": 5,
+    "ties": 0,
+    "paired_bootstrap_95": [
+      -4324.4375,
+      8109.134375
+    ]
+  }
+}

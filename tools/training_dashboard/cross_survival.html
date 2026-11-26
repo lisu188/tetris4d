@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark">
+<title>Spatial V4 survival · Live run</title>
+<style>
+*{box-sizing:border-box}html{background:#0c151b;color:#e4eef0;font:16px/1.55 "Inter",system-ui,sans-serif}body{margin:0}main{max-width:1100px;margin:auto;padding:clamp(1.1rem,5vw,4rem) clamp(1rem,4vw,3rem) 4rem}header,.section-title{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}header{align-items:center;margin-bottom:1.8rem}h1,h2,p{margin:0}h1{font-size:clamp(1.9rem,4vw,3rem);line-height:1.16;letter-spacing:-.045em}h2{font-size:1.35rem;letter-spacing:-.025em}header p,.help,.sub,time,footer{color:#a9bcc1;font-size:.86rem}.run{font: .85rem/1.6 "IBM Plex Mono",ui-monospace,monospace;color:#80dbc8;margin-top:.45rem}.summary{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}.card{background:#14232b;border:1px solid #2d4149;border-radius:12px;padding:1.05rem 1.3rem}.key{display:block;font-size:.83rem;color:#b5c7cb}.value{display:block;margin-top:.25rem;font-size:clamp(1.05rem,2.6vw,1.65rem);letter-spacing:-.025em;font-weight:650}progress{display:block;width:100%;height:.4rem;margin:.65rem 0 .1rem;border:0;border-radius:8px;accent-color:#68d7bb;background:#273a42}progress::-webkit-progress-bar{background:#273a42;border-radius:8px}progress::-webkit-progress-value{background:#68d7bb;border-radius:8px}section{margin-top:2.15rem}.section-title{margin-bottom:.8rem}.table-wrap{overflow:auto;border:1px solid #2a3b42;border-radius:10px}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:.9rem;font-variant-numeric:tabular-nums}th,td{padding:.64rem .85rem;text-align:right;border-bottom:1px solid #29383f}td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}th{background:#16242c;color:#b7cbd0;font-size:.77rem;font-weight:600}tr:last-child td{border:0}.help,.sub{margin-top:.55rem}.status{font-weight:620}.Running,.positive{color:#80dbc8}.Complete{color:#b6d5dd}.Waiting,.Partial,.inactive{color:#a3b7bf}.negative,#connection.error{color:#f3af9b}#promotion{padding:.8rem 1.1rem;margin-top:1rem;border-left:3px solid #68d7bb;background:#172c2d}footer{margin-top:2.5rem}a{color:#8fdacb}code{font-family:"IBM Plex Mono",ui-monospace,monospace}[hidden]{display:none!important}@media(max-width:640px){.summary{grid-template-columns:1fr}.card{padding:.85rem 1rem}td,th{padding:.54rem .65rem}section{margin-top:1.5rem}}
+</style>
+</head>
+<body><main>
+<header><div><h1>Spatial V4 survival</h1><p class="run" id="run">cross-survival-24h</p></div><p role="status" id="connection">Connecting…</p></header>
+<div class="summary"><div class="card"><span class="key">Current phase</span><strong class="value" id="phase">—</strong></div><div class="card"><span class="key">Metered GPU time</span><strong class="value" id="gpu">—</strong><progress id="budget" aria-label="GPU time consumed" value="0" max="24"></progress></div></div>
+<p id="promotion" hidden></p>
+<section><div class="section-title"><h2>Direct policy screening</h2></div><div class="table-wrap"><table aria-label="Direct policy screening"><thead><tr><th>Policy</th><th>Status</th><th>Natural games</th><th>Mean placements</th><th>vs. incumbent</th><th>Decisions changed</th></tr></thead><tbody id="screen"></tbody></table></div><p class="help">Means compare the same eight games after all reach top-out. Changed decisions compare each policy with its base actor on the same position.</p><p class="sub" id="partial" hidden></p></section>
+<section><div class="section-title"><h2>PPO training</h2></div><div class="table-wrap"><table aria-label="PPO training arms"><thead><tr><th>Recipe</th><th>Status</th><th>Training seed</th><th>Completed updates</th><th>Placements</th></tr></thead><tbody id="training"></tbody></table></div></section>
+<section><div class="section-title"><h2>PPO development screening</h2></div><div class="table-wrap"><table aria-label="PPO development screening"><thead><tr><th>Checkpoint</th><th>Status</th><th>Physical top-outs</th><th>Saved live placements</th><th>Mean placements</th><th>Median placements</th><th>vs. incumbent</th><th>Residual changes</th></tr></thead><tbody id="ppo-screen"></tbody></table></div><p class="help">Each checkpoint plays the same eight development seeds to completion. Scores appear after all eight games reach physical top-out. Saved live placements show the range across unfinished games.</p><p class="sub" id="recipe-scores" hidden></p></section>
+<section><div class="section-title"><h2>Checkpoint behavior</h2></div><p class="sub" id="pending">Waiting for an archived-board observation.</p><div id="obs-wrap" class="table-wrap" hidden><table aria-label="Checkpoint observations"><thead><tr><th>Arm</th><th>Update</th><th>Action flips / boards</th><th>Danger / ordinary flips</th><th>Δ CROSS landings on flips</th><th>Actor Δ L2</th><th>Critic Δ L2</th><th>Residual flips</th></tr></thead><tbody id="observations"></tbody></table></div><p class="help">Updates 10, 40 and 80 are compared with the incumbent on fixed archived boards. Weight changes are relative L2 distances.</p></section>
+<footer><a href="/api/run">Run data (JSON)</a></footer></main>
+<script>
+'use strict';
+const elem=id=>document.getElementById(id), n=v=>v.toLocaleString('en-US'), dash='—';
+const signed=(v,d)=> (v>0?'+':'')+v.toFixed(d);
+const name=s=>s==='incumbent'?'Incumbent':'Weight '+s.slice(7);
+function fillTable(id,rows){
+ const target=elem(id), frag=document.createDocumentFragment();
+ for(const row of rows){const tr=document.createElement('tr'); for(const col of row){const td=document.createElement('td'); if(Array.isArray(col)){td.textContent=col[0];td.className=col[1]}else td.textContent=col; tr.appendChild(td)}frag.appendChild(tr)}
+ target.replaceChildren(frag)
+}
+function render(d){
+ elem('run').textContent=d.run;elem('phase').textContent=d.phase;
+ const sec=d.gpu_seconds, h=Math.floor(sec/3600), m=Math.floor(sec%3600/60);
+ elem('gpu').textContent=h+'h '+m+'m of '+d.budget_hours+'h';elem('budget').max=d.budget_hours;elem('budget').value=sec/3600;
+ elem('promotion').hidden=!d.promotion;if(d.promotion)elem('promotion').textContent=d.promotion;
+ const status=v=>[v,'status '+v];
+ fillTable('screen',d.direct.map(r=>[name(r.player),status(r.status),r.natural_games+' / '+r.requested,
+ r.mean_placements===null?dash:n(Math.round(r.mean_placements)),r.change_pct===null||r.player==='incumbent'?dash:[signed(r.change_pct,2)+'%',r.change_pct>0?'positive':r.change_pct<0?'negative':''],
+ r.observed_moves?n(r.changed_moves)+' / '+n(r.observed_moves):dash]));
+ const partial=d.direct.filter(r=>r.active_snapshots).map(r=>{const [lo,hi]=r.live_range;return name(r.player)+' has '+r.active_snapshots+' saved games in progress at '+n(lo)+(hi===lo?'':'–'+n(hi))+' placements.'});
+ elem('partial').textContent=partial.join(' ');elem('partial').hidden=!partial.length;
+ fillTable('training',d.arms.map(a=>[a.recipe[0].toUpperCase()+a.recipe.slice(1),status(a.status),String(a.seed),a.updates+' / '+d.target_updates,n(a.placements)]));
+ fillTable('ppo-screen',d.ppo_screening.map(r=>[r.player,status(r.status),r.natural_games+' / '+r.requested,
+ r.live_range?r.active_snapshots+' games · '+n(r.live_range[0])+(r.live_range[0]===r.live_range[1]?'':'–'+n(r.live_range[1])):dash,
+ r.mean_placements===null?dash:n(r.mean_placements),r.median_placements===null?dash:n(r.median_placements),
+ r.change_pct===null?dash:[signed(r.change_pct,2)+'%',r.change_pct>0?'positive':r.change_pct<0?'negative':''],
+ r.residual_changes===null||!r.observed_moves?dash:n(r.residual_changes)+' / '+n(r.observed_moves)]));
+ const scores=d.recipe_scores;
+ elem('recipe-scores').textContent=scores.map(r=>r.recipe+' · mean '+n(r.mean)+', average median '+n(r.median)).join(' | ');
+ if(scores.length)elem('recipe-scores').prepend('Across training seeds: ');
+ elem('recipe-scores').hidden=!scores.length;
+ elem('obs-wrap').hidden=!d.observations.length;elem('pending').hidden=!!d.observations.length;
+ fillTable('observations',d.observations.map(r=>[r.arm,r.update,r.flips+' / '+r.boards,r.danger+' / '+r.ordinary,signed(r.cross_gain,0),signed(r.actor_relative_l2*100,3)+'%',signed(r.critic_relative_l2*100,3)+'%',r.residual_changes===null?dash:r.residual_changes]));
+ const pretty=new Date(d.updated_unix*1000).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ elem('connection').className='';elem('connection').textContent='Updated '+pretty+' · refreshes every 10s';
+}
+async function refresh(){
+ try{const r=await fetch('/api/run',{cache:'no-store'});if(!r.ok)throw Error();render(await r.json())}
+ catch(e){elem('connection').className='error';elem('connection').textContent='Live receipts unavailable · retrying'}
+ finally{setTimeout(refresh,10000)}
+}
+refresh();
+</script>
+</body></html>

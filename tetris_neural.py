@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from collections import OrderedDict
 from contextlib import nullcontext
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from functools import lru_cache
 import hashlib
 import heapq
@@ -29,7 +29,7 @@ SCHEMA = 'tetris4d-column-policy-v1'
 CHANNELS, CONTEXT, FEATURES, COLUMNS = 34, 82, 96, 16
 # Per-candidate arrays (padded along the candidate axis when batched).
 CANDIDATE_FIELDS = frozenset(('features', 'indices', 'column_mask', 'valid', 'teacher_prior', 'spatial_delta',
-                              'next_features', 'td_features', 'td_actor_logits'))
+                              'next_features', 'td_features', 'td_actor_logits', 'cross_mobility'))
 # Architectures whose preparation includes V4 afterstate spatial descriptors.
 AFTERSTATE_TD_ARCHITECTURES = ('survival-afterstate-td', 'survival-actor-regularized-td')
 SPATIAL_ARCHITECTURES = ('survival-spatial-v4', 'survival-afterstate-v5', *AFTERSTATE_TD_ARCHITECTURES)
@@ -63,6 +63,9 @@ class Config:
     residual_bound: float = 0.0
     policy_temperature: float = 1.0
     afterstate_scale: float = 1.0
+    # V4: add a fixed CROSS mobility delta or train a bounded correction on frozen actor features.
+    cross_weight: float = 0.
+    cross_residual: bool = False
 
     @property
     def screening_budget(self) -> int:
@@ -91,6 +94,12 @@ class Config:
                 raise ValueError(f'{name} must be in [{low}, {high}]')
         if self.policy_mode not in ('neural', 'teacher-residual', 'teacher-prior'):
             raise ValueError('Unsupported policy mode')
+        if (type(self.cross_residual) is not bool or isinstance(self.cross_weight, bool)
+                or not isinstance(self.cross_weight, (int, float)) or not math.isfinite(self.cross_weight)
+                or self.cross_weight < 0 or (self.cross_weight and self.cross_residual)):
+            raise ValueError('Choose a nonnegative finite CROSS weight or a learned CROSS residual')
+        if (self.cross_weight or self.cross_residual) and self.architecture != 'survival-spatial-v4':
+            raise ValueError('CROSS mobility scoring requires Spatial V4')
         if not math.isfinite(self.residual_scale) or not 0 <= self.residual_scale <= 4:
             raise ValueError('residual_scale must be between 0 and 4')
         if not math.isfinite(self.teacher_prior_scale) or not 0 <= self.teacher_prior_scale <= 4:
@@ -330,7 +339,46 @@ def _option_features(board, candidate, target, context, metrics=None):
     return result, touched
 
 
-def _prepare_steps(state, target: int, config: Config, candidates: int | None = None):
+def _native_shortlist(state, target, config, context, status):
+    """Use primary utility to prune exhaustive FP64 scores, including every cutoff tie."""
+    piece = state.current
+    primary = game.native_primary_utilities(context, piece, target, config.protect_target)
+    legal = np.flatnonzero(primary != np.iinfo(primary.dtype).min)
+    extra = sum(len(shape.columns) == 1 for shape in game.SHAPES[piece]) if piece == 'I' else 0
+    evaluations = len(primary) + extra * (game.AREA - status.filled)
+    keep = config.shortlist
+    if len(legal) > keep:
+        top_count = keep if config.shortlist_mode == 'teacher-top' else max(1, keep // 2)
+        cutoff = np.partition(primary[legal], -top_count)[-top_count]
+        tied = legal[primary[legal] >= cutoff]
+        scores = np.empty(len(tied), dtype=np.float64)
+        for begin in range(0, len(tied), game.BATCH_SIZE):
+            block = slice(begin, begin + game.BATCH_SIZE)
+            specs = game.exhaustive_specs(piece, tied[block])
+            scores[block] = game.native_scores(context, piece, specs)[0]
+            yield min(begin + len(specs), evaluations)
+        order = np.lexsort((tied, -scores, -primary[tied]))
+        chosen = tied[order[:top_count]]
+        if top_count < keep:
+            rest = np.setdiff1d(legal, chosen, assume_unique=True)
+            rng = random.Random(state.seed * 8191 + state.pieces)
+            sample = rng.sample(range(len(rest)), keep - top_count)
+            chosen = np.concatenate((chosen, rest[sample]))
+        legal = np.sort(chosen)
+    options, keys = [], []
+    for begin in range(0, len(legal), game.BATCH_SIZE):
+        ids = legal[begin:begin + game.BATCH_SIZE]
+        specs = game.exhaustive_specs(piece, ids)
+        scores, landings, clears, _ = game.native_scores(context, piece, specs)
+        for row, values in enumerate(specs.tolist()):
+            candidate = clears.get(row) or game.Candidate(piece, *values, int(landings[row]), 0, float(scores[row]))
+            options.append(candidate)
+            keys.append((int(primary[ids[row]]), candidate.score))
+    yield evaluations
+    return options, keys, evaluations
+
+
+def _prepare_steps(state, target: int, config: Config, candidates: int | None = None, *, two_stage: bool | None = None):
     budget = config.screening_budget if candidates is None else candidates
     if type(budget) is not int or budget < 0:
         raise ValueError('Invalid candidate budget')
@@ -339,50 +387,57 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
         return None
     context = game.evaluate_board(state.board)
     piece = state.current
-    missing = (i for i, mask in enumerate(state.board) if not mask & (1 << target))
-    vertical = tuple(r for r, shape in enumerate(game.SHAPES[piece]) if len(shape.columns) == 1) if piece == 'I' else ()
-    anchored = ((r, *game.column_coordinates(i)) for i in missing for r in vertical)
-    first = itertools.chain(game.specifications(piece, budget, state.pieces), anchored)
-    seen, options, keys = set(), [], []
-    evaluations = 0
-    fallback = False
-    for iterator in (first, game.specifications(piece, 0)):
-        if fallback and (options or not budget):
-            break
-        while specs := tuple(itertools.islice(iterator, game.BATCH_SIZE)):
-            batch = game.PlacementBatch(piece, specs)
-            if batch.data is not None:
-                scores, z, clears = batch.scores(context)
-                gains, blocked, future = game.sustained_batch_metrics(context, piece, specs, z, target)
-                rows = np.flatnonzero(np.isfinite(scores) & (~blocked if config.protect_target else True))
-                for row in rows:
-                    spec = specs[int(row)]
-                    if spec in seen:
-                        continue
-                    seen.add(spec)
-                    candidate = clears.get(int(row)) or game.Candidate(piece, *spec, int(z[row]), 0, float(scores[row]))
-                    options.append(candidate)
-                    keys.append((int(gains[row]) - game.FUTURE_HOLE_PENALTY * int(future[row]), candidate.score))
-            else:
-                for spec in specs:
-                    if spec in seen:
-                        continue
-                    candidate = game.score_candidate(context, piece, *spec)
-                    if candidate is None:
-                        continue
-                    gain, blocked, future = game.sustained_candidate_metrics(state.board, candidate, target)
-                    if config.protect_target and blocked:
-                        continue
-                    seen.add(spec)
-                    options.append(candidate)
-                    keys.append((gain - game.FUTURE_HOLE_PENALTY * future, candidate.score))
-            evaluations += len(specs)
-            yield evaluations
-            if fallback and options:
+    if two_stage is None:
+        two_stage = game.TWO_STAGE_EXHAUSTIVE
+    if (two_stage and not budget and game.BACKEND == 'native'
+            and hasattr(game._NATIVE, 't4_exhaustive_primary') and config.shortlist_mode != 'diverse'):
+        options, keys, evaluations = yield from _native_shortlist(state, target, config, context, status)
+        fallback = False
+    else:
+        missing = (i for i, mask in enumerate(state.board) if not mask & (1 << target))
+        vertical = tuple(r for r, shape in enumerate(game.SHAPES[piece]) if len(shape.columns) == 1) if piece == 'I' else ()
+        anchored = ((r, *game.column_coordinates(i)) for i in missing for r in vertical)
+        first = itertools.chain(game.specifications(piece, budget, state.pieces), anchored)
+        seen, options, keys = set(), [], []
+        evaluations = 0
+        fallback = False
+        for iterator in (first, game.specifications(piece, 0)):
+            if fallback and (options or not budget):
                 break
-        if options:
-            break
-        fallback = True
+            while specs := tuple(itertools.islice(iterator, game.BATCH_SIZE)):
+                batch = game.PlacementBatch(piece, specs)
+                if batch.data is not None:
+                    scores, z, clears = batch.scores(context)
+                    gains, blocked, future = game.sustained_batch_metrics(context, piece, specs, z, target)
+                    rows = np.flatnonzero(np.isfinite(scores) & (~blocked if config.protect_target else True))
+                    for row in rows:
+                        spec = specs[int(row)]
+                        if spec in seen:
+                            continue
+                        seen.add(spec)
+                        candidate = clears.get(int(row)) or game.Candidate(piece, *spec, int(z[row]), 0, float(scores[row]))
+                        options.append(candidate)
+                        keys.append((int(gains[row]) - game.FUTURE_HOLE_PENALTY * int(future[row]), candidate.score))
+                else:
+                    for spec in specs:
+                        if spec in seen:
+                            continue
+                        candidate = game.score_candidate(context, piece, *spec)
+                        if candidate is None:
+                            continue
+                        gain, blocked, future = game.sustained_candidate_metrics(state.board, candidate, target)
+                        if config.protect_target and blocked:
+                            continue
+                        seen.add(spec)
+                        options.append(candidate)
+                        keys.append((gain - game.FUTURE_HOLE_PENALTY * future, candidate.score))
+                evaluations += len(specs)
+                yield evaluations
+                if fallback and options:
+                    break
+            if options:
+                break
+            fallback = True
     if not options:
         return None
     best = max(range(len(options)), key=keys.__getitem__)
@@ -439,12 +494,16 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     arrays['teacher_prior'] = -32 * deficits - rank / 8
     if config.architecture in SPATIAL_ARCHITECTURES:
         from tetris_survival_v4 import afterstate_descriptors
-        arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(state.board, options, target)
+        arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(
+            state.board, options, target, checked_shortlist=True)
+    if config.cross_weight or config.cross_residual:
+        from tetris_cross_survival import mobility_features
+        arrays['cross_mobility'] = mobility_features(state.board, options)
     return Prepared(arrays, options, teacher, evaluations, fallback)
 
 
-def prepare_steps(state, target: int, config: Config, candidates: int | None = None):
-    prepared = yield from _prepare_steps(state, target, config, candidates)
+def prepare_steps(state, target: int, config: Config, candidates: int | None = None, *, two_stage: bool | None = None):
+    prepared = yield from _prepare_steps(state, target, config, candidates, two_stage=two_stage)
     if prepared is not None or not config.recover_target or not config.protect_target:
         return prepared
     if state.game_over or not game.has_legal_move(state.board, state.current):
@@ -455,7 +514,7 @@ def prepare_steps(state, target: int, config: Config, candidates: int | None = N
         status = game.target_layer_status(state.board, alternative)
         if status.buried or status.filled == game.AREA:
             continue
-        prepared = yield from _prepare_steps(state, alternative, config, candidates)
+        prepared = yield from _prepare_steps(state, alternative, config, candidates, two_stage=two_stage)
         if prepared is not None:
             return prepared
     return None
@@ -537,7 +596,8 @@ def load_checkpoint(path, device, restore_rng=False):
 
 
 class NeuralAgent:
-    def __init__(self, path, device='auto', engine=None, allow_untrained=False, capture_traces=True):
+    def __init__(self, path, device='auto', engine=None, allow_untrained=False, capture_traces=True,
+                 preview_search=False, *, cross_weight=None):
         global game
         if engine is not None:
             game = engine
@@ -548,15 +608,28 @@ class NeuralAgent:
         if self.checkpoint['teacher_parameters'] != game.network_parameters():
             raise ValueError('Heuristic parameters differ from the training candidate pipeline; use the matching JSON weights')
         self.model.eval()
+        self.preview_search = preview_search
+        config = self.model.config
+        if cross_weight is not None:
+            if config.architecture != 'survival-spatial-v4':
+                raise ValueError('--neural-cross-weight requires a spatial V4 checkpoint')
+            self.model.config = replace(config, cross_weight=cross_weight)
+        self.exhaustive = (bool(preview_search) or config.architecture in AFTERSTATE_TD_ARCHITECTURES or
+                           (config.architecture == 'survival-spatial-v4' and config.screening == 'exhaustive'))
+        self.candidate_budget = 0 if self.exhaustive else config.candidates
+        if preview_search and self.model.config.architecture != 'survival-spatial-v4':
+            raise ValueError('The selected neural move mode requires a spatial V4 checkpoint')
         self.last_trace = None
         self.pending_trace = None
         self.capture_traces = (False if self.model.config.architecture in FEATURE_ARCHITECTURES
                                else capture_traces)
         self.last_metrics = {}
         self.metadata = {'schema': SCHEMA, 'checkpoint_sha256': hashlib.sha256(Path(path).read_bytes()).hexdigest(),
-                         'device': str(self.device), 'config': asdict(self.model.config),
+                         'device': str(self.device), 'preview_search': preview_search, 'config': asdict(self.model.config),
                          'parameters': sum(p.numel() for p in self.model.parameters()),
                          'updates': self.checkpoint['progress'].get('updates', 0), 'status': self.checkpoint['status']}
+        if cross_weight is not None:
+            self.metadata.update(checkpoint_cross_weight=config.cross_weight, cross_weight_override=cross_weight)
         extra = self.checkpoint.get('extra', {})
         survival = extra.get('kind') == 'tetris4d-overnight-survival-v1'
         self.metadata['value_semantics'] = extra.get('value_semantics', 'expected_remaining_placements_times_0.001' if survival else 'discounted_hyperlayers')
@@ -566,7 +639,7 @@ class NeuralAgent:
         started = time.perf_counter()
         afterstate_td = self.model.config.architecture in AFTERSTATE_TD_ARCHITECTURES
         # The TD actor shortlist always starts from exhaustive screening, including GUI playback.
-        if afterstate_td:
+        if self.exhaustive:
             candidates = 0
         prepared = yield from prepare_steps(state, target, self.model.config, candidates)
         if prepared is None:
@@ -579,13 +652,36 @@ class NeuralAgent:
         before = time.perf_counter()
         requested_target = target
         target = int(prepared.arrays['targets'])
+        guard = self.preview_search == 'preserve-last-cross'
+        if guard and 'cross_mobility' not in prepared.arrays:
+            from tetris_cross_survival import mobility_features
+            prepared.arrays['cross_mobility'] = mobility_features(state.board, prepared.options)
         batch = collate([prepared.arrays], self.device)
+        outside = None
+        rescue_stats = {}
         with torch.inference_mode():
             prediction = self.model(batch, capture=self.capture_traces is True)
-            index = int(prediction['logits'][0].argmax().item())
             if not bool(torch.isfinite(prediction['logits'][0][batch['valid'][0]]).all()):
                 raise ValueError('Neural inference produced non-finite logits')
-            score = float(prediction['logits'][0, index].item())
+            if guard:
+                from tetris_cross_survival import preserve_last_cross
+                choices, _, _ = preserve_last_cross(prediction['logits'], batch['valid'], batch['cross_mobility'])
+                index = int(choices.item())
+            elif self.preview_search == 'exhaustive-rescue':
+                from tetris_cross_survival import rescue_decision
+                index, outside = rescue_decision(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
+                                                 self.model.config, prepared.arrays['cross_mobility'][:, 1]
+                                                 if 'cross_mobility' in prepared.arrays else None,
+                                                 rescue_stats, exhaustive=True)
+            elif self.preview_search:
+                from tetris_cross_survival import preview_choice
+                index = preview_choice(state, target, prepared.options, prediction['logits'][0].cpu().numpy(),
+                                       self.model.config, prepared.arrays['cross_mobility'][:, 1]
+                                       if 'cross_mobility' in prepared.arrays else None,
+                                       rescue_only=self.preview_search == 'rescue-only')
+            else:
+                index = int(prediction['logits'][0].argmax().item())
+            score = float(prediction['logits'][0, index].item()) if outside is None else None
             trace_info = {'logit': score, 'piece': state.current, 'piece_number': state.pieces + 1,
                           'shortlist': len(prepared.options), 'selected': index}
             if self.capture_traces is True:
@@ -593,10 +689,14 @@ class NeuralAgent:
             elif self.capture_traces == 'lazy':
                 self.pending_trace = (prepared.arrays, trace_info)
         inferred = time.perf_counter()
-        candidate = prepared.options[index]
+        candidate = prepared.options[index] if outside is None else outside
         move = game.materialize_move(state.board, candidate)
         gain, _, _ = game.sustained_candidate_metrics(state.board, candidate, target)
-        if self.model.config.architecture in FEATURE_ARCHITECTURES:
+        if outside is not None:
+            self.last_trace = {'feature_inspector': True, **trace_info, 'outside_action': asdict(outside),
+                               'actor_score': None, 'teacher_prior': None, 'spatial_delta': None,
+                               'critic_value': float(prediction['value'][0])}
+        elif self.model.config.architecture in FEATURE_ARCHITECTURES:
             teacher_prior = float(batch['teacher_prior'][0, index]) if 'teacher_prior' in batch else 0.
             self.last_trace = {'feature_inspector': True, **trace_info,
                                'teacher_prior': teacher_prior, 'critic_value': float(prediction['value'][0]),
@@ -607,6 +707,8 @@ class NeuralAgent:
             elif self.model.config.architecture == 'survival-afterstate-v5':
                 self.last_trace['base_logit'] = float(prediction['base_logits'][0, index])
                 self.last_trace['residual'] = float(prediction['raw_logits'][0, index])
+            elif self.model.config.architecture == 'survival-spatial-v4' and 'raw_logits' in prediction:
+                self.last_trace['actor_score'] = float(prediction['raw_logits'][0, index])
             elif self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
                 self.last_trace['actor_score'] = (score - self.model.config.teacher_prior_scale * teacher_prior) / self.model.config.residual_scale
             elif self.model.config.policy_mode == 'neural':
@@ -619,10 +721,11 @@ class NeuralAgent:
                              'teacher_agreement': index == prepared.teacher,
                              'requested_target': requested_target, 'active_target': target,
                              'target_recovered': target != requested_target,
-                             'trace_captured': self.capture_traces is True, **self.metadata}
+                             'trace_captured': self.capture_traces is True, **self.metadata, **rescue_stats}
         return game.Decision(move, score, prepared.evaluations, (time.perf_counter() - started) * 1000,
-                             1, 1, 0 if afterstate_td else candidates or self.model.config.candidates,
-                             not afterstate_td, 'neural', target, gain, prepared.fallback)
+                             1, 1, self.model.config.screening_budget if candidates is None else candidates,
+                             bool(self.model.config.screening_budget if candidates is None else candidates), 'neural', target, gain,
+                             prepared.fallback or outside is not None)
 
     def choose(self, *args, **kwargs):
         iterator = self.steps(*args, **kwargs)

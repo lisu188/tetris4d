@@ -1,0 +1,1546 @@
+{
+  "schema": "cross-survival-layer-capacity-v1",
+  "definition": "Conditional on the proposed drop leaving no CROSS landing, before any clear every new cell in its column is above the previous top. A layer with a buried empty cell cannot be the first to clear. For each remaining candidate layer and piece, translate every distinct one-level shape footprint into that layer’s current holes. The largest fitting footprint upper-bounds the contribution of any future placement of that piece before a clear. Allow reuse of holes and ignore supporting geometry and the other slice levels to stay optimistic. For a possible set of pieces before CROSS, if the upper sum misses every layer, no sequence of legal placements can restore CROSS by its arrival. The score is the exact public probability mass of subsets for which this impossibility is proved. A lower bound below one does not establish that a clear is achievable.",
+  "public_information": "Observed piece counts after the drop and the original visible preview. Within the bag containing the next CROSS, each rank has equal probability. Each k-piece preceding subset of the unknown n non-CROSS shapes has mass 1/((n+1)*C(n,k)). If the current bag already spent CROSS, all remaining current-bag pieces precede a new uniform bag. No hidden RNG enters the score.",
+  "planned_archive": {
+    "registered_utc": "2026-11-26T16:45:51+00:00",
+    "study": "public-cross-clear-deadline-v1",
+    "inputs": {
+      "terminal-rescue-archive-plan.json": "799e38f587e1b23fdf1bf7aac3bbee2b2f3ac35dcc1e35501636fecf13216454",
+      "public-cross-clock.json": "684329813ffeab47f72f086a883c83ec1325060995f2f780ca66852b3fa88b80"
+    },
+    "cohort": "All 67 previously identified positive-to-zero CROSS transitions from 64 preselected training streams, including all three recorded clear recoveries; additionally the eight previously published cold terminal boards separately. No new outcome selection, new policy decisions or sealed data.",
+    "question": "Immediately after the decisive drop, can any clear happen before the next CROSS? Give a rigorous public lower bound on the probability of unavoidable death by that arrival, conditional on the visible piece and counts, uniformly averaging compatible bag orderings. Use the recorded future only to test the bound against observed outcomes.",
+    "physics": "Before the first clear all newly occupied cells in a column must land strictly above its highest occupied cell. Any layer with a buried hole is excluded. For an accessible layer, bound each non-CROSS piece contribution by the largest single-level footprint that can fit its existing holes, ignoring gravity/other levels and reusing holes across different hypothetical moves. A clear requires total possible contribution at least the number of missing cells in some layer. Test nested screen using missing cells and catalog maximum footprint only as control.",
+    "bag": "At post-action time use only placed counts and the one originally visible next piece. Enumerate subsets that can precede the next CROSS under uniform bags. Aggregate order-independent subset capacities with exact combinatorial weights. Record separately universal certificates and conditional lower bounds.",
+    "checks": "Reproduce source hashes, gravity, each clear, every transition and final board hash. For each actual recovered interval require the realized intervening pieces can cover some layer, public forced probability <1. Compare cheap versus footprint bound and actual matched subset. No policy promotion from archive outcomes."
+  },
+  "provenance": {
+    "plan.json": "d4ca989b4ce19468670195e3d4754501ef7f350dc755ee9e3cb8a0e0755f66d9",
+    "results.json": "ea4a3ec017045f6c0a1b9a7e2da397b705dc2bf2572f9f072fb2aa220535b191",
+    "action-plan.json": "1ea3a0f44aeaecd1ce01cb7730210a573b2d1e885106a0e9d0f583793e0c5247",
+    "actions.json": "d703f729c249e2b5f6b64b4118af1a2d9ce49d4b0e08226239f8976aba574783",
+    "measure.py": "92f47c6507640d9a0595e8b0f3d812cf19d829d37b00884f81521d4cd11cbc52",
+    "actions.py": "aacfd1759c9a90f57afb7ec86c84c0c836555c77f01f78e6591a17369afe6a6d"
+  },
+  "module_sha256": "1802159ba21e274e9b30ce5759319e533ab435e4fac9ff239e660420900bacb6",
+  "results": {
+    "training_streams": 64,
+    "placements": 652639,
+    "closures": 67,
+    "final_closures": 64,
+    "recoveries": 3,
+    "universal_certificates": 46,
+    "universal_certificates_without_footprint_fit": 33,
+    "certificates_with_at_least_some_future_orders_proved": 56,
+    "terminal_closures_proved_on_realized_draws": 52,
+    "known_recoveries_certified": 0,
+    "additional_actual_placements_at_universal_certificate": {
+      "minimum": 0,
+      "median": 9.5,
+      "maximum": 25
+    },
+    "selection": "Previously frozen archival streams selected for eventual top-out; conditional frequencies only."
+  },
+  "archive_fields": [
+    "seed",
+    "placed_before_closing_drop",
+    "current",
+    "visible",
+    "observed_outcome",
+    "probability_without_footprint_fit",
+    "lower_bound",
+    "subsequent_non_cross_draws",
+    "draws_prove_no_clear",
+    "postboard_sha256"
+  ],
+  "archive_rows": [
+    [
+      300296,
+      7228,
+      "CROSS",
+      "S",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      6,
+      true,
+      "665b29858ef68e0c51508a13388665b0d8954e52e6d60595ffb0c24273c497dc"
+    ],
+    [
+      300480,
+      7107,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      12,
+      true,
+      "55a904a8a34585c1d70b939a5acc505420fa3e805f4cb04b6d0b422d455c2fe7"
+    ],
+    [
+      300390,
+      6692,
+      "CROSS",
+      "HOOK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      21,
+      false,
+      "87cce1d17e5e267fe844b3ee66fb3ceca602d3db1e5f53f3f75d266c26715bae"
+    ],
+    [
+      300026,
+      28587,
+      "BRIDGE",
+      "C",
+      "physical_top_out",
+      [
+        13,
+        105
+      ],
+      [
+        1,
+        1
+      ],
+      8,
+      true,
+      "de57811e370014eabf812d077b87f34e2c4f7b5e4acff81749c490edeca6537f"
+    ],
+    [
+      300406,
+      5582,
+      "CROSS",
+      "FORK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      25,
+      false,
+      "28d647a20695222d3c65b42a7553273bd7b539d423b02695701884de5a06dda3"
+    ],
+    [
+      300398,
+      6109,
+      "CROSS",
+      "HOOK",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      13,
+      true,
+      "c16b7453b36295cfc24a9a219934e6d211f5d68c5ac1999c43211aab9d6cff14"
+    ],
+    [
+      300222,
+      24273,
+      "L",
+      "NOVA",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      18,
+      true,
+      "78cff4effc05e8a43badd1c11dce783d70f2fad9e4912a54105b1d3bd20f1620"
+    ],
+    [
+      300554,
+      6719,
+      "CROSS",
+      "S",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        11
+      ],
+      8,
+      false,
+      "7601a925245e0539958a99f86bed123e310ad8758ce0e518905352468990d552"
+    ],
+    [
+      300044,
+      12703,
+      "STAIR",
+      "FORK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      1,
+      false,
+      "e0192313b6d34576a3071734bb78b542e693c7f78614c9c33fa98a4c874cb404"
+    ],
+    [
+      300316,
+      7166,
+      "CROSS",
+      "O",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      9,
+      true,
+      "41cb1d52cbf7102ca9e2abdde87ee19300044852135a7a454675ae73c87f83c4"
+    ],
+    [
+      300210,
+      18627,
+      "C",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1367,
+        5460
+      ],
+      [
+        1,
+        1
+      ],
+      5,
+      true,
+      "f91c04fb96cb255f25ed011424a9bb751ca96409f7636be0a72e552272b49adc"
+    ],
+    [
+      300032,
+      6794,
+      "FORK",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      11,
+      true,
+      "4e5bb4f2d0f407aa7f6b1e56085ce9cb1cc3917862ea16bd45a69098ddcb4a4d"
+    ],
+    [
+      300094,
+      7486,
+      "HYPER",
+      "C",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      8,
+      true,
+      "b6b7854d82baa413152b506e2b5e4667a5c9b99b2161b9474849663e0fea9a9e"
+    ],
+    [
+      300106,
+      21191,
+      "STAIR",
+      "C",
+      "recovered",
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        4
+      ],
+      17,
+      false,
+      "fd64644666b864d069e61abc559fb4045e5e4486ccb9ea3277f4994f37b3145a"
+    ],
+    [
+      300106,
+      21994,
+      "CROSS",
+      "L",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      15,
+      true,
+      "f6c61c5dff044790a0c17450069aab8c6234ddf697a024d6b51e1dd849f58fcb"
+    ],
+    [
+      300350,
+      6021,
+      "HYPER",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      2,
+      true,
+      "79becd01b76035cf554d515f9a9dcf0b28b9e2c57de369f4d9ca07d42af11be9"
+    ],
+    [
+      300574,
+      5780,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      12,
+      true,
+      "92303e2bf3014388f59a2df383b3253aa9574c3429fdb4e8269c28e8d4a2e6b7"
+    ],
+    [
+      300250,
+      16275,
+      "C",
+      "STAIR",
+      "recovered",
+      [
+        1,
+        13
+      ],
+      [
+        3,
+        5
+      ],
+      13,
+      false,
+      "0b7532d7cc224158fb51ff9efe082ba770e0c1dacbd9fd75ea35ab615fb358e8"
+    ],
+    [
+      300250,
+      17172,
+      "CROSS",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        79,
+        455
+      ],
+      [
+        1,
+        1
+      ],
+      14,
+      true,
+      "38d469a9a91581633993dc350727073d61fe812bd32eb4994f32351306c42f9e"
+    ],
+    [
+      300112,
+      9702,
+      "CROSS",
+      "FORK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      12,
+      false,
+      "ec852a41ee214c159bd81d2898a7e1dad2a9c69c7776909d89fd702e641929be"
+    ],
+    [
+      300366,
+      7089,
+      "HYPER",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      15,
+      true,
+      "8d0f372c43aaeebc4d0d3396de91604eca47dbb8b58e8eff3b967c33ee73d52d"
+    ],
+    [
+      300432,
+      6064,
+      "CROSS",
+      "HOOK",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      20,
+      true,
+      "9972e0d719e1bc72dc95496e2910c3fbec30ce59dc0866b29412706ac6f6dc2b"
+    ],
+    [
+      300282,
+      7326,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      21,
+      true,
+      "bbbec0c980b1d8a46000d4c3e7ae246ed50cc5f82d236274c23a915bd8291b20"
+    ],
+    [
+      300238,
+      7251,
+      "HYPER",
+      "CROSS",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      0,
+      true,
+      "a9134948056a42346a4c267097160b3105457fcba1f756f15f889cf42e6b11ac"
+    ],
+    [
+      300270,
+      6361,
+      "CROSS",
+      "RING",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      18,
+      true,
+      "772aeb69dd2685b22c5b78693ed4d6334c94aa42bfa17343a1eaed1f0e552d1a"
+    ],
+    [
+      300376,
+      6298,
+      "CROSS",
+      "HOOK",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      1,
+      true,
+      "6ff8a08c340ae6dfb6e1d9b4c7982ca93604a0d446b879ae48a402283bece6ff"
+    ],
+    [
+      300468,
+      5823,
+      "CROSS",
+      "NOVA",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      17,
+      false,
+      "c2a2aa3f1ee0602b20bd0834b28f4df1f1442b8f5e5767debb4bb20e4955d19b"
+    ],
+    [
+      300306,
+      7082,
+      "CROSS",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      18,
+      true,
+      "1ca16a69e907cdfb60c6e734b5fc7a4a16e6b8839ef99a4b866c578533ea714e"
+    ],
+    [
+      300196,
+      23488,
+      "B",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1,
+        15
+      ],
+      [
+        3,
+        4
+      ],
+      8,
+      true,
+      "17464c7da798131f51fb4da1e846820d5a0cd90e1e2372dedb0ab25022acc057"
+    ],
+    [
+      300074,
+      25807,
+      "CROSS",
+      "O",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      11,
+      true,
+      "1a10649882c4f8165063956be38df69277d81cc46483c889f33f21312061fb3e"
+    ],
+    [
+      300154,
+      7543,
+      "CROSS",
+      "C",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      9,
+      true,
+      "68ff05164d4b710590c6f5581b9e29f941b886aa64d9195039db2db8b1fab65c"
+    ],
+    [
+      300354,
+      7312,
+      "BRIDGE",
+      "I",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      1,
+      true,
+      "d1539069be3183704e668bdd45643c14a7958be598fd3c51a6b7a27739386533"
+    ],
+    [
+      300164,
+      22463,
+      "FORK",
+      "S",
+      "physical_top_out",
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        1
+      ],
+      2,
+      true,
+      "cc5b688394df8d82f2f1121ae00299818d9482387504716d01eb05e2012862ba"
+    ],
+    [
+      300262,
+      7363,
+      "CROSS",
+      "NOVA",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      15,
+      true,
+      "e10b5306a6f232cfdb85ac22214ca208ab3148f35e9e0b4a44ce8b0e51f22de4"
+    ],
+    [
+      300022,
+      12343,
+      "CROSS",
+      "T",
+      "physical_top_out",
+      [
+        248,
+        1365
+      ],
+      [
+        1,
+        1
+      ],
+      3,
+      true,
+      "ee854310c3495adf786fea54bc775807fe0fc2d6a940b7ea11475fbcdd4879ec"
+    ],
+    [
+      300160,
+      19532,
+      "T",
+      "STAIR",
+      "physical_top_out",
+      [
+        9,
+        55
+      ],
+      [
+        1,
+        1
+      ],
+      8,
+      true,
+      "d7ff0c7de84be463924a07c178469f7a5c8b8d7edfe4c53fea97407961fd3a61"
+    ],
+    [
+      300386,
+      7217,
+      "CROSS",
+      "BRIDGE",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      13,
+      true,
+      "93e11108d839ecb567dd0756f880a6a84f130c101bfb245a5d961f9df2877412"
+    ],
+    [
+      300302,
+      7256,
+      "CROSS",
+      "S",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      9,
+      true,
+      "75e0417ea206368f34780257facd5813a8991e1fd7a9d5b93514c5dedd81f558"
+    ],
+    [
+      300520,
+      5847,
+      "HYPER",
+      "L",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      3,
+      true,
+      "73066466ce9c3fad02d999eada27bb72652e2c8735af57e6c63807ecf824d9e4"
+    ],
+    [
+      300378,
+      5451,
+      "CROSS",
+      "S",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      15,
+      true,
+      "0a2f384664a2f544d94f9314d552552f7147b79d365ed5fdc851d3c0a7c6f98a"
+    ],
+    [
+      300242,
+      7319,
+      "HYPER",
+      "C",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      5,
+      true,
+      "0bd6942952c56c136901bbc353c240557cce699a6f8f04766d166a82627cd680"
+    ],
+    [
+      300556,
+      6479,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        25,
+        182
+      ],
+      [
+        10,
+        11
+      ],
+      6,
+      true,
+      "45bf240f7ff759f16327c0afdf6c05dbbb103da0c1ebabd201b9c9294447381f"
+    ],
+    [
+      300522,
+      6618,
+      "HYPER",
+      "STAIR",
+      "physical_top_out",
+      [
+        11,
+        30
+      ],
+      [
+        1,
+        1
+      ],
+      2,
+      true,
+      "9eb4c5a59baeea79ecb95d33c4553357148b393475d07965db5a94e4eb9abd9b"
+    ],
+    [
+      300088,
+      23383,
+      "S",
+      "HYPER",
+      "physical_top_out",
+      [
+        9,
+        70
+      ],
+      [
+        1,
+        1
+      ],
+      8,
+      true,
+      "a35d8abadbf61499cd6c291fbd4018bac85c586799c633dbed1e251202494754"
+    ],
+    [
+      300578,
+      6601,
+      "CROSS",
+      "RING",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      20,
+      false,
+      "b5749cbb81fc09d7716e738133d9b368e5e6f27d3198c1b33d67f4bd400625c3"
+    ],
+    [
+      300138,
+      7051,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        12
+      ],
+      13,
+      true,
+      "240b531cc64c6b74cf572df971723865b1a48570d2e17310bcfa769633dc9c25"
+    ],
+    [
+      300202,
+      7441,
+      "CROSS",
+      "O",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      14,
+      true,
+      "0015659b6e7f27b6916d6b200fe3683497217a05b5a60c416a62b3fec560d06b"
+    ],
+    [
+      300362,
+      6707,
+      "RING",
+      "C",
+      "physical_top_out",
+      [
+        64,
+        165
+      ],
+      [
+        9,
+        10
+      ],
+      8,
+      true,
+      "3f208da4360abe8ead7b58db99a0e254bf623a6a259d240cf1a0c4d87178e881"
+    ],
+    [
+      500008,
+      10557,
+      "HOOK",
+      "O",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      7,
+      true,
+      "8a81f837875be419ee2e61501c33acea8be1c7ac2ff10422a963d625888eda97"
+    ],
+    [
+      300470,
+      5428,
+      "CROSS",
+      "FORK",
+      "physical_top_out",
+      [
+        643,
+        1365
+      ],
+      [
+        1,
+        1
+      ],
+      4,
+      true,
+      "c0a5eaa90d47cdb249d8380a6fd84752101343d3a495b41829500d61276a4aa7"
+    ],
+    [
+      300546,
+      6997,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      7,
+      true,
+      "ef59ccbad106a043e143ca38699bd07f9786c8d4390a91be3ca1b2d8a60fbd83"
+    ],
+    [
+      300052,
+      24117,
+      "FORK",
+      "I",
+      "recovered",
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        12
+      ],
+      15,
+      false,
+      "6031f27b4b1c1c4c446afef53cdc12e3da6a017187faf79dfba92d5107357837"
+    ],
+    [
+      300052,
+      25029,
+      "CROSS",
+      "FORK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        6
+      ],
+      17,
+      false,
+      "e70d28c1c90736077312824ea1d5e06030e9824fa9ec57dc720a0d2db75b5960"
+    ],
+    [
+      300012,
+      12200,
+      "L",
+      "I",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      19,
+      false,
+      "09b975bc9b11fb3ada2a393e8f276643aa59e37aeda09595693bfd325f84ce6d"
+    ],
+    [
+      300514,
+      7144,
+      "CROSS",
+      "I",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      20,
+      true,
+      "47a234687de9c1348d2894faa07fee9875d2f0cbc7cbab35eb549fe43a0fa4ed"
+    ],
+    [
+      300102,
+      24336,
+      "NOVA",
+      "FORK",
+      "physical_top_out",
+      [
+        1,
+        7
+      ],
+      [
+        1,
+        1
+      ],
+      4,
+      true,
+      "29385b55ee78ddcb9f7e0925f18bdf0a9352e1aa3f31c43837194e18873c875c"
+    ],
+    [
+      300258,
+      7309,
+      "CROSS",
+      "T",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      13,
+      true,
+      "4a01cf8c134ae762a837cfb0ee33336e7a4265a4b54769be582e23dfd787b836"
+    ],
+    [
+      300328,
+      6054,
+      "NOVA",
+      "HYPER",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      10,
+      true,
+      "25f93a7795bbafb38e56fe5bd14296970c711a4ed34df0065824ddac4c1e0d71"
+    ],
+    [
+      300504,
+      6835,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      9,
+      false,
+      "e5745a0c88d1f61a68f17e0636e763002da3014fbad50d8d015c9961e757ecf4"
+    ],
+    [
+      300310,
+      7270,
+      "CROSS",
+      "I",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      17,
+      true,
+      "5d33d9106900a24fd76692558f4481224fa4da894788cc1d219900c52b20d1b7"
+    ],
+    [
+      300294,
+      7247,
+      "BRIDGE",
+      "FORK",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      11,
+      true,
+      "96771e15c374d2835cfef8c7bf8bf8bac52c261e8e47fa05d58b1603a3ceaed4"
+    ],
+    [
+      300462,
+      5434,
+      "CROSS",
+      "FORK",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        3749,
+        12870
+      ],
+      23,
+      false,
+      "cc4e15e758c6bea2ed0e18895bae7d767f875b251efa8c34fdf9f3ea30aedc79"
+    ],
+    [
+      300508,
+      6046,
+      "CROSS",
+      "B",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      25,
+      true,
+      "201564ad99c55b7a7a636d2202a9b96e68da01bfbffe54f40fba18e001f3504f"
+    ],
+    [
+      300388,
+      6764,
+      "CROSS",
+      "I",
+      "physical_top_out",
+      [
+        12,
+        91
+      ],
+      [
+        179,
+        396
+      ],
+      3,
+      true,
+      "f2d82e2076c4661490c57b88a93a35419db8269a019d342d8b88d34bc64b5083"
+    ],
+    [
+      300040,
+      11478,
+      "CROSS",
+      "C",
+      "physical_top_out",
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      25,
+      false,
+      "297f4dfeda1a231fa59c0412a3dcbd8ab681310b0733e94d9818dfeb7c2049eb"
+    ],
+    [
+      300304,
+      7033,
+      "T",
+      "CROSS",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      0,
+      true,
+      "1dd2c17e661e456f24c092c4e4158626141a832fc35af9a9aaf3759ce2becfa1"
+    ],
+    [
+      300042,
+      6447,
+      "CROSS",
+      "HOOK",
+      "physical_top_out",
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      13,
+      true,
+      "97a0434dfb45302cd460ca64f0ea3f8c49bac5f4a4a8ac3a777e6d0d2c59e815"
+    ]
+  ],
+  "public_terminal_one_move": [
+    {
+      "seed": 48200001,
+      "current": "BRIDGE",
+      "visible": "CROSS",
+      "preboard_sha256": "1f4f211d4192fcc7d36c7fbc3b7e4d321f287cf0b13665d0077954a9c18049e0",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 62502,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200003,
+      "current": "FORK",
+      "visible": "CROSS",
+      "preboard_sha256": "09bddbb9018a70aecb3f8ef927e9ecba5bc822b5aa29ed7586e830b00a2e0d02",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 358483,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200005,
+      "current": "BRIDGE",
+      "visible": "CROSS",
+      "preboard_sha256": "745400418e26482f6da5ab2c8dbca97fb2c332ddbb369df2dc6915d65b843ed1",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 56328,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200007,
+      "current": "RING",
+      "visible": "CROSS",
+      "preboard_sha256": "69af63ab9e9cf35a3cdad6e10d52ca6260fa2df4b0d8a4edf6a9c833937bcea4",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 18474,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200009,
+      "current": "O",
+      "visible": "CROSS",
+      "preboard_sha256": "3aab316ca2e61b3cecafc569b192d008dfb53b62ebc392312e52a15b0c93c75d",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 13893,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200011,
+      "current": "NOVA",
+      "visible": "CROSS",
+      "preboard_sha256": "9ed70dcd73a5e53240e58a4f17dc4e0d7865683e08595961bfafaaefdaa519bf",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 30077,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200013,
+      "current": "HOOK",
+      "visible": "CROSS",
+      "preboard_sha256": "8ca7427109025b8199508e42b9f0398d9c5c09f3609d33276ab4177223cf79b2",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 146253,
+      "actual_clears": 0
+    },
+    {
+      "seed": 48200015,
+      "current": "C",
+      "visible": "CROSS",
+      "preboard_sha256": "5b6dff11d8e6d5998d54f21c00c15a9d1d5b5c86e644870fc0253f51d7013b00",
+      "geometry_proves_no_clear": true,
+      "all_current_legal": 179171,
+      "actual_clears": 0
+    }
+  ],
+  "retrospective_one_move": {
+    "design": {
+      "frozen_utc": "2026-11-26T16:49:44.323976+00:00",
+      "scope": "Retrospective single-decision application of the universal certificate (probability exactly one), using all nine archived training forks, their four common-random-draw continuations, and separately the previously published tenth development fork. Original and resampled outcomes already published; no new validation cohort or model fitting.",
+      "decision": "Only replace an ordinarily chosen move which destroys the last CROSS origin with the known highest-logit retaining alternative if its zero-mobility afterboard cannot clear any layer before CROSS under every compatible public shuffle. Verify ordinary and alternative post-board hashes. Continue with the recorded fixed policy after that single decision.",
+      "inputs": {
+        "combined-examples.json": "822d02e64290e13a7a1f6e35540ad5101efe2bfb0349b383f36e816812627dae",
+        "continuations.json": "eb2acfe10f7f7763628c512798d2534f03bf06b4ee49c8d4757d75fac5cf3790",
+        "development-natural-extension.json": "0452236695dde4a3e5ea8a87ce6b3a484032859537c4960cfbe9a6c72562eefd",
+        "future-sensitivity-results.json": "a8a908edb6aacef0439da714d01de3fe850e1975261b83b0c3ad442557efd96c"
+      }
+    },
+    "rows": [
+      {
+        "example": "300318-6090",
+        "split": "train",
+        "seed": 300318,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 16,
+        "preserve": 16,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "example": "300352-6027",
+        "split": "train",
+        "seed": 300352,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 12,
+        "preserve": 12,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          33,
+          18,
+          38,
+          0
+        ]
+      },
+      {
+        "example": "300352-6032",
+        "split": "train",
+        "seed": 300352,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 7,
+        "preserve": 36,
+        "certificate_gain": 29,
+        "resampled_preserving_gains": [
+          19,
+          31,
+          31,
+          32
+        ]
+      },
+      {
+        "example": "300524-5989",
+        "split": "train",
+        "seed": 300524,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 15,
+        "preserve": 29,
+        "certificate_gain": 14,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          22,
+          0
+        ]
+      },
+      {
+        "example": "300168-7442-93459ee4c0",
+        "split": "train",
+        "seed": 300168,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 20,
+        "preserve": 30,
+        "certificate_gain": 10,
+        "resampled_preserving_gains": [
+          9,
+          7,
+          22,
+          17
+        ]
+      },
+      {
+        "example": "300200-19382-99159f600b",
+        "split": "development",
+        "seed": 300200,
+        "prob": [
+          2,
+          9
+        ],
+        "certified": false,
+        "greedy": 4,
+        "preserve": 5197,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": []
+      },
+      {
+        "example": "300382-5998-bbd744299e",
+        "split": "train",
+        "seed": 300382,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 15,
+        "preserve": 15,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          18,
+          0
+        ]
+      },
+      {
+        "example": "300526-5915-6cde53ce3a",
+        "split": "train",
+        "seed": 300526,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 18,
+        "preserve": 18,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "example": "300312-7120-ded0404ed5",
+        "split": "train",
+        "seed": 300312,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 5,
+        "preserve": 5,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "example": "300318-6108-2a5ed34b87",
+        "split": "train",
+        "seed": 300318,
+        "prob": [
+          1,
+          1
+        ],
+        "certified": true,
+        "greedy": 15,
+        "preserve": 15,
+        "certificate_gain": 0,
+        "resampled_preserving_gains": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "training_cases": 9,
+    "training_streams": 7,
+    "training_certificates": 9,
+    "training_gain": 53,
+    "development_certificates": 0,
+    "development_forgone_gain": 5193,
+    "scope": "Every labeled root had a preserving alternative. Switch once only on universal proof, then play the same deterministic continuation. Original labels and separate development outcome had already been published."
+  }
+}

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -169,9 +170,11 @@ def device_afterstate_descriptors(boards, targets, cells, cell_mask, valid, chun
 
 
 @torch.no_grad()
-def afterstate_descriptors(board, options, target):
+def afterstate_descriptors(board, options, target, *, checked_shortlist=False):
     if not options:
         raise ValueError('Cannot encode an empty candidate shortlist')
+    if checked_shortlist and not any(option.layers for option in options) and not neural.game.full_layer_mask(board):
+        return _local_afterstate_descriptors(board, options, target)
     original = tuple(int(value) for value in board)
     before = torch.as_tensor(np.asarray([original], dtype=np.int32))
     levels = torch.as_tensor([int(target)], dtype=torch.int32)
@@ -186,6 +189,70 @@ def afterstate_descriptors(board, options, target):
     impacts = adjacency_statistics(after, targets) - initial
     return (initial.mean(dim=1)[0].numpy().astype(np.float32),
             impacts.reshape(len(options), SPATIAL_ACTOR_FEATURES).numpy().astype(np.float32))
+
+
+@lru_cache(maxsize=1)
+def _column_mask_tables():
+    masks = np.arange(1 << 16, dtype=np.int32)
+    heights = np.fromiter(map(int.bit_length, range(len(masks))), dtype=np.int16)
+    bitcounts = np.fromiter(map(int.bit_count, range(len(masks))), dtype=np.uint8)
+    gaps = (((1 << heights.astype(np.int32)) - 1) ^ masks).astype(np.uint16)
+    return heights, bitcounts, gaps
+
+
+def _edge_statistics(left, right, target):
+    heights, bitcounts, gaps = _column_mask_tables()
+    difference = np.abs(heights[left] - heights[right]).astype(np.int32)
+    changed = left ^ right
+    return np.stack((difference, difference * difference, difference > 1,
+                     bitcounts[changed], bitcounts[gaps[left] ^ gaps[right]],
+                     (changed >> target) & 1), axis=-1)
+
+
+def _local_afterstate_descriptors(board, options, target):
+    """Exact CPU adjacency sums for checked placements that leave every layer in place."""
+    game = neural.game
+    masks = np.asarray(board, dtype=np.uint16)
+    shapes = [game.SHAPES[c.piece][c.rotation] for c in options]
+    columns = np.full((len(options), max(len(s.columns) for s in shapes)), -1, dtype=np.int32)
+    after = np.tile(masks, (len(options), 1))
+    for row, (option, shape) in enumerate(zip(options, shapes)):
+        origin = game.column_index(option.x, option.y, option.w)
+        for slot, (offset, bits, _) in enumerate(shape.columns):
+            column = origin + offset
+            columns[row, slot] = column
+            after[row, column] |= bits << option.z
+
+    all_columns = np.arange(game.AREA, dtype=np.int32)
+    present = columns >= 0
+    before_sums = np.empty((len(AXIS_NAMES), len(STATISTIC_NAMES)), dtype=np.int32)
+    after_sums = np.empty((len(options), *before_sums.shape), dtype=np.int32)
+    for axis, step in enumerate((1, game.WIDTH, game.SLICE_AREA)):
+        left = all_columns[(all_columns // step) % game.WIDTH < game.WIDTH - 1]
+        before_sums[axis] = _edge_statistics(masks[left], masks[left + step], target).sum(0)
+
+        # An edge shared by two modified columns contributes once. Its lower endpoint
+        # identifies it uniquely on this axis; boundary faces have no outward edge.
+        coordinate = (columns // step) % game.WIDTH
+        outgoing = np.where(present & (coordinate < game.WIDTH - 1), columns, game.AREA)
+        incoming = np.where(present & (coordinate > 0), columns - step, game.AREA)
+        edges = np.sort(np.concatenate((incoming, outgoing), axis=1), axis=1)
+        unique = edges != game.AREA
+        unique[:, 1:] &= edges[:, 1:] != edges[:, :-1]
+        rows, slots = np.nonzero(unique)
+        left = edges[rows, slots]
+        right = left + step
+        delta = (_edge_statistics(after[rows, left], after[rows, right], target)
+                 - _edge_statistics(masks[left], masks[right], target))
+        after_sums[:, axis] = before_sums[axis]
+        np.add.at(after_sums[:, axis], rows, delta)
+
+    # Integer edge sums are exactly representable in FP32. Keep the reference
+    # mean and per-statistic divisors separate so the final subtraction rounds identically.
+    scale = torch.tensor((16, 256, 1, 16, 16, 1), dtype=torch.float32, device='cpu')
+    before = torch.from_numpy(before_sums).float().div_(SPATIAL_DELTA_SCALE).div_(scale)
+    after = torch.from_numpy(after_sums).float().div_(SPATIAL_DELTA_SCALE).div_(scale)
+    return before.mean(0).numpy(), (after - before).reshape(len(options), SPATIAL_ACTOR_FEATURES).numpy()
 
 
 @torch.no_grad()
@@ -281,7 +348,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
     def __init__(self, config: neural.Config):
         if config.architecture != ARCHITECTURE:
             raise ValueError('SurvivalSpatialPolicy requires survival-spatial-v4 architecture')
-        super().__init__(replace(config, architecture=V3_ARCHITECTURE))
+        super().__init__(replace(config, architecture=V3_ARCHITECTURE, cross_residual=False, cross_weight=0.))
         self.config = config
         self.spatial_actor = nn.Linear(SPATIAL_ACTOR_FEATURES, 64, bias=False)
         nn.init.zeros_(self.spatial_actor.weight)
@@ -289,6 +356,14 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                        + (REGIONAL_CRITIC_FEATURES if config.regional_critic else 0))
         self.value = nn.Sequential(nn.LayerNorm(state_width), nn.Linear(state_width, 128), nn.SiLU(),
                                    nn.Linear(128, 64), nn.SiLU(), nn.Linear(64, 1))
+        if config.cross_residual:
+            self.cross_head = nn.Sequential(nn.Linear(68, 32), nn.SiLU(), nn.Linear(32, 1))
+            nn.init.zeros_(self.cross_head[-1].weight)
+            nn.init.zeros_(self.cross_head[-1].bias)
+
+    def _actor_board_features(self, boards, targets):
+        spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
+        return spatial, torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
 
     def _board_features(self, boards, targets):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
@@ -329,15 +404,16 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         return column_mask
 
     @torch.no_grad()
-    def fixed_inputs(self, batch):
+    def fixed_inputs(self, batch, *, actor_only=False):
         """Detach only board/column statistics; every trainable layer still runs on each PPO pass."""
         columns = self._validated_columns(batch)
-        spatial, pooled = self._board_features(batch['boards'], batch['targets'])
+        encode = self._actor_board_features if actor_only else self._board_features
+        spatial, pooled = encode(batch['boards'], batch['targets'])
         local = []
         for start in range(0, columns.shape[1], self.config.chunk):
             stop = start + self.config.chunk
             local.append(self.local_statistics(spatial, batch['indices'][:, start:stop], columns[:, start:stop]))
-        fixed = {name: batch[name] for name in ('context', 'features', 'valid', 'spatial_delta', 'teacher_prior')
+        fixed = {name: batch[name] for name in ('context', 'features', 'valid', 'spatial_delta', 'teacher_prior', 'cross_mobility')
                  if name in batch}
         return {**fixed, 'pooled': pooled, 'local': local[0] if len(local) == 1 else torch.cat(local, 1)}
 
@@ -369,17 +445,16 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden)
         return raw, hidden, pooled, value, completion
 
-    def actor_logits(self, batch):
-        """Rank candidates without computing the regional critic or retaining hidden activations."""
+    def actor_logits(self, batch, *, return_base=False):
+        """Rank candidates without computing the regional critic."""
         if 'pooled' in batch:
             spatial, pooled = None, batch['pooled']
         else:
-            spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
-            pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
-        raw, _ = self._rank_candidates(batch, spatial, pooled, keep_hidden=False)
-        return self._policy_logits(raw, batch)
+            spatial, pooled = self._actor_board_features(batch['boards'], batch['targets'])
+        raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden=self.config.cross_residual)
+        return self._policy_logits(raw, batch, hidden, return_base=return_base)
 
-    def _policy_logits(self, raw, batch):
+    def _policy_logits(self, raw, batch, hidden=None, *, return_base=False):
         logits = raw
         if self.config.policy_mode in ('teacher-residual', 'teacher-prior'):
             if 'teacher_prior' not in batch:
@@ -388,13 +463,30 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
                 logits = batch['teacher_prior'].float() + self.config.residual_scale * (2 * torch.sigmoid(raw.float()) - 1)
             else:
                 logits = self.config.teacher_prior_scale * batch['teacher_prior'].float() + self.config.residual_scale * raw.float()
-        return logits.masked_fill(~batch['valid'].bool(), -torch.inf)
+        base_logits = logits
+        if self.config.cross_residual or self.config.cross_weight:
+            mobility = batch['cross_mobility']
+            if mobility.shape != (*raw.shape, 2):
+                raise ValueError('Expected CROSS mobility before and after each shortlisted move')
+            if self.config.cross_residual:
+                # The context encodes current, preview, then observed remaining bag, in PIECE_NAMES order.
+                cross = neural.NAMES.index('CROSS')
+                flags = batch['context'][:, [len(neural.NAMES) + cross, 2 * len(neural.NAMES) + cross]]
+                inputs = torch.cat((hidden, mobility, flags[:, None].expand(-1, raw.shape[1], -1)), -1)
+                logits = logits + .05 * self.cross_head(inputs).squeeze(-1).tanh()
+            else:
+                logits = logits + self.config.cross_weight * (mobility[..., 1] - mobility[..., 0])
+        invalid = ~batch['valid'].bool()
+        adjusted = logits.masked_fill(invalid, -torch.inf)
+        if return_base:
+            return adjusted, base_logits.masked_fill(invalid, -torch.inf) if base_logits is not logits else adjusted
+        return adjusted
 
     def forward(self, batch, capture=False):
         if capture:
             raise NotImplementedError('V4 uses feature diagnostics rather than legacy CNN activations')
-        raw, _, pooled, value, completion = self.raw_scores(batch, keep_hidden=False)
-        logits = self._policy_logits(raw, batch)
+        raw, hidden, pooled, value, completion = self.raw_scores(batch, keep_hidden=self.config.cross_residual)
+        logits = self._policy_logits(raw, batch, hidden)
         return {'logits': logits, 'raw_logits': raw, 'value': value, 'completion': completion,
                 'critic_input': torch.cat((pooled, batch['context']), dim=1).detach()}
 
@@ -435,6 +527,14 @@ class FeatureView:
         trace = self.agent.get_trace()
         if not trace or not trace.get('feature_inspector'):
             content = 'No feature-policy decision recorded yet.'
+        elif 'outside_action' in trace:
+            action = trace['outside_action']
+            content = (f"Move {trace['piece_number']} / {trace['piece']}\n"
+                       f"Physical rescue outside the {trace['shortlist']}-move actor shortlist\n"
+                       f"Rotation {action['rotation']} at X={action['x']} Y={action['y']} "
+                       f"Z={action['z']} W={action['w']}\n"
+                       "The actor did not score this placement.\n"
+                       f"Pre-move critic value {trace['critic_value']:.6g}")
         else:
             config = self.agent.model.config
             raw = trace.get('actor_score')

@@ -1,0 +1,994 @@
+{
+  "schema": "612000-closed-loop-weight-interventions-v1",
+  "scope": "Same six reused archived danger roots. No claims about independent empty-board survival from them. Physical rescue intervenes only on an immediately terminal move. Scalar 4 changes candidate logits using the change in clipped CROSS mobility. The optional guard preserves the last legal landing if an available alternative does so.",
+  "actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+  "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+  "rescue": {
+    "plan_sha256": "86c626eb2350126bd55735b26c560e6a5a076ff839365787a45b7690ee0d4f5a",
+    "receipt_sha256": "b3b7ebe80ba04d746b71fe2768dc18689d61faf69d1ee597e7d8f800fe06eaa4",
+    "runner_sha256": "1b406819f10e704a62348f8197cf923247ea14ee13700e8d30e55525e4aaac8c",
+    "roots": {
+      "300322": {
+        "placements": 200,
+        "terminal": {
+          "placement": 200,
+          "preboard_sha256": "3286d6149d95395c2917560af68431ba3ef5e040880e865d0f4daf431c52cdd5",
+          "stream_sha256": "2b78dbdf3a8097c30822bbb5978fe09d829a292cd5b1f251ffafafa919a4a6a6",
+          "current": "HYPER",
+          "visible": "CROSS",
+          "greedy_index": 1,
+          "chosen_index": 1,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 24,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 24,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 24
+        },
+        "terminal_board": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4"
+      },
+      "300460": {
+        "placements": 412,
+        "terminal": {
+          "placement": 412,
+          "preboard_sha256": "52f9dcef5f2f3469f43710c3fea164e4baaebace2234dcfe35ba87c454613d13",
+          "stream_sha256": "64c6c08cec9eabe525855875da0e302dbf10de5dadb445135f4f583e3edf0ea6",
+          "current": "BRIDGE",
+          "visible": "CROSS",
+          "greedy_index": 102,
+          "chosen_index": 102,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 128,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 28932,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 128
+        },
+        "terminal_board": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363"
+      },
+      "300264": {
+        "placements": 206,
+        "terminal": {
+          "placement": 206,
+          "preboard_sha256": "2ec02e17a43160648f5414b0856d1e0c67c69ed5c154baf4daa39d49e4ba43ae",
+          "stream_sha256": "e89fe424321f426f1a8a9da100d02387d12bb1270854e1a61f286a1a5324cfeb",
+          "current": "HOOK",
+          "visible": "CROSS",
+          "greedy_index": 124,
+          "chosen_index": 124,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 128,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 40817,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 128
+        },
+        "terminal_board": "7d91be673a93067cd1db4406d39f88741eacae71d23023b5da9a1e58a80482cd"
+      },
+      "300576": {
+        "placements": 593,
+        "terminal": {
+          "placement": 593,
+          "preboard_sha256": "94ed30350b63779263f8f3f41a2cea10dd5a205e5b7172fa872bc9e05a02e505",
+          "stream_sha256": "3e0fdc618686594dde808f689133236c53c316342ed6308cca3644cb735e0a4f",
+          "current": "B",
+          "visible": "CROSS",
+          "greedy_index": 76,
+          "chosen_index": 76,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 128,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 37603,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 128
+        },
+        "terminal_board": "0d9f3a97a265c910fde86519d956df3d76308ce771385f108c1467a421a7f29c"
+      },
+      "500000": {
+        "placements": 222,
+        "terminal": {
+          "placement": 222,
+          "preboard_sha256": "8e9b1b9eb65b78427af0d048896af2fe6f157f19eaf7d65fb51d3b77ea2e6b61",
+          "stream_sha256": "9a717aa36cedbfa89c2b5c01514de6f412b2060542dae2f612c25983eb3bf8f9",
+          "current": "NOVA",
+          "visible": "CROSS",
+          "greedy_index": 95,
+          "chosen_index": 95,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 128,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 8029,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 128
+        },
+        "terminal_board": "ae1a7df4169ab9870269978564b1a7680d9e942ccfe1e01afc6f7a2973760ed6"
+      },
+      "300122": {
+        "placements": 255,
+        "terminal": {
+          "placement": 255,
+          "preboard_sha256": "eab32960b85f7ddb78427d9ced569c8e171a5713b74dfaf58e59c4e092724f2d",
+          "stream_sha256": "6db0bed8b47d16f5b7d48dbe71058137abd35cc87d173ab339cd04f32b277f94",
+          "current": "B",
+          "visible": "CROSS",
+          "greedy_index": 58,
+          "chosen_index": 58,
+          "chosen_rank": 1,
+          "override": false,
+          "shortlist_n": 128,
+          "shortlist_saving": 0,
+          "visible_legal_before": 0,
+          "all_current_physical_poses": 68218,
+          "all_current_saving_poses": 0,
+          "all_current_clearing_poses": 0,
+          "all_saving_clearing_poses": 0,
+          "full_geometry_vs_shortlist_checks": 128
+        },
+        "terminal_board": "d61c9023b9471dcc661753ecdbf30c9068db7c2f38fa9b2233f10aed31c14adb"
+      }
+    }
+  },
+  "scalar_4": {
+    "status": "complete",
+    "receipt_sha256": "3b3228775750ec6e0bd4cafc5cff305c66716658a34259f834afd6ab43e5cae2",
+    "plan_sha256": "f1e726ba570e3dedaeccebdb635f8cfde4abd34b5ae1e43a59319268f0489e7b",
+    "runner_sha256": "8381fb26d8b08966de53b9b43071b6f531beae2b2eba5375446bd22f8cf87b60",
+    "parameters": {
+      "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+      "critic_sha256": "0bc37fefcad76bc9d370dadd5c57fdd6108cea7b3aca9c5fb71dbff6c970ed26",
+      "n_parameters": 102830,
+      "critic_parameters": 53689,
+      "new_trained_parameters": 0
+    },
+    "checks": {
+      "shared_forward_rows_saved": 9409,
+      "source_base_and_scalar_formula_rows": 8271,
+      "root_critic_output_exact": 6,
+      "root_index_shortlist_production_checks": 6,
+      "shared_commits_saved": 9403
+    },
+    "roots": {
+      "300322": {
+        "placements": {
+          "plain": 200,
+          "scalar4": 220,
+          "scalar4_guard": 220
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 20
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 200,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 220,
+            "direct_changes": 13,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 220,
+            "direct_changes": 13,
+            "guard_threats": 1,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 128,
+          "source_offset": 7163,
+          "board_sha256": "5c144d5c11c5e47716956563213ce696cc725739f70c0cddb570502c910e4c20",
+          "stream_sha256": "3b518196d0518e28902745be3cc2e66590a161b8ff16ea504884a45287da290d",
+          "current": "B",
+          "visible": "CROSS",
+          "cross_before": 14,
+          "actions": {
+            "plain": {
+              "index": 101,
+              "move": [
+                27,
+                2,
+                5,
+                12,
+                14
+              ],
+              "cross_after": 12,
+              "clears": 0,
+              "base_logit": -1.064273476600647,
+              "adjusted_logit": -1.266306757926941,
+              "adjusted_actor_rank": 5
+            },
+            "scalar4": {
+              "index": 29,
+              "move": [
+                10,
+                10,
+                11,
+                12,
+                14
+              ],
+              "cross_after": 14,
+              "clears": 0,
+              "base_logit": -1.0668706893920898,
+              "adjusted_logit": -1.0668706893920898,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 200,
+            "reason": "physical_top_out",
+            "board_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+            "stream_sha256": "0e196ab033553f665376d144e42a6b812ba71b6cfc040f578cbfa10579224440",
+            "current": "CROSS",
+            "visible": "C",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "edc2fbc0339c619ea50e1dc83aec0dcd23522235e039305b0f09d81893a35a47"
+          },
+          "scalar4": {
+            "n": 220,
+            "reason": "physical_top_out",
+            "board_sha256": "16dfb9d4b5ab6d1395591293221aeb8d94732701243c61e6e45bbef57324d0b2",
+            "stream_sha256": "5929649510257718ae2bbf213da76175baa429ee59b0f471228939057c46d7a7",
+            "current": "CROSS",
+            "visible": "FORK",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "f8f271e4cd4d5a8c82e1f3842fed38c7f268bc9597da246276d0306ee8fd2994"
+          },
+          "scalar4_guard": {
+            "n": 220,
+            "reason": "physical_top_out",
+            "board_sha256": "16dfb9d4b5ab6d1395591293221aeb8d94732701243c61e6e45bbef57324d0b2",
+            "stream_sha256": "5929649510257718ae2bbf213da76175baa429ee59b0f471228939057c46d7a7",
+            "current": "CROSS",
+            "visible": "FORK",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "f8f271e4cd4d5a8c82e1f3842fed38c7f268bc9597da246276d0306ee8fd2994"
+          }
+        }
+      },
+      "300460": {
+        "placements": {
+          "plain": 412,
+          "scalar4": 448,
+          "scalar4_guard": 448
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 36
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 412,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 448,
+            "direct_changes": 9,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 448,
+            "direct_changes": 9,
+            "guard_threats": 1,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 369,
+          "source_offset": 6492,
+          "board_sha256": "774e0daf9c8fb040888ee1b4adccc8e999ae0c21b84b5aef17b194f9f435dc59",
+          "stream_sha256": "eca2e07d7dca487aff3d691f13f7d52ee9b0d6b289efd4f1ec7fa9423a72be76",
+          "current": "BRIDGE",
+          "visible": "CROSS",
+          "cross_before": 13,
+          "actions": {
+            "plain": {
+              "index": 19,
+              "move": [
+                25,
+                3,
+                0,
+                1,
+                12
+              ],
+              "cross_after": 12,
+              "clears": 0,
+              "base_logit": -0.23704983294010162,
+              "adjusted_logit": -0.3416774272918701,
+              "adjusted_actor_rank": 3
+            },
+            "scalar4": {
+              "index": 9,
+              "move": [
+                12,
+                14,
+                10,
+                7,
+                12
+              ],
+              "cross_after": 13,
+              "clears": 0,
+              "base_logit": -0.261749267578125,
+              "adjusted_logit": -0.261749267578125,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 412,
+            "reason": "physical_top_out",
+            "board_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+            "stream_sha256": "5575b8d187a59c63040930ccd6c0f8a8c1f1dbeed5f935db388bb59e3876377e",
+            "current": "CROSS",
+            "visible": "B",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "240a731408f2963f9a146580d0042c17ac35acce7991fb1cd8cbd856c4352e63"
+          },
+          "scalar4": {
+            "n": 448,
+            "reason": "physical_top_out",
+            "board_sha256": "cf89dd0e1a61a5cc2ef05c181a353b59bb201264c6269ce10a0bbf85fc1636b1",
+            "stream_sha256": "c7ff3505216903812405705954ef8410753ca3e5002d089a14e31ea4fca6b43e",
+            "current": "CROSS",
+            "visible": "S",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "afd92d77df05e2d655798920f194db65f284ec4a07d8048d3095b28dcb9c4025"
+          },
+          "scalar4_guard": {
+            "n": 448,
+            "reason": "physical_top_out",
+            "board_sha256": "cf89dd0e1a61a5cc2ef05c181a353b59bb201264c6269ce10a0bbf85fc1636b1",
+            "stream_sha256": "c7ff3505216903812405705954ef8410753ca3e5002d089a14e31ea4fca6b43e",
+            "current": "CROSS",
+            "visible": "S",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "afd92d77df05e2d655798920f194db65f284ec4a07d8048d3095b28dcb9c4025"
+          }
+        }
+      },
+      "300264": {
+        "placements": {
+          "plain": 206,
+          "scalar4": 215,
+          "scalar4_guard": 215
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 9
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 206,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 215,
+            "direct_changes": 3,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 215,
+            "direct_changes": 3,
+            "guard_threats": 1,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 124,
+          "source_offset": 7187,
+          "board_sha256": "1af66267333e5c0e93b6f5a2d039b14b3f7a745839cfb2711cc21e383018dec3",
+          "stream_sha256": "039881572b1d57753a9b4a0494d1cd8c130a0779ce1ab5e023d18f3bbbd61208",
+          "current": "HYPER",
+          "visible": "O",
+          "cross_before": 16,
+          "actions": {
+            "plain": {
+              "index": 61,
+              "move": [
+                0,
+                4,
+                8,
+                14,
+                13
+              ],
+              "cross_after": 13,
+              "clears": 0,
+              "base_logit": 9.325666427612305,
+              "adjusted_logit": 9.051551818847656,
+              "adjusted_actor_rank": 3
+            },
+            "scalar4": {
+              "index": 48,
+              "move": [
+                0,
+                7,
+                14,
+                13,
+                13
+              ],
+              "cross_after": 16,
+              "clears": 0,
+              "base_logit": 9.27299690246582,
+              "adjusted_logit": 9.27299690246582,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 206,
+            "reason": "physical_top_out",
+            "board_sha256": "7d91be673a93067cd1db4406d39f88741eacae71d23023b5da9a1e58a80482cd",
+            "stream_sha256": "7e572f972084a43557ec0c22b5838e09532a0506f2a345b07794ee0c9413f387",
+            "current": "CROSS",
+            "visible": "S",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "9710d7a8c2b5281c1b362d3509a993eefc8416313b1b250bcb8dc45c053f555b"
+          },
+          "scalar4": {
+            "n": 215,
+            "reason": "physical_top_out",
+            "board_sha256": "bb28ef14d994ebc79ce2d94be3603fa4a2d270f2c5bb4ad43a56196d7d7b539d",
+            "stream_sha256": "c7f31ab994e0ce55238cff55e8f6e0e83ff4a84c34a7b64a59de6dcc48a9a683",
+            "current": "CROSS",
+            "visible": "BRIDGE",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "a2c6bcb3794feb4e69954946e837e89486ce503e25fb104633d4cc9c34ff4abc"
+          },
+          "scalar4_guard": {
+            "n": 215,
+            "reason": "physical_top_out",
+            "board_sha256": "bb28ef14d994ebc79ce2d94be3603fa4a2d270f2c5bb4ad43a56196d7d7b539d",
+            "stream_sha256": "c7f31ab994e0ce55238cff55e8f6e0e83ff4a84c34a7b64a59de6dcc48a9a683",
+            "current": "CROSS",
+            "visible": "BRIDGE",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "a2c6bcb3794feb4e69954946e837e89486ce503e25fb104633d4cc9c34ff4abc"
+          }
+        }
+      },
+      "300576": {
+        "placements": {
+          "plain": 593,
+          "scalar4": 630,
+          "scalar4_guard": 630
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 37
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 593,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 630,
+            "direct_changes": 9,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 630,
+            "direct_changes": 9,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 505,
+          "source_offset": 6843,
+          "board_sha256": "57168dfa321edc99c3f23535fcea1eb9dfa43dbe496e0956f3e0d7492ba235c2",
+          "stream_sha256": "122d95fa939219743a4e7bd7d19b35f7e4519007468bcd18b3a86359d7ce3de0",
+          "current": "S",
+          "visible": "RING",
+          "cross_before": 17,
+          "actions": {
+            "plain": {
+              "index": 3,
+              "move": [
+                0,
+                8,
+                10,
+                6,
+                14
+              ],
+              "cross_after": 15,
+              "clears": 0,
+              "base_logit": -1.258147120475769,
+              "adjusted_logit": -1.3437384366989136,
+              "adjusted_actor_rank": 2
+            },
+            "scalar4": {
+              "index": 106,
+              "move": [
+                22,
+                12,
+                2,
+                1,
+                14
+              ],
+              "cross_after": 17,
+              "clears": 0,
+              "base_logit": -1.2721412181854248,
+              "adjusted_logit": -1.2721412181854248,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 593,
+            "reason": "physical_top_out",
+            "board_sha256": "0d9f3a97a265c910fde86519d956df3d76308ce771385f108c1467a421a7f29c",
+            "stream_sha256": "b42c1b1cd106d52bddf6c1214ab37b5e48bdf85e84c18a83e3acb6604df3a00c",
+            "current": "CROSS",
+            "visible": "STAIR",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "c0abdcdeed05eee1bbbda8961f4ef45d9078c1087be296ba4ab3b25d276c87c0"
+          },
+          "scalar4": {
+            "n": 630,
+            "reason": "physical_top_out",
+            "board_sha256": "5cebfd365b26643a08e02a49d7e16800d923c49ad29e8c9ccc461267a8698c4b",
+            "stream_sha256": "fe65185952d84839356d4216ca8b2d924e90f68286c24dbfd59a87d71ba19a05",
+            "current": "HYPER",
+            "visible": "S",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "b836fc78e17620a5637086b7b281a2db58a3933b123997da6625e0ff659d2a2f"
+          },
+          "scalar4_guard": {
+            "n": 630,
+            "reason": "physical_top_out",
+            "board_sha256": "5cebfd365b26643a08e02a49d7e16800d923c49ad29e8c9ccc461267a8698c4b",
+            "stream_sha256": "fe65185952d84839356d4216ca8b2d924e90f68286c24dbfd59a87d71ba19a05",
+            "current": "HYPER",
+            "visible": "S",
+            "target": 14,
+            "clears": 1,
+            "consumed_piece_sha256": "b836fc78e17620a5637086b7b281a2db58a3933b123997da6625e0ff659d2a2f"
+          }
+        }
+      },
+      "500000": {
+        "placements": {
+          "plain": 222,
+          "scalar4": 232,
+          "scalar4_guard": 232
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 10
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 222,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 232,
+            "direct_changes": 5,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 232,
+            "direct_changes": 5,
+            "guard_threats": 1,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 202,
+          "source_offset": 9812,
+          "board_sha256": "689f0a6415a6c2c899e50b824ab71e573b45b75b41e526b877c32b00b238bd08",
+          "stream_sha256": "1a024d65a973c43d6a6fb355f83763481df85041c302ba06e054137cf6043dff",
+          "current": "CROSS",
+          "visible": "L",
+          "cross_before": 4,
+          "actions": {
+            "plain": {
+              "index": 0,
+              "move": [
+                0,
+                10,
+                12,
+                12,
+                12
+              ],
+              "cross_after": 1,
+              "clears": 0,
+              "base_logit": -2.9121930599212646,
+              "adjusted_logit": -4.205834865570068,
+              "adjusted_actor_rank": 2
+            },
+            "scalar4": {
+              "index": 1,
+              "move": [
+                0,
+                10,
+                13,
+                12,
+                12
+              ],
+              "cross_after": 2,
+              "clears": 0,
+              "base_logit": -3.222698926925659,
+              "adjusted_logit": -3.9438953399658203,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 222,
+            "reason": "physical_top_out",
+            "board_sha256": "ae1a7df4169ab9870269978564b1a7680d9e942ccfe1e01afc6f7a2973760ed6",
+            "stream_sha256": "4b24bae456b2bc9479500e8c9e569a1cf4b5857dc22f25c751cf908d987d8f51",
+            "current": "CROSS",
+            "visible": "BRIDGE",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "60ec85fe1d75d4f9818f86362880602b0da08b261354e827e54fa3b736b7df8a"
+          },
+          "scalar4": {
+            "n": 232,
+            "reason": "physical_top_out",
+            "board_sha256": "8a832565c3f51c2307f3e3f0987b6b53061d33ce119dc259d56672b238394f9e",
+            "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+            "current": "CROSS",
+            "visible": "C",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d"
+          },
+          "scalar4_guard": {
+            "n": 232,
+            "reason": "physical_top_out",
+            "board_sha256": "8a832565c3f51c2307f3e3f0987b6b53061d33ce119dc259d56672b238394f9e",
+            "stream_sha256": "bfc5c800e7f01c7475e8fc6d17ba94eb38f88e1afff4bfa5e93b410b730e9dd3",
+            "current": "CROSS",
+            "visible": "C",
+            "target": 14,
+            "clears": 0,
+            "consumed_piece_sha256": "607362b349c5468ca6f015e617ef7e7a93afef39b7cb8276ad554a6743d0438d"
+          }
+        }
+      },
+      "300122": {
+        "placements": {
+          "plain": 255,
+          "scalar4": 6151,
+          "scalar4_guard": 6151
+        },
+        "comparisons": {
+          "scalar4_minus_plain": {
+            "kind": "exact",
+            "delta": 5896
+          },
+          "scalar4_guard_minus_scalar4": {
+            "kind": "exact",
+            "delta": 0
+          }
+        },
+        "counts": {
+          "plain": {
+            "decisions": 255,
+            "direct_changes": 0,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4": {
+            "decisions": 6151,
+            "direct_changes": 80,
+            "guard_threats": 0,
+            "guard_overrides": 0
+          },
+          "scalar4_guard": {
+            "decisions": 6151,
+            "direct_changes": 80,
+            "guard_threats": 2,
+            "guard_overrides": 0
+          }
+        },
+        "first_different_move": {
+          "placement_1based": 185,
+          "source_offset": 21462,
+          "board_sha256": "76e53329f38faa176ce7fcdc5738a3c6d4e5e6b0e2b14841fbdff240046a0cb5",
+          "stream_sha256": "7683e6d4ffbf9c584a60b4d9b00be158507c621cee63c5aaf807d1d4e9f6d1b1",
+          "current": "BRIDGE",
+          "visible": "FORK",
+          "cross_before": 15,
+          "actions": {
+            "plain": {
+              "index": 78,
+              "move": [
+                99,
+                0,
+                8,
+                7,
+                11
+              ],
+              "cross_after": 14,
+              "clears": 0,
+              "base_logit": -2.4388978481292725,
+              "adjusted_logit": -2.530014991760254,
+              "adjusted_actor_rank": 2
+            },
+            "scalar4": {
+              "index": 106,
+              "move": [
+                129,
+                6,
+                0,
+                2,
+                11
+              ],
+              "cross_after": 15,
+              "clears": 0,
+              "base_logit": -2.521811008453369,
+              "adjusted_logit": -2.521811008453369,
+              "adjusted_actor_rank": 1
+            }
+          }
+        },
+        "endpoints": {
+          "plain": {
+            "n": 255,
+            "reason": "physical_top_out",
+            "board_sha256": "d61c9023b9471dcc661753ecdbf30c9068db7c2f38fa9b2233f10aed31c14adb",
+            "stream_sha256": "5ccb45409abf5e2b5ac292ae15d3e4e41364d91c0d1c8e332bce5dfe25b1cf14",
+            "current": "CROSS",
+            "visible": "S",
+            "target": 13,
+            "clears": 0,
+            "consumed_piece_sha256": "38fce00d9269df4670a6ec47a59d91ab133985bff2f0863d3f19b7e5325ae659"
+          },
+          "scalar4": {
+            "n": 6151,
+            "reason": "physical_top_out",
+            "board_sha256": "643120bcc575f54b775dd5fb49e48807fe30471d913e01c94ea37b70829f4aa3",
+            "stream_sha256": "ccac3176c7f53af489679ea7e52ad6a6985ef3485718eafe4c0ac9ec5e215143",
+            "current": "CROSS",
+            "visible": "FORK",
+            "target": 13,
+            "clears": 8,
+            "consumed_piece_sha256": "b487816f41d0c0a13cf63b263ada1f9516ed09b7a2338ea0bf806dcc3fa007a8"
+          },
+          "scalar4_guard": {
+            "n": 6151,
+            "reason": "physical_top_out",
+            "board_sha256": "643120bcc575f54b775dd5fb49e48807fe30471d913e01c94ea37b70829f4aa3",
+            "stream_sha256": "ccac3176c7f53af489679ea7e52ad6a6985ef3485718eafe4c0ac9ec5e215143",
+            "current": "CROSS",
+            "visible": "FORK",
+            "target": 13,
+            "clears": 8,
+            "consumed_piece_sha256": "b487816f41d0c0a13cf63b263ada1f9516ed09b7a2338ea0bf806dcc3fa007a8"
+          }
+        }
+      }
+    }
+  },
+  "independent_cpu_pilots": {
+    "fresh-eight-612000-plain": {
+      "registration_sha256": "685c9cc4966516a4818b4dd8b6c6f5bd1d68d8305044c7326852cf963952020d",
+      "study": "fresh-eight-612000-plain-v1",
+      "seeds": [
+        1127379048401537,
+        1127449182165053,
+        1127358370036191,
+        1127103306524697,
+        1125964615906167,
+        1127068554535349,
+        1127786659226965,
+        1128067938709337
+      ],
+      "scope": "Additional prospectively declared development comparison after completed public 612000-plain 8-seed screen. No official evaluation, no original guard result used.",
+      "frozen_unix": 1795706427.2013168,
+      "runtime_sha256": "ef9c792541bf84ce3f53d000ae52585038aa5da3919e43e5ca6adeb5d0ef1dd5",
+      "seed_audit_sha256": "0b2edf0e53c9a4b600f10d82ae97a61c2e5dd43edb70d5295644223fcbfa48d7",
+      "launch_verification_sha256": "9d4a23136769c482d32b59576d987d33ef8392037d743795d2e219b2de99dc0e"
+    },
+    "fresh-eight-612000-cross4": {
+      "registration_sha256": "6f17234a6110004e3a269feaad6906468a4bbb698d2608796739e3df4cc08c89",
+      "study": "fresh-eight-612000-cross4-v1",
+      "seeds": [
+        1127379048401537,
+        1127449182165053,
+        1127358370036191,
+        1127103306524697,
+        1125964615906167,
+        1127068554535349,
+        1127786659226965,
+        1128067938709337
+      ],
+      "scope": "Single prospective post-archive development challenger. No training, new learned coefficients, substitute control, guard, search, tournament promotion, sealed outcomes or other candidates.",
+      "frozen_unix": 1795707274.924455,
+      "runtime_sha256": "ef9c792541bf84ce3f53d000ae52585038aa5da3919e43e5ca6adeb5d0ef1dd5",
+      "seed_audit_sha256": "0b2edf0e53c9a4b600f10d82ae97a61c2e5dd43edb70d5295644223fcbfa48d7",
+      "launch_verification_sha256": "e83248d05eedd2dd7e9cd452e71a65bfed00aff17fa448a92f95db1f0e21a703"
+    }
+  },
+  "individual_learned_weights": {
+    "coordinates": {
+      "candidate_encoder": {
+        "name": "candidate.1.weight",
+        "index": [
+          32,
+          45
+        ],
+        "flat_index": 5293,
+        "shape": [
+          128,
+          164
+        ],
+        "incumbent": -0.11556641012430191,
+        "trained": -0.10048960149288177,
+        "signed_change": 0.015076808631420135,
+        "absolute_change": 0.015076808631420135,
+        "tied_maxima": 1,
+        "group_size": 29704
+      },
+      "final_ranker": {
+        "name": "rank_out.bias",
+        "index": [
+          0
+        ],
+        "flat_index": 0,
+        "shape": [
+          1
+        ],
+        "incumbent": 0.15029126405715942,
+        "trained": 0.15821225941181183,
+        "signed_change": 0.007920995354652405,
+        "absolute_change": 0.007920995354652405,
+        "tied_maxima": 1,
+        "group_size": 65
+      }
+    },
+    "original_weights": {
+      "incumbent": "bec45f9aab9ed4ae4e5b001bfba2d25640b26dffd9b167e3cd2b28a1c5596045",
+      "612000-plain": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed"
+    },
+    "coordinate_receipt_sha256": "39131bd0940fabc04aa4dd056546e5ed5f8c5cd9366b0c5fc80ec6722335a57b",
+    "rule_sha256": "ec6e625891cf84c34795a72790b36f3796ed2b15dad5d92326b8c91041527d42",
+    "source_sha256": "35a96430e7918547b9f787607e794956f9c02a69985a0070345d4c8aa447082d",
+    "variants": {
+      "candidate_encoder": {
+        "base_actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "actor_sha256": "eefe9040de7d1a720d10f1a94149239c3e77047cb4bc38e26dfd02897aa6e5c3",
+        "differing_weights": 1
+      },
+      "final_ranker": {
+        "base_actor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+        "actor_sha256": "068fefbb136bc449479e6a5e3bcd032c21f1f94805b981d849c4beda674cea9b",
+        "differing_weights": 1
+      },
+      "whole_candidate": {
+        "prior_block": "candidate",
+        "actor_sha256": "32589e116579b8dbb54232c15b1fcd5564632dd379a75ddd7cd61500fbee1671"
+      },
+      "whole_final_ranker": {
+        "prior_block": "rank_output",
+        "actor_sha256": "cb49e12a7b83af4db656a23956ab8b3b782d7675ee5182ca07cef4a677b2549b"
+      }
+    },
+    "valid_logits": 1920,
+    "precision": "FP32 production 32x128 fixed shapes; scalar differences measured in FP64 from exact FP32 outputs.",
+    "limitations": "Conditional public snapshots at two partly repeated milestones. Single-coordinate sensitivity of these two displacement-selected scalars. No survival measurement or other scalar ranking.",
+    "receipt_sha256": "1fdecb9e31eb898e120c49bb0d2c61fcfd7e12542691c352e3e062aafc17c513",
+    "snapshot_count": 15,
+    "seed_count": 8,
+    "paired_with": "612000-plain",
+    "results": {
+      "candidate_encoder": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.015560150146484375,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.0071868896484375,
+        "max_abs_top2_margin_change": 0.004384040832519531
+      },
+      "final_ranker": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.0079345703125,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.007127285003662109,
+        "max_abs_top2_margin_change": 1.1920928955078125e-07
+      },
+      "whole_candidate": {
+        "changed_choices": 12,
+        "max_abs_valid_logit_shift": 3.0371856689453125,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.013304710388183594,
+        "max_abs_top2_margin_change": 1.3496928215026855
+      },
+      "whole_final_ranker": {
+        "changed_choices": 0,
+        "max_abs_valid_logit_shift": 0.3251171112060547,
+        "valid_logits_changed": 1920,
+        "min_top2_margin": 0.002853870391845703,
+        "max_abs_top2_margin_change": 0.013561129570007324
+      }
+    }
+  }
+}

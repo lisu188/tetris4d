@@ -53,6 +53,11 @@ class LoggingTests(unittest.TestCase):
         self.assertNotIn('environment', start['metadata'])
         self.assertEqual(len(start['metadata']['parameters_sha256']), 64)
 
+    def test_non_neural_gameplay_does_not_claim_loaded_agent(self):
+        with patch.object(game, 'NEURAL_AGENT', object()):
+            self.log = BenchmarkLog(game, self.root / 'run.jsonl', settings={'policy': 'sustained'})
+        self.assertEqual(self.rows()[0]['settings'], {'policy': 'sustained'})
+
     def test_logged_moves_equal_reference_and_wrappers_are_restored(self):
         reference = []
         player = game.Game(7)

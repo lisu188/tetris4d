@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 import random
+from contextlib import nullcontext
 from dataclasses import asdict, replace
 from pathlib import Path
 import sys
@@ -146,6 +148,9 @@ class SurvivalTrainer(v3.SurvivalTrainer):
     def __init__(self, args, budget):
         self.danger_pool, self._danger_starts = [], {}
         self._danger_rng = random.Random(args.seed + 3200)
+        self._danger_start_count = self._finished_danger_placements = 0
+        self._previous_exposure = {}
+        game.set_simulation_fast_paths(two_stage=args.two_stage_exhaustive, headless=args.headless_commit)
         if getattr(args, 'danger_starts', 0) > 0:
             self.danger_pool = saved_danger_pool(args.run_dir)
             if self.danger_pool is None:
@@ -172,6 +177,11 @@ class SurvivalTrainer(v3.SurvivalTrainer):
 
     def restore_extra(self, saved):
         super().restore_extra(saved)
+        exposure = saved['extra'].get('danger_exposure')
+        if exposure is not None:
+            self._danger_start_count = exposure['starts']
+            self._finished_danger_placements = exposure['finished_placements']
+            self._previous_exposure = dict(exposure['previous_update'])
         if 'danger_rng' in saved['extra']:
             self._danger_rng.setstate(saved['extra']['danger_rng'])
         elif self.danger_pool:
@@ -190,9 +200,25 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         base.library.ignore(state)
         start = {k: chosen[k] for k in ('kind', 'game_id', 'offset', 'remaining_recorded')}
         self._danger_starts[number] = start
+        self._danger_start_count += 1
         return base.Episode(number, state, target=chosen['target'], phase='training', start=start)
 
+    def finish_episode(self, index, reason):
+        episode = self.environments[index]
+        if episode.start and episode.start['kind'] == 'library':
+            self._finished_danger_placements += episode.state.pieces - episode.start['offset']
+        super().finish_episode(index, reason)
+
     def emit(self, event, **fields):
+        if event == 'update':
+            danger = self._finished_danger_placements + sum(
+                e.state.pieces - e.start['offset'] for e in self.environments if e.start and e.start['kind'] == 'library')
+            totals = dict(danger_starts=self._danger_start_count, fresh_starts=self.next_episode - self._danger_start_count,
+                          danger_placements=danger, fresh_placements=self.progress['placements'] - danger)
+            for name, count in totals.items():
+                fields[name + '_this_update'] = count - self._previous_exposure.get(name, 0)
+                fields[name + '_total'] = count
+            self._previous_exposure = totals
         if event == 'episode_end':
             start = self._danger_starts.pop(fields.get('episode'), None) if hasattr(self, '_danger_starts') else None
             if start is None:
@@ -211,6 +237,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                                shortlist_mode=self.args.shortlist_mode,
                                screening=self.args.screening,
                                regional_critic=self.args.regional_critic,
+                               cross_weight=self.args.cross_weight, cross_residual=self.args.cross_residual,
                                recover_target=self.args.recover_target,
                                policy_mode=self.args.policy_mode,
                                residual_scale=self.args.residual_scale,
@@ -219,6 +246,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         self.imported_checkpoint_sha256 = None
         if self.args.pretrained is None:
             return neural.create_model(config).to(self.device)
+        base_config = replace(config, cross_residual=False, cross_weight=0.)
         source = Path(self.args.pretrained)
         if self.args.preserve_pretrained_critic:
             # Saved checkpoints are replaced atomically. Hash and load one open
@@ -233,7 +261,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             calibration = extra.get('calibration', {})
             inherited = (calibration.get('stage') == 'explicitly_skipped' and
                          extra.get('signature', {}).get('preserve_pretrained_critic') is True)
-            if (loaded.config != config or calibration.get('done') is not True or
+            if (loaded.config not in (base_config, config) or calibration.get('done') is not True or
                     not (calibration.get('stage') == 'passed' or inherited)):
                 raise ValueError('Preserving the critic requires a matching policy and a calibrated V4 checkpoint')
         else:
@@ -241,15 +269,19 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         # Screening only changes which placements are offered, never the weights, so a
         # sampled-mode pretrained actor may continue under exhaustive screening. A regional
         # critic changes only the critic input: the actor is copied, the critic starts fresh.
-        if asdict(replace(loaded.config, screening=config.screening,
-                          regional_critic=config.regional_critic)) != asdict(config):
+        if replace(loaded.config, screening=config.screening,
+                   regional_critic=config.regional_critic) not in (config, base_config):
             raise ValueError('Pretrained V4 config does not match the requested actor and shortlist')
-        if loaded.config.regional_critic != config.regional_critic:
-            model = neural.create_model(config).to(self.device)
-            actor = {k: v for k, v in loaded.state_dict().items() if not k.startswith('value.')}
-            missing, unexpected = model.load_state_dict(actor, strict=False)
-            if unexpected or any(not k.startswith('value.') for k in missing):
-                raise ValueError('Pretrained V4 actor parameters do not fit the regional-critic model')
+        change_critic = loaded.config.regional_critic != config.regional_critic
+        add_residual = config.cross_residual and not loaded.config.cross_residual
+        if change_critic or add_residual:
+            with base.preserve_rng() if add_residual else nullcontext():
+                model = neural.create_model(config).to(self.device)
+            inherited = {k: v for k, v in loaded.state_dict().items() if not (change_critic and k.startswith('value.'))}
+            missing, unexpected = model.load_state_dict(inherited, strict=False)
+            if unexpected or any(not ((change_critic and k.startswith('value.')) or
+                                      (add_residual and k.startswith('cross_head.'))) for k in missing):
+                raise ValueError('Pretrained V4 parameters do not fit the requested model')
             loaded = model
         loaded.config = config
         if checkpoint['teacher_parameters'] != game.network_parameters():
@@ -258,11 +290,23 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             raise ValueError('Pretrained V4 contains non-finite weights')
         self.imported_checkpoint_sha256 = (imported_hash if self.args.preserve_pretrained_critic
                                           else base.file_hash(source))
+        if self.args.critic_checkpoint:
+            # Loading a donor must not perturb subsequent action sampling or optimizer shuffling.
+            with base.preserve_rng(), self.args.critic_checkpoint.open('rb') as stream:
+                if base.stream_hash(stream) != self.signature['critic_checkpoint_sha256']:
+                    raise ValueError('Critic checkpoint changed during initialization')
+                stream.seek(0)
+                donor, payload = neural.load_checkpoint(stream, self.device)
+            if donor.config != base_config or payload['teacher_parameters'] != game.network_parameters():
+                raise ValueError('Critic donor must use the same base V4 config and teacher')
+            loaded.value.load_state_dict(donor.value.state_dict(), strict=True)
         return loaded
 
     def _new_gpu_preparer(self):
         from tetris_gpu_simulation import GpuPreparer
         options = {'group_exhaustive': True} if getattr(self.args, 'group_exhaustive', False) else {}
+        if getattr(self.args, 'two_stage_exhaustive', False):
+            options['two_stage'] = True
         return GpuPreparer(self.model.config, self.device, **options)
 
     def prepare_episode(self, episode):
@@ -517,6 +561,12 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         if self.model.config.architecture != self.architecture:
             raise ValueError(f'{self.algorithm} cannot resume a different model architecture')
         self.model.fused_encoding = getattr(self.args, 'fused_encoding', False)
+        if self.model.config.cross_residual or self.model.config.cross_weight:
+            self.model.requires_grad_(False)
+            self.model.value.requires_grad_(True)
+            if self.model.config.cross_residual:
+                self.model.cross_head.requires_grad_(True)
+        self.configure_reference(resuming)
         self.calibration_actor = v2.actor_digest(self.model)
         self.initial_actor_sha256 = self.calibration_actor
         if not resuming:
@@ -532,6 +582,14 @@ class SurvivalTrainer(v3.SurvivalTrainer):
                      'actor_sha256': self.initial_actor_sha256,
                      'parameters': sum(parameter.numel() for parameter in self.model.parameters()),
                      'teacher_weights_sha256': base.file_hash(self.args.weights)}
+            if self.args.critic_checkpoint:
+                proof['critic_checkpoint_sha256'] = self.signature['critic_checkpoint_sha256']
+            if self.args.critic_checkpoint or self.args.cross_residual or self.args.reference_kl_weight:
+                proof.update(base_actor_sha256=v2.actor_digest(self.model, base_only=True),
+                             critic_sha256=v3.model_digest(self.model.value),
+                             trainable_actor_parameters=sum(p.numel() for n, p in self.model.named_parameters()
+                                                            if p.requires_grad and not n.startswith('value.')),
+                             behavior_temperature=self.args.behavior_temperature)
             base.durable_json(self.root / 'initialization.json', proof)
 
     def rollout_kl(self, rollout):
@@ -576,6 +634,20 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             signature['group_exhaustive'] = True
         if self.args.preserve_pretrained_critic:
             signature['preserve_pretrained_critic'] = True
+        if self.args.critic_checkpoint:
+            signature['critic_checkpoint_sha256'] = base.file_hash(self.args.critic_checkpoint)
+        if self.args.behavior_temperature != 1.:
+            signature['behavior_temperature'] = self.args.behavior_temperature
+        if 0 < getattr(self.args, 'gae_horizon', 0) < self.args.rollout:
+            signature['gae_horizon'] = self.args.gae_horizon
+        if self.args.cross_weight or self.args.cross_residual:
+            signature.update(cross_weight=self.args.cross_weight, cross_residual=self.args.cross_residual,
+                             cross_mobility_sha256=base.file_hash(Path(__file__).with_name('tetris_cross_survival.py')),
+                             gpu_cross_sha256=base.file_hash(Path(__file__).with_name('tetris_gpu_cross.py')))
+        if self.args.two_stage_exhaustive:
+            signature['two_stage_exhaustive'] = True
+        if self.args.headless_commit:
+            signature['headless_commit'] = True
         signature.update(algorithm=ALGORITHM,
                          v4_trainer_sha256=base.file_hash(Path(__file__)),
                          spatial_architecture_sha256=base.file_hash(Path(__file__).with_name('tetris_survival_v4.py')),
@@ -599,6 +671,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
     def checkpoint_metadata(self):
         values = super().checkpoint_metadata()
         values.update(algorithm=self.algorithm, architecture=self.architecture, danger_rng=self._danger_rng.getstate(),
+                      danger_exposure={'starts': self._danger_start_count, 'finished_placements': self._finished_danger_placements,
+                                       'previous_update': self._previous_exposure},
                       fresh_random_trainable_weights=self.args.pretrained is None,
                       imported_pretrained_sha256=self.signature.get('pretrained_sha256'),
                       value_semantics='expected_current_policy_remaining_placements_times_0.001',
@@ -635,6 +709,21 @@ def arguments(argv=None):
     extra.add_argument('--pretrained', type=Path)
     extra.add_argument('--preserve-pretrained-critic', action='store_true',
                        help='Keep the complete calibrated V4 critic when explicitly skipping calibration')
+    extra.add_argument('--critic-checkpoint', type=Path,
+                       help='Import only the compatible V4 value head from this checkpoint')
+    extra.add_argument('--behavior-temperature', type=float, default=1.,
+                       help='Temperature for sampled moves and all corresponding PPO and reference probabilities')
+    extra.add_argument('--gae-horizon', type=int, default=0, metavar='FRAMES',
+                       help='Bootstrap and stop GAE every FRAMES within a rollout (0 uses the full rollout)')
+    cross = extra.add_mutually_exclusive_group()
+    cross.add_argument('--cross-weight', type=float, default=0.,
+                       help='Fixed weight on the change in log-normalized legal CROSS placements')
+    cross.add_argument('--cross-residual', action='store_true',
+                       help='Freeze the base actor and train a bounded CROSS mobility residual with the critic')
+    extra.add_argument('--two-stage-exhaustive', action='store_true',
+                       help='Shortlist exhaustive moves by primary then secondary teacher score')
+    extra.add_argument('--headless-commit', action='store_true',
+                       help='Use the headless native commit path in this experiment')
     extra.add_argument('--shortlist-mode', choices=('teacher-random', 'diverse', 'teacher-top'), default='teacher-random')
     extra.add_argument('--screening', choices=('sampled', 'exhaustive'), default=None,
                        help="Candidate pool: 'sampled' (config.candidates placements) or every legal placement. "
@@ -679,11 +768,26 @@ def arguments(argv=None):
                          '--selection-seeds', *map(str, SELECTION_SEEDS),
                          # 32 x 256 = 8,192 placements per update. Measured (exhaustive, shared GPU):
                          # 16 envs 227/s, 32 envs 247/s, 64 envs 67/s (preparation memory pressure).
-                         '--envs', '32', '--rollout', '256', *gpu, *remaining])
+                         '--envs', '32', '--rollout', '256', *gpu, *remaining], allow_reference=True)
     args.defer_selection = options.defer_selection
     args.distinct_danger_seeds = options.distinct_danger_seeds
     args.pretrained = options.pretrained
     args.preserve_pretrained_critic = options.preserve_pretrained_critic
+    args.critic_checkpoint = options.critic_checkpoint
+    args.behavior_temperature = options.behavior_temperature
+    args.gae_horizon = options.gae_horizon
+    if not 0 <= args.gae_horizon <= args.rollout:
+        extra.error('--gae-horizon must be between 0 and --rollout')
+    args.cross_weight, args.cross_residual = options.cross_weight, options.cross_residual
+    args.two_stage_exhaustive, args.headless_commit = options.two_stage_exhaustive, options.headless_commit
+    if not math.isfinite(args.behavior_temperature) or args.behavior_temperature <= 0:
+        extra.error('--behavior-temperature must be positive and finite')
+    if not math.isfinite(args.cross_weight) or args.cross_weight < 0:
+        extra.error('--cross-weight must be nonnegative and finite')
+    if args.critic_checkpoint and not args.preserve_pretrained_critic:
+        extra.error('--critic-checkpoint requires --preserve-pretrained-critic')
+    if (args.cross_weight or args.cross_residual) and (args.pretrained is None or args.precision != 'fp32'):
+        extra.error('CROSS scoring requires a pretrained V4 actor and FP32')
     if args.preserve_pretrained_critic and (args.pretrained is None or args.calibration_games != 0):
         extra.error('--preserve-pretrained-critic requires --pretrained, --calibration-games 0 and --allow-uncalibrated')
     args.shortlist_mode = options.shortlist_mode
