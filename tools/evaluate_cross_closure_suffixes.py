@@ -47,7 +47,7 @@ def sample_draws(game, snapshot, domain, seed, repeat, horizon):
     return bag, rng, draws
 
 
-def play(ev, model, snapshot, event, branch, bag, rng, draws):
+def play(ev, model, snapshot, event, branch, bag, rng, draws, *, uncapped=False):
     game = ev.game
     state = game.Game(snapshot['seed'], snapshot['piece_set'])
     ev.base.library.ignore(state)
@@ -55,9 +55,15 @@ def play(ev, model, snapshot, event, branch, bag, rng, draws):
     require(ev._snapshot(state, target, 0.) == snapshot, 'Root reconstruction differs')
     state.stream.bag = list(bag)
     state.stream.rng.setstate(rng)
+    # An independent stream checks every dealt piece, including those beyond the saved prefix.
+    oracle = game.PieceStream(0, snapshot['piece_set'])
+    oracle.bag = list(bag)
+    oracle.rng.setstate(rng)
+    expected = draws[:2]
     reason = 'horizon'
-    for step in range(len(draws) - 2):
-        require([state.current, state.next_piece] == draws[step:step + 2], 'Common draw sequence differs')
+    step = 0
+    while uncapped or step < len(draws) - 2:
+        require([state.current, state.next_piece] == expected, 'Common draw sequence differs')
         prepared = ev.neural.prepare(state, target, model.config)
         if prepared is None:
             reason = 'controller_stop'
@@ -86,7 +92,11 @@ def play(ev, model, snapshot, event, branch, bag, rng, draws):
         if step == 0:
             from tetris_cross_survival import cross_count
             require(cross_count(state.board) == selected['cross_after'], 'Physical CROSS count differs')
-        require([state.current, state.next_piece] == draws[step + 1:step + 3], 'Post-move draws differ')
+        step += 1
+        expected = [expected[1], oracle.pop()]
+        if step <= len(draws) - 2:
+            require(expected == draws[step:step + 2], 'Registered draw prefix differs')
+        require([state.current, state.next_piece] == expected, 'Post-move draws differ')
         if state.game_over:
             require(not game.has_legal_move(state.board, state.current), 'Reported top-out has a legal move')
             reason = 'top_out'
@@ -156,7 +166,7 @@ def run(args):
                 bag, rng, draws = sample_draws(ev.game, snapshot, plan['domain'], key, repeat, plan['horizon'])
                 row = {'seed': int(key), 'replicate': repeat, 'draws_sha256': digest('|'.join(draws).encode())}
                 for branch in ('greedy', 'best_preserving'):
-                    row[branch] = play(ev, model, snapshot, event, branch, bag, rng, draws)
+                    row[branch] = play(ev, model, snapshot, event, branch, bag, rng, draws, uncapped=args.uncapped)
                 greedy, preserving = row['greedy'], row['best_preserving']
                 row['difference'] = (None if 'controller_stop' in (greedy['end'], preserving['end'])
                                      else preserving['placements'] - greedy['placements'])
@@ -167,7 +177,9 @@ def run(args):
     roots, mean = summarize(rows)
     return {'plan_sha256': digest(plan_bytes), 'runtime_revision': manifest['revision'],
             'runner_sha256': runner_sha256, 'torch': str(torch.__version__),
-            'horizon': plan['horizon'], 'restricted_mean_difference': mean, 'roots': roots, 'pairs': rows}
+            'horizon': None if args.uncapped else plan['horizon'],
+            ('natural_mean_difference' if args.uncapped else 'restricted_mean_difference'): mean,
+            'roots': roots, 'pairs': rows}
 
 
 def main():
@@ -176,6 +188,7 @@ def main():
     parser.add_argument('--runtime', required=True, type=Path, help='Verified CPU scoring runtime from the closure replay')
     parser.add_argument('--plan', type=Path, default=ROOT / 'validation/cross-closure-suffix-plan.json')
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--uncapped', action='store_true', help='Continue the same paired draws to physical top-out')
     args = parser.parse_args()
     if args.output.exists():
         parser.error('Choose a new output path')
