@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import tetris_neural as neural
 import train_survival_v4 as v4
+from tetris_survival_v4 import SurvivalSpatialPolicy
 
 base, game = v4.base, v4.game
 TOP_K = 16
@@ -207,9 +208,19 @@ def summarize(rows, seeds, policy, cap):
 def _fixed_actor_logits(model, batch, size, *, return_base=False):
     """Give each cached greedy game the same FP32 kernel shapes, independent of its peers."""
     rows, width = batch['valid'].shape
+    reuse_geometry = (rows == 1 and size > 1 and batch['valid'].device.type == 'cpu'
+                      and type(model) is SurvivalSpatialPolicy and not model.training
+                      and not torch.is_grad_enabled() and not torch.is_autocast_enabled('cpu')
+                      and 'pooled' not in batch and 'local' not in batch)
+    if reuse_geometry:
+        # CPU padding repeats this board. Its bit-plane sums are exact in FP32 and
+        # only physical columns contribute to local statistics. Keep every learned
+        # operation in its original lane, with the same contiguous fixed shape.
+        batch = model.fixed_inputs(batch, actor_only=True)
     fixed = {}
     for name, value in batch.items():
-        if name in neural.CANDIDATE_FIELDS and width < model.config.shortlist:
+        candidate_field = name in neural.CANDIDATE_FIELDS or (reuse_geometry and name == 'local')
+        if candidate_field and width < model.config.shortlist:
             pad = (0, 0) * (value.ndim - 2) + (0, model.config.shortlist - width)
             value = torch.nn.functional.pad(value, pad)
         if rows < size:

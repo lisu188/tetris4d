@@ -527,5 +527,174 @@
         }
       }
     }
+  },
+  "singleton_fixed_actor_geometry": {
+    "method": "Compute the raw singleton board and affected-column geometry once, then duplicate deterministic pooled/local features. Every learned FP32 operation still receives the original contiguous fixed batch/candidate shape; each independent game stays in lane zero.",
+    "scope": "Eight frozen public 612000-plain 8192-threshold positions. Same native exhaustive two-stage candidate prepare, single-row strict 32 x 128 inference, checked standard commit. Cache reset per board. One warmup and five alternating paired rounds per actor. Medians of the eight-position average process CPU milliseconds per decision; entries ordered prior then candidate. Excludes loading, hashing, persistence and evaluator queue overhead.",
+    "hardware": {
+      "cpu_affinity": [
+        0
+      ],
+      "niceness": 15,
+      "torch": "2.14.1+cu130",
+      "device": "cpu",
+      "torch_threads": 1,
+      "cuda_initialized": false,
+      "cpu_model": "Intel(R) Core(TM) i5-14400F",
+      "matmul_precision": "highest"
+    },
+    "seeds": [
+      48200001,
+      48200003,
+      48200005,
+      48200007,
+      48200009,
+      48200011,
+      48200013,
+      48200015
+    ],
+    "sources_sha256": {
+      "tetris_survival_v4.py": "b6a1daf0d6b9b809ddf8beee9960fe76aa911cf0d0226c3eb9180c8684ae5280",
+      "tools/evaluate_afterstate_td.py": "a131fe0ade923433a1ac9ea097243c06199d354e7c286d9e05b481c08038f5b6",
+      "tetris_neural.py": "0992eb5c18370549f6483203e8ec775a7dfaf8380e05f8fc3ad8d86d652ba813",
+      "tests/test_spatial_curriculum.py": "fa79a4ea438c6415b75a904a11faf2faaf9703ec9258a0d3f76e667c0fbb387a"
+    },
+    "original_sources_sha256": {
+      "tetris_survival_v4.py": "fdb3d88a7fceea11ca4ae0589e7f98e6b0d38eda1d49c232235f1ff188d33cde",
+      "tools/evaluate_afterstate_td.py": "23e9365f17289f7396c5682f17ba40babc0cf74967cacc2b6bed316b1d52d266"
+    },
+    "models_and_medians": {
+      "plain": {
+        "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+        "actor_ms": [
+          44.7236,
+          9.3091
+        ],
+        "e2e_ms": [
+          58.4286,
+          22.4099
+        ],
+        "e2e_speedup": 2.607
+      },
+      "w4": {
+        "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+        "actor_ms": [
+          45.4921,
+          9.4156
+        ],
+        "e2e_ms": [
+          60.3438,
+          23.7911
+        ],
+        "e2e_speedup": 2.536
+      }
+    },
+    "parity": "Every measured round reproduced the archived byte digest of all candidate arrays, ordered placements, every base/adjusted logit, choices and the checked board/stream/RNG snapshot for each actor and seed. W4 preserve-last-cross also matched on all eight.",
+    "normal_entrypoint": {
+      "public_seeds": [
+        48200001,
+        48200003
+      ],
+      "start_placement": 8283,
+      "end_placement": 8286,
+      "controls": [
+        "plain greedy",
+        "W4 greedy",
+        "W4 preserve-last-cross",
+        "W4 rescue-only"
+      ],
+      "compared": "Six selected moves/targets, committed board/stream/RNG snapshots, decision counters, reasons and cap lengths for each control.",
+      "fixed_near_tie_controls": {
+        "plain": {
+          "logits_sha256": "3011c64b1f499dc96d83a0d813a1e1a5eb0f74043d16cf68afd00dd9a15c31a6",
+          "choice": 64,
+          "original_alternate_lane_choice": 20
+        },
+        "w4": {
+          "logits_sha256": "872eb1d200cba88f377b27e57cb625292d9323fa7ae0780a727e766c9a8a8c23",
+          "choice": 99,
+          "original_alternate_lane_choice": 52
+        }
+      }
+    },
+    "fallback": "Only a raw CPU singleton, fixed size greater than one, exact Spatial V4 class in evaluation mode, disabled gradients and CPU autocast. Real multi-row batches, CUDA, subclasses, cached inputs and training retain the original route.",
+    "limits": "Single CPU, one thread and eight archived playing positions. Timings describe these independent fixed-shape decisions; GPU, optimizer and natural-game wall time were outside this comparison. Current CPU pilots each preregistered immutable executable manifest ef9c792541bf84ce3f53d000ae52585038aa5da3919e43e5ca6adeb5d0ef1dd5. Switching their code would change that identity.",
+    "local_reproduction": {
+      "directory": "survival-training.artifacts/cross-survival-24h/cpu-fixed-actor-geometry",
+      "benchmark": "bench.py checkout",
+      "entrypoint": "entrypoint.py",
+      "command_prefix": "env CUDA_VISIBLE_DEVICES=-1 TETRIS4D_GAME_LIBRARY=off PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 taskset -c 0 .venv/bin/python -Bu",
+      "files_sha256": {
+        "bench.py": "0b0597e4785ee5de3ef4658f011ac354acc97d8dc677378aa05bb4cb74f64534",
+        "checkout.json": "4177c4eb60b68b2c9174c1098e5479ed49d0be3e74e496306f94380071866293",
+        "entrypoint.py": "e2a01c322c31d31d530e3d920e81e45ca54c66da61c80c00cbce538b713f5d52",
+        "entrypoint.json": "9e253e47047a83797a16256a5142c32ef818831bb98f5c1451c6dd9d92a04dae"
+      },
+      "fixture_sha256": "e50984b6349d0e45f6e0507f1ce2d27f293defcf0cd73d5b936e85da7204d486",
+      "fixture_loader_sha256": "ad3a741f1853ecf7760973dd851b93cac37683ccf2bd204e91e217b5551c8014"
+    },
+    "two_natural_games": {
+      "root_plan_sha256": "433097e1cea72b09fad89aac2e3c9453d8595d43cb711299b48afc99a48fc8ce",
+      "receipt_sha256": "5ccb5a0eea317e01741b3de30e46aa40f6af834b3dc118ed9a55d4cdf78cdf69",
+      "previous_terminal_reference_sha256": "b3b7ebe80ba04d746b71fe2768dc18689d61faf69d1ee597e7d8f800fe06eaa4",
+      "pairs": [
+        {
+          "seed": 300322,
+          "previous": {
+            "outcome": {
+              "n": 200,
+              "placements": 7236,
+              "clears": 3,
+              "reason": "top_out",
+              "terminal_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+              "logits": "cb9debb30e2fb8385e40c7bd1b227b707bcc66abed1e0984358602eb16b5a937",
+              "actions_and_boards": "833eb5c4ae01e4b051e5bb8889848ca37106bfdd81d51d74b6ae9ebf761f9d5e"
+            },
+            "process_seconds": 10.637692702999999
+          },
+          "current": {
+            "outcome": {
+              "n": 200,
+              "placements": 7236,
+              "clears": 3,
+              "reason": "top_out",
+              "terminal_sha256": "429c4c7c3811ef13734cba9671d3b6b22e2ec8733a670d59070c7a7d81e01cc4",
+              "logits": "cb9debb30e2fb8385e40c7bd1b227b707bcc66abed1e0984358602eb16b5a937",
+              "actions_and_boards": "833eb5c4ae01e4b051e5bb8889848ca37106bfdd81d51d74b6ae9ebf761f9d5e"
+            },
+            "process_seconds": 3.859459455999996
+          }
+        },
+        {
+          "seed": 300460,
+          "current": {
+            "outcome": {
+              "n": 412,
+              "placements": 6536,
+              "clears": 2,
+              "reason": "top_out",
+              "terminal_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+              "logits": "7ec737eb4e98ad50559e89cdaeb7d5c122ca7bf369adb9212b26746ecdc95dad",
+              "actions_and_boards": "00c70fde7328f4e77811fd31c95a814e12b79d2ef37d7e1a2715f4ea59e8fe22"
+            },
+            "process_seconds": 8.857647993
+          },
+          "previous": {
+            "outcome": {
+              "n": 412,
+              "placements": 6536,
+              "clears": 2,
+              "reason": "top_out",
+              "terminal_sha256": "d7748845f1e3fd636c74c7035d02f6d0edf129563c4ed55d9eb53536ceab5363",
+              "logits": "7ec737eb4e98ad50559e89cdaeb7d5c122ca7bf369adb9212b26746ecdc95dad",
+              "actions_and_boards": "00c70fde7328f4e77811fd31c95a814e12b79d2ef37d7e1a2715f4ea59e8fe22"
+            },
+            "process_seconds": 20.60528276000001
+          }
+        }
+      ],
+      "pooled_cpu_speedup": 2.45676743617172,
+      "scope": "First two archived hazard starts in their original registered order, strongest 612000-plain actor. Whole natural continuations with strict 32x128 fixed-shape scoring and native standard commit. AB then BA; descriptive CPU timing. All per-placement logits and per-placement chosen moves and boards hash identically; both physical lengths and final board hashes reproduce earlier independent endpoints."
+    }
   }
 }

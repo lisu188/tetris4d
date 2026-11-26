@@ -430,6 +430,70 @@
           "ties": 0
         }
       }
+    },
+    "611000-residual": {
+      "receipt_sha256": "eebdd1b6765fdd15333deafa64cf86146f8a7a6d139737d2faa2e79ae40e5f55",
+      "endpoint_sha256": "d5cf5a5aeb4d6539f8180a7abe234cdb0dfa90e5c01db5773275bdbb971439d5",
+      "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+      "mean": 37869,
+      "median": 38645.0,
+      "placements": [
+        52569,
+        37791,
+        39499,
+        24264,
+        40137,
+        37112,
+        44264,
+        27316
+      ],
+      "clears": [
+        64,
+        44,
+        46,
+        26,
+        47,
+        43,
+        53,
+        30
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1391.5875517000095,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 1172.125,
+          "relative_gain": 0.031940730648045645,
+          "paired_bootstrap_95": [
+            -6574.471875,
+            9175.106249999997
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -690.5,
+          "relative_gain": -0.017907389877980785,
+          "paired_bootstrap_95": [
+            -8561.54375,
+            7750.375
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
     }
   },
   "behavior_cohorts": {

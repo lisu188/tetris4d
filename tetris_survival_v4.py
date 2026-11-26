@@ -361,6 +361,10 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
             nn.init.zeros_(self.cross_head[-1].weight)
             nn.init.zeros_(self.cross_head[-1].bias)
 
+    def _actor_board_features(self, boards, targets):
+        spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
+        return spatial, torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
+
     def _board_features(self, boards, targets):
         spatial = neural.encode_columns(boards, targets, fused=self.fused_encoding)
         parts = [spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4)), adjacency_statistics(boards, targets).mean(dim=1)]
@@ -400,10 +404,11 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         return column_mask
 
     @torch.no_grad()
-    def fixed_inputs(self, batch):
+    def fixed_inputs(self, batch, *, actor_only=False):
         """Detach only board/column statistics; every trainable layer still runs on each PPO pass."""
         columns = self._validated_columns(batch)
-        spatial, pooled = self._board_features(batch['boards'], batch['targets'])
+        encode = self._actor_board_features if actor_only else self._board_features
+        spatial, pooled = encode(batch['boards'], batch['targets'])
         local = []
         for start in range(0, columns.shape[1], self.config.chunk):
             stop = start + self.config.chunk
@@ -445,8 +450,7 @@ class SurvivalSpatialPolicy(SurvivalFeaturePolicy):
         if 'pooled' in batch:
             spatial, pooled = None, batch['pooled']
         else:
-            spatial = neural.encode_columns(batch['boards'], batch['targets'], fused=self.fused_encoding)
-            pooled = torch.cat((spatial.mean((2, 3, 4)), spatial.amax((2, 3, 4))), dim=1)
+            spatial, pooled = self._actor_board_features(batch['boards'], batch['targets'])
         raw, hidden = self._rank_candidates(batch, spatial, pooled, keep_hidden=self.config.cross_residual)
         return self._policy_logits(raw, batch, hidden, return_base=return_base)
 

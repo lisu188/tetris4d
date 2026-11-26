@@ -768,6 +768,81 @@
       "blocked_pieces": {
         "CROSS": 8
       }
+    },
+    "611000-residual": {
+      "games": [
+        {
+          "seed": 48200001,
+          "placements": 52569,
+          "clears": 64,
+          "placed_cells": 315416,
+          "occupied_cells": 53272,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200003,
+          "placements": 37791,
+          "clears": 44,
+          "placed_cells": 226745,
+          "occupied_cells": 46521,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200005,
+          "placements": 39499,
+          "clears": 46,
+          "placed_cells": 236991,
+          "occupied_cells": 48575,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200007,
+          "placements": 24264,
+          "clears": 26,
+          "placed_cells": 145569,
+          "occupied_cells": 39073,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200009,
+          "placements": 40137,
+          "clears": 47,
+          "placed_cells": 240820,
+          "occupied_cells": 48308,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200011,
+          "placements": 37112,
+          "clears": 43,
+          "placed_cells": 222670,
+          "occupied_cells": 46542,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200013,
+          "placements": 44264,
+          "clears": 53,
+          "placed_cells": 265581,
+          "occupied_cells": 48493,
+          "blocked_piece": "CROSS"
+        },
+        {
+          "seed": 48200015,
+          "placements": 27316,
+          "clears": 30,
+          "placed_cells": 163906,
+          "occupied_cells": 41026,
+          "blocked_piece": "CROSS"
+        }
+      ],
+      "receipt_sha256": "eebdd1b6765fdd15333deafa64cf86146f8a7a6d139737d2faa2e79ae40e5f55",
+      "checkpoint_sha256": "884d73b5d11d3b1e4b101d47e95b8ed4e51ea71deeebbf8db6640b958a29224f",
+      "mean_terminal_cells": 46476.25,
+      "pooled_clears_per_1000": 1.1652010879611292,
+      "blocked_pieces": {
+        "CROSS": 8
+      }
     }
   },
   "snapshot_crosschecks": [
@@ -776,6 +851,12 @@
       "seed": 48200001,
       "placement": 8283,
       "occupied_cells": 8732
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200001,
+      "placement": 8400,
+      "occupied_cells": 13536
     },
     {
       "player": "611000-anchored",
@@ -800,6 +881,12 @@
       "seed": 48200001,
       "placement": 10540,
       "occupied_cells": 18184
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200001,
+      "placement": 32978,
+      "occupied_cells": 34024
     },
     {
       "player": "612000-cold",
@@ -832,6 +919,12 @@
       "occupied_cells": 8738
     },
     {
+      "player": "611000-residual",
+      "seed": 48200003,
+      "placement": 8400,
+      "occupied_cells": 17632
+    },
+    {
       "player": "611000-anchored",
       "seed": 48200003,
       "placement": 8672,
@@ -854,6 +947,12 @@
       "seed": 48200003,
       "placement": 10540,
       "occupied_cells": 18190
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200003,
+      "placement": 32978,
+      "occupied_cells": 38115
     },
     {
       "player": "612000-anchored",
@@ -886,6 +985,12 @@
       "occupied_cells": 16938
     },
     {
+      "player": "611000-residual",
+      "seed": 48200005,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
       "player": "611000-anchored",
       "seed": 48200005,
       "placement": 8672,
@@ -910,10 +1015,22 @@
       "occupied_cells": 18187
     },
     {
+      "player": "611000-residual",
+      "seed": 48200005,
+      "placement": 32978,
+      "occupied_cells": 42210
+    },
+    {
       "player": "612000-plain",
       "seed": 48200007,
       "placement": 8283,
       "occupied_cells": 12840
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200007,
+      "placement": 8400,
+      "occupied_cells": 13536
     },
     {
       "player": "611000-anchored",
@@ -970,6 +1087,12 @@
       "occupied_cells": 12829
     },
     {
+      "player": "611000-residual",
+      "seed": 48200009,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
       "player": "611000-anchored",
       "seed": 48200009,
       "placement": 8672,
@@ -992,6 +1115,12 @@
       "seed": 48200009,
       "placement": 10540,
       "occupied_cells": 14096
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200009,
+      "placement": 32978,
+      "occupied_cells": 38123
     },
     {
       "player": "612000-anchored",
@@ -1030,6 +1159,12 @@
       "occupied_cells": 12831
     },
     {
+      "player": "611000-residual",
+      "seed": 48200011,
+      "placement": 8400,
+      "occupied_cells": 17632
+    },
+    {
       "player": "611000-anchored",
       "seed": 48200011,
       "placement": 8672,
@@ -1052,6 +1187,12 @@
       "seed": 48200011,
       "placement": 10540,
       "occupied_cells": 14071
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200011,
+      "placement": 32978,
+      "occupied_cells": 38116
     },
     {
       "player": "612000-anchored",
@@ -1084,6 +1225,12 @@
       "occupied_cells": 12829
     },
     {
+      "player": "611000-residual",
+      "seed": 48200013,
+      "placement": 8400,
+      "occupied_cells": 13536
+    },
+    {
       "player": "611000-anchored",
       "seed": 48200013,
       "placement": 8672,
@@ -1108,6 +1255,12 @@
       "occupied_cells": 18181
     },
     {
+      "player": "611000-residual",
+      "seed": 48200013,
+      "placement": 32978,
+      "occupied_cells": 38114
+    },
+    {
       "player": "612000-anchored",
       "seed": 48200013,
       "placement": 33047,
@@ -1130,6 +1283,12 @@
       "seed": 48200015,
       "placement": 8283,
       "occupied_cells": 8745
+    },
+    {
+      "player": "611000-residual",
+      "seed": 48200015,
+      "placement": 8400,
+      "occupied_cells": 17632
     },
     {
       "player": "611000-anchored",
