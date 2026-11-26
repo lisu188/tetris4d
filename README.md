@@ -102,6 +102,14 @@ two-drop recovery. On four selected roots played to physical top-out, the
 witness gained 791 placements in total over greedy. A one-drop clear rule
 reproduced 758 of that gain. [Validation and per-game results](validation/two-drop-cross.json)
 
+On 13 separate historical greedy streams, three contained a two-drop recovery
+across 123,799 recorded decisions. From the earliest recovery in each game,
+the frozen actor survived another 375, 1,693 and 815 placements. Forcing the
+two-drop recovery gave 375, 1,693 and 707. The one-drop rule chose the same
+two moves in all three games. On the third board the actor restored CROSS two
+moves later, and both lines placed their next CROSS on move 18. All three
+opportunities came from historical selection games. [Transfer results and matched trajectories](validation/two-drop-greedy-transfer.json)
+
 ## Compare frozen models
 
 Always supply checkpoint paths explicitly. This example evaluates the incumbent
