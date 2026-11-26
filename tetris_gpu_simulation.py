@@ -423,14 +423,6 @@ class DevicePreparedBatch:
         # into its existing inference transfer, then call candidates_from_metadata.
         return self.candidates_from_metadata(self.selected_metadata(indices).cpu().tolist())
 
-    def to_cpu_prepared(self):
-        result = []
-        for p in self.prepared:
-            result.append(None if p is None else neural.Prepared(
-                {k: v.detach().cpu().numpy() for k, v in p.arrays.items()},
-                tuple(p.options), int(p.teacher.item()), p.evaluations, p.fallback))
-        return tuple(result)
-
 
 class GpuPreparer:
     """Per-call owned output tensors; retained rollout records remain valid."""

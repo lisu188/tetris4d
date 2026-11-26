@@ -13,7 +13,6 @@ import triton
 import triton.language as tl
 
 AREA = 4096
-EDGES = 15 * 16 * 16
 
 
 @triton.jit
