@@ -174,6 +174,134 @@
           "ties": 0
         }
       }
+    },
+    "611000-cold": {
+      "receipt_sha256": "49c94521b0706a28ec2e866fa132ede0de5077cd74455941478ddab5966707a7",
+      "endpoint_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+      "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "mean": 39207.75,
+      "median": 36841.5,
+      "placements": [
+        46246,
+        45008,
+        32830,
+        35632,
+        38051,
+        35101,
+        32007,
+        48787
+      ],
+      "clears": [
+        55,
+        53,
+        37,
+        41,
+        44,
+        40,
+        36,
+        58
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1019.3598014589516,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2510.875,
+          "relative_gain": 0.06842203866133015,
+          "paired_bootstrap_95": [
+            -3936.925,
+            8576.5
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 648.25,
+          "relative_gain": 0.016811680649386013,
+          "paired_bootstrap_95": [
+            -6081.940625,
+            7468.625
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      }
+    },
+    "612000-cold": {
+      "receipt_sha256": "536e26e4f51a1aa219316a63d8168797009fb3c42a66defc91672fb55fec2478",
+      "endpoint_sha256": "18be7491c44a6d7117c0b7c136a4925fa08e09f240854363639c598ae4d2d622",
+      "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "mean": 38833.625,
+      "median": 37391.5,
+      "placements": [
+        41930,
+        30386,
+        32613,
+        41626,
+        46913,
+        33157,
+        32129,
+        51915
+      ],
+      "clears": [
+        49,
+        34,
+        37,
+        49,
+        56,
+        38,
+        36,
+        63
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 1290.9596760120476,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2136.75,
+          "relative_gain": 0.05822702886826194,
+          "paired_bootstrap_95": [
+            -6170.0625,
+            9858.693749999999
+          ],
+          "wins": 5,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 274.125,
+          "relative_gain": 0.007109143012746535,
+          "paired_bootstrap_95": [
+            -8621.6875,
+            8815.634375
+          ],
+          "wins": 5,
+          "ties": 0
+        }
+      }
     }
   },
   "behavior_cohorts": {
@@ -624,6 +752,59 @@
         "ties": 0
       },
       "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-plain."
+    },
+    "cold": {
+      "mean": 39020.6875,
+      "mean_of_medians": 37116.5,
+      "mean_by_game_seed": [
+        44088,
+        37697,
+        32721.5,
+        38629,
+        42482,
+        34129,
+        32068,
+        50351
+      ],
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 2323.8125,
+          "relative_gain": 0.06332453376479605,
+          "paired_bootstrap_95": [
+            -4633.7921875,
+            9089.678124999997
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": 461.1875,
+          "relative_gain": 0.011960411831066274,
+          "paired_bootstrap_95": [
+            -6946.125,
+            7883.381249999993
+          ],
+          "wins": 4,
+          "ties": 0
+        }
+      },
+      "replicate_comparison": {
+        "control": "ppo",
+        "cap": 0,
+        "mean_difference": -374.125,
+        "relative_gain": -0.009542118586248892,
+        "paired_bootstrap_95": [
+          -5368.5,
+          3912.125
+        ],
+        "wins": 4,
+        "ties": 0
+      },
+      "scope": "Average two actors on each game seed before comparing against controls. The eight streams are the paired sampling units. The registered player for this recipe is 611000-cold."
     }
   },
   "second_plain_block_swaps": {
@@ -1192,5 +1373,27 @@
         "hours_at_prior_model_rate": 6.052958691051176
       }
     }
+  },
+  "plain_minus_cold_recipe": {
+    "scope": "Two fixed training replicas per recipe, averaged within each of the eight shared public streams. Resample streams; interval is conditional on these actors.",
+    "seed": 20261123,
+    "resamples": 10000,
+    "per_stream_diff": [
+      4114.0,
+      -591.0,
+      802.5,
+      -5879.0,
+      6951.5,
+      15898.0,
+      10033.5,
+      -14899.5
+    ],
+    "mean_difference": 2053.75,
+    "wins": 5,
+    "ties": 0,
+    "paired_bootstrap_95": [
+      -4324.4375,
+      8109.134375
+    ]
   }
 }
