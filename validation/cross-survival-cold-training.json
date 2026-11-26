@@ -358,5 +358,92 @@
         "scalar_max_abs_error_vs_delta_weight_times_hidden": 1.5380395555819604e-05
       }
     }
+  },
+  "two_seed_replication": {
+    "host_report": "two-seed-plain-cold-training.json",
+    "host_report_sha256": "9ab67436eb5bdc1af3302babe034c1c51f07a72238cd40368ed53d0baa92b12c",
+    "reproduction_script": "compare-two-seed-temperatures.py",
+    "reproduction_script_sha256": "6c1844f8dee658f6d23e1131a6ee9793214f10a41fd992192ff6d76a20051700",
+    "scope": "Completed matched seeds 611000 and 612000. Each plain/cold pair starts from the same incumbent and differs in behavior temperature only. All four 80-update endpoint checkpoints were independently hashed and their 40 archived greedy decisions and raw CROSS counts reproduced on CPU. Earlier milestones are paired by immutable observation receipts. These comparisons do not use natural-game evaluation results.",
+    "publication_identities": {
+      "611000-plain": {
+        "endpoint_checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+        "evidence_set_canonical_sha256": "5c542522c7a8231fd76aeb92082246dad3a484604871a6bb9829061f4dc9ccdb",
+        "observer_10_40_80_sha256": ["7137f1464b8435b0020a0bc26a245da298bdc0d26bae84ba7f3b441d79d09ace", "d4b44bd26d4f02da694ab5a41f9e1d69d2764c998852ac195f35ada75400826c", "850cb0845a99b0b9da263c1062b64cdb9057fbc5b2f6cef55330f0085075cf3c"]
+      },
+      "612000-plain": {
+        "endpoint_checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+        "evidence_set_canonical_sha256": "4c6156283faa2aa1b35a516eebd5c7649a16beae6da8609bc9411392a9be6982",
+        "observer_10_40_80_sha256": ["d6604cb7562074a63453197e10f1200d373a6e6dcc64c929bc9054d24006294f", "f39e565d0fac9534c0c494ec39493b33d08e343866ee9876a14f37b03857e581", "4a41739b990665c15a598c3283d833db911b5344715ad33466f6eec5467243e6"]
+      },
+      "611000-cold": {
+        "endpoint_checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+        "evidence_set_canonical_sha256": "e4650ae0b71b25cb1baca0e1ad76e0d84dc8462327d3927b2ee047818f264aa4",
+        "observer_10_40_80_sha256": ["ce2f1338f3ac294e998b0e4bc148c202cfe3f905422fb421ec16fda56d7c4b13", "184601527765eab5739145a81ce8b6eab886aa3ae72f324b8e1107599bef9ba1", "5217e0d0aabc28bd5c312d375442df89286ced82da4b381d2426f15c5398d40b"]
+      },
+      "612000-cold": {
+        "endpoint_checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+        "evidence_set_canonical_sha256": "528350c035a4734ad2125dfd4e4636931a984766a3f2d82c71c3faa0b9f82f5d",
+        "observer_10_40_80_sha256": ["8c6720c236df217ff4f1798b544a3e4a93235611b893da9fd4f21094bb8f901c", "3ce38064fac404abcf5386f2a5555ee6d42f6f31fc4808db0080a64d28da32d3", "8a8074faa57ac750bbf220c09e122f25771e4b7da2dbb052f86b5c649172425f"]
+      }
+    },
+    "publication_bound": "Each evidence set SHA hashes the host report provenance object for that arm in compact sorted-key JSON, binding all three acted checkpoint hashes, manifests, observations and metric prefixes. Observer digests are ordered 10, 40, 80.",
+    "endpoint_actor_cosines": {
+      "parameters": 49141,
+      "definition": "Raw endpoint cosine compares the uncentered 49,141 actor parameters. Displacement cosine subtracts the shared incumbent from each endpoint; all rows are sorted by decreasing displacement cosine. The critic is excluded. Full early tensors rotated; endpoint weights supply exact directional comparisons.",
+      "columns": ["left", "right", "temperature_relation", "same_training_seed", "actor_displacement_cosine", "raw_endpoint_actor_cosine", "raw_endpoint_rank"],
+      "pairs": [["611000-cold", "612000-cold", "within", false, 0.238062356, 0.9992429164, 1], ["611000-plain", "611000-cold", "between", true, 0.169583227, 0.9992166672, 2], ["611000-plain", "612000-cold", "between", false, 0.130640708, 0.9991074627, 3], ["612000-plain", "612000-cold", "between", true, 0.027455129, 0.9989462256, 6], ["611000-plain", "612000-plain", "within", false, 0.018184297, 0.9989759664, 5], ["612000-plain", "611000-cold", "between", false, -0.01056694, 0.9989889455, 4]]
+    },
+    "incumbent_action_flips_and_raw_cross": {
+      "columns": ["all_flips", "all_cross_delta", "ordinary_flips", "ordinary_cross_delta", "danger_flips", "danger_cross_delta"],
+      "arms": {
+        "611000-plain": {"10": [11, -1, 7, 0, 4, -1], "40": [14, -5, 9, 0, 5, -5], "80": [17, -8, 10, 0, 7, -8]},
+        "612000-plain": {"10": [13, -8, 8, 0, 5, -8], "40": [15, -4, 8, 0, 7, -4], "80": [16, -5, 9, 0, 7, -5]},
+        "611000-cold": {"10": [8, -4, 7, 0, 1, -4], "40": [7, -1, 5, 0, 2, -1], "80": [11, 0, 5, 0, 6, 0]},
+        "612000-cold": {"10": [5, 0, 5, 0, 0, 0], "40": [7, -1, 5, 0, 2, -1], "80": [11, 0, 9, 0, 2, 0]}
+      }
+    },
+    "paired_greedy": {
+      "subgroup_order": ["all", "ordinary", "danger"],
+      "count_order": ["both_keep", "only_left", "only_right", "same_alternative", "different_alternatives"],
+      "definition": "Same 40 boards (20 ordinary and 20 danger). Every pair is ordered left / right. Alternative means a different move from the common incumbent. Each update contains counts for all, ordinary, then danger.",
+      "pairs": {
+        "611000-plain / 612000-plain": {"10": [[22, 5, 7, 3, 3], [10, 2, 3, 3, 2], [12, 3, 4, 0, 1]], "40": [[17, 8, 9, 0, 6], [6, 6, 5, 0, 3], [11, 2, 4, 0, 3]], "80": [[19, 5, 4, 4, 8], [8, 3, 2, 2, 5], [11, 2, 2, 2, 3]]},
+        "611000-plain / 611000-cold": {"10": [[26, 6, 3, 0, 5], [11, 2, 2, 0, 5], [15, 4, 1, 0, 0]], "40": [[25, 8, 1, 2, 4], [11, 4, 0, 2, 3], [14, 4, 1, 0, 1]], "80": [[20, 9, 3, 2, 6], [9, 6, 1, 0, 4], [11, 3, 2, 2, 2]]},
+        "611000-plain / 612000-cold": {"10": [[28, 7, 1, 3, 1], [12, 3, 1, 3, 1], [16, 4, 0, 0, 0]], "40": [[24, 9, 2, 3, 2], [10, 5, 1, 2, 2], [14, 4, 1, 1, 0]], "80": [[19, 10, 4, 4, 3], [7, 4, 3, 3, 3], [12, 6, 1, 1, 0]]},
+        "612000-plain / 611000-cold": {"10": [[25, 7, 2, 2, 4], [10, 3, 2, 1, 4], [15, 4, 0, 1, 0]], "40": [[20, 13, 5, 1, 1], [8, 7, 4, 0, 1], [12, 6, 1, 1, 0]], "80": [[18, 11, 6, 2, 3], [7, 8, 4, 1, 0], [11, 3, 2, 1, 3]]},
+        "612000-plain / 612000-cold": {"10": [[25, 10, 2, 3, 0], [10, 5, 2, 3, 0], [15, 5, 0, 0, 0]], "40": [[21, 12, 4, 0, 3], [9, 6, 3, 0, 2], [12, 6, 1, 0, 1]], "80": [[22, 7, 2, 2, 7], [9, 2, 2, 1, 6], [13, 5, 0, 1, 1]]},
+        "611000-cold / 612000-cold": {"10": [[29, 6, 3, 0, 2], [10, 5, 3, 0, 2], [19, 1, 0, 0, 0]], "40": [[28, 5, 5, 2, 0], [12, 3, 3, 2, 0], [16, 2, 2, 0, 0]], "80": [[21, 8, 8, 2, 1], [8, 3, 7, 1, 1], [13, 5, 1, 1, 0]]}
+      }
+    },
+    "on_policy_prefixes": {
+      "columns": ["fresh_top_outs", "fresh_placements", "archive_top_outs", "archive_placements", "truncations", "behavior_entropy_nats", "clip_fraction", "mean_final_KL", "optimizer_steps", "KL_stops"],
+      "arms": {
+        "611000-plain": {"10": [0, 68827, 4, 13093, 0, 3.7816519, 0.0203369, 0.000974731, 640, 0], "40": [0, 305327, 10, 22353, 0, 3.5170885, 0.0271173, 0.001194631, 2519, 1], "80": [2, 633007, 10, 22353, 0, 3.4489142, 0.0295434, 0.001243218, 5079, 1]},
+        "612000-plain": {"10": [0, 63313, 6, 18607, 0, 3.7275246, 0.0224794, 0.001600409, 636, 1], "40": [0, 295443, 13, 32237, 0, 3.4428422, 0.0311247, 0.001368579, 2556, 1], "80": [2, 622354, 13, 33006, 0, 3.3527082, 0.0355915, 0.001382555, 5116, 1]},
+        "611000-cold": {"10": [0, 67905, 3, 14015, 0, 2.7935225, 0.0670105, 0.001630826, 640, 0], "40": [0, 295264, 9, 32416, 0, 2.4607187, 0.0713679, 0.002166462, 2465, 2], "80": [0, 614800, 10, 40560, 0, 2.2409448, 0.0766783, 0.001989239, 5025, 2]},
+        "612000-cold": {"10": [0, 62353, 4, 19567, 0, 2.7421323, 0.0766433, 0.002276742, 638, 1], "40": [0, 289428, 11, 38252, 0, 2.4408751, 0.0757959, 0.002016481, 2514, 2], "80": [0, 615168, 13, 40192, 0, 2.213423, 0.0795338, 0.002017633, 5074, 2]}
+      }
+    },
+    "same_board_temperatures_at_80": {
+      "columns": ["T1_entropy", "T1_greedy_probability", "T0.25_entropy", "T0.25_greedy_probability"],
+      "arms": {
+        "611000-plain": [3.17342668, 0.2070173, 1.5389681, 0.53609953],
+        "612000-plain": [2.99058692, 0.25191129, 1.28448819, 0.62733737],
+        "611000-cold": [3.31143981, 0.17428692, 1.80173484, 0.47361667],
+        "612000-cold": [3.24061684, 0.19801275, 1.73613876, 0.50935557]
+      },
+      "unchanged_greedy_argmax_per_actor": 40
+    },
+    "hardware_window_24_to_32_612000_cold": {
+      "source": "hardware-profile/612000-cold.json",
+      "source_sha256": "eb4dc79905b80a0f457a020f91f3a87165e3b911441a547b22e2fb9ab86a62e6",
+      "placements_per_second": 461.6870788935695,
+      "optimizer_steps": 576,
+      "kl_stops": 0,
+      "median_device_utilization_pct": 35.0,
+      "device_samples": 76,
+      "preparation_fraction_elapsed": 0.4525501895074128
+    }
   }
 }
