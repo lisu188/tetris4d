@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import os
 import random
 import tempfile
@@ -5,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+import zlib
 
 import numpy as np
 import torch
@@ -272,13 +275,30 @@ class GeometryTests(unittest.TestCase):
         model = neural.create_model(neural.Config(architecture='survival-spatial-v4'))
         lethal = game.score_candidate(game.evaluate_board(state.board), 'I', 2, 7, 7, 7)
         snapshot = ev._snapshot(state, 1, 0.)
-        for moves, reason, decisions in [({0: (1, lethal)}, 'top_out', 1), ({}, 'target_or_no_move', 0)]:
+        for moves, cap, headless, reason, decisions in [
+            ({0: (2, lethal)}, 0, False, 'top_out', 1), ({0: (2, lethal)}, 0, True, 'top_out', 1),
+            ({}, 0, False, 'target_or_no_move', 0), ({0: (2, lethal)}, 1, False, 'cap', 1)
+        ]:
             with patch.object(ev, 'select_moves', return_value=moves):
-                result = ev.evaluate_fresh(model, [37], policy='ppo', cap=0, device='cpu', partials={37: snapshot})
+                result = ev.evaluate_fresh(model, [37], policy='ppo', cap=cap, headless=headless,
+                                           device='cpu', partials={37: snapshot})
             self.assertEqual(result['stop_reasons'], [reason])
             self.assertEqual(result['target_or_no_move'], int(reason == 'target_or_no_move'))
             self.assertEqual(result['decision_counts']['decisions'], decisions)
             self.assertEqual(result['move_latency']['samples'], decisions)
+            transition = result['games'][0].get('terminal_transition')
+            if reason == 'top_out':
+                self.assertEqual((transition['requested_target'], transition['selected_target']), (1, 2))
+                packed = zlib.decompress(base64.b64decode(transition['before_board_u16le_zlib'], validate=True))
+                before = tuple(map(int, np.frombuffer(packed, dtype='<u2')))
+                self.assertEqual(before, state.board)
+                replay = game.materialize_move(before, game.Candidate(**transition['candidate']))
+                after = np.asarray(replay.board, dtype='<u2').tobytes()
+                self.assertEqual(hashlib.sha256(after).hexdigest(), transition['after_board_sha256'])
+                self.assertEqual(transition['blocked_piece'], 'CROSS')
+                self.assertFalse(game.has_legal_move(replay.board, transition['blocked_piece']))
+            else:
+                self.assertIsNone(transition)
 
     def test_uncapped_partial_resume_exact_board_target_and_stream(self):
         torch.set_num_threads(1)

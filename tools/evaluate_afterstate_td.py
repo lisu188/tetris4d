@@ -5,7 +5,7 @@ import argparse
 import base64
 import copy
 from collections import Counter, defaultdict
-from dataclasses import replace
+from dataclasses import asdict, replace
 import hashlib
 import json
 import math
@@ -473,7 +473,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
             if preview_search or model.config.cross_weight or model.config.cross_residual:
                 telemetry = {'preview_search': preview_search, 'decision_stats': stats}
             move_started = time.monotonic_ns()
-            moves = select_moves(model, current, [targets[s] for s in live], scoring, device, preparer, *options, **telemetry)
+            requested_targets = [targets[s] for s in live]
+            moves = select_moves(model, current, requested_targets, scoring, device, preparer, *options, **telemetry)
             playable = [live[i] for i in moves]
             for i, (target, candidate) in moves.items():
                 seed, state = live[i], current[i]
@@ -497,7 +498,7 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 if not preview_search or preview_search == 'preserve-last-cross':
                     decisions[seed]['immediate_losses'] += int(states[seed].game_over)
                 latency[seed][tenths] += 1
-            for seed in live:
+            for i, seed in enumerate(live):
                 state = states[seed]
                 if seed in playable and not state.game_over and (cap == 0 or state.pieces < cap):
                     continue
@@ -506,6 +507,15 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                        'reason': reason, 'wall_seconds': elapsed[seed] + time.monotonic() - entered[seed],
                        'device': str(device), 'decisions': {k: decisions[seed][k] for k in counters},
                        'batch_latency_histogram_0p1ms': dict(latency[seed]), 'move_latency': _latency(latency[seed])}
+                if reason == 'top_out':
+                    move = state.last_move
+                    before = np.asarray(move.before, dtype='<u2').tobytes()
+                    after = np.asarray(state.board, dtype='<u2').tobytes()
+                    row['terminal_transition'] = dict(
+                        before_board_u16le_zlib=base64.b64encode(zlib.compress(before, 1)).decode('ascii'),
+                        candidate=asdict(move.candidate), requested_target=requested_targets[i],
+                        selected_target=moves[i][0], blocked_piece=state.current,
+                        after_board_sha256=hashlib.sha256(after).hexdigest())
                 if rescue_only:
                     row['paired_greedy'] = _paired_greedy(state.pieces, reason, first_greedy_loss.get(seed), cap)
                 rows[seed] = row
