@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from collections import OrderedDict
 from contextlib import nullcontext
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from functools import lru_cache
 import hashlib
 import heapq
@@ -596,7 +596,8 @@ def load_checkpoint(path, device, restore_rng=False):
 
 
 class NeuralAgent:
-    def __init__(self, path, device='auto', engine=None, allow_untrained=False, capture_traces=True, preview_search=False):
+    def __init__(self, path, device='auto', engine=None, allow_untrained=False, capture_traces=True,
+                 preview_search=False, *, cross_weight=None):
         global game
         if engine is not None:
             game = engine
@@ -609,6 +610,10 @@ class NeuralAgent:
         self.model.eval()
         self.preview_search = preview_search
         config = self.model.config
+        if cross_weight is not None:
+            if config.architecture != 'survival-spatial-v4':
+                raise ValueError('--neural-cross-weight requires a spatial V4 checkpoint')
+            self.model.config = replace(config, cross_weight=cross_weight)
         self.exhaustive = (bool(preview_search) or config.architecture in AFTERSTATE_TD_ARCHITECTURES or
                            (config.architecture == 'survival-spatial-v4' and config.screening == 'exhaustive'))
         self.candidate_budget = 0 if self.exhaustive else config.candidates
@@ -623,6 +628,8 @@ class NeuralAgent:
                          'device': str(self.device), 'preview_search': preview_search, 'config': asdict(self.model.config),
                          'parameters': sum(p.numel() for p in self.model.parameters()),
                          'updates': self.checkpoint['progress'].get('updates', 0), 'status': self.checkpoint['status']}
+        if cross_weight is not None:
+            self.metadata.update(checkpoint_cross_weight=config.cross_weight, cross_weight_override=cross_weight)
         extra = self.checkpoint.get('extra', {})
         survival = extra.get('kind') == 'tetris4d-overnight-survival-v1'
         self.metadata['value_semantics'] = extra.get('value_semantics', 'expected_remaining_placements_times_0.001' if survival else 'discounted_hyperlayers')
@@ -688,6 +695,8 @@ class NeuralAgent:
             elif self.model.config.architecture == 'survival-afterstate-v5':
                 self.last_trace['base_logit'] = float(prediction['base_logits'][0, index])
                 self.last_trace['residual'] = float(prediction['raw_logits'][0, index])
+            elif self.model.config.architecture == 'survival-spatial-v4' and 'raw_logits' in prediction:
+                self.last_trace['actor_score'] = float(prediction['raw_logits'][0, index])
             elif self.model.config.policy_mode == 'teacher-prior' and self.model.config.residual_scale:
                 self.last_trace['actor_score'] = (score - self.model.config.teacher_prior_scale * teacher_prior) / self.model.config.residual_scale
             elif self.model.config.policy_mode == 'neural':

@@ -2824,6 +2824,8 @@ class TetrisApp:
         if self.planned is None or self.game.game_over:
             return
         cleared = self.planned.layers
+        if not self.human.get() and self.policy.get() == 'neural':
+            _annotate_neural_move(self.game, self.decision.target)
         self.game.commit(self.planned)
         if cleared and not self.human.get():
             if self.stop_after_clear:
@@ -3320,6 +3322,15 @@ def run_self_tests() -> dict:
             'literal_network_cases': 30, 'wall_seconds': round(time.perf_counter() - started, 3)}
 
 
+def _annotate_neural_move(state, target):
+    metadata = NEURAL_AGENT.metadata
+    if 'cross_weight_override' in metadata and _RECORDING is not None and _RECORDING.active() is not None:
+        behavior = f"neural/{metadata['checkpoint_sha256']}/cross_weight={metadata['cross_weight_override']}"
+        if metadata['preview_search']:
+            behavior += f"/preview={metadata['preview_search']}"
+        _RECORDING.annotate(state, behavior=behavior, target=target)
+
+
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
              piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
     if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural'):
@@ -3350,6 +3361,8 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
                 break
             timings.append(decision.milliseconds)
             move = decision.move
+            if policy == 'neural':
+                _annotate_neural_move(game, decision.target)
         else:
             options = []
             context = evaluate_board(game.board)
@@ -3435,6 +3448,8 @@ def start_benchmark_logging(args):
     settings = {key: getattr(args, key) for key in ('seed', 'piece_set', 'policy', 'target', 'depth',
                  'beam', 'candidates', 'stop_after_clear', 'backend')}
     settings['mode'] = 'benchmark' if args.benchmark else 'gui'
+    if NEURAL_AGENT is not None:
+        settings['neural'] = NEURAL_AGENT.metadata
     settings.update(ui_fps=args.ui_fps, frameskip=not args.no_frameskip)
     if args.benchmark:
         settings.update(pieces=args.pieces, games=args.games)
@@ -3464,6 +3479,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural'), default='sustained',
                         help='Default: sustained clearing with future-hole penalty; hyperlayer preserves the previous controller; network uses neural-only search.')
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
+    parser.add_argument('--neural-cross-weight', type=float, metavar='FLOAT',
+                        help='Override the spatial V4 CROSS mobility weight for gameplay. Omit to use the checkpoint value.')
     parser.add_argument('--two-stage-exhaustive', action='store_true',
                         help='Use exact two-stage native CPU screening for exhaustive neural gameplay.')
     preview = parser.add_mutually_exclusive_group()
@@ -3514,7 +3531,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             except ImportError as error:
                 raise ValueError('Optional PyTorch/NumPy dependency missing; install it in this environment before using --neural-checkpoint.') from error
             NEURAL_AGENT = NeuralAgent(args.neural_checkpoint, args.neural_device, engine=sys.modules[__name__],
-                                       preview_search=args.neural_preview_search)
+                                       preview_search=args.neural_preview_search, cross_weight=args.neural_cross_weight)
             config = NEURAL_AGENT.model.config
             budget = NEURAL_AGENT.candidate_budget
             if args.two_stage_exhaustive and budget != 0:
@@ -3524,6 +3541,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.candidates = budget
             args.policy = 'neural'
             print(f'Experimental neural policy loaded on {NEURAL_AGENT.device}; not promoted over sustained.', file=sys.stderr)
+        elif args.neural_cross_weight is not None:
+            raise ValueError('--neural-cross-weight requires --neural-checkpoint.')
         elif args.policy == 'neural' or args.neural_preview_search:
             raise ValueError('--policy neural requires --neural-checkpoint.')
         if args.test:

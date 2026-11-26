@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 from dataclasses import asdict
+import hashlib
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -9,6 +12,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -158,6 +162,78 @@ class NeuralTests(unittest.TestCase):
             n.save_checkpoint(path, n.ColumnPolicy(n.Config(width=8, blocks=1)))
             with self.assertRaises(ValueError):
                 n.NeuralAgent(path, 'cpu')
+
+    def test_gameplay_cross_weight_override_and_recorded_policy(self):
+        import tetris_game_library as library
+        import tetris_cross_survival as cross
+        config = n.Config(architecture='survival-spatial-v4', cross_weight=2., candidates=2, shortlist=2,
+                          protect_target=False, policy_mode='teacher-prior', residual_scale=0., teacher_prior_scale=0.)
+        model = n.create_model(config)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root/'model.pt'
+            n.save_checkpoint(path, model, progress={'updates': 1})
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            args = ['--benchmark', '--games', '1', '--pieces', '1', '--backend', 'numpy',
+                    '--neural-checkpoint', str(path), '--neural-device', 'cpu']
+            with patch.object(game, 'NEURAL_AGENT', None), patch.object(game, '_RECORDING', library), \
+                 patch.object(game, '_RECORDING_READY', True), patch.object(library, '_engine', game), \
+                 patch.object(library, '_configured', True), patch.object(library, '_library', library.GameLibrary(root/'games')):
+                for override, expected in ((None, 2.), (0., 0.), (4., 4.)):
+                    with self.subTest(override=override):
+                        flags = ['--no-benchmark-log'] if override is None else [
+                            '--neural-cross-weight', str(override), '--benchmark-log', str(root/f'{override}.jsonl')]
+                        out = io.StringIO()
+                        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                            self.assertEqual(game.main(args + flags), 0)
+                        run = json.loads(out.getvalue())
+                        self.assertEqual((run['runs'][0]['policy'], run['runs'][0]['pieces']), ('neural', 1))
+                        metadata = run['neural']
+                        self.assertEqual((metadata['checkpoint_sha256'], metadata['config']['cross_weight']), (digest, expected))
+                        self.assertEqual(metadata.get('cross_weight_override'), override)
+                        if override is not None:
+                            self.assertEqual(metadata['checkpoint_cross_weight'], 2.)
+                            with (root/f'{override}.jsonl').open() as stream:
+                                self.assertEqual(json.loads(stream.readline())['settings']['neural'], metadata)
+                            rows = list(library.iter_index(root/'games', unique=False))
+                            self.assertEqual(rows[-1]['behaviors'], [f'neural/{digest}/cross_weight={override}'])
+                        agent = game.NEURAL_AGENT
+                        self.assertEqual(agent.checkpoint['config']['cross_weight'], 2.)
+                        for name, value in model.state_dict().items():
+                            self.assertTrue(torch.equal(value, agent.model.state_dict()[name]), name)
+                        # The first of two equally ranked legal moves removes the only CROSS landing.
+                        state = game.Game(7)
+                        board = [1 << 14] * game.AREA
+                        for offset in cross.NEIGHBORS:
+                            board[game.column_index(7, 7, 7) + offset] = 1 << 11
+                        state.board, state.current = tuple(board), 'O'
+                        rotation = next(i for i, shape in enumerate(game.SHAPES['O']) if shape.extents == (2, 2, 1, 1))
+                        specs = [(rotation, 7, 7, 7), (rotation, 1, 1, 1)]
+                        scores = []
+                        with patch.object(game, 'specifications', return_value=specs), agent.model.register_forward_hook(
+                                lambda module, args, output: scores.append(output['raw_logits'][0])):
+                            decision = agent.choose(state, 15)
+                        state.commit(decision.move)
+                        self.assertEqual(agent.last_trace['actor_score'], float(scores[0][agent.last_trace['selected']]))
+                        self.assertEqual(cross.cross_count(state.board), int(expected > 0))
+                        library.ignore(state)
+            self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+
+    def test_cross_weight_override_validates_checkpoint_and_config(self):
+        with contextlib.redirect_stderr(io.StringIO()) as error:
+            self.assertEqual(game.main(['--neural-cross-weight', '0']), 1)
+        self.assertIn('requires --neural-checkpoint', error.getvalue())
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'model.pt'
+            n.save_checkpoint(path, n.create_model(n.Config(architecture='survival-feature-v3')), progress={'updates': 1})
+            with self.assertRaisesRegex(ValueError, 'requires a spatial V4'):
+                n.NeuralAgent(path, 'cpu', cross_weight=0.)
+            model = n.create_model(n.Config(architecture='survival-spatial-v4', cross_residual=True))
+            n.save_checkpoint(path, model, progress={'updates': 1})
+            for weight in (4., -1., float('nan'), float('inf')):
+                with self.subTest(weight=weight), self.assertRaisesRegex(ValueError, 'nonnegative finite CROSS'):
+                    n.NeuralAgent(path, 'cpu', cross_weight=weight)
+            self.assertTrue(n.NeuralAgent(path, 'cpu', cross_weight=0.).model.config.cross_residual)
 
     def test_actual_inference_validates_native_commit_and_trace(self):
         config, records = self.fixture()
