@@ -252,7 +252,6 @@ class Recorder:
         self.attempt = uuid.uuid4().hex[:12]
         self.used = 0
         self.sizes = {}
-        self.files = 0
         self.error = None
         self.context = {}
         try:
@@ -297,7 +296,6 @@ class Recorder:
                 temporary.unlink(missing_ok=True)
             self.used += size - prior
             self.sizes[path] = size
-            self.files += int(prior == 0)
             return path
         except OSError as exc:
             self.disable(f'Recording disabled after {type(exc).__name__}; checkpoints remain independent.')

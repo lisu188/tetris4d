@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, replace
-import hashlib
+from dataclasses import asdict
 import io
 import json
 import os

@@ -15,11 +15,9 @@ initial policy is then the bounded afterstate ranking measured in issue #37.
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import replace
 from functools import lru_cache
 
-import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
