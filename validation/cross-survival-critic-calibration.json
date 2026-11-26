@@ -1,0 +1,218 @@
+{
+  "schema": "cross-survival-calibration-results-v1",
+  "gate_sha256": "c2da0f102fe3dac50f3e18a0cd6d00da5f9cba22decdb26c2dc8594ccdea73d3",
+  "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "donor_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+  "calibration_driver_sha256": "f65114c1cc2035f3a11e9d88616d749e5a43d58ec6fbe64b19ccdd8ac653d3f6",
+  "actor": "incumbent sampled on identical eight piece seeds at each temperature",
+  "units": "placements; equal weight per completed game",
+  "acceptance": "improved last-512 mean absolute error and <=5% first-quarter error growth at both temperatures",
+  "selected": "incumbent",
+  "temperatures": {
+    "1.0": {
+      "mae": {
+        "early": {
+          "incumbent": 2074.7090874638607,
+          "donor": 13464.904846083948
+        },
+        "late": {
+          "incumbent": 10048.406799316406,
+          "donor": 303.05013513565063
+        },
+        "all": {
+          "incumbent": 6214.786921223639,
+          "donor": 8604.376016777445
+        }
+      },
+      "passes": false
+    },
+    "0.25": {
+      "mae": {
+        "early": {
+          "incumbent": 11567.739987307727,
+          "donor": 3210.3777999624513
+        },
+        "late": {
+          "incumbent": 10509.508056640625,
+          "donor": 1907.979887008667
+        },
+        "all": {
+          "incumbent": 6870.037842392041,
+          "donor": 4689.756922089839
+        }
+      },
+      "passes": true
+    }
+  },
+  "mean_sampled_survival": {
+    "1.0": 23872,
+    "0.25": 38861.5
+  },
+  "relative_difference": 0.6279113605898123,
+  "lower_temperature_longer_seeds": 8,
+  "per_seed": {
+    "48100001": {
+      "1.0": {
+        "placements": 22784,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 178,
+        "cache_sha256": "b799f10065dada7f083b040a6ba4cee6d339eb0caa83e0f9648f7e56a14b56c0"
+      },
+      "0.25": {
+        "placements": 33224,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 260,
+        "cache_sha256": "66ab9159bbedb201fea31f138f56719c408fcb07f338d0e7a63c7b2297057875"
+      }
+    },
+    "48100003": {
+      "1.0": {
+        "placements": 24847,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 195,
+        "cache_sha256": "30b72b9fc20fd2cecaad0cc01bb5e76fc64795aabb4a0219b86ddc2a47ff12f8"
+      },
+      "0.25": {
+        "placements": 39444,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 309,
+        "cache_sha256": "9c35c1e168167e830a5410901486cb1dcd9d331ff40323cfbd763287e33ed99b"
+      }
+    },
+    "48100005": {
+      "1.0": {
+        "placements": 23264,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 182,
+        "cache_sha256": "e5e4940db371aa0620860bda4551bd93ad583a5ee349799b18168281dc8f6120"
+      },
+      "0.25": {
+        "placements": 34986,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 274,
+        "cache_sha256": "23855ee6e59281bfdf16451b647e64d4ac9b32263397709a7b2b3b33e35aaba4"
+      }
+    },
+    "48100007": {
+      "1.0": {
+        "placements": 23463,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 184,
+        "cache_sha256": "598decb50a83e34cf7d2b6b4621bbb00bf74870f601c2ace4d6fce7e71b9ef10"
+      },
+      "0.25": {
+        "placements": 48185,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 377,
+        "cache_sha256": "668073072ca9515615356a792c82cc91c76568b64141a37412f7681c63f1eabb"
+      }
+    },
+    "48100009": {
+      "1.0": {
+        "placements": 25673,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 201,
+        "cache_sha256": "e18f5e7fb0f5bb8077b180105f5b41f67fd7c549a9bdc154d441738a52d2ee66"
+      },
+      "0.25": {
+        "placements": 42228,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 330,
+        "cache_sha256": "a55d1fe04a2f7a3769b49deb33d966e7373924680110639ec0eea177cb8c89e8"
+      }
+    },
+    "48100011": {
+      "1.0": {
+        "placements": 22952,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 180,
+        "cache_sha256": "78277245b7908a8cb55267bc07f967a2d3ab6e2f8417e2a0d3ec8a4d5aeacb1c"
+      },
+      "0.25": {
+        "placements": 37460,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 293,
+        "cache_sha256": "963c801c5369d337b5541bf8935c0af88ab5f99db468e08b98553f6e55ac80ba"
+      }
+    },
+    "48100013": {
+      "1.0": {
+        "placements": 28127,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 220,
+        "cache_sha256": "bcf144380f396dfab09534f150b5a4a0562c19d7de9c142b3bdb510e8ee06274"
+      },
+      "0.25": {
+        "placements": 37600,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 294,
+        "cache_sha256": "246be4f8852fd85c660434ace41ffd6b9bc7fc5ee2e73de444fec3380dc786ce"
+      }
+    },
+    "48100015": {
+      "1.0": {
+        "placements": 19866,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 156,
+        "cache_sha256": "ee06a6d81d546b3c9cbe195e27546b51bb82c75b3d4e2a6d3a0a097996c99a79"
+      },
+      "0.25": {
+        "placements": 37765,
+        "terminal_piece": "CROSS",
+        "prediction_samples": 296,
+        "cache_sha256": "550f292a59b37357f83b38e3aaad116616c7a9867dd39b6a10a6b578067d0461"
+      }
+    }
+  },
+  "exploratory_blend": {
+    "classifier": "clip((1024-donor_prediction_in_placements)/512,0,1)",
+    "weights": "linear blend of the two scalar predictions",
+    "ppo_input": false,
+    "source_sha256": "dcc64a963f88433a62f52e32c36ea388ed1e1a1bf26ac412e2129578de792449",
+    "hypothesis": "Set after seeing the complete temperature-1 gate and before any temperature-.25 game completed.",
+    "summaries": {
+      "0.25": {
+        "games": 8,
+        "mae": {
+          "early": {
+            "incumbent": 11567.739987307727,
+            "donor": 3210.3777999624513,
+            "blend": 11567.739987307727
+          },
+          "late": {
+            "incumbent": 10509.508056640625,
+            "donor": 1907.979887008667,
+            "blend": 10063.646908390414
+          },
+          "all": {
+            "incumbent": 6870.037842392041,
+            "donor": 4689.756922089839,
+            "blend": 6863.178440111269
+          }
+        },
+        "mean_fraction_using_donor": 0.0014423076923076924
+      },
+      "1.0": {
+        "games": 8,
+        "mae": {
+          "early": {
+            "incumbent": 2074.7090874638607,
+            "donor": 13464.904846083948,
+            "blend": 2074.7090874638607
+          },
+          "late": {
+            "incumbent": 10048.406799316406,
+            "donor": 303.05013513565063,
+            "blend": 1799.1447443066522
+          },
+          "all": {
+            "incumbent": 6214.786921223639,
+            "donor": 8604.376016777445,
+            "blend": 5910.247919586101
+          }
+        },
+        "mean_fraction_using_donor": 0.03695256945333049
+      }
+    }
+  }
+}
