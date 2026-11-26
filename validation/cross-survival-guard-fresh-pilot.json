@@ -1,0 +1,112 @@
+{
+  "scope": "Frozen empty-board CPU pilot and pre-outcome verification. Active partial games do not supply a survival result.",
+  "plan_sha256": "24dd1ffb88c5b77e64891154bbab7b3c1e3ceccd1a1ee98b14a7939303a98bab",
+  "plan": {
+    "study": "fresh-weight4-last-origin-eight-v1",
+    "frozen_unix": 1795705076.8984113,
+    "seeds": [
+      1127379048401537,
+      1127449182165053,
+      1127358370036191,
+      1127103306524697,
+      1125964615906167,
+      1127068554535349,
+      1127786659226965,
+      1128067938709337
+    ],
+    "seed_rule": "2**50 + 2*big_endian_uint40(sha256(b'fresh-weight4-last-origin-empty-v1|' + decimal(i))) + 1 for i=0..7; no draw or outcome filtering",
+    "seed_audit_sha256": "0b2edf0e53c9a4b600f10d82ae97a61c2e5dd43edb70d5295644223fcbfa48d7",
+    "genesis_sha256": "21d460b925aa892dd6589333c18396bc271dcf6155ab7779f9412c32b742162b",
+    "initial_states": {
+      "1127379048401537": "2ac4355fbde26b0457e74dba442d51a06b90fc303a8e6446e6f9213b5febc6dc",
+      "1127449182165053": "18a759242e46e62ab4022528c8242bed6a602a60e0049d2f36b08d1fe83d0e71",
+      "1127358370036191": "bb0e97e000403db576d059f8777045e8f43e9cfa93c11706362bffd2607d98d3",
+      "1127103306524697": "07f2560115a6f6852e541a241f26a01b9b06ecf8441fd3829aaf205440296946",
+      "1125964615906167": "7fc6ea4eb161609eb6a2476c0a1b03a0d04638e7419065d85acbdf86123b73d0",
+      "1127068554535349": "597c68bc73a9113ce54ff53d7ba9be84ebf0f7236db7b8938dee925ba6d419cd",
+      "1127786659226965": "3bc61aba211fe560e49ac4bb5f099d36fd014d3f8b1b34f45d74116d92eac2d3",
+      "1128067938709337": "5a14d44c3b823a865ed46ea790e113eb7d6562d3dd27d00b2e78891f206e6243"
+    },
+    "runtime_sha256": "ef9c792541bf84ce3f53d000ae52585038aa5da3919e43e5ca6adeb5d0ef1dd5",
+    "direct": {
+      "path": "/home/andrz/git/tetris4d/survival-training.artifacts/cross-survival-24h/players/weight-4.pt",
+      "sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "mode": "greedy"
+    },
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "registration_script_sha256": "b0067aa1bdd726e8a611089b597523644b1391fe1afeedc5f654aaec70f8cdfb",
+    "start": "Fresh Game(seed, expanded), zero board, target 1, seed/bag/full RNG frozen.",
+    "decisions": "CPU native exhaustive two-stage teacher shortlist 128, standard checked materialize/commit, stable first-valid-index tie, production _fixed_actor_logits fixed [32,128] FP32, return_base=True, one-thread highest float32. W4 normal argmax vs same W4 and repeated production preserve_last_cross, no search or lookahead. Common physical forward/commit per seed only while every state and target literally shared; separate after any differing action.",
+    "termination": "No placement, reward or wall limit. Physical top-out when no physical landing for current piece; separately record controller stops; if interrupted resume exactly.",
+    "primary": "Guard minus ordinary uncapped placements from empty. Report every endpoint and natural paired wins/losses/ties and mean difference. Controller-stop/censored pairs are reported separately. Development only.",
+    "validation": "First full production evaluate_fresh decision for all eight in both modes (checked next state equivalence), then compare both independent select_moves to shared decisions at shared placements 1,16,256,4096,8192, and before every initial fork. Rolling snapshots and board/draw/action trace digests.",
+    "resource": "single nice 15 core CPU, CUDA masked, no recording to game library, no official tournament access for evaluation, no tracked edits."
+  },
+  "parity_receipt_sha256": "1428a5075123c9264d323b714dcb058cdc30c0b2a51639255f69e566f7e04de6",
+  "launch_receipt_sha256": "a2df2f18acb4dab0a509d700585b88bdb907825965eaf3919b0275905ef9b52d",
+  "production_parity": {
+    "checks": 32,
+    "description": "Actual evaluate_fresh cap-1, native dense and native two-stage for each policy. Checked candidate, effective target, resulting board/RNG, counters and cap.",
+    "identity": "d9036cc5022b80d44f4f5bd98a48e40a2761f5e8ced7d8be7950dfb93d611f39"
+  },
+  "first_advancement_sha256": "75fad3dc622607270524f63b2b26fdf0d3df01fec1bbbe9ef7d383801ace0043",
+  "restored_states": [
+    [
+      1127379048401537,
+      89,
+      "3ef2aa0ea9e2cc7c9725e43decad29e1f7e339b8313ec117b70e162def7fc52f",
+      "78ad3190eb7da059a7f1e5d35f48063caca5a93daa864e220bf84127354b18c0",
+      "922655362b4b89b6a36bbc4376ae525debdf806b125368ca38d168853e908ec7"
+    ],
+    [
+      1127449182165053,
+      89,
+      "0036f03175021dc8be48aac31e27afe37997be1893522b9611817a32d226ab37",
+      "73a2176a578a67de87cd575fe7e93bc2826134cd83cc184db74ba13700174f32",
+      "3030a5f008bbb32b0a2e2db9994beeb11ec5d82e9f2cf9348c97d2b38434ead5"
+    ],
+    [
+      1127358370036191,
+      89,
+      "4dcbbbfe1ede73b0983c9db096199ea2d58fb0ce97eab3313864f346e52290b2",
+      "a446fe2d59fa9fe0a15e8f6033efa186c20273bc0c69887e8f9776ffc1dce30f",
+      "7f34f9087aaa7a8facdf99700e8817f8d7c6349fa83d4a646955c2ae8db93370"
+    ],
+    [
+      1127103306524697,
+      89,
+      "bfe808048967f27b0ccde90453136870d8e8607efb63bd9f5bc1715344684de1",
+      "71afa06bac37e495b06bc70ca0ccfe276b04a035165426e192a3b266a98d809f",
+      "c755d3540b0e5961919d911578695e4eb545a0df2df39261dad82bb5a495ee63"
+    ],
+    [
+      1125964615906167,
+      89,
+      "9f89d91450b257330d538e58ebcdc8490d86be0f2d79fe424fbd27efe49df5f7",
+      "d1383d036bd983190094e97c1d5afd30d7cf508d1acfcc9405da8c38f9346dfd",
+      "393c0c198a74e828da47d6fbbfeae9813aa244b632f8b76af8e2cc18181ea507"
+    ],
+    [
+      1127068554535349,
+      89,
+      "84070611cf76c1874837497f2a8ce9e325ec936450cd5c5e46aeee32e8cafe88",
+      "b830c62154af97df72b152f3f343c3f3d032c132772950e24e38e10aee983899",
+      "5110c256cb8faa275f0e6a9be405f46c888b468c404fcd94b4920fa53187843b"
+    ],
+    [
+      1127786659226965,
+      89,
+      "586cb82eb0b5c541d01922f4f4fcb775076752e0d074dfdc4bb1248050f7ea12",
+      "a62624af48160b2d1b922fdfbbf6b7bf278e51d2a67550978a7bf4fc1d55dc88",
+      "9c01fe95c75d304c185ec162e556b6288249f73496b87a38eb811544c45f95ad"
+    ],
+    [
+      1128067938709337,
+      89,
+      "43d94b5145ca0d26655717ad8376ec948764b7e4145d85ef54279c9a031467f1",
+      "4cfb53a73a89964937c7fabe0e2a2e16888fe31a4fdea19d88b8ba927a311a29",
+      "af06b40e75d5f8eac8909e636d26ae6aa9e40284d9eb1bbe67b4035ddf58f978"
+    ]
+  ],
+  "runner_sha256": "83594333c2e195b8a2152b147990783b07eba775b3faafac591ee7c711039a01"
+}
