@@ -297,6 +297,49 @@ class GeometryTests(unittest.TestCase):
         self.assertEqual(choose([1., 0.], 16), (0, 1))
         self.assertEqual(choose([1., .001], 16), (1, 2))
 
+    def test_zero_origins_without_a_clear_skips_reply_preparation(self):
+        board = tuple(1 << (14 + i % 2) for i in range(game.AREA))
+        self.assertEqual(cross.cross_count(board), 0)
+        state = SimpleNamespace(board=board, current='I', next_piece='I')
+        rotation = next(r for r, sh in enumerate(game.SHAPES['I']) if sh.extents == (1, 4, 1, 1))
+        options = [game.score_candidate(game.evaluate_board(board), 'I', rotation, x, 0, 0) for x in (0, 2)]
+        self.assertTrue(all(options))
+        config = neural.Config(architecture='survival-spatial-v4', protect_target=False)
+        stats = {}
+        with patch.object(cross, '_visible_replies', side_effect=AssertionError('Impossible positive reply bonus')):
+            index = cross.preview_choice(state, 1, options, [1., 2.], config, stats=stats)
+        self.assertEqual(index, 1)
+        self.assertEqual(stats, dict(planner_triggers=1, immediate_losses=0, immediate_rescues=0,
+                                     planner_overrides=0))
+
+    def test_buried_gap_limits_reply_bonus_and_preserves_exact_ties(self):
+        board = list(frontier())
+        board[0] = 1 << 15  # Blocks this hole in layer 14 permanently until a different layer clears.
+        board = tuple(board)
+        self.assertEqual(cross.cross_count(board), 1)
+        state = SimpleNamespace(board=board, current='I', next_piece='CROSS')
+        options = [game.score_candidate(game.evaluate_board(board), 'I', 0, x, 0, 0) for x in (1, 2)]
+        value = float(cross.MOBILITY_VALUES[1])
+        config = neural.Config(architecture='survival-spatial-v4', protect_target=False)
+        for second, expected, calls in ((0., 0, 1), (.001, 1, 2)):
+            with patch.object(cross, '_visible_replies', return_value=(options[0],)) as replies, patch.object(
+                    cross, 'candidate_cross_counts', side_effect=[(1, np.array([0])), (1, np.array([1]))]):
+                choice = cross.preview_choice(state, 1, options, [value, second], config)
+            self.assertEqual((choice, replies.call_count), (expected, calls))
+
+    def test_possible_reply_clear_can_reopen_landings_from_zero(self):
+        board, _ = self.clear_fixture()
+        self.assertEqual(cross.cross_count(board), 0)
+        state = SimpleNamespace(board=board, current='I', next_piece='I')
+        first = game.make_move(board, 'I', 0, 0, 0, 0)
+        second = game.make_move(first.board, 'I', 2, 7, 7, 7)
+        self.assertEqual((first.layers, second.layers), (0, 2))
+        self.assertGreater(cross.cross_count(second.board), 0)
+        config = neural.Config(architecture='survival-spatial-v4', protect_target=False)
+        with patch.object(cross, '_visible_replies', return_value=(second.candidate,)) as replies:
+            self.assertEqual(cross.preview_choice(state, 1, [first.candidate], [1.], config), 0)
+        replies.assert_called_once()
+
     def test_uncapped_terminal_and_live_target_block_have_distinct_reasons(self):
         state = game.Game(37)
         ev.base.library.ignore(state)

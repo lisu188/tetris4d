@@ -1,0 +1,163 @@
+{
+  "schema": "public-preview-before-first-clear-bound-v1",
+  "runtime": {
+    "pinned": "2306f06403e72999bae05b84aa18055db052caa9",
+    "parent": "92fdb3fd0164f871b618399a39dbb5d22bc6c837",
+    "candidate_cross_source_sha256": "54b4e617e293db4e543fc6c725641f634a79a28c47011831e5380e8885032caa",
+    "actor_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "cpu_native_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56"
+  },
+  "observed_greedy_lockstep_window": {
+    "public_screen": "incumbent-lookahead",
+    "seed": 48200009,
+    "initial_placements": 29641,
+    "final_placements": 29673,
+    "terminal_reason": "top_out",
+    "triggering_decisions": 32,
+    "cache_elapsed_seconds": 363.071,
+    "source_envelope_sha256": [
+      "fff443ff372252293717d828192051d183411112c5d908181479d510e25ebbc0",
+      "81f3f8b9029990b739bb96f64cb09f3ac550653db4fd2df45a838c35d8983a1f"
+    ],
+    "scope": "Elapsed between the production evaluator writing two records; includes the common lockstep of live peers and all host/device work."
+  },
+  "method": {
+    "inputs": "Public incumbent-screen states. First observed pre-override snapshots of seeds 48200001, 48200009, 48200011; last preterminal snapshot of 48200009; ordinary first-observed control from 48200003. Reuse identical ordered CPU-prepared candidates and FP32 logits (one real row at 32 x 128) across variants.",
+    "timed": "One warmup for each implementation and twelve alternating paired passes of the host preview call per board. The separately instrumented pinned reference has two passes per board. Milliseconds exclude the outer candidate preparation, actor forward and game commit. CPU0 at nice 15, CUDA hidden.",
+    "cutoff": "When the original CROSS count is below 16, test all original layers for a possible first clear by either of the two pieces. A buried hole makes a first clear at that layer impossible. The two maximal horizontal slices must also cover the unfilled cells. With every layer excluded, both drops can only remove original CROSS landings. Bound the score bonus by starting mobility, and stop at the first safe actor-ranked candidate if it is zero.",
+    "limits": "Four selected triggered boards and one ordinary control. Whole-screen throughput and exact GPU actor logits were not measured. Hardware timings vary. Decisions and telemetry match for the same inputs."
+  },
+  "cases": [
+    {
+      "seed": 48200001,
+      "placements": 29876,
+      "current": "C",
+      "visible": "B",
+      "cross_origins": 3,
+      "source_cache_envelope_sha256": "1dea9d2bae07389155fe7b7a5785ee0c3811c13459f99443c63dc1d52ca294ca",
+      "cpu_logits_sha256": "19d1f19089c905bbbe0ebfc439e92df80e6d7772bc7373a56c85484138b35b20",
+      "actor_index": 46,
+      "chosen_index": 2,
+      "counters": {
+        "planner_triggers": 1,
+        "immediate_losses": 0,
+        "immediate_rescues": 0,
+        "planner_overrides": 1
+      },
+      "after_board_sha256": "3efa40d573bba85a30a632bd916a5d3e975641d4f6efbcf73f5112d47593f288",
+      "pinned_median_ms": 4931.3,
+      "pinned_reply_ms": 4924.797,
+      "parent_median_ms": 68.111,
+      "bounded_median_ms": 12.836,
+      "parent_reply_calls": 16,
+      "bounded_reply_calls": 3
+    },
+    {
+      "seed": 48200009,
+      "placements": 29641,
+      "current": "HOOK",
+      "visible": "I",
+      "cross_origins": 5,
+      "source_cache_envelope_sha256": "fff443ff372252293717d828192051d183411112c5d908181479d510e25ebbc0",
+      "cpu_logits_sha256": "c9deda9ebd9c2a8b172c33eaec09cfca5111351516f7adaf386b70b068d1974d",
+      "actor_index": 22,
+      "chosen_index": 22,
+      "counters": {
+        "planner_triggers": 1,
+        "immediate_losses": 0,
+        "immediate_rescues": 0,
+        "planner_overrides": 0
+      },
+      "after_board_sha256": "7b2186189073b2a7609048b1024b8fec10076d3e73d1fcee8b7797a0a01c93e6",
+      "pinned_median_ms": 564.25,
+      "pinned_reply_ms": 558.094,
+      "parent_median_ms": 24.817,
+      "bounded_median_ms": 5.889,
+      "parent_reply_calls": 16,
+      "bounded_reply_calls": 2
+    },
+    {
+      "seed": 48200011,
+      "placements": 29679,
+      "current": "T",
+      "visible": "O",
+      "cross_origins": 4,
+      "source_cache_envelope_sha256": "edd21541632bd43780eb6b65b24967d4609c93cd098878323476d474e3b40a67",
+      "cpu_logits_sha256": "1d1fd7bd4987c9c727797b705223c0cdfeb6a3cfaf84e55f8c9a44dd1a7f9083",
+      "actor_index": 108,
+      "chosen_index": 30,
+      "counters": {
+        "planner_triggers": 1,
+        "immediate_losses": 0,
+        "immediate_rescues": 0,
+        "planner_overrides": 1
+      },
+      "after_board_sha256": "6858e0926b163867bbf394776ce651e079cb2d262d9953a37b3df15a6bf1e780",
+      "pinned_median_ms": 1028.704,
+      "pinned_reply_ms": 1022.838,
+      "parent_median_ms": 51.853,
+      "bounded_median_ms": 9.69,
+      "parent_reply_calls": 14,
+      "bounded_reply_calls": 2
+    },
+    {
+      "seed": 48200009,
+      "placements": 29671,
+      "current": "RING",
+      "visible": "NOVA",
+      "cross_origins": 0,
+      "source_cache_envelope_sha256": "69ac415d10c61f5e571ba850747332d7730338ae760df049aaad7b51da0db15b",
+      "cpu_logits_sha256": "823fb7dc1dbd86cdaa489391bc8d67362c5f152a86a16040e77ed1fee2150c89",
+      "actor_index": 22,
+      "chosen_index": 22,
+      "counters": {
+        "planner_triggers": 1,
+        "immediate_losses": 0,
+        "immediate_rescues": 0,
+        "planner_overrides": 0
+      },
+      "after_board_sha256": "bb092e85004762230915889015ec7d5a069173dedaacdeabc309286ffde92879",
+      "pinned_median_ms": 2284.656,
+      "pinned_reply_ms": 2278.767,
+      "parent_median_ms": 47.486,
+      "bounded_median_ms": 2.324,
+      "parent_reply_calls": 16,
+      "bounded_reply_calls": 0
+    },
+    {
+      "seed": 48200003,
+      "placements": 29641,
+      "current": "CROSS",
+      "visible": "L",
+      "cross_origins": 2744,
+      "source_cache_envelope_sha256": "54ef11bdc7df180c1f34b3026f749ec8df5d4ec05d679c23b81c68cf9977f6f2",
+      "cpu_logits_sha256": "078473f7e12a262ccbac1bf1d724d05e4bcc973dde1e364d23b948a61e202d13",
+      "actor_index": 124,
+      "chosen_index": 124,
+      "counters": {},
+      "after_board_sha256": "71b01dbd882ee3294ccca439c3243a5165a0dfa0f3415c1d0b8e0da7aa945bf2",
+      "pinned_median_ms": 0.051,
+      "pinned_reply_ms": 0.0,
+      "parent_median_ms": 0.037,
+      "bounded_median_ms": 0.037,
+      "parent_reply_calls": 0,
+      "bounded_reply_calls": 0
+    }
+  ],
+  "archive_parity": {
+    "boards": 14,
+    "matched": 14,
+    "checks": "Normal CPU evaluator action, full teacher score, counters, target, terminal status, committed board and stream matched the original frozen outputs.",
+    "receipt_sha256": "d348d4fb25a46ca3538be4488bb688a9d9cd05d937f874be7540703c57e79fe8"
+  },
+  "local_receipt_directory": "survival-training.artifacts/cross-survival-24h/lookahead-host-audit",
+  "source_receipt_sha256": {
+    "bench.py": "fc2878ee980ed6478c7c5f3bef500c29629d939f14f6ef61457512b87309c973",
+    "compare_worktrees.py": "7accbcc79f15cf722b7cc8dd60426109743dc1623162d61478131dedfea17716",
+    "archive_final.py": "eff23427927f64a61c84eb2da92b595cf381f59076188ddf0de06effabf31490",
+    "inputs.json.gz": "51e959165c86e167182b0342a544f5a676e3fa575985ef5740586e21fbdda6e2",
+    "pinned.json": "b97579a59ec1b153a5ed2a1f3844a9f43b627ab6ce46895f7ad78ea206a0c358",
+    "pr56.json": "4b2f29d91d244a2eba7453342b4321cf69f712a7d985d3ccf5ea118c209442a8",
+    "worktree.json": "e6a9d8de9c7b5bc6909ec7d94a00a019ca89313f617a516157c05aeda53c8e7e"
+  }
+}

@@ -18,6 +18,31 @@ MAX_CROSS_LOSS = max(len({offset + step for offset, _, _ in shape.columns for st
 PREVIEW_THRESHOLD = 8
 
 
+@lru_cache(maxsize=None)
+def largest_layer_slice(piece):
+    return max(cells for shape in game.SHAPES[piece] for _, cells in shape.levels)
+
+
+def reachable_clear_layers(board, limit):
+    """Yield layers with at most limit empty cells, all reachable from above before any clear."""
+    columns = np.asarray(board, dtype=np.uint16)
+    if columns.shape != (game.AREA,):
+        raise ValueError('Expected one packed column per board position')
+    below_top = columns.copy()
+    for shift in (1, 2, 4, 8):
+        below_top |= below_top >> shift
+    buried_levels = int(np.bitwise_or.reduce(below_top & ~columns))
+    for z in range(game.HEIGHT):
+        if buried_levels & (1 << z):
+            continue
+        holes = (columns & (1 << z)) == 0
+        missing = int(holes.sum())
+        if not missing:
+            raise ValueError('Expected a board after full layers were compacted')
+        if missing <= limit:
+            yield z, missing, holes
+
+
 def _center_mask(board):
     grid = np.asarray(board, dtype=np.uint16).reshape(16, 16, 16)
     # Vertical center mask 0b111 has bottom 0. Each face neighbor has mask 0b010, bottom 1.
@@ -307,10 +332,17 @@ def preview_choice(state, target, options, logits, config, normalized_after=None
     reply_config = replace(config, architecture='survival-feature-v3', screening='exhaustive',
                            shortlist=4, shortlist_mode='teacher-top', cross_residual=False, cross_weight=0.)
     best, best_key = candidates[0][0], None
-    max_reply_bonus = float(MOBILITY_VALUES[16])
+    max_origins = MOBILITY_CAP
+    if before < MOBILITY_CAP:
+        # Before the first clear, both drops can only raise column tops. When no
+        # layer can clear, every reply has at most the original CROSS landings.
+        capacity = largest_layer_slice(state.current) + largest_layer_slice(state.next_piece)
+        if next(reachable_clear_layers(state.board, capacity), None) is None:
+            max_origins = before
+    max_reply_bonus = float(MOBILITY_VALUES[max_origins])
     for i, action, board in candidates[:16]:
         # Later logits can only fall, and the earlier action wins an exact tie.
-        if best_key is not None and float(logits[i]) + max_reply_bonus <= best_key:
+        if max_origins == 0 or (best_key is not None and float(logits[i]) + max_reply_bonus <= best_key):
             break
         replies = _visible_replies(state, target, board, action, reply_config)
         reply_count = int(candidate_cross_counts(board, replies, capped=True)[1].max()) if replies else -1
