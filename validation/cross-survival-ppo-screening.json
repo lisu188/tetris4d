@@ -1,0 +1,115 @@
+{
+  "schema": "cross-survival-ppo-public-screens-v1",
+  "protocol_sha256": "02827a7d85e4e8a2641d62ff2433183632f97e5a495128e12e2471d2e85c47b1",
+  "seeds": [
+    48200001,
+    48200003,
+    48200005,
+    48200007,
+    48200009,
+    48200011,
+    48200013,
+    48200015
+  ],
+  "scope": "Only officially completed public development screens. Each actor plays eight common uncapped games. Bootstrap intervals describe within-screen uncertainty on these eight seeds; recipe ranking requires both training seeds and promotion uses a separate final comparison.",
+  "controls": {
+    "incumbent": {
+      "receipt_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "mean": 36696.875,
+      "median": 35488.0,
+      "placements": [
+        31474,
+        47315,
+        34032,
+        39273,
+        29669,
+        28812,
+        46056,
+        36944
+      ]
+    },
+    "weight-4": {
+      "receipt_sha256": "0e2c7e99c6d24f2d58ed44ed21d8c7292f1eba9cf63a808488481f31944a0a6c",
+      "checkpoint_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "mean": 38559.5,
+      "median": 38223.0,
+      "placements": [
+        31441,
+        50151,
+        39423,
+        41361,
+        29673,
+        32617,
+        46787,
+        37023
+      ]
+    }
+  },
+  "endpoints": {
+    "611000-plain": {
+      "receipt_sha256": "444c4e7f64af53aaf3a81a357969a781660e38e80a7f6c360b68f805099b44b5",
+      "endpoint_sha256": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5",
+      "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "mean": 33227.5,
+      "median": 35392.0,
+      "placements": [
+        35548,
+        16846,
+        39161,
+        19361,
+        35236,
+        47868,
+        43163,
+        28637
+      ],
+      "clears": [
+        41,
+        16,
+        46,
+        19,
+        40,
+        57,
+        51,
+        32
+      ],
+      "stop_reasons": [
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out",
+        "top_out"
+      ],
+      "wall_seconds": 944.8945560160209,
+      "paired": {
+        "incumbent": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -3469.375,
+          "relative_gain": -0.09454142893638763,
+          "paired_bootstrap_95": [
+            -13977.875,
+            6528.125
+          ],
+          "wins": 4,
+          "ties": 0
+        },
+        "weight-4": {
+          "control": "ppo",
+          "cap": 0,
+          "mean_difference": -5332.0,
+          "relative_gain": -0.13827980134597181,
+          "paired_bootstrap_95": [
+            -15883.012499999999,
+            4351.5
+          ],
+          "wins": 3,
+          "ties": 0
+        }
+      }
+    }
+  }
+}

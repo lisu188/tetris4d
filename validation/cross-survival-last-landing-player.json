@@ -2140,6 +2140,168 @@
         300166
       ],
       "scope": "Each of the six 256-move prefixes reproduced its own original actions, board, stream and target. A separate CPU process resumed the snapshots for uncapped comparison."
+    },
+    "common_horizon_followup": {
+      "scope": "Descriptive follow-up at the common 4,096-placement horizon on the same eight prospective roots. Each of the six arms alive at the original 256 cap either physically ended or reached at least 4,096. Final natural comparison still pending.",
+      "source_cap_sha256": "c6ec6f74b43b794be9dea25c5aafbd90d008b4092e233cdedda36a37464ff383",
+      "source_plan_sha256": "a54e02baf2988c2c938b40bfd8f34d87801350633305f3429713ed9e1f26fc50",
+      "source_progress_sha256": "047b6db9bf5474ecf002924d7328222df1232abdf1fa7ea29630394f09fdf987",
+      "source_progress_depth": 4256,
+      "source_progress_snapshot_sha256": "c2f629641ce31e816085edf5d1aca04c204a0701dc15dc6b285fbd5304a7a7f4",
+      "horizon": 4096,
+      "totals": {
+        "weight4": 12682,
+        "weight145": 12491
+      },
+      "paired_delta": -191,
+      "rows": [
+        {
+          "seed": 300076,
+          "arms": {
+            "weight4": {
+              "restricted": 97,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 97,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 109,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 109,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 12
+        },
+        {
+          "seed": 300188,
+          "arms": {
+            "weight4": {
+              "restricted": 61,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 61,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 80,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 80,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 19
+        },
+        {
+          "seed": 300498,
+          "arms": {
+            "weight4": {
+              "restricted": 79,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 79,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 131,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 131,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 52
+        },
+        {
+          "seed": 300248,
+          "arms": {
+            "weight4": {
+              "restricted": 80,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 80,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 105,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 105,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": 25
+        },
+        {
+          "seed": 300184,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            }
+          },
+          "gain": 0
+        },
+        {
+          "seed": 300208,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            }
+          },
+          "gain": 0
+        },
+        {
+          "seed": 300166,
+          "arms": {
+            "weight4": {
+              "restricted": 4096,
+              "alone_natural_within_horizon": false,
+              "latest_observed_placements": 4256,
+              "latest_reason": null
+            },
+            "weight145": {
+              "restricted": 3820,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 3820,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": -276
+        },
+        {
+          "seed": 300486,
+          "arms": {
+            "weight4": {
+              "restricted": 77,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 77,
+              "latest_reason": "physical_top_out"
+            },
+            "weight145": {
+              "restricted": 54,
+              "alone_natural_within_horizon": true,
+              "latest_observed_placements": 54,
+              "latest_reason": "physical_top_out"
+            }
+          },
+          "gain": -23
+        }
+      ],
+      "local_receipt": "high-weight-4096-restricted.json",
+      "receipt_sha256": "4dcc9028eb0d55dba9bc2c4161e7c70c81d447ed4d1a0368c3f051513964a4d5"
     }
   }
 }

@@ -408,5 +408,448 @@
         }
       }
     }
+  },
+  "first_public_screen_snapshots": {
+    "local_receipt": "public-plain-screen-action-audit/results.json",
+    "receipt_sha256": "094d649907c17190c9897644d5a1bcaaa93268d31504f2c89a2f891d126f0244",
+    "capture_sha256": "ba4edd53f8cb0cc7070ce24ce4b9086023ed487222a5f2c8659b1294e3881ac7",
+    "scoring_script_sha256": "c1bcd650a96202d219c56428acdb706e7bd5a91cf9f5d284d653eb66c4cf4334",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "scope": "All available live 611000-plain snapshots at the recorded poll. The two games already complete had no retained states. Each board is a historical state under the first plain endpoint, conditional on survival to capture. Reconstructed action identities have no inference about trajectories or survival. Official GPU next-action traces were not retained; CPU fixed-program outputs were cross-checked using both batched positions and individually padded inputs.",
+    "completed_before_capture": [
+      48200003,
+      48200007
+    ],
+    "missing": [],
+    "independent_single_row_actor_verifications": 60,
+    "physical_winner_afterstate_verifications": 16,
+    "summary": {
+      "incumbent": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.0,
+        "mean_board_centered_weighted_equally_rms": 0.0,
+        "largest_absolute_logit_delta": 0.0,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "weight-4": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.0,
+        "mean_board_centered_weighted_equally_rms": 0.0,
+        "largest_absolute_logit_delta": 0.0,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "611000-plain": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 5,
+        "base_greedy_different_from_incumbent": 5,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": 0.2582383155822754,
+        "median_board_mean_absolute_logit_delta": 0.5073145896312781,
+        "mean_board_centered_weighted_equally_rms": 0.4539500823615495,
+        "largest_absolute_logit_delta": 1.7987870573997498,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "612000-plain": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 2,
+        "base_greedy_different_from_incumbent": 2,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": 0.4167250990867615,
+        "median_board_mean_absolute_logit_delta": 0.5602196890395135,
+        "mean_board_centered_weighted_equally_rms": 0.4236919109119308,
+        "largest_absolute_logit_delta": 3.226344585418701,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "611000-cold": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 2,
+        "base_greedy_different_from_incumbent": 2,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": 0.36534248292446136,
+        "median_board_mean_absolute_logit_delta": 0.6660907451296225,
+        "mean_board_centered_weighted_equally_rms": 0.8965737277169264,
+        "largest_absolute_logit_delta": 4.828985691070557,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "612000-cold": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 1,
+        "base_greedy_different_from_incumbent": 1,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": 0.15547308325767517,
+        "median_board_mean_absolute_logit_delta": 0.43803562910761684,
+        "mean_board_centered_weighted_equally_rms": 0.554567464449179,
+        "largest_absolute_logit_delta": 2.1170835494995117,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "611000-anchored": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.46842761524021626,
+        "mean_board_centered_weighted_equally_rms": 0.30605829736858386,
+        "largest_absolute_logit_delta": 1.1962890625,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "612000-anchored": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.6493159509263933,
+        "mean_board_centered_weighted_equally_rms": 0.3468436990122025,
+        "largest_absolute_logit_delta": 1.236358642578125,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "611000-residual": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.0007757241328363307,
+        "mean_board_centered_weighted_equally_rms": 0.0012643038139163664,
+        "largest_absolute_logit_delta": 0.012145042419433594,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      },
+      "612000-residual": {
+        "positions": 6,
+        "adjusted_greedy_different_from_incumbent": 0,
+        "base_greedy_different_from_incumbent": 0,
+        "adjustment_changed_action": 0,
+        "median_incumbent_margin_when_changed": null,
+        "median_board_mean_absolute_logit_delta": 0.0022524032392539084,
+        "mean_board_centered_weighted_equally_rms": 0.0025927518846296043,
+        "largest_absolute_logit_delta": 0.018856048583984375,
+        "raw_cross_at_selected": [
+          2744,
+          2744,
+          2744,
+          2744,
+          2744,
+          2743
+        ],
+        "delta_raw_cross_vs_incumbent": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "after_origins_gain_loss_tie": [
+          0,
+          0,
+          6
+        ]
+      }
+    },
+    "positions": [
+      {
+        "seed": 48200001,
+        "board_sha256": "ba383aab3f0b4baad6cdd289525b02f722666dcf274a8914db05a432afcc56fb",
+        "stream_sha256": "71a16280466a2b0fbcc93706bf9b3660bb32fc85a5136f3321d236d6bd96577c",
+        "pieces": 25964,
+        "current": "C",
+        "visible": "C",
+        "original_target": 9,
+        "effective_target": 9,
+        "raw_cross_origins_before": 2744,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "ea183f4c0146f56ffa223ce6ec62e02bc85777c8627f5c882548dd1112318acf",
+        "after_origins_range": [
+          2741,
+          2744
+        ],
+        "incumbent_margin": 0.049543142318725586,
+        "incumbent_after_origins": 2744
+      },
+      {
+        "seed": 48200005,
+        "board_sha256": "5be4fd772e380612178775e7c5a0bd46463b8043520e5ddb2206ea49f9f13f49",
+        "stream_sha256": "4b7249b17005c15c1a12d3a6044831f1a142de610c827fae6c6e63bc0eace309",
+        "pieces": 25964,
+        "current": "S",
+        "visible": "CROSS",
+        "original_target": 9,
+        "effective_target": 9,
+        "raw_cross_origins_before": 2744,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "40b91ebadbe5412a9261496e8683a2439816207c5c6a33af9ba45ca388c95811",
+        "after_origins_range": [
+          2744,
+          2744
+        ],
+        "incumbent_margin": 0.2582383155822754,
+        "incumbent_after_origins": 2744
+      },
+      {
+        "seed": 48200009,
+        "board_sha256": "823af99ecce0982d098cc2714a6347fd0b204dc8e9cd20236f4021dba49efd26",
+        "stream_sha256": "dde3f2fe71c44bf32157b32792b2c03fde8f60b48a6642bab742ed21c13dcd23",
+        "pieces": 25964,
+        "current": "FORK",
+        "visible": "B",
+        "original_target": 10,
+        "effective_target": 10,
+        "raw_cross_origins_before": 2744,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "8edd6e94c515049b27cedae398215c583e8c18be6d337bf591bda3d27e264867",
+        "after_origins_range": [
+          2741,
+          2744
+        ],
+        "incumbent_margin": 0.15547308325767517,
+        "incumbent_after_origins": 2744
+      },
+      {
+        "seed": 48200011,
+        "board_sha256": "9b1938ea8d9e5b0f982181076d8a38e85fa33fddcddfaa858c885b45439c6c1a",
+        "stream_sha256": "a11869764503256c559e94cb54a7a7bb0bf4ffe01c0e10464d42f8ba901975bd",
+        "pieces": 25964,
+        "current": "BRIDGE",
+        "visible": "B",
+        "original_target": 7,
+        "effective_target": 7,
+        "raw_cross_origins_before": 2744,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "ea88165ec41d3a937879c3f0127c87a44d310bdb56ce02e42608371a0e77cef4",
+        "after_origins_range": [
+          2744,
+          2744
+        ],
+        "incumbent_margin": 0.5474786758422852,
+        "incumbent_after_origins": 2744
+      },
+      {
+        "seed": 48200013,
+        "board_sha256": "9c294550792ca2d9bf2c5329172c0050b9868a06f883d0b6805729ff0de9c999",
+        "stream_sha256": "ce4ac568c6d14a970b8f4cc72cfe6ee41c635d5cb5ab89cd4522b3dc203c24e4",
+        "pieces": 25964,
+        "current": "S",
+        "visible": "HYPER",
+        "original_target": 8,
+        "effective_target": 8,
+        "raw_cross_origins_before": 2744,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "cfe0913804fbe0141d7258d42e705edcef956bc8e8362224c97d0ae8932a837a",
+        "after_origins_range": [
+          2744,
+          2744
+        ],
+        "incumbent_margin": 0.5971689224243164,
+        "incumbent_after_origins": 2744
+      },
+      {
+        "seed": 48200015,
+        "board_sha256": "aecd0208e364165a8a61937f2d91155a9f8ad388609f5e7d831955a2e728345d",
+        "stream_sha256": "cbb030946821b6002c3e978a01591696ce78ef145d4a96cf065255805460e2ef",
+        "pieces": 25964,
+        "current": "NOVA",
+        "visible": "O",
+        "original_target": 11,
+        "effective_target": 11,
+        "raw_cross_origins_before": 2743,
+        "real_candidates": 128,
+        "shortlist_order_sha256": "3226d08efa31f569720d01abf819dcfb2a71b9ba455b4151eef929c4dcfca7ed",
+        "after_origins_range": [
+          2736,
+          2743
+        ],
+        "incumbent_margin": 0.5752118825912476,
+        "incumbent_after_origins": 2743
+      }
+    ]
   }
 }

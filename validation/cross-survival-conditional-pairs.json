@@ -503,5 +503,317 @@
         }
       }
     }
-  ]
+  ],
+  "training_future_sensitivity": {
+    "scope": "36 paired unseen futures nested within nine fixed train choices from seven archival streams. Each correlation cluster is an original source game.",
+    "local_receipt": "selective-ranker-training/future-sensitivity-results.json",
+    "receipt_sha256": "a8a908edb6aacef0439da714d01de3fe850e1975261b83b0c3ad442557efd96c",
+    "plan_sha256": "9d7c590d1d4f54520b69bf60e42db999f9e62b24e9e3728561d98d93fd6caffc",
+    "runner_sha256": "36d470b990dfd951f111f8f7ea5f00217b29a2e460cfc5a3ebfb098d6bdd504d",
+    "outcomes": {
+      "tie": 23,
+      "win": 13
+    },
+    "stop_reasons": {
+      "greedy_physical_top_out": 36,
+      "preserve_physical_top_out": 36
+    },
+    "rows": [
+      {
+        "example": "300318-6090",
+        "seed": 300318,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 22,
+            "preserve": 22,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 29,
+            "preserve": 29,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 15,
+            "preserve": 15,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300352-6027",
+        "seed": 300352,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 10,
+            "preserve": 43,
+            "gain": 33
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 17,
+            "preserve": 35,
+            "gain": 18
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 3,
+            "preserve": 41,
+            "gain": 38
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 7,
+            "preserve": 7,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300352-6032",
+        "seed": 300352,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 10,
+            "preserve": 29,
+            "gain": 19
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 3,
+            "preserve": 34,
+            "gain": 31
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 4,
+            "preserve": 35,
+            "gain": 31
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 2,
+            "preserve": 34,
+            "gain": 32
+          }
+        ]
+      },
+      {
+        "example": "300524-5989",
+        "seed": 300524,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 18,
+            "preserve": 18,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 25,
+            "preserve": 25,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 11,
+            "preserve": 33,
+            "gain": 22
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 15,
+            "preserve": 15,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300168-7442-93459ee4c0",
+        "seed": 300168,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 20,
+            "preserve": 29,
+            "gain": 9
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 27,
+            "preserve": 34,
+            "gain": 7
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 13,
+            "preserve": 35,
+            "gain": 22
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 17,
+            "preserve": 34,
+            "gain": 17
+          }
+        ]
+      },
+      {
+        "example": "300382-5998-bbd744299e",
+        "seed": 300382,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 9,
+            "preserve": 9,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 16,
+            "preserve": 16,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 2,
+            "preserve": 20,
+            "gain": 18
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 6,
+            "preserve": 6,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300526-5915-6cde53ce3a",
+        "seed": 300526,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 17,
+            "preserve": 17,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 24,
+            "preserve": 24,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 10,
+            "preserve": 10,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 14,
+            "preserve": 14,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300312-7120-ded0404ed5",
+        "seed": 300312,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 12,
+            "preserve": 12,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 5,
+            "preserve": 5,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 9,
+            "preserve": 9,
+            "gain": 0
+          }
+        ]
+      },
+      {
+        "example": "300318-6108-2a5ed34b87",
+        "seed": 300318,
+        "futures": [
+          {
+            "draw_id": "77031123",
+            "greedy": 19,
+            "preserve": 19,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031137",
+            "greedy": 26,
+            "preserve": 26,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031151",
+            "greedy": 12,
+            "preserve": 12,
+            "gain": 0
+          },
+          {
+            "draw_id": "77031163",
+            "greedy": 16,
+            "preserve": 16,
+            "gain": 0
+          }
+        ]
+      }
+    ]
+  },
+  "held_development_natural_followup": {
+    "local_receipt": "selective-ranker-training/development-natural-extension.json",
+    "receipt_sha256": "0452236695dde4a3e5ea8a87ce6b3a484032859537c4960cfbe9a6c72562eefd",
+    "example_id": "300200-19382-99159f600b",
+    "split": "development",
+    "purpose": "Independent descriptive continuation only; frozen capped primary record remains unchanged. Excluded from sensitivity, ranker fitting and tuning.",
+    "baseline_n": 4,
+    "baseline_reason": "physical_top_out",
+    "original_censor_n": 2048,
+    "n": 5197,
+    "stop": "physical_top_out",
+    "gain_exact_if_physical": 5193,
+    "observed_gain_lower_bound": null,
+    "board_sha256": "7d1c5c18195f8bbf750ac09271150ee7fa1fcec377afe733c82de2a8fda89b68",
+    "stream_sha256": "eb4837460f09299432bfb193826e79d1521503bbfa4550148794ca5fa0669f2e",
+    "original_board_sha256": "56ec13af312e4bbc195f98e21d9f6ab14ce046a8ea801f7aa9202c64410f9f59",
+    "original_stream_sha256": "933aad289a7d7a20ee36621f6f3ac1e9212020baab1c7fcc3133eb3ca3d4b134",
+    "source_sha256": "eb2acfe10f7f7763628c512798d2534f03bf06b4ee49c8d4757d75fac5cf3790",
+    "runner_sha256": "cc1722f9a891dcbac45b1442793b94419bd2ddec465f4213a95be079d8d44074",
+    "model_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+    "original_frozen_report_sha256": "50ebfaa236fddd3620d86f72dd4a6090813db133ab70af09f93dd79d83daaf1f",
+    "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "wall_seconds": 226.7274756889674,
+    "cuda_initialized": false
+  }
 }
