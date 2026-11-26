@@ -56,16 +56,24 @@ def regression_metrics(predicted, target, constant=None):
             'predictions_pieces': tensor_summary(p, 1000), 'targets_pieces': tensor_summary(y, 1000)}
 
 
-def survival_gae(rewards, values, next_values, terminated, truncated, lam, nonnegative_bootstrap=False):
+def survival_gae(rewards, values, next_values, terminated, truncated, lam, nonnegative_bootstrap=False,
+                 *, horizon=0):
     """Use the same nonnegative baseline on both sides of a survival TD error.
 
     The critic still trains on raw predictions so negative values receive a
     corrective gradient. Flooring only next_values would break the cancellation
     of intermediate baselines in lambda returns.
     """
+    if type(horizon) is not int or horizon < 0:
+        raise ValueError('GAE horizon must be a nonnegative number of frames')
     if nonnegative_bootstrap:
         values = np.maximum(values, 0.)
         next_values = np.maximum(next_values, 0.)
+    if horizon and horizon < len(rewards):
+        # Stop the advantage trace at each internal boundary but retain its recorded
+        # next-state bootstrap. Collector truncations still count only episode limits.
+        truncated = truncated.copy()
+        truncated[horizon - 1:-1:horizon] = True
     return neural.gae(rewards, values, next_values, terminated, truncated, 1., lam)
 
 
@@ -929,7 +937,8 @@ class SurvivalTrainer(base.Trainer):
             timings['bootstrap_seconds'] += time.perf_counter() - started
         advantage, returns = survival_gae(np.asarray(rewards), np.asarray(values), np.asarray(next_values),
                                          np.asarray(terminals), np.asarray(truncations), self.args.gae_lambda,
-                                         getattr(self.args, 'nonnegative_bootstrap', False))
+                                         getattr(self.args, 'nonnegative_bootstrap', False),
+                                         horizon=getattr(self.args, 'gae_horizon', 0))
         raw = advantage.ravel().copy()
         normalized = (raw - raw.mean()) / max(1e-6, float(raw.std()))
         if fixed_cache is not None:

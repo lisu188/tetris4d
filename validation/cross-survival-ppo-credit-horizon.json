@@ -1,0 +1,554 @@
+{
+  "schema": "registered-ppo-gae-credit-v1",
+  "runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+  "source_sha256": {
+    "train_survival_v2.py": "b9ad77a315ff818f0e81b9ab8c79adec9c9e1b1c6af159bcbd0feb780717a719",
+    "train_survival_v4.py": "6fba01e5afaa91af9e70e88d918dfcc35fef73fec7032911d98dea5a188c7df1",
+    "train_overnight.py": "1f1af9a1df6db3e287a859c260b8e834e66feb1e26479e2dd067a37b87b54a64",
+    "tetris_neural.py": "441a5bc61e19180c466290f8e6749bf858eb4f20bd9730f06219d67a127fdaec",
+    "train_survival.py": "22bf20d63ce5e6e85877ce77fcadc5eabb663ba8049c6e1c626b9d9fa5015293"
+  },
+  "checkpoint_provenance": {
+    "611000-anchored": {
+      "endpoint_sha256": "60e214b970d1796b5ca214a20396b72b4a5bb2d569249088501ae0343635f2ef",
+      "manifest_sha256": "2711840d96ad76888f284ddcf8ac2e78fe9b38388857aed3f19807e3d14a6350",
+      "checkpoint_sha256": "5a20c2064b153ed66ab66c49af3e7bd756c12a71e6a5a856e292454de852143c",
+      "metrics_sha256": "8b9832d2f2a635f80c98b8e00b7738a5f6d3e552b75f4a45c515bbd39df80be5",
+      "summary_sha256": "b43d115703a77f5346a5974d2b86bf68d6e9642d50145db45c43085eab1ba4de"
+    },
+    "611000-cold": {
+      "endpoint_sha256": "a8cd1ef571e936685277896506def836d41a53eb072691ad9945e8a1a006f4ec",
+      "manifest_sha256": "f09d2de0105fb59e7a61df745032e1f453efed03832687671e925354dfa6a932",
+      "checkpoint_sha256": "607a1b1e91faa2441ff739519ed0b2cbafa6b670357ff0c364e6e685acf83af9",
+      "metrics_sha256": "20ca9c2d9afdd5059ead2fb199b803424739a0f035ec4bfcef224d4573d44599",
+      "summary_sha256": "ced144aaa627d02ba32e79858c3caad2f7f8833e96cfab5dfad3673ec9f849c8"
+    },
+    "611000-plain": {
+      "endpoint_sha256": "4d12a5f83b80dddaf46241d57365c5315d087d9fa6f91595f4efe1fe03f64da5",
+      "manifest_sha256": "3dee4404c7453c85ff89f04c6b2114c75674d79868ded8fb4b4fb1e9128203a0",
+      "checkpoint_sha256": "b049242301c70e1794d02e192fcbcc8869f9fdb11f47f9d45f729f3500f7a819",
+      "metrics_sha256": "8ec95ce8310080138240065dd978ecec323d9664317768dd7f7aa2c1ac8d541c",
+      "summary_sha256": "bd4a28412875d543301cd8f283c5cb1d6761741f0161b45f553711ca477f2da1"
+    },
+    "612000-cold": {
+      "endpoint_sha256": "18be7491c44a6d7117c0b7c136a4925fa08e09f240854363639c598ae4d2d622",
+      "manifest_sha256": "5c2cdd6e74ed9e1531a16f964bd814c1fa47200d5fdce96f9e27fd44640dd0ee",
+      "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+      "metrics_sha256": "fbc1ac7c5c57ff945fc36ba6321dafea3ce7c5ed9cd11474cf472c6afe60b53e",
+      "summary_sha256": "8702264b9924397685f79bf110dbee094a58c341a8ed71ddb6e38e2398296b14"
+    },
+    "612000-plain": {
+      "endpoint_sha256": "5b19edeb1672dd26e6f82b3b323af457c9f2dc0341d12f2ea61e1afb7170adf6",
+      "manifest_sha256": "40e6e21aa76c7b35bedf62e99d69971bfd0f3c015c183fd9c52ad30abb2450d4",
+      "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+      "metrics_sha256": "14bfe9e9005ae78f1958015564253bb354f872ad7d81ea28f0ad53794eb3e75d",
+      "summary_sha256": "070d2c8b6f61ae979b1696d4a0bb4fc3f2203d24e80bca114f530c0dea202398"
+    }
+  },
+  "protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+  "registered_settings": {
+    "gamma": 1.0,
+    "gae_lambda": 0.999,
+    "reward_scale": 0.001,
+    "envs": 32,
+    "rollout": 256,
+    "pieces": 0,
+    "value_loss": "mse",
+    "nonnegative_bootstrap": false,
+    "objective": "undiscounted_successful_placements"
+  },
+  "pinned_source_lines": {
+    "train_overnight.py": [
+      37,
+      416,
+      419,
+      457,
+      458,
+      492,
+      620
+    ],
+    "train_survival_v2.py": [
+      59,
+      66,
+      69,
+      665,
+      666,
+      837,
+      874,
+      875,
+      890,
+      905,
+      907,
+      914,
+      916,
+      920,
+      925,
+      928,
+      930,
+      933,
+      934,
+      1135,
+      1137,
+      1138,
+      1225
+    ],
+    "train_survival_v4.py": [
+      193,
+      197,
+      201,
+      206,
+      222,
+      229
+    ],
+    "tetris_neural.py": [
+      1055,
+      1057,
+      1059,
+      1060,
+      1062
+    ],
+    "train_survival.py": [
+      56,
+      59
+    ]
+  },
+  "formulas": {
+    "reward": "Each successful placement including the last is +0.001. On a terminal the bootstrap becomes zero, delta_T=0.001 - V(s_T). No separate death penalty or clear reward.",
+    "raw_advantage": "delta_t=r_t+V(s[t+1])*I(nonterminal)-V(s[t]); A_t=delta_t+0.999*I(no termination or truncation)*A[t+1]. Across ordinary rollout boundary initialize A[t+1]=0, keeping V(s[t+1]) as bootstrap.",
+    "value_target": "A_raw+V(s_t), fitted with 0.5*MSE; policy loss instead uses A_raw flattened over 32x256 and standardized by rollout mean/std, with clipped action ratio. Numerical sensitivities below apply to raw advantage and fixed-baseline critic target, before batch normalization.",
+    "cutoff": "For d transitions ending in terminal (inclusive), a unit residual only contributes .999^(d-1). Equivalently for a residual at t+h the weight is .999^h if in the same-lane rollout. Max h=255 (256 placements including terminal); h=256 has zero direct coefficient. Physical terminal/truncation also blocks previous-episode leakage. Longer value forecasts and subsequent learning can bridge boundaries indirectly."
+  },
+  "ratios": {
+    "1": {
+      "placements_through_terminal_inclusive": 1.0,
+      "lag_h_future_TD_errors_if_contiguous": 0.999,
+      "lag_h_realizable_within_one_update": true
+    },
+    "16": {
+      "placements_through_terminal_inclusive": 0.9851045464,
+      "lag_h_future_TD_errors_if_contiguous": 0.9841194418,
+      "lag_h_realizable_within_one_update": true
+    },
+    "32": {
+      "placements_through_terminal_inclusive": 0.9694605363,
+      "lag_h_future_TD_errors_if_contiguous": 0.9684910758,
+      "lag_h_realizable_within_one_update": true
+    },
+    "64": {
+      "placements_through_terminal_inclusive": 0.9389138777,
+      "lag_h_future_TD_errors_if_contiguous": 0.9379749638,
+      "lag_h_realizable_within_one_update": true
+    },
+    "128": {
+      "placements_through_terminal_inclusive": 0.8806777105,
+      "lag_h_future_TD_errors_if_contiguous": 0.8797970328,
+      "lag_h_realizable_within_one_update": true
+    },
+    "256": {
+      "placements_through_terminal_inclusive": 0.7748176365,
+      "lag_h_future_TD_errors_if_contiguous": 0.7740428189,
+      "lag_h_realizable_within_one_update": false
+    }
+  },
+  "lambda_half_life_if_unbounded": 692.8005491785002,
+  "arms": {
+    "611000-anchored": {
+      "completed": {
+        "count": 9,
+        "min": 986,
+        "median": 4120,
+        "max": 10880
+      },
+      "complete_fresh": {
+        "count": 0
+      },
+      "complete_library": {
+        "count": 9,
+        "min": 986,
+        "median": 4120,
+        "max": 10880
+      },
+      "live_own_lengths": {
+        "count": 32,
+        "min": 5221,
+        "median": 20480.0,
+        "max": 20480
+      },
+      "updates": 80,
+      "zero_terminal_updates": 72,
+      "terminal_transitions": 9,
+      "behavior_placements": 655360,
+      "own_states_with_direct_terminal_residual": 1250,
+      "exposed_pct": 0.19073486328125,
+      "library_placements": 46463,
+      "live_uncapped_lanes_at_endpoint": 32,
+      "truncated": 0,
+      "per_terminal_states_receiving_that_residual": {
+        "count": 9,
+        "min": 24,
+        "median": 143,
+        "max": 242
+      },
+      "ending_lane_rollout_blocks": 9,
+      "total_lane_rollout_blocks": 2560
+    },
+    "611000-cold": {
+      "completed": {
+        "count": 10,
+        "min": 965,
+        "median": 3007.5,
+        "max": 10036
+      },
+      "complete_fresh": {
+        "count": 0
+      },
+      "complete_library": {
+        "count": 10,
+        "min": 965,
+        "median": 3007.5,
+        "max": 10036
+      },
+      "live_own_lengths": {
+        "count": 32,
+        "min": 2096,
+        "median": 20480.0,
+        "max": 20480
+      },
+      "updates": 80,
+      "zero_terminal_updates": 71,
+      "terminal_transitions": 10,
+      "behavior_placements": 655360,
+      "own_states_with_direct_terminal_residual": 1413,
+      "exposed_pct": 0.215606689453125,
+      "library_placements": 40560,
+      "live_uncapped_lanes_at_endpoint": 32,
+      "truncated": 0,
+      "per_terminal_states_receiving_that_residual": {
+        "count": 10,
+        "min": 52,
+        "median": 128.5,
+        "max": 240
+      },
+      "ending_lane_rollout_blocks": 10,
+      "total_lane_rollout_blocks": 2560
+    },
+    "611000-plain": {
+      "completed": {
+        "count": 12,
+        "min": 917,
+        "median": 2795.0,
+        "max": 19452
+      },
+      "complete_fresh": {
+        "count": 2,
+        "min": 14973,
+        "median": 17212.5,
+        "max": 19452
+      },
+      "complete_library": {
+        "count": 10,
+        "min": 917,
+        "median": 2256.5,
+        "max": 3987
+      },
+      "live_own_lengths": {
+        "count": 32,
+        "min": 1028,
+        "median": 20480.0,
+        "max": 20480
+      },
+      "updates": 80,
+      "zero_terminal_updates": 70,
+      "terminal_transitions": 12,
+      "behavior_placements": 655360,
+      "own_states_with_direct_terminal_residual": 1512,
+      "exposed_pct": 0.230712890625,
+      "library_placements": 22353,
+      "live_uncapped_lanes_at_endpoint": 32,
+      "truncated": 0,
+      "per_terminal_states_receiving_that_residual": {
+        "count": 12,
+        "min": 15,
+        "median": 135.5,
+        "max": 252
+      },
+      "ending_lane_rollout_blocks": 12,
+      "total_lane_rollout_blocks": 2560
+    },
+    "612000-cold": {
+      "completed": {
+        "count": 13,
+        "min": 645,
+        "median": 2723,
+        "max": 11109
+      },
+      "complete_fresh": {
+        "count": 0
+      },
+      "complete_library": {
+        "count": 13,
+        "min": 645,
+        "median": 2723,
+        "max": 11109
+      },
+      "live_own_lengths": {
+        "count": 32,
+        "min": 9169,
+        "median": 20480.0,
+        "max": 20480
+      },
+      "updates": 80,
+      "zero_terminal_updates": 69,
+      "terminal_transitions": 13,
+      "behavior_placements": 655360,
+      "own_states_with_direct_terminal_residual": 1825,
+      "exposed_pct": 0.278472900390625,
+      "library_placements": 40192,
+      "live_uncapped_lanes_at_endpoint": 32,
+      "truncated": 0,
+      "per_terminal_states_receiving_that_residual": {
+        "count": 13,
+        "min": 35,
+        "median": 158,
+        "max": 232
+      },
+      "ending_lane_rollout_blocks": 13,
+      "total_lane_rollout_blocks": 2560
+    },
+    "612000-plain": {
+      "completed": {
+        "count": 15,
+        "min": 522,
+        "median": 2596,
+        "max": 19711
+      },
+      "complete_fresh": {
+        "count": 2,
+        "min": 17175,
+        "median": 18443.0,
+        "max": 19711
+      },
+      "complete_library": {
+        "count": 13,
+        "min": 522,
+        "median": 2523,
+        "max": 4705
+      },
+      "live_own_lengths": {
+        "count": 32,
+        "min": 769,
+        "median": 20480.0,
+        "max": 20480
+      },
+      "updates": 80,
+      "zero_terminal_updates": 68,
+      "terminal_transitions": 15,
+      "behavior_placements": 655360,
+      "own_states_with_direct_terminal_residual": 2224,
+      "exposed_pct": 0.33935546875,
+      "library_placements": 33006,
+      "live_uncapped_lanes_at_endpoint": 32,
+      "truncated": 0,
+      "per_terminal_states_receiving_that_residual": {
+        "count": 15,
+        "min": 18,
+        "median": 138,
+        "max": 255
+      },
+      "ending_lane_rollout_blocks": 15,
+      "total_lane_rollout_blocks": 2560
+    }
+  },
+  "total": {
+    "completed": {
+      "count": 59,
+      "min": 522,
+      "median": 2752,
+      "max": 19711
+    },
+    "complete_fresh": {
+      "count": 4,
+      "min": 14973,
+      "median": 18313.5,
+      "max": 19711
+    },
+    "complete_library": {
+      "count": 55,
+      "min": 522,
+      "median": 2706,
+      "max": 11109
+    },
+    "live_own_lengths": {
+      "count": 160,
+      "min": 769,
+      "median": 20480.0,
+      "max": 20480
+    },
+    "updates": 400,
+    "zero_terminal_updates": 350,
+    "terminal_transitions": 59,
+    "behavior_placements": 3276800,
+    "own_states_with_direct_terminal_residual": 8224,
+    "exposed_pct": 0.2509765625,
+    "library_placements": 182574,
+    "live_uncapped_lanes_at_endpoint": 160,
+    "truncated": 0,
+    "per_terminal_states_receiving_that_residual": {
+      "count": 59,
+      "min": 15,
+      "median": 143,
+      "max": 255
+    },
+    "ending_lane_rollout_blocks": 59,
+    "total_lane_rollout_blocks": 12800
+  },
+  "calibration": {
+    "sha256": "761f20317c183d2ea9923aa61c36064936f17d4bed318dc7fedad6a5e1e75b86",
+    "behavior_mean_whole_game_placements": {
+      "1.0": 23872,
+      "0.25": 38861.5
+    },
+    "one_256_step_block_as_percent_of_mean_length": {
+      "1.0": 1.0723860589812333,
+      "0.25": 0.658749662262136
+    },
+    "choices": "Eight paired fresh seeds per temperature. Mean lifetimes are from registered calibration, distinct from current PPO game starts; 256/mean is a scale comparison."
+  },
+  "cohort": "Complete endpoints only; over all training arms each lane receives 20480 actual moves. Reported lifetimes use own placements after any library warm start. Live lanes are right-censored. End-containing states are counted from lane birth or rollout start, whichever is later, through the final actual placement; episode_end update IDs and occupancy are independently checked against all update and summary receipts. The actor also receives TD information on every nonterminal transition.",
+  "testable_next": "In a separate matched ablation collect identical 32x512 fixed-policy data per batch for both arms. Compare full GAE propagation across the midpoint with a single forced GAE cut at 256 that retains its bootstrap. Hold lambda, reward, critic, seeds, optimizer cadence/work and two updates per collected batch identical across arms. The extra 256 steps of temporal support are the only target-construction difference. Quantify terminal-exposed state fraction, MC value error on uncensored disjoint labels separately from censor violations, fresh paired greedy survival and elapsed throughput. Both arms use the same collection cadence, which differs from the existing trainer. Existing observations do not select a winning horizon.",
+  "source_hashes_verified_against_protocol": true,
+  "offline_repartition": {
+    "parent_receipt_sha256": "2ad025b3b72b9b7092fdf85bcb9fb44b1bdeda323bd67018c080a1034107bb6c",
+    "boundaries": "T=0 at start of each run, fixed blocks per environment on its global lane placement counter. Terminal placement is inclusive, with one-based end counter T. Its contribution spans min(episode own placements, 1+((T-1) mod block_width)). A reset stops propagation across the old episode. The same 32 lanes, five completed arms, and exactly the same actions and behavior-policy changes are used at all widths.",
+    "validation": "Reconstructed every terminal lane and absolute step from the immutable complete episode-end history, validated original update placement and terminal counters and per-arm 256 totals, then independently enumerated each lane state against its first future terminal and block boundaries for all widths. This measures whether a raw advantage contains a recorded terminal delta. In the historical data weights could change every 256 lane steps. Repartitioning those trajectories does not produce on-policy 512/1024-step training data or measure optimization, survival, or the size of the residual.",
+    "terminal_event_coordinates_sha256": "8aa9bf4140b7249355c68fe775d7a2019589fcf2793d3cf0d6c1802462a7c7b6",
+    "aggregate": {
+      "256": {
+        "covered_states": 8224,
+        "percent": 0.250976562,
+        "fraction_of_all_recorded_states": [
+          8224,
+          3276800
+        ],
+        "distinct_lane_blocks_with_terminal": 59,
+        "total_lane_blocks": 12800,
+        "span_per_terminal": {
+          "min": 15,
+          "median": 143,
+          "max": 255
+        },
+        "reset_limited_terminals": 0,
+        "fresh_start_covered": 655,
+        "archived_start_covered": 7569,
+        "additional_states_vs_256": 0,
+        "multiple_of_256_coverage": 1.0
+      },
+      "512": {
+        "covered_states": 16416,
+        "percent": 0.500976562,
+        "fraction_of_all_recorded_states": [
+          16416,
+          3276800
+        ],
+        "distinct_lane_blocks_with_terminal": 59,
+        "total_lane_blocks": 6400,
+        "span_per_terminal": {
+          "min": 24,
+          "median": 278,
+          "max": 508
+        },
+        "reset_limited_terminals": 0,
+        "fresh_start_covered": 1167,
+        "archived_start_covered": 15249,
+        "additional_states_vs_256": 8192,
+        "multiple_of_256_coverage": 1.996109
+      },
+      "1024": {
+        "covered_states": 33110,
+        "percent": 1.010437012,
+        "fraction_of_all_recorded_states": [
+          33110,
+          3276800
+        ],
+        "distinct_lane_blocks_with_terminal": 57,
+        "total_lane_blocks": 3200,
+        "span_per_terminal": {
+          "min": 24,
+          "median": 623,
+          "max": 1020
+        },
+        "reset_limited_terminals": 2,
+        "fresh_start_covered": 2703,
+        "archived_start_covered": 30407,
+        "additional_states_vs_256": 24886,
+        "multiple_of_256_coverage": 4.026021
+      }
+    },
+    "status": "512 is the planned extension; 1024 is exploratory.",
+    "local_receipt_sha256": "46384b1c5ce1609cc146b0a69fc3cd751687a274674c71230544c49fdef4e1c1"
+  },
+  "fixed_cache_projection": {
+    "source": "All 80 update records of 611000-anchored. The fixed cache allocation scales linearly with the number of rollout records at constant shortlist and input configuration. Confirm actual headroom and allocation at runtime.",
+    "metrics_sha256": "8b9832d2f2a635f80c98b8e00b7738a5f6d3e552b75f4a45c515bbd39df80be5",
+    "budget_mib": 2048,
+    "record_count": 8192,
+    "fixed_bytes": 784400384,
+    "reference_bytes": 4194304,
+    "projected_16384_records_fixed_bytes": 1568800768,
+    "projected_16384_records_reference_bytes": 8388608
+  },
+  "normal_trainer_entry_validation": {
+    "entry": "train_survival_v4.py",
+    "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "runner_source_sha256": {
+      "train_survival_v4.py": "6183bcd6effa3b2868bb0e78b9c0e2a8578e62e10ac2de7843bd0a82cab66110",
+      "train_survival_v2.py": "aa6dac53663fa1d8321c1712b28e7c26884b914064ab67aa5f32937bf906ca7c",
+      "tetris_neural.py": "0f0d1f53ee6c184d816a77b4e4e052193643985dfe8823f3e878623897a979fc"
+    },
+    "script_sha256": "fede5a78945a0cfecf912a786a74cb8eb5f46dbd86076b2670ca4cec2fd512a8",
+    "outcomes": {
+      "split": {
+        "horizon": 3,
+        "environment_snapshots_sha256": "c9259ff0356ba3c5ebbb28036aba5ecee5f78f4e3af67519b77baec8dd23b2bb",
+        "statistics": {
+          "raw_advantages": {
+            "count": 12,
+            "mean": 0.8531442110737165,
+            "std": 0.9578704453522044,
+            "minimum": 0.04463958740234375,
+            "maximum": 2.7871484756469727,
+            "p10": 0.06135425567626953,
+            "p50": 0.41329654306173325,
+            "p90": 2.5888234019279484
+          },
+          "runner_updates": 1,
+          "placements": 12,
+          "optimizer_steps": 4
+        }
+      },
+      "full": {
+        "horizon": null,
+        "environment_snapshots_sha256": "c9259ff0356ba3c5ebbb28036aba5ecee5f78f4e3af67519b77baec8dd23b2bb",
+        "statistics": {
+          "raw_advantages": {
+            "count": 12,
+            "mean": 1.4229965458313625,
+            "std": 1.1902300172586846,
+            "minimum": 0.04463958740234375,
+            "maximum": 3.9643514156341553,
+            "p10": 0.12033054232597357,
+            "p50": 1.2041491270065308,
+            "p90": 3.5929877042770393
+          },
+          "runner_updates": 1,
+          "placements": 12,
+          "optimizer_steps": 4
+        }
+      }
+    },
+    "device": "cpu",
+    "scope": "Both arms start from the calibrated incumbent and see the same two six-placement trajectories. One optimizer update exercises the CLI, collector, credit calculation, update and checkpoint. This is a functional test; it does not estimate survival gains or GPU speed.",
+    "receipt_name": "gae-horizon-trainer-smoke.json",
+    "receipt_sha256": "f90495cdb947fee6b0a666652c21206fc8e1a6bfbf5a86dd9d07fbdc1051d5e7"
+  }
+}

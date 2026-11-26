@@ -638,6 +638,8 @@ class SurvivalTrainer(v3.SurvivalTrainer):
             signature['critic_checkpoint_sha256'] = base.file_hash(self.args.critic_checkpoint)
         if self.args.behavior_temperature != 1.:
             signature['behavior_temperature'] = self.args.behavior_temperature
+        if 0 < getattr(self.args, 'gae_horizon', 0) < self.args.rollout:
+            signature['gae_horizon'] = self.args.gae_horizon
         if self.args.cross_weight or self.args.cross_residual:
             signature.update(cross_weight=self.args.cross_weight, cross_residual=self.args.cross_residual,
                              cross_mobility_sha256=base.file_hash(Path(__file__).with_name('tetris_cross_survival.py')),
@@ -711,6 +713,8 @@ def arguments(argv=None):
                        help='Import only the compatible V4 value head from this checkpoint')
     extra.add_argument('--behavior-temperature', type=float, default=1.,
                        help='Temperature for sampled moves and all corresponding PPO and reference probabilities')
+    extra.add_argument('--gae-horizon', type=int, default=0, metavar='FRAMES',
+                       help='Bootstrap and stop GAE every FRAMES within a rollout (0 uses the full rollout)')
     cross = extra.add_mutually_exclusive_group()
     cross.add_argument('--cross-weight', type=float, default=0.,
                        help='Fixed weight on the change in log-normalized legal CROSS placements')
@@ -771,6 +775,9 @@ def arguments(argv=None):
     args.preserve_pretrained_critic = options.preserve_pretrained_critic
     args.critic_checkpoint = options.critic_checkpoint
     args.behavior_temperature = options.behavior_temperature
+    args.gae_horizon = options.gae_horizon
+    if not 0 <= args.gae_horizon <= args.rollout:
+        extra.error('--gae-horizon must be between 0 and --rollout')
     args.cross_weight, args.cross_residual = options.cross_weight, options.cross_residual
     args.two_stage_exhaustive, args.headless_commit = options.two_stage_exhaustive, options.headless_commit
     if not math.isfinite(args.behavior_temperature) or args.behavior_temperature <= 0:
