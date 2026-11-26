@@ -852,14 +852,14 @@ class GpuPreparer:
                 [(c.rotation, c.x, c.y, c.w, c.z, c.layers) for c in p.options], dtype=np.int32)))
             option_scores[env, :len(p.options)].copy_(self._device(np.asarray([c.score for c in p.options], dtype=np.float64)))
         if self.require_cross_mobility or self.config.cross_weight or self.config.cross_residual:
-            from tetris_cross_survival import MOBILITY_VALUES
+            from tetris_cross_survival import MOBILITY_CAP, MOBILITY_VALUES
             from tetris_gpu_cross import candidate_counts
             before, after = candidate_counts(boards, option_specs, device_pieces, self.shapes,
-                                             self.shape_offsets, ~padding)
+                                             self.shape_offsets, ~padding, capped=True)
             if not hasattr(self, "_cross_values"):
                 self._cross_values = self._device(MOBILITY_VALUES)
-            start = self._cross_values[before.clamp_max(16).long()][:, None].expand_as(after)
-            end = self._cross_values[after.clamp_max(16).long()]
+            start = self._cross_values[before.clamp_max(MOBILITY_CAP).long()][:, None].expand_as(after)
+            end = self._cross_values[after.long()]
             all_arrays["cross_mobility"] = torch.stack((start, end), -1).masked_fill(padding[..., None], 0.)
         if self.spatial:
             all_arrays["spatial_board"], all_arrays["spatial_delta"] = self._spatial_arrays(

@@ -134,6 +134,67 @@ class GeometryTests(unittest.TestCase):
         self.assertEqual(int(after[0]), cross.cross_count(game.materialize_move(board, move).board))
         self.assertGreater(after[0], before)
 
+    def test_policy_counts_skip_saturated_afterboards_including_clears(self):
+        boundary = cross.MOBILITY_CAP + cross.MAX_CROSS_LOSS
+        for before in (boundary - 1, boundary):
+            cells = [1 << 14] * 4096
+            centers = [game.column_index(x, y, w) for x in range(2, 14, 3)
+                       for y in range(2, 14, 3) for w in range(2, 14, 3)]
+            for center in centers[:before]:
+                cells[center] = 1 << 12
+                for step in cross.NEIGHBORS[1:]:
+                    cells[center + step] = 1 << 13
+            board = tuple(cells)
+            move = game.score_candidate(game.evaluate_board(board), 'I', 0, 0, 0, 0)
+            expected = cross.cross_count(game.materialize_move(board, move).board)
+            with patch.object(cross, '_after_count', wraps=cross._after_count) as count:
+                initial, after = cross.candidate_cross_counts(board, (move,), capped=True)
+            self.assertEqual(initial, before)
+            self.assertEqual(after.tolist(), [min(expected, cross.MOBILITY_CAP)])
+            self.assertEqual(count.call_count, int(before < boundary))
+        cells = [1] * 4096
+        cells[game.column_index(7, 7, 7)] = 0
+        board = tuple(cells)
+        clear = game.score_candidate(game.evaluate_board(board), 'I', 2, 7, 7, 7)
+        self.assertEqual(clear.layers, 1)
+        self.assertEqual(cross.cross_count(game.materialize_move(board, clear).board), 14**3)
+        with patch.object(cross, '_after_count', side_effect=AssertionError('unnecessary recount')):
+            np.testing.assert_array_equal(cross.mobility_features(board, (clear,)), np.ones((1, 2), np.float32))
+
+    @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1' or os.environ.get('TRITON_INTERPRET') == '1',
+                         'requires CUDA or the Triton interpreter')
+    def test_device_capped_counts_match_full_board_and_keep_padding_zero(self):
+        from tetris_gpu_cross import candidate_counts
+        device = 'cpu' if os.environ.get('TRITON_INTERPRET') == '1' else 'cuda'
+        game.configure_backend('native')
+        high = [1] * 4096
+        high[game.column_index(7, 7, 7)] = 0
+        scarce, rare_clear = self.clear_fixture()
+        groups = []
+        for board in (tuple(high), frontier(), scarce):
+            context = game.evaluate_board(board)
+            moves = [game.score_candidate(context, 'I', 2, 7, 7, 7),
+                     game.score_candidate(context, 'I', 0, 0, 0, 0)]
+            groups.append((board, [m for m in moves if m is not None]))
+        self.assertTrue(rare_clear.layers)
+        self.assertTrue(groups[0][1][0].layers)
+        specs = torch.zeros((3, 3, 6), dtype=torch.int32, device=device)
+        valid = torch.zeros((3, 3), dtype=torch.bool, device=device)
+        expected = np.zeros((3, 3), dtype=np.int32)
+        for env, (board, moves) in enumerate(groups):
+            for i, m in enumerate(moves):
+                specs[env, i] = torch.tensor((m.rotation, m.x, m.y, m.w, m.z, m.layers), device=device)
+                valid[env, i] = True
+                expected[env, i] = cross.cross_count(game.materialize_move(board, m).board)
+        boards = torch.tensor([board for board, _ in groups], dtype=torch.int32, device=device)
+        catalog = torch.tensor(game.native_shapes('I'), device=device)
+        ids = torch.zeros(3, dtype=torch.int32, device=device)
+        offsets = torch.zeros(1, dtype=torch.int32, device=device)
+        for capped in (False, True):
+            before, after = candidate_counts(boards, specs, ids, catalog, offsets, valid, capped=capped)
+            self.assertEqual(before.tolist(), [cross.cross_count(b) for b, _ in groups])
+            np.testing.assert_array_equal(after.cpu().numpy(), np.minimum(expected, cross.MOBILITY_CAP) if capped else expected)
+
     @staticmethod
     def clear_fixture():
         # Two full layers below a suspended top are eligible only after the vertical I lands.

@@ -9,7 +9,12 @@ import sparse_tetris_4d_optimized as game
 
 
 NEIGHBORS = (0, -1, 1, -16, 16, -256, 256)
-MOBILITY_VALUES = (np.log1p(np.arange(17, dtype=np.float64)) / np.log(17)).astype(np.float32)
+MOBILITY_CAP = 16
+MOBILITY_VALUES = (np.log1p(np.arange(MOBILITY_CAP + 1, dtype=np.float64)) / np.log1p(MOBILITY_CAP)).astype(np.float32)
+# Each raised column can invalidate its own center and six neighbors. Clearing layers
+# can only lower the resulting column heights, so the same loss bound holds on clears.
+MAX_CROSS_LOSS = max(len({offset + step for offset, _, _ in shape.columns for step in NEIGHBORS})
+                     for shapes in game.SHAPES.values() for shape in shapes)
 PREVIEW_THRESHOLD = 8
 
 
@@ -61,18 +66,23 @@ def _after_count(board, candidate, centers, count):
     return count - len(lost)
 
 
-def candidate_cross_counts(board, options):
+def candidate_cross_counts(board, options, *, capped=False):
+    """Return the raw board count and each after-move count, optionally clipped to the policy cap."""
     centers = _center_mask(board)
     before = int(centers.sum())
+    if capped and before >= MOBILITY_CAP + MAX_CROSS_LOSS:
+        return before, np.full(len(options), MOBILITY_CAP, dtype=np.int32)
     after = np.fromiter((_after_count(board, option, centers, before) for option in options), np.int32, len(options))
+    if capped:
+        np.minimum(after, MOBILITY_CAP, out=after)
     return before, after
 
 
 def mobility_features(board, options):
-    before, after = candidate_cross_counts(board, options)
+    before, after = candidate_cross_counts(board, options, capped=True)
     features = np.empty((len(after), 2), np.float32)
-    features[:, 0] = MOBILITY_VALUES[min(before, 16)]
-    features[:, 1] = MOBILITY_VALUES[after.clip(max=16)]
+    features[:, 0] = MOBILITY_VALUES[min(before, MOBILITY_CAP)]
+    features[:, 1] = MOBILITY_VALUES[after]
     return features
 
 
@@ -230,7 +240,7 @@ def preview_choice(state, target, options, logits, config, normalized_after=None
         if best_key is not None and float(logits[i]) + max_reply_bonus <= best_key:
             break
         replies = _visible_replies(state, target, board, action, reply_config)
-        reply_count = int(candidate_cross_counts(board, replies)[1].max()) if replies else -1
+        reply_count = int(candidate_cross_counts(board, replies, capped=True)[1].max()) if replies else -1
         reply_bonus = float(MOBILITY_VALUES[min(reply_count, 16)]) if replies else 0.
         key = float(logits[i]) + reply_bonus
         if best_key is None or key > best_key:

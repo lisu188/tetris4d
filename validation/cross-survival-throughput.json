@@ -449,5 +449,354 @@
         "cpu_cores": 0.9997163518515023
       }
     }
+  },
+  "capped_cross_mobility": {
+    "reference": "c7689882400663b3185fad7701294e0f03278f07",
+    "script_sha256": "6b55d93cc3de967dda9884b3c612ff94571dda544e16837d88486bef24efefda",
+    "cpu_sha256": "1bd382cf61f576348ac5026d82d67674be96989ed83f3b6de8464d2948c8fa0e",
+    "gpu_sha256": "86f65c5b549c94734a22a15a1b63c33bd23fd08b3c255bf865ff9b760e9ccfc4",
+    "gpu_callsite_sha256": "71eb11fbe1074cb32404df12ef426d2463a580a576dcde162d96b0a8bc500790",
+    "model_sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "max_loss": 35,
+    "total_moves": 1324,
+    "boards": [
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4,
+        "seed": 300440,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 100,
+        "seed": 300440,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4102,
+        "seed": 300440,
+        "options": 1,
+        "before": 1,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4126,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4132,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "fedf8ddfe897387240766ea493ccdd0139d1ba1b98586d57fd2a6ff0c7da2565",
+        "offset": 4133,
+        "seed": 300440,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 4,
+        "seed": 300414,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 100,
+        "seed": 300414,
+        "options": 128,
+        "before": 2744,
+        "clearing_options": 0,
+        "cpu_skips_all": true,
+        "device_slots_proven": 128
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5203,
+        "seed": 300414,
+        "options": 128,
+        "before": 4,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5227,
+        "seed": 300414,
+        "options": 43,
+        "before": 2,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5233,
+        "seed": 300414,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      },
+      {
+        "record": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "offset": 5234,
+        "seed": 300414,
+        "options": 128,
+        "before": 0,
+        "clearing_options": 0,
+        "cpu_skips_all": false,
+        "device_slots_proven": 0
+      }
+    ],
+    "timing": {
+      "features": {
+        "paired_ms_per_12": [
+          [
+            1.787455,
+            1.644242
+          ],
+          [
+            1.7717429999999998,
+            1.528989
+          ],
+          [
+            1.809324,
+            1.574935
+          ],
+          [
+            1.778111,
+            1.812393
+          ],
+          [
+            1.9596049999999998,
+            2.121739
+          ],
+          [
+            1.815799,
+            1.613551
+          ],
+          [
+            1.7021629999999999,
+            1.546287
+          ],
+          [
+            1.811461,
+            1.509279
+          ],
+          [
+            2.0312959999999998,
+            1.545821
+          ],
+          [
+            2.105667,
+            1.625974
+          ],
+          [
+            1.7846989999999998,
+            1.610951
+          ],
+          [
+            1.772627,
+            1.607794
+          ],
+          [
+            2.0785549999999997,
+            1.617202
+          ],
+          [
+            2.0028349999999997,
+            1.6731699999999998
+          ],
+          [
+            2.162441,
+            1.602687
+          ],
+          [
+            1.9335669999999998,
+            1.6051419999999998
+          ],
+          [
+            1.7259959999999999,
+            1.570026
+          ],
+          [
+            1.999263,
+            1.629664
+          ],
+          [
+            2.077388,
+            1.5956169999999998
+          ],
+          [
+            1.865268,
+            2.521255
+          ],
+          [
+            2.957224,
+            3.337357
+          ],
+          [
+            3.527938,
+            3.871399
+          ],
+          [
+            1.921052,
+            2.042467
+          ],
+          [
+            1.968675,
+            1.747414
+          ],
+          [
+            2.395124,
+            1.75556
+          ],
+          [
+            2.101574,
+            1.613302
+          ],
+          [
+            2.889897,
+            1.806371
+          ],
+          [
+            3.7564539999999997,
+            2.302149
+          ],
+          [
+            1.796103,
+            1.8547099999999999
+          ],
+          [
+            1.8496359999999998,
+            1.514263
+          ],
+          [
+            1.8985139999999998,
+            1.551686
+          ]
+        ],
+        "paired_median_speedup": 1.1587676562748326,
+        "prior_median_ms": 1.9335669999999998,
+        "candidate_median_ms": 1.617202
+      },
+      "full_decision_and_materialize": {
+        "paired_ms_per_12": [
+          [
+            1009.204316,
+            1024.0801609999999
+          ],
+          [
+            1030.7863399999999,
+            1061.193291
+          ],
+          [
+            1000.070832,
+            1106.966453
+          ],
+          [
+            1015.7253959999999,
+            1009.621369
+          ],
+          [
+            923.998654,
+            1093.410819
+          ],
+          [
+            1074.8118299999999,
+            1034.475308
+          ],
+          [
+            1036.856563,
+            1026.7670779999999
+          ],
+          [
+            978.131485,
+            959.4513
+          ],
+          [
+            1026.950233,
+            899.9316839999999
+          ]
+        ],
+        "paired_median_speedup": 1.0060458575733653,
+        "prior_median_ms": 1015.7253959999999,
+        "candidate_median_ms": 1026.7670779999999
+      }
+    },
+    "fixed40_fixture_sha256": "4cef86039843b11d563632508808e399092cec07fb1957500373323fcd089ec3",
+    "fixed40_cpu_eligibility": {
+      "all": {
+        "boards": 40,
+        "cpu_shortcut_boards": 30,
+        "candidates": 5028,
+        "cpu_shortcut_candidates": 3840
+      },
+      "danger": {
+        "boards": 20,
+        "cpu_shortcut_boards": 10,
+        "candidates": 2468,
+        "cpu_shortcut_candidates": 1280
+      },
+      "ordinary": {
+        "boards": 20,
+        "cpu_shortcut_boards": 20,
+        "candidates": 2560,
+        "cpu_shortcut_candidates": 2560
+      }
+    },
+    "local_receipt": "capped-cross-cpu-replay.json",
+    "receipt_sha256": "93022d1b9f3f52cbe9aae60a4713c4700d1d4923c66cf85921c67ee1773cb4e6",
+    "offline_compile_receipt": "capped-cross-offline-compile.json",
+    "offline_compile_sha256": "1a9fa0382cab61f117090a57b6b45b297397d379291624bdc375a5bc6ca0e626",
+    "sm89_compilations": [
+      {
+        "cap": 0,
+        "cubin_sha256": "09ed0f9b6d6dbebfc2e5b1e25a6b1df9115a29c81fa1a455e0edda625a71a300",
+        "bytes": 292768,
+        "shared_memory_bytes": 16384
+      },
+      {
+        "cap": 16,
+        "cubin_sha256": "80bdb2a9ac22148262b25cf0cd8a40da65360535b475fc90890a78c9d716a2ae",
+        "bytes": 290848,
+        "shared_memory_bytes": 16384
+      }
+    ],
+    "scope": "CPU timing covers twelve fixed archived boards, in alternating pairs after warmup, on one CPU core. The full-decision measurement includes preparation, fixed-shape FP32 actor, exact guard choice, materialization and hashing the resulting board. It excludes the subsequent game-stream commit. The Triton interpreter checked clearing, scarce and saturated boards and padded options. Ahead-of-time compilation for sm_89 checks lowering, without a hardware timing measurement."
   }
 }
