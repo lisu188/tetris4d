@@ -1175,5 +1175,22 @@
         }
       }
     }
+  },
+  "six_hour_evaluation_projection": {
+    "scope": "Conditional 144-pair greedy projection using observed public mean lengths and earlier 32-lane evaluation rate model. Excludes hardware-gate time and assumes no changes in tail lengths or per-position cost. The tournament-selected champion may use a different evaluator.",
+    "modelled_rate": 578.1032348978929,
+    "source": "cross-survival-plain-replicates.json#modelled_gpu_budget",
+    "controls": {
+      "incumbent": {
+        "projected_placements_both": 12329028.0,
+        "required_aggregate_placements_s_for_six_hours": 570.7883333333333,
+        "hours_at_prior_model_rate": 5.924080325557927
+      },
+      "weight-4": {
+        "projected_placements_both": 12597246.0,
+        "required_aggregate_placements_s_for_six_hours": 583.2058333333333,
+        "hours_at_prior_model_rate": 6.052958691051176
+      }
+    }
   }
 }
