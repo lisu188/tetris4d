@@ -42,27 +42,15 @@ def _capacity(holes, piece):
 
 def layer_bounds(board, pieces, *, fit_footprints=True):
     """Return (level, missing cells, per-piece maxima) for layers a first clear could reach."""
-    columns = np.asarray(board, dtype=np.uint16)
-    if columns.shape != (game.AREA,):
-        raise ValueError('Expected one packed column per board position')
-    below_top = columns.copy()
-    for shift in (1, 2, 4, 8):
-        below_top |= below_top >> shift
-    buried_levels = int(np.bitwise_or.reduce(below_top & ~columns))
-    maxima = {p: len(_footprints(p)[0][0]) for p in set(pieces)}
+    maxima = {piece: cross.largest_layer_slice(piece) for piece in set(pieces)}
     limit = sum(maxima[p] for p in pieces)
     bounds = []
-    for z in range(game.HEIGHT):
-        if buried_levels & (1 << z):
-            continue
-        holes = (columns & (1 << z)) == 0
-        missing = int(holes.sum())
-        if not missing:
-            raise ValueError('Expected a board after full layers were compacted')
-        if missing <= limit:
+    for z, missing, holes in cross.reachable_clear_layers(board, limit):
+        capacities = maxima
+        if fit_footprints:
             bits = int.from_bytes(np.packbits(holes, bitorder='little').tobytes(), 'little')
-            capacities = {p: _capacity(bits, p) for p in maxima} if fit_footprints else maxima
-            bounds.append((z, missing, capacities))
+            capacities = {piece: _capacity(bits, piece) for piece in maxima}
+        bounds.append((z, missing, capacities))
     return bounds
 
 
