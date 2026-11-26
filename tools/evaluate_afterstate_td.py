@@ -350,6 +350,13 @@ def _resume(state, data):
     return data['target'], data['wall_seconds']
 
 
+def _paired_greedy(placements, reason, first_loss, cap):
+    if first_loss is None:
+        return {'placements': placements, 'reason': reason, 'physical_top_out': reason == 'top_out'}
+    # The ordinary evaluator gives the cap precedence even if the last placement is fatal.
+    return {'placements': first_loss, 'reason': 'cap' if first_loss == cap else 'top_out', 'physical_top_out': True}
+
+
 @torch.inference_mode()
 def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=None,
                    stop_requested=None, on_finish=None, ppo_batch_size=None, group_exhaustive=False,
@@ -386,11 +393,20 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         capacity = ppo_batch_size or len(seeds)
         targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds[:capacity])
         elapsed = dict.fromkeys(seeds, 0.)
+        rescue_only = preview_search == 'rescue-only'
+        first_greedy_loss = {}
         decisions = {s: Counter() for s in seeds}
         latency = {s: Counter() for s in seeds}
         for seed, data in (partials or {}).items():
             targets[seed], elapsed[seed] = _resume(states[seed], data)
             decisions[seed].update(data.get('decisions', {}))
+            if rescue_only:
+                first = data.get('first_greedy_loss_placement')
+                if ((first is not None) != bool(decisions[seed]['immediate_losses']) or
+                        (first is not None and (type(first) is not int or not 1 <= first <= states[seed].pieces))):
+                    raise ValueError(f'Invalid paired greedy loss in partial for seed {seed}')
+                if first is not None:
+                    first_greedy_loss[seed] = first
             latency[seed].update(data.get('batch_latency_histogram_0p1ms', {}))
         entered = dict.fromkeys(live, began)
         next_seed = len(live)
@@ -402,6 +418,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                     if state.pieces:
                         snapshot = _snapshot(state, targets[seed], elapsed[seed] + time.monotonic() - entered[seed])
                         snapshot.update(decisions=dict(decisions[seed]), batch_latency_histogram_0p1ms=dict(latency[seed]))
+                        if rescue_only:
+                            snapshot['first_greedy_loss_placement'] = first_greedy_loss.get(seed)
                         on_partial(snapshot)
         while live:
             if (deadline is not None and time.monotonic() >= deadline) or (stop_requested and stop_requested()):
@@ -438,6 +456,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 seed = live[i]
                 decisions[seed].update(stats[i])
                 decisions[seed]['decisions'] += 1
+                if rescue_only and stats[i].get('immediate_losses'):
+                    first_greedy_loss.setdefault(seed, states[seed].pieces)
                 if not preview_search:
                     decisions[seed]['immediate_losses'] += int(states[seed].game_over)
                 latency[seed][tenths] += 1
@@ -450,6 +470,8 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                        'reason': reason, 'wall_seconds': elapsed[seed] + time.monotonic() - entered[seed],
                        'device': str(device), 'decisions': {k: decisions[seed][k] for k in DECISION_COUNTERS},
                        'batch_latency_histogram_0p1ms': dict(latency[seed]), 'move_latency': _latency(latency[seed])}
+                if rescue_only:
+                    row['paired_greedy'] = _paired_greedy(state.pieces, reason, first_greedy_loss.get(seed), cap)
                 rows[seed] = row
                 if on_finish:
                     on_finish(row)
@@ -514,7 +536,7 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
     if group_exhaustive:
         identity['group_exhaustive'] = True
     if preview_search:
-        identity['preview_search'] = ('one-visible-physical-rescue-v1' if preview_search == 'rescue-only'
+        identity['preview_search'] = ('one-visible-physical-rescue-paired-v2' if preview_search == 'rescue-only'
                                       else 'one-visible-cross-8-16x4-v1')
     if two_stage:
         identity['two_stage'] = True
@@ -527,6 +549,14 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
                 or row['reason'] not in ('cap', 'top_out', 'target_or_no_move')
                 or (row['reason'] == 'cap') != bool(cap and row['placements'] == cap)):
             raise ValueError(f'Invalid completed evaluation for seed {seed}')
+        if preview_search == 'rescue-only':
+            paired = row.get('paired_greedy', {})
+            n = paired.get('placements')
+            losses = row['decisions']['immediate_losses']
+            if (type(n) is not int or type(paired.get('physical_top_out')) is not bool
+                    or not 0 <= n <= row['placements'] or (losses and not n)
+                    or paired != _paired_greedy(row['placements'], row['reason'], n if losses else None, cap)):
+                raise ValueError(f'Invalid paired greedy evaluation for seed {seed}')
 
     def record(row):
         validate(row, row['seed'])

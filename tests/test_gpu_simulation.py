@@ -1,4 +1,6 @@
 import os
+import random
+from types import SimpleNamespace
 import unittest
 
 import numpy as np
@@ -36,6 +38,44 @@ class SamplingContractTests(unittest.TestCase):
     def test_cpu_device_rejected_before_allocations(self):
         with self.assertRaisesRegex(ValueError, "requires CUDA"):
             gpu.GpuPreparer(device="cpu")
+
+    def test_screen_shortlist_matches_dense_ranking_with_padding_ties_and_random_slots(self):
+        crowded = (0, 2, 6, 11, 13, 18, 24, 29, 31, 38, 44, 50, 59, 62)
+        legal = ((), (0,), (37,), (0, 12, 33), crowded[:5], crowded, crowded, crowded)
+        width = 64
+        primary = torch.full((len(legal), width), torch.iinfo(torch.int32).min, dtype=torch.int32)
+        scores = torch.zeros(primary.shape, dtype=torch.float64)
+        states = [SimpleNamespace(seed=1 + i, pieces=5 * i) for i in range(len(legal))]
+        for i, ids in enumerate(legal):
+            for j in ids:
+                primary[i, j] = 4 if j in (13, 18) else 3
+                # Distinguish j=38 from its lower-ID ties only at FP64 precision.
+                scores[i, j] = (j % 3) + (1e-12 if j == 38 else 0.)
+
+        def packed_scores(span, packed):
+            self.assertEqual(packed.shape, (len(legal), span))
+            return None, scores.gather(1, packed.long().clamp_min(0)).masked_fill(packed < 0, -torch.inf)
+
+        # Exercise the production tensor selector on CPU without allocating CUDA geometry tables.
+        preparer = object.__new__(gpu.GpuPreparer)
+        preparer.device = torch.device("cpu")
+        for mode in ("teacher-random", "teacher-top"):
+            preparer.config = SimpleNamespace(shortlist_mode=mode)
+            for shortlist in (1, 5, 6):
+                with self.subTest(mode=mode, shortlist=shortlist):
+                    actual = preparer._screen_shortlist(primary, states, shortlist, packed_scores)
+                    self.assertIsNotNone(actual)
+                    for i, ids in enumerate(legal):
+                        ranked = sorted(ids, key=lambda j: (-int(primary[i, j]), -float(scores[i, j]), j))
+                        chosen = ranked[:shortlist]
+                        if mode == "teacher-random" and len(ranked) > shortlist:
+                            keep = max(1, shortlist // 2)
+                            best = ranked[:keep]
+                            remaining = [j for j in ids if j not in best]
+                            rng = random.Random(states[i].seed * 8191 + states[i].pieces)
+                            chosen = best + rng.sample(remaining, shortlist - keep)
+                        expected = sorted(chosen) + [-1] * (shortlist - len(chosen))
+                        self.assertEqual(actual[i].tolist(), expected, f"lane {i}")
 
     def test_merge_interleaved_and_empty_groups_with_ragged_shortlists(self):
         def batch(indices, counts):

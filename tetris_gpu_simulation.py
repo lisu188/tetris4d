@@ -587,9 +587,8 @@ class GpuPreparer:
         else:
             top = first[:, :keep]
             rest = valid.clone()
-            rows = torch.arange(n, device=self.device)[:, None].expand_as(top)
-            good = top >= 0
-            rest[rows[good], top[good].long()] = False
+            # Padded top IDs occur only in lanes that use first and discard sampled.
+            rest.scatter_(1, top.long().clamp_min_(0), False)
             random_ranks = np.zeros((n, shortlist - keep), dtype=np.int32)
             for env, (count, _) in enumerate(sizes):
                 if count > shortlist:

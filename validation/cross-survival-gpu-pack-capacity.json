@@ -83,5 +83,31 @@
     "slots": "First FP64 scoring pass only. Current group slots are lane count times max group span rounded up to a power of two with 128 floor. Ideal row-tier slots sum each lane’s span rounded the same way within its original group. Exact final 128-wide rescore is listed separately. Useful candidates sum unrounded native eligibility. Slots count output positions, including padding; they do not measure instructions or wall time.",
     "launch_tradeoff": "An ideal batched launch per occupied group × tier would increase the first-pass launch count from 9 to the reported occupied_group_tier_pairs. That cost, stable compaction, routing, and sort overhead require a matched GPU benchmark. These three final-checkpoint snapshots of live training lanes do not estimate the full run’s frequency.",
     "synchronization": "Current code reads counts to CPU, materializes dynamic nonzero indices, samples exploration ranks with per-lane Python RNG, checks for clears, and copies the final summary back for row lengths and reference recovery. A fixed-capacity design needs exact overflow routing and stable tie ordering. Preserving host RNG and CPU recovery requires compatible counts and status, or equivalent device-side implementations. Target/count fallback was absent on these 96 boards; clear synchronization frequency was not measured."
+  },
+  "fixed_shape_exploration_mask": {
+    "raw_receipt": "shortlist-scatter-profile.json",
+    "raw_sha256": "2fff60ca68af746386eb453e4af80ac91679f22c43a81de07c32b18b2075f411",
+    "case": "Actual _screen_shortlist on CPU tensors; eight lanes with holes, ties and padding, two selection modes and widths 1,5,6. Two of the six calls use random exploration. Profiler events are host operator counts, not GPU measurements. Other variable-size operations remain in the scorer.",
+    "archived_source_sha256": "4fab7d9b8943a759607d78b7b8349b8df5232ed625a9302016e2def0217baa02",
+    "candidate_source_sha256": "91c9af3c5dbdbb5bc0c8fcc5206a243a5ebf2053a736a8d33f50ecf6053041dc",
+    "test_sha256": "3557e4f37032bd6f7a855f5dfc18208dbb0bcdb889490a08979d374f0f4ed370",
+    "identical_full_selected_tensor_to_dense_reference": true,
+    "torch_version": "2.14.1+cu130",
+    "counts": {
+      "legacy": {
+        "aten::nonzero": 10,
+        "aten::index": 10,
+        "aten::index_put_": 8
+      },
+      "fixed": {
+        "aten::nonzero": 6,
+        "aten::index": 6,
+        "aten::index_put_": 6,
+        "aten::scatter_": 2
+      }
+    },
+    "cuda_initialized": false,
+    "total_output_slots_compared": 192,
+    "legacy_and_candidate_match_dense": true
   }
 }

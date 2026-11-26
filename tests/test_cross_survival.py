@@ -182,6 +182,61 @@ class GeometryTests(unittest.TestCase):
             self.assertEqual(following[key], reference[key])
         self.assertEqual(ev._snapshot(baseline, target, 0.)['board'], saved[13]['board'])
 
+    def test_rescue_only_paired_greedy_at_first_loss_and_across_resume(self):
+        model = neural.create_model(neural.Config(architecture='survival-spatial-v4'))
+        state = game.Game(37)
+        ev.base.library.ignore(state)
+        state.board, state.current, state.next_piece = frontier(), 'I', 'I'
+        state.stream.bag = ['I', 'CROSS']
+        start = ev._snapshot(state, 1, 0.)
+
+        def select(model, states, targets, scoring, device, preparer, preview_search=False, decision_stats=None):
+            state, = states
+            context = game.evaluate_board(state.board)
+            if state.pieces == 0:
+                options = [game.score_candidate(context, 'I', 0, 0, 0, 0)]
+            elif state.pieces == 1:
+                options = [game.score_candidate(context, 'I', 2, 7, 7, 7),
+                           game.score_candidate(context, 'I', 0, 0, 0, 4)]
+            elif state.pieces == 2:
+                options = [game.score_candidate(context, 'CROSS', 0, 6, 6, 6)]
+            else:
+                return {}
+            self.assertTrue(all(candidate is not None for candidate in options))
+            i = cross.preview_choice(state, targets[0], options, [1., 0.], model.config,
+                                     stats=decision_stats[0], rescue_only=True) if preview_search else 0
+            return {0: (targets[0], options[i])}
+
+        def run(snapshot=start, *, cap=0, mode='rescue-only', pause=False):
+            saved = []
+            stop = iter((False, True)).__next__ if pause else None
+            with patch.object(ev, 'select_moves', side_effect=select):
+                result = ev.evaluate_fresh(model, [37], policy='ppo', cap=cap, device='cpu', preview_search=mode,
+                                           partials={37: snapshot}, stop_requested=stop, on_partial=saved.append)
+            return saved[0] if pause else result['games'][0]
+
+        pre = run(pause=True)
+        post = run(pre, pause=True)
+        self.assertEqual((pre['pieces'], pre['first_greedy_loss_placement']), (1, None))
+        self.assertEqual((post['pieces'], post['first_greedy_loss_placement']), (2, 2))
+        for snapshot in (start, pre, post):
+            row = run(snapshot)
+            self.assertEqual((row['placements'], row['reason']), (3, 'target_or_no_move'))
+            self.assertEqual(row['paired_greedy'], dict(placements=2, reason='top_out', physical_top_out=True))
+        with self.assertRaisesRegex(ValueError, 'paired greedy loss'):
+            run({k: v for k, v in post.items() if k != 'first_greedy_loss_placement'})
+
+        for cap, reason, physical in [(0, 'top_out', True), (1, 'cap', False), (2, 'cap', True)]:
+            greedy, rescue = run(cap=cap, mode=False), run(cap=cap)
+            self.assertNotIn('paired_greedy', greedy)
+            self.assertEqual(greedy['reason'], reason)
+            self.assertEqual(rescue['paired_greedy'], dict(placements=greedy['placements'], reason=reason,
+                                                           physical_top_out=physical))
+        with patch.object(ev, 'select_moves', return_value={}):
+            blocked = ev.evaluate_fresh(model, [37], policy='ppo', cap=0, device='cpu', preview_search='rescue-only')
+        self.assertEqual(blocked['games'][0]['paired_greedy'],
+                         dict(placements=0, reason='target_or_no_move', physical_top_out=False))
+
     def test_disk_evaluation_partial_reused_then_removed_after_final_atomic_record(self):
         torch.set_num_threads(1)
         config = neural.Config(architecture='survival-spatial-v4', spatial_actor=True, candidates=32,
@@ -218,7 +273,17 @@ class GeometryTests(unittest.TestCase):
             self.assertEqual(resumed['move_latency']['samples'], 5)
             self.assertTrue(active.with_name('41.json').is_file())
             for mode in (False, 'rescue-only'):
-                self.assertTrue(run(never, root / 'resumed', mode)['complete'])
+                result = run(never, root / 'resumed', mode)
+                self.assertTrue(result['complete'])
+                self.assertEqual('paired_greedy' in result['games'][0], mode == 'rescue-only')
+                if mode == 'rescue-only':
+                    self.assertEqual(result['games'][0]['paired_greedy'],
+                                     dict(placements=5, reason='cap', physical_top_out=False))
+                    with patch.object(ev, 'load_model', side_effect=AssertionError('Completed game must be cached')):
+                        cached = ev.evaluate_checkpoint(checkpoint, sha, 'ppo', [41], 5, 'test', 'cpu', never, {},
+                                                        'teacher', root / 'resumed', ppo_batch_size=1,
+                                                        preview_search='rescue-only')
+                    self.assertEqual(result['games'], cached['games'])
             self.assertEqual(len(list((root / 'resumed').rglob('41.json'))), 3)
 
     @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'requires coordinated CUDA slot')

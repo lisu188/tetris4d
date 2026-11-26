@@ -1,0 +1,542 @@
+{
+  "schema": "cross-survival-physical-rescue-v1",
+  "actor_checkpoint_sha256": {
+    "incumbent": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "weight-4": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae"
+  },
+  "independent_archive": {
+    "source_directory": "survival-training.artifacts/cross-survival-24h",
+    "pinned_runtime_revision": "2306f06403e72999bae05b84aa18055db052caa9",
+    "plan_sha256": "ec83335f3a5e5ee08ada4818ba40f9d4031202b461d5bfea831510d7fff929b7",
+    "teacher_sha256": "9f8826a79bc5493e09ff5df083bb2ee4c2cd898363889a3308a01e4fa1564abb",
+    "source_sha256": {
+      "direct-preview-independent-roots.json": "2da768067e348f592d646b8191c853e038ef75e0d16f02b9024339fbdc7d2125",
+      "direct-preview-independent-plan.json": "127cef0915515698fc70e213de8b009e42cbb87c09e99a90328015ad4a979928",
+      "direct-preview-independent-results.json": "a1b669c28c6e491a32dda8798d02434d38a9a980a6fe607bb850613792836936",
+      "compare_rescue_only_from_archive.py": "d6b9b2a2c7639db4f737e345d480dce333861316ef7d89e56fae400e210264d4",
+      "verify_direct_preview_independent.py": "909834fc58678afad4a5edb9d5d82c5ef14b0e8bf68ccd193876adbfe19d8728",
+      "direct-preview-independent-rescue-only.json": "d0e73dc25cd851650d6825bfe35b0a6bad490b21aa4a2a305ee16642a6f569d0",
+      "direct-preview-independent-rescue-live-parity.json": "9a7ca6a4e0e842f6a33d2ef644eb56b949731b2b7b48b150c058c5dac6539b61",
+      "replay-independent-rescue-only.py": "c0dd52318e628ee66e42000be5f64fbf7c44fc01b260f02d30cacaf58d155432",
+      "verify-independent-rescue-live-mode.py": "5ac472acb285c9646a8d802196a72b40395e6b9e495c116da86845054356eb1a"
+    },
+    "population": "Eight distinct historical expanded training seeds. Each root is the first pre-action crossing from above 16 to at most 16 legal CROSS origins. The cohort was fixed before the original factorial rollout and reused in full for the rescue test.",
+    "rescue_rule": "Use the original greedy action if the visible next piece can fit after that placement and its clears. Otherwise scan retained actions in descending original actor-logit order, keeping the first physically safe alternative. If the whole shortlist loses, keep the original action.",
+    "horizon_placements": 1024,
+    "length_convention": "Placements after the frozen offset, counting the last legal placement before top-out. Every 1024 in this table is right-censored alive. Shorter trajectories ended in physical top-out.",
+    "device": "One CPU core, FP32, padded 32 × 128 actor, native exhaustive teacher shortlist; both actors share all learned parameter tensors.",
+    "frozen_source_streams_checked": 32,
+    "actor_summary": {
+      "incumbent": {
+        "roots": 8,
+        "scored_placements": 3283,
+        "greedy_endpoints": {
+          "physical_top_out": 6,
+          "right_censored": 2
+        },
+        "rescue_only_endpoints": {
+          "physical_top_out": 6,
+          "right_censored": 2
+        },
+        "full_preview_endpoints": {
+          "physical_top_out": 7,
+          "right_censored": 1
+        },
+        "immediate_greedy_losses": 6,
+        "successful_rescues": 0,
+        "final_board_stream_and_consumed_prefix_matches_greedy": 8,
+        "mean_greedy": 410.375,
+        "mean_rescue_only": 410.375,
+        "mean_full_preview": 298.5
+      },
+      "weight-4": {
+        "roots": 8,
+        "scored_placements": 3338,
+        "greedy_endpoints": {
+          "physical_top_out": 6,
+          "right_censored": 2
+        },
+        "rescue_only_endpoints": {
+          "physical_top_out": 6,
+          "right_censored": 2
+        },
+        "full_preview_endpoints": {
+          "physical_top_out": 6,
+          "right_censored": 2
+        },
+        "immediate_greedy_losses": 6,
+        "successful_rescues": 0,
+        "final_board_stream_and_consumed_prefix_matches_greedy": 8,
+        "mean_greedy": 417.25,
+        "mean_rescue_only": 417.25,
+        "mean_full_preview": 418.75
+      }
+    },
+    "paired_restricted_lengths": [
+      {
+        "seed": 300192,
+        "archive_offset": 6088,
+        "cross_origins_at_root": 16,
+        "incumbent": {
+          "greedy": 143,
+          "rescue_only": 143,
+          "full_preview": 143,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        },
+        "weight-4": {
+          "greedy": 143,
+          "rescue_only": 143,
+          "full_preview": 143,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300402,
+        "archive_offset": 5673,
+        "cross_origins_at_root": 16,
+        "incumbent": {
+          "greedy": 429,
+          "rescue_only": 429,
+          "full_preview": 453,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": false
+        },
+        "weight-4": {
+          "greedy": 441,
+          "rescue_only": 441,
+          "full_preview": 453,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": false
+        }
+      },
+      {
+        "seed": 300060,
+        "archive_offset": 11504,
+        "cross_origins_at_root": 15,
+        "incumbent": {
+          "greedy": 1024,
+          "rescue_only": 1024,
+          "full_preview": 85,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": false
+        },
+        "weight-4": {
+          "greedy": 1024,
+          "rescue_only": 1024,
+          "full_preview": 1024,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300510,
+        "archive_offset": 5756,
+        "cross_origins_at_root": 16,
+        "incumbent": {
+          "greedy": 97,
+          "rescue_only": 97,
+          "full_preview": 97,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        },
+        "weight-4": {
+          "greedy": 97,
+          "rescue_only": 97,
+          "full_preview": 97,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300026,
+        "archive_offset": 28530,
+        "cross_origins_at_root": 16,
+        "incumbent": {
+          "greedy": 1024,
+          "rescue_only": 1024,
+          "full_preview": 1024,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": true
+        },
+        "weight-4": {
+          "greedy": 1024,
+          "rescue_only": 1024,
+          "full_preview": 1024,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300528,
+        "archive_offset": 5456,
+        "cross_origins_at_root": 16,
+        "incumbent": {
+          "greedy": 354,
+          "rescue_only": 354,
+          "full_preview": 374,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": false
+        },
+        "weight-4": {
+          "greedy": 381,
+          "rescue_only": 381,
+          "full_preview": 381,
+          "final_board_matches_full_preview": false,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300520,
+        "archive_offset": 5726,
+        "cross_origins_at_root": 15,
+        "incumbent": {
+          "greedy": 102,
+          "rescue_only": 102,
+          "full_preview": 102,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        },
+        "weight-4": {
+          "greedy": 118,
+          "rescue_only": 118,
+          "full_preview": 118,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        }
+      },
+      {
+        "seed": 300220,
+        "archive_offset": 7526,
+        "cross_origins_at_root": 15,
+        "incumbent": {
+          "greedy": 110,
+          "rescue_only": 110,
+          "full_preview": 110,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        },
+        "weight-4": {
+          "greedy": 110,
+          "rescue_only": 110,
+          "full_preview": 110,
+          "final_board_matches_full_preview": true,
+          "final_stream_matches_full_preview": true
+        }
+      }
+    ],
+    "interpretation": "The rescue rule took every greedy action on these trajectories. All sixteen terminal or horizon boards, piece prefixes and stream states exactly matched their archived greedy comparators. All twelve fatal choices exhausted the retained options. The first-override timing test had zero positive cases. Seed 300060 accounts for the large incumbent mean difference against full preview; its greedy horizon was censored. These archival comparisons do not establish fresh-game survival."
+  },
+  "checkout_representatives": {
+    "source_sha256": "9a7ca6a4e0e842f6a33d2ef644eb56b949731b2b7b48b150c058c5dac6539b61",
+    "tested_source_sha256": {
+      "tools/evaluate_afterstate_td.py": "39afb71c0e2318312e7dd6a9becfbabe942b3a2916936db7a5fe7919c1fc9285",
+      "tetris_cross_survival.py": "4728e89417978bbbce23d3e98f117d4a8b5808812b44d0be0184f7cef4e9ba3e",
+      "tetris_neural.py": "0f0d1f53ee6c184d816a77b4e4e052193643985dfe8823f3e878623897a979fc",
+      "sparse_tetris_4d_optimized.py": "268354d23b9fa1854db0b17dcbad224f981912ff0e73b8f89fe259835fd68962"
+    },
+    "shape": "CPU FP32, padded 32x128; one actual observation per selector call",
+    "selection": "First actual row observed in standalone round-robin replay per actor and healthy, immediately doomed without escape, or physical rescue category.",
+    "rows": [
+      {
+        "actor": "incumbent",
+        "category": "healthy",
+        "seed": 300192,
+        "offset": 6088,
+        "visible": "S",
+        "expected_match": true,
+        "baseline_match": true,
+        "telemetry": {}
+      },
+      {
+        "actor": "incumbent",
+        "category": "no_survivor",
+        "seed": 300510,
+        "offset": 5852,
+        "visible": "CROSS",
+        "expected_match": true,
+        "baseline_match": true,
+        "telemetry": {
+          "planner_triggers": 1,
+          "immediate_losses": 1
+        }
+      },
+      {
+        "actor": "weight-4",
+        "category": "healthy",
+        "seed": 300192,
+        "offset": 6088,
+        "visible": "S",
+        "expected_match": true,
+        "baseline_match": true,
+        "telemetry": {
+          "direct_weight_changes": 0
+        }
+      },
+      {
+        "actor": "weight-4",
+        "category": "no_survivor",
+        "seed": 300510,
+        "offset": 5852,
+        "visible": "CROSS",
+        "expected_match": true,
+        "baseline_match": true,
+        "telemetry": {
+          "direct_weight_changes": 0,
+          "planner_triggers": 1,
+          "immediate_losses": 1
+        }
+      }
+    ],
+    "coverage": "Each actor was checked on the first safe and first exhausted-shortlist example. This cohort supplied zero successful switches for checkout parity."
+  },
+  "positive_replay": {
+    "schema": "working-copy-visible-rescue-playback-v1",
+    "seed": 300122,
+    "offset": 21278,
+    "observed": 4068,
+    "reason": "physical_top_out",
+    "greedy_lifetime": 239,
+    "override_placements": [
+      239
+    ],
+    "clear_placements": [
+      253,
+      1091,
+      1841,
+      2592,
+      3363
+    ],
+    "counters": {
+      "planner_triggers": 2,
+      "immediate_losses": 2,
+      "immediate_rescues": 1,
+      "planner_overrides": 1
+    },
+    "source_sha256": {
+      "tetris_cross_survival.py": "4728e89417978bbbce23d3e98f117d4a8b5808812b44d0be0184f7cef4e9ba3e",
+      "tetris_neural.py": "0f0d1f53ee6c184d816a77b4e4e052193643985dfe8823f3e878623897a979fc",
+      "tools/evaluate_afterstate_td.py": "39afb71c0e2318312e7dd6a9becfbabe942b3a2916936db7a5fe7919c1fc9285",
+      "sparse_tetris_4d_optimized.py": "268354d23b9fa1854db0b17dcbad224f981912ff0e73b8f89fe259835fd68962"
+    },
+    "root_source_sha256": "92f1ad181918725ec1bca64c2a21f959a54ed8638ea3e6f4e4321d69805d1ae2",
+    "independent_oracle_sha256": "71e44c90f3f28a966025bd258d0753948a860d8b55c6691def187e71fc6a0332",
+    "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "script_sha256": "5d351c913da8b0b83994ad9b2d125e5120e4d333eb3fa6d705771cb056c1fad7",
+    "identical_final_snapshot_fields": [
+      "bag",
+      "board",
+      "cells_placed",
+      "current",
+      "layers",
+      "next_piece",
+      "piece_counts",
+      "piece_set",
+      "pieces",
+      "rng",
+      "score",
+      "seed",
+      "target",
+      "version"
+    ],
+    "board_sha256": "40c5c7424ffaad98741882d025d9c09bce8921e9da99d8ee683215f3e67e2d87",
+    "engine_paths": [
+      {
+        "placement": 1,
+        "position": "995a01d34ff393e7748e82fcd9434a4262acf85a79c4c7288aad31af9f17e8ed",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": -7.275957614183426e-12,
+        "chosen": [
+          41,
+          4,
+          6,
+          13,
+          11,
+          0,
+          -44639.70754488829
+        ]
+      },
+      {
+        "placement": 238,
+        "position": "164eb5ab3d25dcd61eacf6ed060e5b14b10bf2cb0a7437238fc1db7541498d45",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": -7.275957614183426e-12,
+        "chosen": [
+          62,
+          3,
+          5,
+          0,
+          12,
+          0,
+          -45544.81882718381
+        ]
+      },
+      {
+        "placement": 239,
+        "position": "358532281bd67d2ff245c1939cb0288709052ab2c4c8a16e2bd3b081eb4f9374",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": 7.275957614183426e-12,
+        "chosen": [
+          39,
+          13,
+          13,
+          14,
+          13,
+          0,
+          -45548.269074424985
+        ]
+      },
+      {
+        "placement": 253,
+        "position": "e555bd11895c524db8e884dcf7de2e7ab331f3b2b4715fb663464809f37af15a",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": 0.0,
+        "chosen": [
+          2,
+          15,
+          10,
+          15,
+          11,
+          1,
+          -41154.68700203452
+        ]
+      },
+      {
+        "placement": 1024,
+        "position": "50002afaf0c8f3d2b35470eba3b768a2b912aae24fe4933bc3cbd204c251768c",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": -7.275957614183426e-12,
+        "chosen": [
+          27,
+          15,
+          6,
+          9,
+          13,
+          0,
+          -45144.03113685407
+        ]
+      },
+      {
+        "placement": 4068,
+        "position": "09f31774422e67062707bbbde9da5d01564943270aa71603ae99af0127fc7238",
+        "batched_metadata_parity": true,
+        "desktop_action_matches_fixed_actor": true,
+        "desktop_teacher_score_difference": -7.275957614183426e-12,
+        "chosen": [
+          13,
+          1,
+          4,
+          9,
+          13,
+          0,
+          -44375.694748378155
+        ]
+      }
+    ],
+    "cuda_initialized": false,
+    "limitation": "One previously observed rescue case, a regression reproduction; batched-metadata exercised with CPU tensors. Desktop usually runs a batch-one actor.",
+    "elapsed_seconds": 425.99500103102764,
+    "local_receipt": "working-copy-visible-rescue-playback.json",
+    "receipt_sha256": "0b0dbef3b22b178320cb9fb60766339cf8e54502c08bc7d87cf8bf7a19fff171",
+    "implementation_revision": "0f6baac73bb86ff4b568f5622bbbb6f05af2d318",
+    "known_case": "Previously observed seed and outcome. Evaluator placement, desktop geometry, and CPU-backed batched metadata were checked independently. Last-bit FP64 teacher rescoring differences are retained."
+  },
+  "latency_check": {
+    "local_receipt": "physical-rescue-cli-cpu.json",
+    "receipt_sha256": "dc475f145a91dc8d9868d73309cd15d250e119782370f43efa7691cee341b642",
+    "scope": "Single game, batch=1, CPU threads=1. From prepare through checked commit, device synchronized. The two_stage flag controls outer candidate preparation. Every position and mode runs once to warm before timed pass.",
+    "cross_weight": 4.0,
+    "outer_two_stage": true,
+    "headless": false,
+    "reply_shortlist": "native two-stage",
+    "cases": 12,
+    "records": [
+      {
+        "mode": false,
+        "device": "cpu",
+        "trigger_count": 0,
+        "p50_ms": 44.646311,
+        "p95_ms": 71.2102156
+      },
+      {
+        "mode": true,
+        "device": "cpu",
+        "trigger_count": 8,
+        "p50_ms": 48.47322,
+        "p95_ms": 86.93870144999997
+      },
+      {
+        "mode": "rescue-only",
+        "device": "cpu",
+        "trigger_count": 2,
+        "p50_ms": 45.2484325,
+        "p95_ms": 56.27780454999999
+      }
+    ],
+    "limits": "Single warm pass per mode on the same 12 selected boards. Phase quantiles can differ due to scheduling. No CUDA speed or noninferiority claim."
+  },
+  "desktop_smoke": {
+    "passed": true,
+    "callback_errors": [],
+    "selected_drop": true,
+    "visible_network_nodes": 0,
+    "feature_decision_visible": true
+  },
+  "single_pass_paired_control": {
+    "seed": 300122,
+    "checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+    "archived_snapshot_sha256": "017dab67bfde7d0643b9248489ede820d10bd58f6e98854116bdebef18ca7c3f",
+    "evaluator_sha256": "a9a14202a4a624411e7c9d566f855c48ac4acf08e336d7daf6c3a96bddc6c46e",
+    "snapshot_absolute_placements": 21516,
+    "greedy": {
+      "placements": 21517,
+      "reason": "top_out",
+      "decisions": {
+        "decisions": 1,
+        "planner_triggers": 0,
+        "immediate_losses": 1,
+        "immediate_rescues": 0,
+        "planner_overrides": 0,
+        "direct_weight_changes": 0,
+        "residual_changes": 0
+      }
+    },
+    "rescue": {
+      "placements": 21519,
+      "reason": "cap",
+      "decisions": {
+        "decisions": 3,
+        "planner_triggers": 1,
+        "immediate_losses": 1,
+        "immediate_rescues": 1,
+        "planner_overrides": 1,
+        "direct_weight_changes": 0,
+        "residual_changes": 0
+      },
+      "paired_greedy": {
+        "placements": 21517,
+        "reason": "top_out",
+        "physical_top_out": true
+      }
+    },
+    "exact_fatal_cap": {
+      "placements": 21517,
+      "reason": "cap",
+      "physical_top_out": true
+    },
+    "interrupted_after": 21517,
+    "partial_first_greedy_loss": 21517,
+    "resumed_matches_uninterrupted_counts_and_reasons": true,
+    "independent_greedy_matches_one_pass_base": true,
+    "cpu_only": true,
+    "scope": "Real checkpoint and native CPU simulation from the board just before archive-relative placement 239. Absolute counts include the archive prefix.",
+    "receipt_sha256": "c146fd2fdb88572a131d246d4590c8466c5611d5093eb0a76bde379df75982d2",
+    "local_receipt": "physical-rescue-actual-paired.json"
+  }
+}
