@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -169,9 +170,11 @@ def device_afterstate_descriptors(boards, targets, cells, cell_mask, valid, chun
 
 
 @torch.no_grad()
-def afterstate_descriptors(board, options, target):
+def afterstate_descriptors(board, options, target, *, checked_shortlist=False):
     if not options:
         raise ValueError('Cannot encode an empty candidate shortlist')
+    if checked_shortlist and not any(option.layers for option in options) and not neural.game.full_layer_mask(board):
+        return _local_afterstate_descriptors(board, options, target)
     original = tuple(int(value) for value in board)
     before = torch.as_tensor(np.asarray([original], dtype=np.int32))
     levels = torch.as_tensor([int(target)], dtype=torch.int32)
@@ -186,6 +189,70 @@ def afterstate_descriptors(board, options, target):
     impacts = adjacency_statistics(after, targets) - initial
     return (initial.mean(dim=1)[0].numpy().astype(np.float32),
             impacts.reshape(len(options), SPATIAL_ACTOR_FEATURES).numpy().astype(np.float32))
+
+
+@lru_cache(maxsize=1)
+def _column_mask_tables():
+    masks = np.arange(1 << 16, dtype=np.int32)
+    heights = np.fromiter(map(int.bit_length, range(len(masks))), dtype=np.int16)
+    bitcounts = np.fromiter(map(int.bit_count, range(len(masks))), dtype=np.uint8)
+    gaps = (((1 << heights.astype(np.int32)) - 1) ^ masks).astype(np.uint16)
+    return heights, bitcounts, gaps
+
+
+def _edge_statistics(left, right, target):
+    heights, bitcounts, gaps = _column_mask_tables()
+    difference = np.abs(heights[left] - heights[right]).astype(np.int32)
+    changed = left ^ right
+    return np.stack((difference, difference * difference, difference > 1,
+                     bitcounts[changed], bitcounts[gaps[left] ^ gaps[right]],
+                     (changed >> target) & 1), axis=-1)
+
+
+def _local_afterstate_descriptors(board, options, target):
+    """Exact CPU adjacency sums for checked placements that leave every layer in place."""
+    game = neural.game
+    masks = np.asarray(board, dtype=np.uint16)
+    shapes = [game.SHAPES[c.piece][c.rotation] for c in options]
+    columns = np.full((len(options), max(len(s.columns) for s in shapes)), -1, dtype=np.int32)
+    after = np.tile(masks, (len(options), 1))
+    for row, (option, shape) in enumerate(zip(options, shapes)):
+        origin = game.column_index(option.x, option.y, option.w)
+        for slot, (offset, bits, _) in enumerate(shape.columns):
+            column = origin + offset
+            columns[row, slot] = column
+            after[row, column] |= bits << option.z
+
+    all_columns = np.arange(game.AREA, dtype=np.int32)
+    present = columns >= 0
+    before_sums = np.empty((len(AXIS_NAMES), len(STATISTIC_NAMES)), dtype=np.int32)
+    after_sums = np.empty((len(options), *before_sums.shape), dtype=np.int32)
+    for axis, step in enumerate((1, game.WIDTH, game.SLICE_AREA)):
+        left = all_columns[(all_columns // step) % game.WIDTH < game.WIDTH - 1]
+        before_sums[axis] = _edge_statistics(masks[left], masks[left + step], target).sum(0)
+
+        # An edge shared by two modified columns contributes once. Its lower endpoint
+        # identifies it uniquely on this axis; boundary faces have no outward edge.
+        coordinate = (columns // step) % game.WIDTH
+        outgoing = np.where(present & (coordinate < game.WIDTH - 1), columns, game.AREA)
+        incoming = np.where(present & (coordinate > 0), columns - step, game.AREA)
+        edges = np.sort(np.concatenate((incoming, outgoing), axis=1), axis=1)
+        unique = edges != game.AREA
+        unique[:, 1:] &= edges[:, 1:] != edges[:, :-1]
+        rows, slots = np.nonzero(unique)
+        left = edges[rows, slots]
+        right = left + step
+        delta = (_edge_statistics(after[rows, left], after[rows, right], target)
+                 - _edge_statistics(masks[left], masks[right], target))
+        after_sums[:, axis] = before_sums[axis]
+        np.add.at(after_sums[:, axis], rows, delta)
+
+    # Integer edge sums are exactly representable in FP32. Keep the reference
+    # mean and per-statistic divisors separate so the final subtraction rounds identically.
+    scale = torch.tensor((16, 256, 1, 16, 16, 1), dtype=torch.float32, device='cpu')
+    before = torch.from_numpy(before_sums).float().div_(SPATIAL_DELTA_SCALE).div_(scale)
+    after = torch.from_numpy(after_sums).float().div_(SPATIAL_DELTA_SCALE).div_(scale)
+    return before.mean(0).numpy(), (after - before).reshape(len(options), SPATIAL_ACTOR_FEATURES).numpy()
 
 
 @torch.no_grad()

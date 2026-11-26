@@ -494,7 +494,8 @@ def _prepare_steps(state, target: int, config: Config, candidates: int | None = 
     arrays['teacher_prior'] = -32 * deficits - rank / 8
     if config.architecture in SPATIAL_ARCHITECTURES:
         from tetris_survival_v4 import afterstate_descriptors
-        arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(state.board, options, target)
+        arrays['spatial_board'], arrays['spatial_delta'] = afterstate_descriptors(
+            state.board, options, target, checked_shortlist=True)
     if config.cross_weight or config.cross_residual:
         from tetris_cross_survival import mobility_features
         arrays['cross_mobility'] = mobility_features(state.board, options)
