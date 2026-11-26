@@ -87,7 +87,9 @@ Median throughput rose from 230 to 388 placements per second. The reference
 reserved 4,198 MiB of GPU memory. The combined path reserved 2,248–2,616 MiB.
 These runs measured opening positions through placement 260. All selected
 actions, final boards, gradients, model parameters, Adam state, RNG and KL
-decisions matched. Per-option timings and memory measurements are in the
+decisions matched. The five paired runs at the 744 MiB cache limit also matched
+and gave a median speedup of **1.55×**. Each recorded five cleared layers and
+one target recovery. Per-option timings and memory measurements are in the
 [full-rollout validation](../validation/spatial-ppo-throughput.json).
 
 The matched curriculum runner reserves one GPU and compares 160 updates per arm
@@ -98,6 +100,14 @@ It chooses one trained endpoint on eight development games before opening the
 72-seed paired greedy holdout. The frozen protocol identifies its exact incumbent
 by SHA-256. Training, development, and holdout GPU reservation hours are reported
 separately. Rerunning the command resumes from completed updates and cached games.
+
+In the completed comparison, the eight-source-seed control won development
+selection. On 72 fresh paired games it averaged 37,117 placements against the
+incumbent's 39,719. The paired mean difference was −2,602 placements (95%
+bootstrap interval −4,537 to −699), so the incumbent remains the recommended
+checkpoint. Both arms used the same single training seed. The
+[curriculum results](../validation/spatial-ppo-curriculum.json) list placements
+for every holdout seed and include checkpoint hashes and GPU hours.
 
 ```bash
 .venv/bin/python -B -u tools/run_spatial_curriculum.py \

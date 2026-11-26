@@ -292,5 +292,76 @@
       "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
       "model_after_update": "f11cd7719da2e196218d90c34bd0d64036a5bfcc833f5ef03d54575734a75172"
     }
+  },
+  "boundary_workload": {
+    "candidate_revision": "63c9533ba2ee33d059b09e24aab4231a323dc42f",
+    "cache_limit_mib": 744,
+    "workload": "32 environments, 256 steps, two PPO epochs, with a four-layer clear and a target recovered from 12 to 15.",
+    "combined_storage": "Fixed-feature buffer hit its quota and fell back to raw records. CUDA preparation stayed active.",
+    "all_paired_proofs_match": true,
+    "combined_passes": true,
+    "median_paired_speedup": 1.5488,
+    "pairs": [
+      {
+        "seed": 418000,
+        "reference_seconds": 36.8827,
+        "combined_seconds": 27.63361,
+        "paired_speedup": 1.3347,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2626.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "290b153bb49086fb333796c34ed133eeb6990dc10168e6951c68559b43dd09d8"
+      },
+      {
+        "seed": 418100,
+        "reference_seconds": 37.79573,
+        "combined_seconds": 22.83344,
+        "paired_speedup": 1.65528,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2636.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "7fd4306723a628fdb12695bcb285808c778241fd8ccb79a71ac76d84c133dd0e"
+      },
+      {
+        "seed": 418200,
+        "reference_seconds": 37.20324,
+        "combined_seconds": 24.02008,
+        "paired_speedup": 1.54884,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2656.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "251e80c5ffbe845e6fc27ac68fd00dab6557c705de08d22f0aaa35f9978db810"
+      },
+      {
+        "seed": 418300,
+        "reference_seconds": 37.48274,
+        "combined_seconds": 24.34926,
+        "paired_speedup": 1.53938,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2554.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "4cda2ab3d6877de4a7408c6e7bf9ec20c050502536679b4e5bfefa1fdc4e8ef8"
+      },
+      {
+        "seed": 418400,
+        "reference_seconds": 37.65404,
+        "combined_seconds": 23.35464,
+        "paired_speedup": 1.61227,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2794.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "f81a911992bda2111e55039a1d056c1d9556ce8233cb65488b5fc0d335950813"
+      }
+    ]
   }
 }
