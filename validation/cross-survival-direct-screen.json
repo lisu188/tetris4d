@@ -1,0 +1,219 @@
+{
+  "schema": "cross-survival-direct-screen-v1",
+  "protocol_sha256": "4a58414c25a8a5ce88026901164d1d3c0e2f2c6bbb72334c57fd10202b3f669a",
+  "seeds": [
+    48200001,
+    48200003,
+    48200005,
+    48200007,
+    48200009,
+    48200011,
+    48200013,
+    48200015
+  ],
+  "cap": 0,
+  "scope": "Eight development seeds used to select direct weight, all games to physical top-out. Paired 95% intervals are descriptive. Qualification and holdout are separate.",
+  "bootstrap": {
+    "seed": 20261123,
+    "resamples": 10000
+  },
+  "selected": "weight-4",
+  "players": {
+    "incumbent": {
+      "sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+      "receipt_sha256": "4afee82d5eb3cabe8dc69be52aa8e0261b3993630d3f2b3a1a64f2533573325b",
+      "placements": [
+        31474,
+        47315,
+        34032,
+        39273,
+        29669,
+        28812,
+        46056,
+        36944
+      ],
+      "mean": 36696.875,
+      "median": 35488.0,
+      "minimum": 28812,
+      "longest": 47315,
+      "decision_changes": 0,
+      "decisions": 293575,
+      "mean_difference": 0.0,
+      "relative_difference": 0.0,
+      "descriptive_paired_ci95": [
+        0.0,
+        0.0
+      ],
+      "wins": 0,
+      "losses": 0,
+      "ties": 8,
+      "top_outs": 8
+    },
+    "weight-0.25": {
+      "sha256": "2724b5b2db4668109c3727851c5122042cbcb495fd4f0b0d992593d59b408505",
+      "receipt_sha256": "923347310d15dc5ace07189712f898732cef18674fa1df8ff30283543ef54c3b",
+      "placements": [
+        31424,
+        49470,
+        34032,
+        39273,
+        29669,
+        28812,
+        44639,
+        37758
+      ],
+      "mean": 36884.625,
+      "median": 35895.0,
+      "minimum": 28812,
+      "longest": 49470,
+      "decision_changes": 22,
+      "decisions": 295077,
+      "mean_difference": 187.75,
+      "relative_difference": 0.005116239461807034,
+      "descriptive_paired_ci95": [
+        -435.875,
+        897.375
+      ],
+      "wins": 2,
+      "losses": 2,
+      "ties": 4,
+      "top_outs": 8
+    },
+    "weight-1": {
+      "sha256": "a02d25fd74e59837ca6fa1c10d1522a00a366918554a3e3c9c22099d6ff48c07",
+      "receipt_sha256": "ab68082fce606ec427287453fbf5d6f6250a26e6d36832a1cf74624af4e76297",
+      "placements": [
+        31436,
+        51632,
+        34032,
+        39973,
+        29673,
+        31161,
+        46090,
+        36883
+      ],
+      "mean": 37610,
+      "median": 35457.5,
+      "minimum": 29673,
+      "longest": 51632,
+      "decision_changes": 114,
+      "decisions": 300880,
+      "mean_difference": 913.125,
+      "relative_difference": 0.024882908967044197,
+      "descriptive_paired_ci95": [
+        56.5,
+        2080.375
+      ],
+      "wins": 5,
+      "losses": 2,
+      "ties": 1,
+      "top_outs": 8
+    },
+    "weight-4": {
+      "sha256": "37a60bb20a6654f0ba42fc5825244f11dccd04f1ee98c4be279c399e186aa2ae",
+      "receipt_sha256": "0e2c7e99c6d24f2d58ed44ed21d8c7292f1eba9cf63a808488481f31944a0a6c",
+      "placements": [
+        31441,
+        50151,
+        39423,
+        41361,
+        29673,
+        32617,
+        46787,
+        37023
+      ],
+      "mean": 38559.5,
+      "median": 38223.0,
+      "minimum": 29673,
+      "longest": 50151,
+      "decision_changes": 359,
+      "decisions": 308476,
+      "mean_difference": 1862.625,
+      "relative_difference": 0.050757046751256064,
+      "descriptive_paired_ci95": [
+        623.375,
+        3201.7718749999995
+      ],
+      "wins": 7,
+      "losses": 1,
+      "ties": 0,
+      "top_outs": 8
+    }
+  },
+  "shared_prefix": {
+    "source_sha256": "01b7bce9761bd18cd53de902356b640d8e05df8c189838832c87b7bd6ca06e37",
+    "per_seed": {
+      "weight-1": {
+        "48200001": {
+          "last_zero": 28663,
+          "first_positive_by": 31242
+        },
+        "48200003": {
+          "last_zero": 43132,
+          "first_positive_by": 49387
+        },
+        "48200005": {
+          "last_zero": 31242,
+          "first_positive_by": 34032
+        },
+        "48200007": {
+          "last_zero": 34565,
+          "first_positive_by": 38382
+        },
+        "48200009": {
+          "last_zero": 28663,
+          "first_positive_by": 29673
+        },
+        "48200011": {
+          "last_zero": 28663,
+          "first_positive_by": 31161
+        },
+        "48200013": {
+          "last_zero": 38382,
+          "first_positive_by": 43132
+        },
+        "48200015": {
+          "last_zero": 31242,
+          "first_positive_by": 34565
+        }
+      },
+      "weight-4": {
+        "48200001": {
+          "last_zero": 28018,
+          "first_positive_by": 30574
+        },
+        "48200003": {
+          "last_zero": 46063,
+          "first_positive_by": 50151
+        },
+        "48200005": {
+          "last_zero": 33442,
+          "first_positive_by": 36765
+        },
+        "48200007": {
+          "last_zero": 36765,
+          "first_positive_by": 40900
+        },
+        "48200009": {
+          "last_zero": 28018,
+          "first_positive_by": 29673
+        },
+        "48200011": {
+          "last_zero": 28018,
+          "first_positive_by": 30574
+        },
+        "48200013": {
+          "last_zero": 40900,
+          "first_positive_by": 46063
+        },
+        "48200015": {
+          "last_zero": 30574,
+          "first_positive_by": 33442
+        }
+      }
+    },
+    "redundant_preparations_lower_bound": 536350,
+    "three_way_common_lower_bound": 261949,
+    "assumption": "Same initial states, geometry and fixed FP32 base logits, targets and tie order; each prefix precedes the first deviation from the unadjusted actor. Counts are potential savings; no wall-time measurement."
+  }
+}
