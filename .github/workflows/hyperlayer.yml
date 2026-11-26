@@ -32,6 +32,7 @@ jobs:
       - run: python tests/test_hyperlayer.py --backend python
       - run: python tests/test_hyperlayer.py --backend numpy
       - run: python -S tests/test_hyperlayer.py --backend auto
+      - run: python tests/test_cross_height.py
       - name: Continuous-play regression tests
         run: |
           python tests/test_continuous.py --backend python
