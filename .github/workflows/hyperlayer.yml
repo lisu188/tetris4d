@@ -33,6 +33,8 @@ jobs:
       - run: python tests/test_hyperlayer.py --backend numpy
       - run: python -S tests/test_hyperlayer.py --backend auto
       - run: python tests/test_cross_height.py
+      - name: Test two-drop CROSS recovery
+        run: python -S tests/test_two_drop_cross.py
       - name: Continuous-play regression tests
         run: |
           python tests/test_continuous.py --backend python

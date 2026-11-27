@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "frozen_utc": "2026-11-26T17:22:29.939059+00:00",
+  "root_sha256": {
+    "48200003": "b02684dade88780da53c6d587b7dc91ecc768d8a77a92e630acaad92e3aad74b",
+    "48200005": "aebef2b1b45ce7ba4b1cb26bb94a9ba519a98b4c35681825316de25e8cf834a9",
+    "48200011": "2fab494a194aae386d9e882e79d142954bd5724806312f65931a5f442243a1d3",
+    "48200013": "7871aef14fea804f2d6fa6cb85b002aecf8f2152aeaad379930dc28210688578"
+  },
+  "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+  "runtime_revision": "57d67abf54ef8f231a161df3761c64a820ddca79",
+  "replicates": 8,
+  "horizon": 128,
+  "domain": "tetris4d-cold612-closure-suffix-v1",
+  "cohort": "All four eligible final closures out of eight original public games, selected before sampling these alternative futures. The other four had one legal shortlisted action and contribute no paired intervention. Original trajectories and natural one-shot results are already known.",
+  "randomization": "Keep board, counters, current and visible piece. Infer remaining bag membership from placed counts plus current and visible. Seed Python Random with SHA256(domain|root|replicate), shuffle the alphabetically sorted remainder, then use the same RNG for subsequent complete bags in both arms.",
+  "endpoint": "Placements including the single root action through physical top-out or 128 placements. Primary difference in mean restricted placements across paired futures within each root, equal weight across four roots. Report pairing, censoring, and independent per-root results. A controller stop is an evaluation failure; never impute a physical endpoint. Do not extrapolate capped differences to uncapped lifetime.",
+  "action": "Rank-one greedy versus highest-ranked preserving legal action once at the archived root. Both resume unguarded 612000-cold greedy with original candidate generation, native backend and fixed 32x128 CPU FP32 lane. No sealed or fresh-board seeds."
+}

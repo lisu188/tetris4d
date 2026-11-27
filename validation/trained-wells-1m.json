@@ -1,0 +1,1294 @@
+{
+ "policy": "trained-wells",
+ "claim": "A CEM-trained linear scorer over the cross-wells candidate generator survived 1,000,000 consecutive placements from an empty board on all five pre-registered seeds (61000001 primary, 61000002-61000005 confirmation), each replayed independently.",
+ "model": {
+  "path": "models/trained-wells.json",
+  "sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b",
+  "weights": [
+   428.6772362274585,
+   64.33424484182294,
+   3.367919641809316,
+   0.31368399643060824,
+   -0.0008797833332936307,
+   0.6268214980719914,
+   0.9395140210423293
+  ],
+  "feature_names": [
+   "new_levels",
+   "new_holes",
+   "covers_ready",
+   "well_benefit",
+   "height_cost",
+   "roughness",
+   "high"
+  ]
+ },
+ "policy_inputs": [
+  "board",
+  "current_piece",
+  "placements_so_far"
+ ],
+ "preregistration": {
+  "registered_at": "2026-11-26T20:54:56+01:00",
+  "goal": "trained policy survives 1,000,000 consecutive placements from an empty board",
+  "policy": "trained-wells (native candidate generator + CEM-trained linear scorer)",
+  "training_seed_range_start": 51000000,
+  "verification_seeds": [
+   61000001,
+   61000002
+  ],
+  "primary_verification_seed": 61000001,
+  "rule": "Play from empty with the final trained model until 1,000,000 placements or physical top-out; replay every placement with reference_drop from an independently regenerated piece stream. Seed 61000002 is a second confirmation if time permits. Seeds are disjoint from training seeds and existing 100k confirmation seeds."
+ },
+ "preregistration_confirmation": {
+  "registered_at": "2026-11-27T07:51:52+01:00",
+  "model_sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b",
+  "model_path": "models/trained-wells.json (frozen generation-4 CEM mean; unchanged since seed 61000001)",
+  "confirmation_seeds": [
+   61000002,
+   61000003,
+   61000004,
+   61000005
+  ],
+  "rule": "Before any of these seeds is played: play each from an empty board with the frozen model until 1,000,000 placements or physical top-out, then replay every placement independently. Report every outcome; no seed is dropped or replaced. 61000002 was named in the original preregistration; 61000003-61000005 are added now, matching the four-confirmation-seed standard of validation/cross-wells-100k.json."
+ },
+ "preregistration_median": {
+  "registered_at": "2026-11-27T08:09:16+01:00",
+  "goal": "median survival across games >= 1,000,000 placements",
+  "model_sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b",
+  "evaluation_seeds": [
+   62000001,
+   62000002,
+   62000003,
+   62000004,
+   62000005,
+   62000006,
+   62000007,
+   62000008,
+   62000009,
+   62000010,
+   62000011,
+   62000012,
+   62000013,
+   62000014,
+   62000015,
+   62000016
+  ],
+  "cap": 1000000,
+  "rule": "Before any of these seeds is played: play each from an empty board with the frozen model until 1,000,000 placements or physical top-out, and replay every game independently. Survival of a capped game is recorded as >= 1,000,000. The primary result is the median over these 16 games (mean of the 8th and 9th order statistics); it is >= 1,000,000 iff at least 9 of 16 games reach the cap. Every outcome is reported; no seed is dropped or replaced. Also reported: the pooled median over these 16 plus the 5 earlier verification games (61000001-61000005). Seeds are disjoint from all training, probe and earlier verification seeds."
+ },
+ "training": {
+  "method": "cross-entropy method on capped survival from empty boards",
+  "initialization": "zero-mean isotropic Gaussian in theta (std 1); no preset coefficients, signs or priorities",
+  "fitness": "mean placements survived over the generation's fresh training seeds; capped games add cap*0.05*(16-final max height)/16 - final holes",
+  "rng_seed": 20261127,
+  "population": 16,
+  "elite": 4,
+  "seeds_per_eval": 2,
+  "cap_schedule": [
+   4000,
+   8000,
+   16000,
+   16000,
+   32000
+  ],
+  "selected_generation": 4,
+  "train_seeds_used": [
+   52000000,
+   52000001,
+   52000002,
+   52000003,
+   52000004,
+   52000005,
+   52000006,
+   52000007,
+   52000008,
+   52000009
+  ],
+  "games_played": 160,
+  "generation_best_fitness": [
+   3785.0,
+   8246.5,
+   15092.5,
+   16031.5,
+   32896.5
+  ],
+  "selection_rule": "first CEM mean whose 200,000-placement screening probe on seed 71000002 (not a training or verification seed) stayed hole-free with bounded occupancy",
+  "generations_sinh": [
+   {
+    "generation": 0,
+    "cap": 4000,
+    "fitness_quartiles": [
+     -3642.0,
+     790.4,
+     920.8,
+     2952.5,
+     3785.0
+    ],
+    "elite_capped": 4,
+    "seconds": 113.7
+   },
+   {
+    "generation": 1,
+    "cap": 8000,
+    "fitness_quartiles": [
+     3865.5,
+     6713.0,
+     7168.0,
+     7519.2,
+     8246.5
+    ],
+    "elite_capped": 4,
+    "seconds": 230.3
+   },
+   {
+    "generation": 2,
+    "cap": 16000,
+    "fitness_quartiles": [
+     6133.5,
+     9870.9,
+     10001.2,
+     10185.1,
+     15092.5
+    ],
+    "elite_capped": 0,
+    "seconds": 278.6
+   },
+   {
+    "generation": 3,
+    "cap": 16000,
+    "fitness_quartiles": [
+     9815.0,
+     10028.8,
+     10078.0,
+     11941.0,
+     16031.5
+    ],
+    "elite_capped": 4,
+    "seconds": 229.1
+   },
+   {
+    "generation": 4,
+    "cap": 32000,
+    "fitness_quartiles": [
+     9954.0,
+     10103.2,
+     12357.0,
+     20335.6,
+     32896.5
+    ],
+    "elite_capped": 4,
+    "seconds": 235.7
+   }
+  ],
+  "abandoned_linear_run": {
+   "note": "Linear-space CEM (w = theta/scale) was stopped after 3 generations: its generation-2 mean topped out at 12,846 placements with 172 holes on probe seed 71000001.",
+   "generations": [
+    {
+     "generation": 0,
+     "cap": 2000,
+     "fitness_quartiles": [
+      -24628.5,
+      784.2,
+      830.2,
+      1335.2,
+      2014.6
+     ]
+    },
+    {
+     "generation": 1,
+     "cap": 4000,
+     "fitness_quartiles": [
+      3431.2,
+      3594.2,
+      3860.6,
+      3935.2,
+      4097.8
+     ]
+    },
+    {
+     "generation": 2,
+     "cap": 8000,
+     "fitness_quartiles": [
+      7078.5,
+      7743.6,
+      7852.8,
+      7907.5,
+      8084.0
+     ]
+    }
+   ],
+   "gen2_probe": {
+    "seed": 71000001,
+    "cap": 60000,
+    "placements": 12846,
+    "layers": 4,
+    "cells_placed": 77081,
+    "stop_reason": "top_out",
+    "top_out": true,
+    "final_max_height": 16,
+    "final_holes": 172,
+    "occupied_cells": 60697,
+    "end_has_legal_move": false,
+    "board_sha256": "fd9c71d782566ba9dbd5aab5a2a3c645ac4c991c8c9d3896d7c983cf6d40e5e2",
+    "moves_sha256": "23c8dd5c87f609d98ba2a7d12a252e0b96ec1cd31586e9f12d7c5a8a07b6f260",
+    "play_seconds": 27.1
+   }
+  }
+ },
+ "screening_probe": {
+  "seed": 71000002,
+  "cap": 200000,
+  "placements": 200000,
+  "layers": 288,
+  "cells_placed": 1199995,
+  "stop_reason": "piece_limit",
+  "top_out": false,
+  "final_max_height": 8,
+  "final_holes": 0,
+  "occupied_cells": 20347,
+  "end_has_legal_move": true,
+  "board_sha256": "0b1db47d0616f89cefceb897f1dd0ad46b51cae8a35f86c677adfa4516836cfa",
+  "moves_sha256": "02bba19ece525decc332218f58411eb1ffa1354e04e7ecabae90e6d0ed093e3a",
+  "play_seconds": 319.6,
+  "samples": [
+   {
+    "placements": 10000,
+    "layers": 11,
+    "max_height": 6,
+    "holes": 0,
+    "occupied_cells": 14938
+   },
+   {
+    "placements": 20000,
+    "layers": 25,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 17609
+   },
+   {
+    "placements": 30000,
+    "layers": 41,
+    "max_height": 5,
+    "holes": 0,
+    "occupied_cells": 12064
+   },
+   {
+    "placements": 40000,
+    "layers": 54,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 18826
+   },
+   {
+    "placements": 50000,
+    "layers": 69,
+    "max_height": 8,
+    "holes": 0,
+    "occupied_cells": 17390
+   },
+   {
+    "placements": 60000,
+    "layers": 84,
+    "max_height": 6,
+    "holes": 0,
+    "occupied_cells": 15936
+   },
+   {
+    "placements": 70000,
+    "layers": 98,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 18597
+   },
+   {
+    "placements": 80000,
+    "layers": 113,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 17147
+   },
+   {
+    "placements": 90000,
+    "layers": 127,
+    "max_height": 8,
+    "holes": 0,
+    "occupied_cells": 19808
+   },
+   {
+    "placements": 100000,
+    "layers": 143,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 14277
+   },
+   {
+    "placements": 110000,
+    "layers": 157,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 16935
+   },
+   {
+    "placements": 120000,
+    "layers": 171,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 19584
+   },
+   {
+    "placements": 130000,
+    "layers": 186,
+    "max_height": 8,
+    "holes": 0,
+    "occupied_cells": 18144
+   },
+   {
+    "placements": 140000,
+    "layers": 201,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 16699
+   },
+   {
+    "placements": 150000,
+    "layers": 216,
+    "max_height": 6,
+    "holes": 0,
+    "occupied_cells": 15264
+   },
+   {
+    "placements": 160000,
+    "layers": 230,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 17917
+   },
+   {
+    "placements": 170000,
+    "layers": 245,
+    "max_height": 8,
+    "holes": 0,
+    "occupied_cells": 16476
+   },
+   {
+    "placements": 180000,
+    "layers": 260,
+    "max_height": 6,
+    "holes": 0,
+    "occupied_cells": 15040
+   },
+   {
+    "placements": 190000,
+    "layers": 274,
+    "max_height": 7,
+    "holes": 0,
+    "occupied_cells": 17687
+   },
+   {
+    "placements": 200000,
+    "layers": 288,
+    "max_height": 8,
+    "holes": 0,
+    "occupied_cells": 20347
+   }
+  ]
+ },
+ "median_evaluation": [
+  {
+   "set": "pre-registered 16-seed evaluation (primary)",
+   "games": 16,
+   "seeds": [
+    62000001,
+    62000002,
+    62000003,
+    62000004,
+    62000005,
+    62000006,
+    62000007,
+    62000008,
+    62000009,
+    62000010,
+    62000011,
+    62000012,
+    62000013,
+    62000014,
+    62000015,
+    62000016
+   ],
+   "survival": [
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000"
+   ],
+   "reached_cap": 16,
+   "median_survival": ">= 1,000,000 (cap)",
+   "median_at_least_1m": true,
+   "p_reach_1m_95ci_lower_clopper_pearson": 0.7941
+  },
+  {
+   "set": "all verification games with the final model (pooled)",
+   "games": 21,
+   "seeds": [
+    61000001,
+    61000002,
+    61000003,
+    61000004,
+    61000005,
+    62000001,
+    62000002,
+    62000003,
+    62000004,
+    62000005,
+    62000006,
+    62000007,
+    62000008,
+    62000009,
+    62000010,
+    62000011,
+    62000012,
+    62000013,
+    62000014,
+    62000015,
+    62000016
+   ],
+   "survival": [
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000",
+    ">= 1,000,000"
+   ],
+   "reached_cap": 21,
+   "median_survival": ">= 1,000,000 (cap)",
+   "median_at_least_1m": true,
+   "p_reach_1m_95ci_lower_clopper_pearson": 0.8389
+  }
+ ],
+ "verification_games": [
+  {
+   "seed": 61000001,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 6000006,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 6,
+   "final_holes": 0,
+   "occupied_cells": 15750,
+   "end_has_legal_move": true,
+   "board_sha256": "e8739ddce260d86268fe0f9c3541a1133605445b6fde1dc5f1d808aab7fcfadd",
+   "moves_sha256": "aea975607a70d5e1d659d40974b403d07317dac90e23dfa607d6a8d9e6498c99",
+   "play_seconds": 1209.0,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "e8739ddce260d86268fe0f9c3541a1133605445b6fde1dc5f1d808aab7fcfadd",
+    "moves_sha256": "aea975607a70d5e1d659d40974b403d07317dac90e23dfa607d6a8d9e6498c99",
+    "next_piece": "O",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4435,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     8
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12220,
+     21572
+    ]
+   }
+  },
+  {
+   "seed": 61000002,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999997,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 19837,
+   "end_has_legal_move": true,
+   "board_sha256": "a7f7a02c727e0358b284bfe0a8611e9acf4e67d3b3419a3bb1ef799879a2fa58",
+   "moves_sha256": "75f36df21afe79525e6576b0855b650c584155fa6d71cf0b6b193e01524c093e",
+   "play_seconds": 892.4,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "a7f7a02c727e0358b284bfe0a8611e9acf4e67d3b3419a3bb1ef799879a2fa58",
+    "moves_sha256": "75f36df21afe79525e6576b0855b650c584155fa6d71cf0b6b193e01524c093e",
+    "next_piece": "O",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4415,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     11582,
+     23680
+    ]
+   }
+  },
+  {
+   "seed": 61000003,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 6000001,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 19841,
+   "end_has_legal_move": true,
+   "board_sha256": "ac7fb18b75c56e3f31d856817f044b5f2b30895cf308f74a6ba3419f34502070",
+   "moves_sha256": "cf2606abdf79db85dd62edae96022b2cd84cfecc06827373fd165b7ba44387b3",
+   "play_seconds": 891.7,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "ac7fb18b75c56e3f31d856817f044b5f2b30895cf308f74a6ba3419f34502070",
+    "moves_sha256": "cf2606abdf79db85dd62edae96022b2cd84cfecc06827373fd165b7ba44387b3",
+    "next_piece": "T",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4428,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     5,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     11136,
+     20805
+    ]
+   }
+  },
+  {
+   "seed": 61000004,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 6000001,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15745,
+   "end_has_legal_move": true,
+   "board_sha256": "a42b366c0ed7d5a823eb0500bb50c00b0153c86d8a36e18d8d1b151d5c17d30e",
+   "moves_sha256": "778b25a84ff666dcb2bca248d86175603c426ef8e9dc91fcbccf4edfbe5ba16c",
+   "play_seconds": 892.8,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "a42b366c0ed7d5a823eb0500bb50c00b0153c86d8a36e18d8d1b151d5c17d30e",
+    "moves_sha256": "778b25a84ff666dcb2bca248d86175603c426ef8e9dc91fcbccf4edfbe5ba16c",
+    "next_piece": "CROSS",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4437,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     5,
+     8
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     11715,
+     22400
+    ]
+   }
+  },
+  {
+   "seed": 61000005,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999992,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 8,
+   "occupied_cells": 19832,
+   "end_has_legal_move": true,
+   "board_sha256": "fc0e78c79677c5a1e5086b5dd7b3046ba23a8d7e69fb2033075bff300cba65c0",
+   "moves_sha256": "e79bf00b0693f74badda97ff8bf05eef253dc3f0a54ef5385f2403f8061cb6de",
+   "play_seconds": 911.1,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "fc0e78c79677c5a1e5086b5dd7b3046ba23a8d7e69fb2033075bff300cba65c0",
+    "moves_sha256": "e79bf00b0693f74badda97ff8bf05eef253dc3f0a54ef5385f2403f8061cb6de",
+    "next_piece": "B",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4430,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 18,
+    "occupied_cells_range": [
+     16701,
+     28548
+    ]
+   }
+  },
+  {
+   "seed": 62000001,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1458,
+   "cells_placed": 5999996,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 10,
+   "final_holes": 5,
+   "occupied_cells": 28028,
+   "end_has_legal_move": true,
+   "board_sha256": "3282019c079a455fd88e9faaef6bb58a091588157aa6563ea5c5a9100e121f38",
+   "moves_sha256": "2dd29529ea6d17a32a90affae1dff9eb1b6d2afc87a26fc5eb85c67d854eddbc",
+   "play_seconds": 1202.2,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1458,
+    "board_sha256": "3282019c079a455fd88e9faaef6bb58a091588157aa6563ea5c5a9100e121f38",
+    "moves_sha256": "2dd29529ea6d17a32a90affae1dff9eb1b6d2afc87a26fc5eb85c67d854eddbc",
+    "next_piece": "I",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4431,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 10,
+    "occupied_cells_range": [
+     17344,
+     28028
+    ]
+   }
+  },
+  {
+   "seed": 62000002,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 5999993,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15737,
+   "end_has_legal_move": true,
+   "board_sha256": "793f151a52f0e66d325d615c6a76c717ba77f1c1b02bc060db65618e18006812",
+   "moves_sha256": "af699daa8b2c2bf4daab33dfd4dc00feabf92577743a4b95e894c3582768c7f1",
+   "play_seconds": 1144.2,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "793f151a52f0e66d325d615c6a76c717ba77f1c1b02bc060db65618e18006812",
+    "moves_sha256": "af699daa8b2c2bf4daab33dfd4dc00feabf92577743a4b95e894c3582768c7f1",
+    "next_piece": "NOVA",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4436,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     8
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12612,
+     21504
+    ]
+   }
+  },
+  {
+   "seed": 62000003,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 5999989,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15733,
+   "end_has_legal_move": true,
+   "board_sha256": "e81ea728d3e830780bc2416593f1fa062c292c8ecabadc67cd6d801f7876095b",
+   "moves_sha256": "fd86426bae75356196a436c1e0f501aae564aa51c82d63b1386b3a34adbdccd4",
+   "play_seconds": 1154.0,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "e81ea728d3e830780bc2416593f1fa062c292c8ecabadc67cd6d801f7876095b",
+    "moves_sha256": "fd86426bae75356196a436c1e0f501aae564aa51c82d63b1386b3a34adbdccd4",
+    "next_piece": "I",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4420,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     13381,
+     23232
+    ]
+   }
+  },
+  {
+   "seed": 62000004,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999993,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 7,
+   "occupied_cells": 19833,
+   "end_has_legal_move": true,
+   "board_sha256": "9e1fb447bd819a51543df89935d2fe9c8171519b00e1a71f85a7c0517a15baf3",
+   "moves_sha256": "e070e8c097f57ccbc9dd1b18f707c656cbbabe555df173de4df6e8474a1892b5",
+   "play_seconds": 1158.7,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "9e1fb447bd819a51543df89935d2fe9c8171519b00e1a71f85a7c0517a15baf3",
+    "moves_sha256": "e070e8c097f57ccbc9dd1b18f707c656cbbabe555df173de4df6e8474a1892b5",
+    "next_piece": "HYPER",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4424,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 16,
+    "occupied_cells_range": [
+     16197,
+     26048
+    ]
+   }
+  },
+  {
+   "seed": 62000005,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999988,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 8,
+   "occupied_cells": 19828,
+   "end_has_legal_move": true,
+   "board_sha256": "8c65421f000e5fdf061895c84d1e26a49844948a37ed6c3146b78e8b1d2f2d4e",
+   "moves_sha256": "ee792472b0ca86058d3462caaa40e3b66f1bf465423aea3c12879e7407833e57",
+   "play_seconds": 1183.0,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "8c65421f000e5fdf061895c84d1e26a49844948a37ed6c3146b78e8b1d2f2d4e",
+    "moves_sha256": "ee792472b0ca86058d3462caaa40e3b66f1bf465423aea3c12879e7407833e57",
+    "next_piece": "CROSS",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4436,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 14,
+    "occupied_cells_range": [
+     15552,
+     28543
+    ]
+   }
+  },
+  {
+   "seed": 62000006,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 5999998,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15742,
+   "end_has_legal_move": true,
+   "board_sha256": "b519b206c001a757e6f951b1b6d0c0f38a9e7722aae9acd0fc49f76ec11630fa",
+   "moves_sha256": "77cc320ba1f4816b006d751fd0a7ad8ae0b2b12025c860db373e429e61569f30",
+   "play_seconds": 1151.6,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "b519b206c001a757e6f951b1b6d0c0f38a9e7722aae9acd0fc49f76ec11630fa",
+    "moves_sha256": "77cc320ba1f4816b006d751fd0a7ad8ae0b2b12025c860db373e429e61569f30",
+    "next_piece": "L",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4427,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12670,
+     25984
+    ]
+   }
+  },
+  {
+   "seed": 62000007,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 5999991,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15735,
+   "end_has_legal_move": true,
+   "board_sha256": "2aa6fbe1a8a248e6a98b5d9b6f88a451f77d9d8c4f243c2a29cd89f4945e76ce",
+   "moves_sha256": "426f554b3c06253057368b0930f9ef20c21ce94cda86a7731f365c1bfbc4d0cd",
+   "play_seconds": 1169.1,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "2aa6fbe1a8a248e6a98b5d9b6f88a451f77d9d8c4f243c2a29cd89f4945e76ce",
+    "moves_sha256": "426f554b3c06253057368b0930f9ef20c21ce94cda86a7731f365c1bfbc4d0cd",
+    "next_piece": "CROSS",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4436,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     11392,
+     24956
+    ]
+   }
+  },
+  {
+   "seed": 62000008,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999992,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 9,
+   "occupied_cells": 19832,
+   "end_has_legal_move": true,
+   "board_sha256": "5ca1ab447d724d451d11faadc6e194cd24018afcc75dc96c3937a9f5b1862cea",
+   "moves_sha256": "c6b70378532e395651df58211bce03430488c444cd6ab5788054925a5c369ffb",
+   "play_seconds": 1158.5,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "5ca1ab447d724d451d11faadc6e194cd24018afcc75dc96c3937a9f5b1862cea",
+    "moves_sha256": "c6b70378532e395651df58211bce03430488c444cd6ab5788054925a5c369ffb",
+    "next_piece": "STAIR",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4431,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     9
+    ],
+    "holes_max": 21,
+    "occupied_cells_range": [
+     16896,
+     25536
+    ]
+   }
+  },
+  {
+   "seed": 62000009,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 6000005,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 11,
+   "occupied_cells": 19845,
+   "end_has_legal_move": true,
+   "board_sha256": "dfa0c04cfda93f7ba85718e60a18097fc421aedc0ed16d1773c736e73abc347c",
+   "moves_sha256": "756e0e017a2e49be398f6cf13203e2b7a52f0b2681fdac2c13501bf678496f9a",
+   "play_seconds": 1165.5,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "dfa0c04cfda93f7ba85718e60a18097fc421aedc0ed16d1773c736e73abc347c",
+    "moves_sha256": "756e0e017a2e49be398f6cf13203e2b7a52f0b2681fdac2c13501bf678496f9a",
+    "next_piece": "FORK",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4440,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     10
+    ],
+    "holes_max": 14,
+    "occupied_cells_range": [
+     15552,
+     26747
+    ]
+   }
+  },
+  {
+   "seed": 62000010,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 6000009,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 4,
+   "occupied_cells": 15753,
+   "end_has_legal_move": true,
+   "board_sha256": "7e476396bd4ffd8039dae3b983999b347aeccda18c56c4c3fe6611e16bde9158",
+   "moves_sha256": "7aadc9191590aca7c9cc56980d61de5a71d88d9244dc4fe62568ac4d4b6d3da8",
+   "play_seconds": 1172.6,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "7e476396bd4ffd8039dae3b983999b347aeccda18c56c4c3fe6611e16bde9158",
+    "moves_sha256": "7aadc9191590aca7c9cc56980d61de5a71d88d9244dc4fe62568ac4d4b6d3da8",
+    "next_piece": "S",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4426,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     7,
+     9
+    ],
+    "holes_max": 10,
+    "occupied_cells_range": [
+     15753,
+     27014
+    ]
+   }
+  },
+  {
+   "seed": 62000011,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 6000004,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 19844,
+   "end_has_legal_move": true,
+   "board_sha256": "8bbe863f512538673604c8161100adbb89381b03041f343861fafad336f4f65b",
+   "moves_sha256": "dba80ba460d194de8e3e38fef802d2d76b13e96b6b0694e7eb79a5e31997f3f1",
+   "play_seconds": 1141.8,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "8bbe863f512538673604c8161100adbb89381b03041f343861fafad336f4f65b",
+    "moves_sha256": "dba80ba460d194de8e3e38fef802d2d76b13e96b6b0694e7eb79a5e31997f3f1",
+    "next_piece": "BRIDGE",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4423,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12352,
+     23296
+    ]
+   }
+  },
+  {
+   "seed": 62000012,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 6000002,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15746,
+   "end_has_legal_move": true,
+   "board_sha256": "9247bae54883a0c7422557f293a1381cf2e48dce23bbd715ead5b8b7ba98273b",
+   "moves_sha256": "a7a92e1936d8e4bb503305ff7bc0b783bf763c35fa57ed1500d43b97a79ecf68",
+   "play_seconds": 1140.0,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "9247bae54883a0c7422557f293a1381cf2e48dce23bbd715ead5b8b7ba98273b",
+    "moves_sha256": "a7a92e1936d8e4bb503305ff7bc0b783bf763c35fa57ed1500d43b97a79ecf68",
+    "next_piece": "BRIDGE",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4436,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     13248,
+     25088
+    ]
+   }
+  },
+  {
+   "seed": 62000013,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 5999996,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15740,
+   "end_has_legal_move": true,
+   "board_sha256": "c35223f3dc8db47448ffa28d615089c579f051e71ed2dfaddf671141eee7d878",
+   "moves_sha256": "d661e389b8311b32cf00b4b3a35234ad5eb33c4cb57779a5d5ad8fcda44f5ef0",
+   "play_seconds": 1145.8,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "c35223f3dc8db47448ffa28d615089c579f051e71ed2dfaddf671141eee7d878",
+    "moves_sha256": "d661e389b8311b32cf00b4b3a35234ad5eb33c4cb57779a5d5ad8fcda44f5ef0",
+    "next_piece": "FORK",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4423,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     5,
+     11
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     10875,
+     22848
+    ]
+   }
+  },
+  {
+   "seed": 62000014,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1461,
+   "cells_placed": 6000000,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 15744,
+   "end_has_legal_move": true,
+   "board_sha256": "43e2acf1d3f29e89efee8b5b40e00cdeff198671fa3a8f707bfc683a4a7ecacb",
+   "moves_sha256": "04ab4fafc1086142e859986f60d5c9552d273736bb58b1bf33e40422292a918b",
+   "play_seconds": 1147.8,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1461,
+    "board_sha256": "43e2acf1d3f29e89efee8b5b40e00cdeff198671fa3a8f707bfc683a4a7ecacb",
+    "moves_sha256": "04ab4fafc1086142e859986f60d5c9552d273736bb58b1bf33e40422292a918b",
+    "next_piece": "T",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4425,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     8
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     13312,
+     22908
+    ]
+   }
+  },
+  {
+   "seed": 62000015,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 6000000,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 19840,
+   "end_has_legal_move": true,
+   "board_sha256": "3b89b971e6be0743c24285f55b4fa210be24e1b79f8e1147de167f5ca7739a1c",
+   "moves_sha256": "2014e37561a5d51118d73cd2e169f84e944b43a4844f1742fd91c3c35d0c263e",
+   "play_seconds": 1138.0,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "3b89b971e6be0743c24285f55b4fa210be24e1b79f8e1147de167f5ca7739a1c",
+    "moves_sha256": "2014e37561a5d51118d73cd2e169f84e944b43a4844f1742fd91c3c35d0c263e",
+    "next_piece": "CROSS",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4425,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12483,
+     23556
+    ]
+   }
+  },
+  {
+   "seed": 62000016,
+   "cap": 1000000,
+   "placements": 1000000,
+   "layers": 1460,
+   "cells_placed": 5999999,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 19839,
+   "end_has_legal_move": true,
+   "board_sha256": "00395c77c1fbe97c7c12c7937c78484e827a56b36811bfa9eef491fa68bc6dbe",
+   "moves_sha256": "ed95ee56b255e6fdf1c0525f341c6ad52eb868923fbd71f1457540b72440b327",
+   "play_seconds": 1159.3,
+   "replay": {
+    "placements_replayed": 1000000,
+    "layers": 1460,
+    "board_sha256": "00395c77c1fbe97c7c12c7937c78484e827a56b36811bfa9eef491fa68bc6dbe",
+    "moves_sha256": "ed95ee56b255e6fdf1c0525f341c6ad52eb868923fbd71f1457540b72440b327",
+    "next_piece": "BRIDGE",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 4439,
+    "replay_method": "independent one-step drop with full-level compaction; engine reference_drop cross-checked on the first 2000 placements, every 997th, and every clearing placement"
+   },
+   "samples_every_20000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     13052,
+     22463
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "games": 21,
+  "reached_1m": 21,
+  "replay_verified": 21,
+  "total_placements": 21000000,
+  "total_layers": 30668,
+  "max_height_seen_at_samples": 11,
+  "max_holes_seen_at_samples": 21
+ },
+ "digest_encoding": {
+  "moves_sha256": "SHA-256 of concatenated uint8 tuples (expanded piece index, rotation, x, y, w, landing z, cleared layers).",
+  "board_sha256": "SHA-256 of 4096 little-endian uint16 column masks in engine order."
+ },
+ "reproduce": [
+  ".venv/bin/python tools/build_native.py",
+  ".venv/bin/python tools/verify_trained_wells.py play --seed 61000001 --cap 1000000 --output runs/trained-wells-1m",
+  ".venv/bin/python tools/verify_trained_wells.py replay --seed 61000001 --output runs/trained-wells-1m"
+ ]
+}

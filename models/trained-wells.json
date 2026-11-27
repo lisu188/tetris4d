@@ -1,0 +1,82 @@
+{
+  "schema": "trained-wells-linear-v1",
+  "feature_names": [
+    "new_levels",
+    "new_holes",
+    "covers_ready",
+    "well_benefit",
+    "height_cost",
+    "roughness",
+    "high"
+  ],
+  "weights": [
+    428.6772362274585,
+    64.33424484182294,
+    3.367919641809316,
+    0.31368399643060824,
+    -0.0008797833332936307,
+    0.6268214980719914,
+    0.9395140210423293
+  ],
+  "theta": [
+    2.251284271217051,
+    2.0811791284942545,
+    0.6429292524532957,
+    1.1489385813516115,
+    -0.02928841067851773,
+    1.379443710750501,
+    0.9048641683475911
+  ],
+  "parameterization": "sinh",
+  "weight_formula": "w = sinh(3*theta) / scale",
+  "scale": [
+    1.0,
+    4.0,
+    1.0,
+    50.0,
+    100.0,
+    50.0,
+    8.0
+  ],
+  "lower_score_is_better": true,
+  "score": "w0*new_levels + w1*new_holes + w2*covers_ready - w3*well_benefit + w4*height_cost + w5*roughness + w6*high",
+  "budget": 1536,
+  "training": {
+    "method": "cross-entropy method on capped survival from empty boards",
+    "initialization": "zero-mean isotropic Gaussian in theta (std 1); no preset coefficients, signs or priorities",
+    "fitness": "mean placements survived over the generation's fresh training seeds; capped games add cap*0.05*(16-final max height)/16 - final holes",
+    "rng_seed": 20261127,
+    "population": 16,
+    "elite": 4,
+    "seeds_per_eval": 2,
+    "cap_schedule": [
+      4000,
+      8000,
+      16000,
+      16000,
+      32000
+    ],
+    "selected_generation": 4,
+    "train_seeds_used": [
+      52000000,
+      52000001,
+      52000002,
+      52000003,
+      52000004,
+      52000005,
+      52000006,
+      52000007,
+      52000008,
+      52000009
+    ],
+    "games_played": 160,
+    "generation_best_fitness": [
+      3785.0,
+      8246.5,
+      15092.5,
+      16031.5,
+      32896.5
+    ],
+    "selection_rule": "first CEM mean whose 200,000-placement screening probe on seed 71000002 (not a training or verification seed) stayed hole-free with bounded occupancy"
+  }
+}

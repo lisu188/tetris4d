@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 #if (defined(__x86_64__) || defined(__i386__)) && (defined(__GNUC__) || defined(__clang__))
 #include <immintrin.h>
@@ -256,4 +257,371 @@ int t4_sustained_metrics(const int32_t *heights, const int32_t *shapes, int shap
         future_holes[row] = future;
     }
     return 0;
+}
+
+/* A CROSS can land without holes if its six neighbors are one cell taller than
+   its center. Reserve disjoint completed wells and build partial wells while
+   keeping the skyline low enough for the other expanded pieces. */
+enum { WELL_ARMS = 6, READY_WELLS = 12, PARTIAL_WELLS = 48, INTERIOR = 14*14*14 };
+static const int well_steps[WELL_ARMS] = {-1, 1, -16, 16, -256, 256};
+
+typedef struct {
+    int center, height, matched, freedom;
+} CrossWell;
+
+typedef struct {
+    uint8_t height[AREA];
+    int8_t role[AREA]; /* -1 reserved, 0 unassigned, or one-based partial well */
+    unsigned buried_levels;
+    CrossWell partial[PARTIAL_WELLS];
+    int partial_count, ready_count;
+} CrossField;
+
+typedef struct {
+    int rotation, base, z, holes, levels;
+    int64_t score, trials;
+    const double *weights; /* learned linear scorer, or NULL for the fixed rules */
+    double dscore;
+} WellChoice;
+
+enum { WELL_FEATURES = 7 };
+
+static int has_neighbor(int column, int direction) {
+    int coordinate = (column >> (4*(direction/2))) & 15;
+    return (direction & 1) ? coordinate < 15 : coordinate > 0;
+}
+
+static int well_is_free(const CrossField *field, int center) {
+    if (field->role[center]) return 0;
+    for (int d = 0; d < WELL_ARMS; ++d)
+        if (field->role[center + well_steps[d]]) return 0;
+    return 1;
+}
+
+static void mark_well(CrossField *field, int center, int8_t role) {
+    field->role[center] = role;
+    for (int d = 0; d < WELL_ARMS; ++d) field->role[center + well_steps[d]] = role;
+}
+
+static int compare_wells(const void *a, const void *b) {
+    const CrossWell *left = a, *right = b;
+    if (left->matched != right->matched) return right->matched - left->matched;
+    if (left->freedom != right->freedom) return right->freedom - left->freedom;
+    if (left->height != right->height) return left->height - right->height;
+    return left->center - right->center;
+}
+
+static void find_cross_wells(CrossField *field) {
+    CrossWell available[INTERIOR];
+    size_t available_count = 0;
+    for (int w = 1; w < 15; ++w) for (int y = 1; y < 15; ++y) for (int x = 1; x < 15; ++x) {
+        int center = w*256 + y*16 + x, target = field->height[center] + 1;
+        if (target > 14) continue;
+        int matched = 0, freedom = 0;
+        for (int d = 0; d < WELL_ARMS; ++d) {
+            int arm = center + well_steps[d], height = field->height[arm];
+            if (height > target) { matched = -1; break; }
+            if (height == target) { ++matched; continue; }
+            int accessible = 0;
+            for (int k = 0; k < WELL_ARMS; ++k) {
+                int adjacent = arm + well_steps[k];
+                if (has_neighbor(arm, k) && adjacent != center && field->height[adjacent] <= height)
+                    ++accessible;
+            }
+            int deficit = target - height;
+            freedom += 4*(accessible < 3 ? accessible : 3) - 5*(deficit < 5 ? deficit : 5);
+        }
+        if (matched < 0) continue;
+        if (matched == WELL_ARMS) {
+            if (well_is_free(field, center)) {
+                mark_well(field, center, -1);
+                if (++field->ready_count == READY_WELLS) return;
+            }
+        } else {
+            available[available_count++] = (CrossWell){center, target-1, matched, freedom};
+        }
+    }
+    qsort(available, available_count, sizeof(*available), compare_wells);
+    for (size_t i = 0; i < available_count; ++i) {
+        const CrossWell *well = available + i;
+        if (!well_is_free(field, well->center)) continue;
+        field->partial[field->partial_count++] = *well;
+        mark_well(field, well->center, (int8_t)field->partial_count);
+        if (field->partial_count == PARTIAL_WELLS) break;
+    }
+}
+
+/* Only the columns touched by this placement can change its wells' merit. */
+static int well_progress(const CrossField *field, const int32_t *shape, int base,
+                         int z, int *covers_ready) {
+    static const int merit[] = {0, 1, 3, 8, 22, 66, 660};
+    int touched[MAX_COLUMNS], remaining[MAX_COLUMNS], used = 0, benefit = 0;
+    *covers_ready = 0;
+    for (int j = 0; j < shape[4]; ++j) {
+        const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+        int index = base + column[0], role = field->role[index];
+        if (role < 0) { *covers_ready = 1; continue; }
+        if (!role) continue;
+        const CrossWell *well = &field->partial[role-1];
+        int k = 0;
+        while (k < used && touched[k] != role) ++k;
+        if (k == used) {
+            remaining[k] = well->matched;
+            touched[used++] = role;
+        }
+        int target = well->height + 1, top = z + column[3];
+        if (index == well->center || top > target) remaining[k] = -1000;
+        else if (top == target && field->height[index] < target) ++remaining[k];
+    }
+    for (int k = 0; k < used; ++k) {
+        int matched = remaining[k] > 0 ? remaining[k] : 0;
+        int delta = merit[matched] - merit[field->partial[touched[k]-1].matched];
+        benefit += delta > 0 ? delta : delta/8;
+    }
+    return benefit;
+}
+
+static void consider_well_move(const CrossField *field, const int32_t *shapes,
+                               int rotation, int base, WellChoice *best) {
+    ++best->trials;
+    const int32_t *shape = shapes + rotation*SHAPE_STRIDE;
+    int z = 0;
+    for (int j = 0; j < shape[4]; ++j) {
+        const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+        int landing = field->height[base+column[0]] - column[2];
+        if (landing > z) z = landing;
+    }
+    if (z + shape[2] > HEIGHT) return;
+
+    int holes = 0, cost = 0, high = 0;
+    unsigned gaps = 0;
+    for (int j = 0; j < shape[4]; ++j) {
+        const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+        int old = field->height[base+column[0]], low = z + column[2], top = z + column[3];
+        holes += low - old;
+        gaps |= ((1u << low)-1u) ^ ((1u << old)-1u);
+        cost += top*top - old*old;
+        if (top > high) high = top;
+    }
+    int levels = __builtin_popcount(gaps & ~field->buried_levels);
+    if (best->weights) {
+        int covers_ready, roughness = 0;
+        int benefit = well_progress(field, shape, base, z, &covers_ready);
+        for (int j = 0; j < shape[4]; ++j) {
+            const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+            int index = base + column[0], old = field->height[index], top = z + column[3];
+            for (int k = 0; k < WELL_ARMS; ++k) if (has_neighbor(index, k)) {
+                int neighbor = field->height[index+well_steps[k]];
+                roughness += (top-neighbor)*(top-neighbor) - (old-neighbor)*(old-neighbor);
+            }
+        }
+        const double *v = best->weights;
+        double score = v[0]*levels + v[1]*holes + v[2]*covers_ready - v[3]*benefit
+                     + v[4]*cost + v[5]*roughness + v[6]*high;
+        if (score < best->dscore) {
+            best->rotation = rotation; best->base = base; best->z = z;
+            best->holes = holes; best->levels = levels; best->dscore = score;
+        }
+        return;
+    }
+    if (levels > best->levels || (levels == best->levels && holes > best->holes)) return;
+
+    int covers_ready;
+    int benefit = well_progress(field, shape, base, z, &covers_ready);
+    int64_t core = levels*INT64_C(1000000000000000) + holes*INT64_C(5000000000000)
+                 + covers_ready*INT64_C(200000000000) - benefit*INT64_C(2000000) + cost*INT64_C(5000);
+    /* This cutoff and the first-visited tie rule are part of the policy. */
+    if (core > best->score + 10000) return;
+    int roughness = 0;
+    for (int j = 0; j < shape[4]; ++j) {
+        const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+        int index = base + column[0], old = field->height[index], top = z + column[3];
+        for (int k = 0; k < WELL_ARMS; ++k) if (has_neighbor(index, k)) {
+            int neighbor = field->height[index+well_steps[k]];
+            roughness += (top-neighbor)*(top-neighbor) - (old-neighbor)*(old-neighbor);
+        }
+    }
+    int64_t score = core + 8*roughness + high;
+    if (score < best->score) {
+        best->rotation = rotation;
+        best->base = base;
+        best->z = z;
+        best->holes = holes;
+        best->levels = levels;
+        best->score = score;
+    }
+}
+
+static int well_random_index(uint32_t *state, int size) {
+    uint32_t value = *state;
+    value ^= value << 13;
+    value ^= value >> 17;
+    value ^= value << 5;
+    *state = value;
+    return (int)(((uint64_t)value * (unsigned)size) >> 32);
+}
+
+static void consider_well_arms(const CrossField *field, const int32_t *shapes,
+                               int rotations, WellChoice *best) {
+    int limit = field->ready_count >= 3 ? 4 : 14;
+    for (int i = 0; i < field->partial_count && i < limit; ++i) {
+        const CrossWell *well = &field->partial[i];
+        int target = well->height + 1;
+        for (int d = 0; d < WELL_ARMS; ++d) {
+            int arm = well->center + well_steps[d], deficit = target - field->height[arm];
+            if (deficit <= 0) continue;
+            for (int r = 0; r < rotations; ++r) {
+                const int32_t *shape = shapes + r*SHAPE_STRIDE;
+                for (int j = 0; j < shape[4]; ++j) {
+                    const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+                    if (column[3] - column[2] != deficit) continue;
+                    int offset = column[0];
+                    int x = (arm & 15) - (offset & 15);
+                    int y = ((arm >> 4) & 15) - ((offset >> 4) & 15);
+                    int w = (arm >> 8) - (offset >> 8);
+                    if (x >= 0 && x <= 16-shape[0] && y >= 0 && y <= 16-shape[1]
+                            && w >= 0 && w <= 16-shape[3])
+                        consider_well_move(field, shapes, r, arm-offset, best);
+                }
+            }
+        }
+    }
+}
+
+/* board is the canonical 4096-column bitmask. piece_index follows expanded
+   PieceStream order (I=0, CROSS=13), turn is the number already placed.
+   out: rotation, x, y, w, landing, new holes, newly buried levels, trials. */
+static int cross_wells_impl(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out);
+
+int t4_cross_wells(const uint16_t *board, const int32_t *shapes, int rotations,
+                   int piece_index, uint32_t turn, int budget, int32_t *out) {
+    return cross_wells_impl(board, shapes, rotations, piece_index, turn, budget, NULL, out);
+}
+
+/* Same candidate generator, but each candidate is scored by a learned linear
+   function of the seven well features (lower is better). */
+int t4_cross_wells_weighted(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out) {
+    if (!weights) return -1;
+    for (int i = 0; i < WELL_FEATURES; ++i) if (!isfinite(weights[i])) return -1;
+    return cross_wells_impl(board, shapes, rotations, piece_index, turn, budget, weights, out);
+}
+
+static int cross_wells_impl(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out) {
+    if (!board || !out || piece_index < 0 || piece_index >= 15 || budget < 0) return -1;
+    int valid = t4_validate_shapes(shapes, rotations);
+    if (valid < 0) return valid;
+    /* The expanded pieces have solid, unique columns. The gap count and well
+       merit both rely on this. Guard the public native entry point as well. */
+    for (int r = 0; r < rotations; ++r) {
+        const int32_t *shape = shapes + r*SHAPE_STRIDE;
+        for (int i = 0; i < shape[4]; ++i) {
+            const int32_t *column = shape + HEADER + i*COLUMN_STRIDE;
+            if ((uint32_t)column[1] != (1u << column[3]) - (1u << column[2])) return -7;
+            for (int j = 0; j < i; ++j) if (shape[HEADER+j*COLUMN_STRIDE] == column[0]) return -7;
+        }
+    }
+
+    CrossField field = {0};
+    for (int i = 0; i < AREA; ++i) {
+        unsigned mask = board[i];
+        int height = mask ? 32 - __builtin_clz(mask) : 0;
+        field.height[i] = (uint8_t)height;
+        field.buried_levels |= ((1u << height) - 1u) ^ mask;
+    }
+    if (piece_index != 13) find_cross_wells(&field);
+
+    WellChoice best = {.rotation = -1, .holes = 999, .levels = 99, .score = INT64_C(1)<<61,
+                      .weights = weights, .dscore = HUGE_VAL};
+    uint32_t state = (UINT32_C(0x9e3779b9)*(turn+1u)) ^ UINT32_C(0x84937923)
+                   ^ (UINT32_C(0xa3324543)*(uint32_t)piece_index);
+    if (!state) state = 3;
+    if (rotations > 1) for (int n = 0; n < budget; ++n) {
+        int r = well_random_index(&state, rotations);
+        const int32_t *shape = shapes + r*SHAPE_STRIDE;
+        int x = well_random_index(&state, 17-shape[0]);
+        int y = well_random_index(&state, 17-shape[1]);
+        int w = well_random_index(&state, 17-shape[3]);
+        consider_well_move(&field, shapes, r, w*256+y*16+x, &best);
+    }
+    consider_well_arms(&field, shapes, rotations, &best);
+    if (piece_index == 0) for (int r = 0; r < rotations; ++r) {
+        const int32_t *shape = shapes + r*SHAPE_STRIDE;
+        if (shape[4] == 1 && shape[HEADER] == 0 && shape[0] == 1 && shape[1] == 1 && shape[3] == 1)
+            for (int i = 0; i < AREA; ++i) consider_well_move(&field, shapes, r, i, &best);
+    }
+    if (!budget || best.holes != 0 || rotations == 1) {
+        for (int r = 0; r < rotations; ++r) {
+            const int32_t *shape = shapes + r*SHAPE_STRIDE;
+            for (int w = 0; w <= 16-shape[3]; ++w) for (int y = 0; y <= 16-shape[1]; ++y)
+                for (int x = 0; x <= 16-shape[0]; ++x)
+                    consider_well_move(&field, shapes, r, w*256+y*16+x, &best);
+        }
+    }
+    if (best.rotation < 0) return 0;
+    out[0] = best.rotation; out[1] = best.base & 15; out[2] = (best.base >> 4) & 15;
+    out[3] = best.base >> 8; out[4] = best.z; out[5] = best.holes; out[6] = best.levels;
+    out[7] = best.trials < INT32_MAX ? (int32_t)best.trials : INT32_MAX;
+    return 1;
+}
+
+/* Play the trained-wells policy over a fixed piece sequence without leaving C.
+   board: 4096 column masks in engine order, updated in place.
+   shapes: the expanded pieces' shape records back to back; piece p uses
+   shape_count[p] records starting at record shape_offset[p].
+   pieces: expanded piece index of each placement; turn0 is the number of
+   placements already made, so the policy sees the same turn as in Python.
+   moves: 7 bytes per placement (piece, rotation, x, y, w, landing z, cleared
+   layers). Returns the placements made; fewer than n means the next piece had
+   no legal move (physical top-out). Negative values report invalid input. */
+int t4_play_trained_wells(uint16_t *board, const int32_t *shapes, const int32_t *shape_offset,
+                          const int32_t *shape_count, const uint8_t *pieces, int n,
+                          uint32_t turn0, int budget, const double *weights, uint8_t *moves) {
+    if (!board || !shapes || !shape_offset || !shape_count || !pieces || !moves || !weights
+            || n < 0 || budget < 0) return -1;
+    for (int i = 0; i < WELL_FEATURES; ++i) if (!isfinite(weights[i])) return -1;
+    for (int p = 0; p < 15; ++p) {
+        if (shape_count[p] < 1 || shape_count[p] > 255 || shape_offset[p] < 0) return -2;
+        int valid = t4_validate_shapes(shapes + (size_t)shape_offset[p]*SHAPE_STRIDE, shape_count[p]);
+        if (valid < 0) return valid;
+    }
+    for (int t = 0; t < n; ++t) {
+        int piece = pieces[t];
+        if (piece >= 15) return -8;
+        const int32_t *rotations = shapes + (size_t)shape_offset[piece]*SHAPE_STRIDE;
+        int32_t out[8];
+        int found = cross_wells_impl(board, rotations, shape_count[piece], piece, turn0 + (uint32_t)t,
+                                     budget, weights, out);
+        if (found < 0) return found;
+        if (!found) return t;
+        const int32_t *shape = rotations + (size_t)out[0]*SHAPE_STRIDE;
+        int base = out[3]*256 + out[2]*16 + out[1], z = out[4];
+        if (z < 0 || z + shape[2] > HEIGHT) return -9;
+        for (int j = 0; j < shape[4]; ++j) {
+            const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+            unsigned cells = (unsigned)column[1] << z;
+            if (board[base + column[0]] & cells) return -10;
+            board[base + column[0]] |= (uint16_t)cells;
+        }
+        unsigned full = 0xffffu;
+        for (int i = 0; i < AREA && full; ++i) full &= board[i];
+        if (full) {
+            for (int i = 0; i < AREA; ++i) {
+                unsigned mask = board[i], kept = 0;
+                for (int level = 0, k = 0; level < HEIGHT; ++level)
+                    if (!((full >> level) & 1u)) kept |= ((mask >> level) & 1u) << k++;
+                board[i] = (uint16_t)kept;
+            }
+        }
+        uint8_t *record = moves + (size_t)t*7;
+        record[0] = (uint8_t)piece; record[1] = (uint8_t)out[0]; record[2] = (uint8_t)out[1];
+        record[3] = (uint8_t)out[2]; record[4] = (uint8_t)out[3]; record[5] = (uint8_t)z;
+        record[6] = (uint8_t)__builtin_popcount(full);
+    }
+    return n;
 }

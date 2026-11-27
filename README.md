@@ -28,6 +28,94 @@ Use your platform's compatible PyTorch build for CUDA. On Ubuntu, install Tkinte
 with `sudo apt install python3-tk`; on Windows, include Tcl/Tk in the Python install.
 See [native builds and diagnostics](docs/native-backend.md).
 
+## Play to 100,000 placements
+
+The native `cross-wells` planner cleared 144 hyperlayers in 100,000 placements
+on seed 7 in the standard expanded game. All 100,000 hard drops replayed
+independently. Four additional seeds chosen before testing also reached the cap
+with a legal next move and 144 cleared layers each. The planner uses
+ordinary pieces to build landing sites where a CROSS can drop without trapping
+empty cells. It reads the current board and piece and needs no checkpoint.
+
+After building the native scorer, reproduce the run from an empty board:
+
+```bash
+.venv/bin/python sparse_tetris_4d_optimized.py --benchmark --backend native \
+  --policy cross-wells --piece-set expanded --seed 7 --games 1 --pieces 100000 \
+  --no-benchmark-log
+```
+
+For GUI playback, run `.venv/bin/python sparse_tetris_4d_optimized.py --policy cross-wells --seed 7`
+and press Space. [Survival results and replay fingerprints](validation/cross-wells-100k.json).
+
+## Trained policy: 1,000,000 placements
+
+The `trained-wells` policy keeps the `cross-wells` candidate generator but
+replaces its fixed priority rules with a learned linear score over seven
+per-move features (newly buried levels, new holes, covering a ready CROSS well,
+well progress, height cost, roughness and peak height).
+`tools/train_wells_policy.py` trains the seven weights with the cross-entropy
+method. It optimizes survival from empty boards, starting from a zero-mean
+Gaussian with no preset coefficients, signs or priorities. Training took 5
+generations of 16 candidates on fresh seeds, about 18 minutes. The bundled
+`models/trained-wells.json` is the generation-4 mean.
+
+Median survival across games is at least 1,000,000 placements. A 16-seed
+evaluation set (62000001 to 62000016) was registered before play, with the
+median rule fixed in advance. All 16 games reached the 1,000,000-placement cap
+from an empty board, so the median is censored at the cap. The exact 95%
+Clopper–Pearson lower bound on the chance that a game reaches 1,000,000 is
+0.79. Five earlier verification seeds (61000001 to 61000005) also reached the
+cap, giving 21 of 21 games overall, with a pooled bound of 0.84.
+
+Every game ended with a legal next move after clearing 1,458 to 1,461
+hyperlayers. Sampled every 20,000 placements, the stack never exceeded height
+11. Fourteen games had zero holes at every sample. The other seven carried at
+most 21 holes while clearing layers at the same rate. An independent replay
+re-dropped every placement one Z step at a time from a regenerated piece stream
+and matched each game's board and move digests.
+
+```bash
+.venv/bin/python tools/verify_trained_wells.py play --seed 62000001 --cap 1000000 --output runs/trained-wells-1m
+.venv/bin/python tools/verify_trained_wells.py replay --seed 62000001 --output runs/trained-wells-1m
+```
+
+The benchmark CLI and GUI accept `--policy trained-wells`. Each placement takes
+about 1.2 ms on one CPU core. [Training record, screening probe and replay
+fingerprints](validation/trained-wells-1m.json). `tools/wells_dashboard.py RUN_DIR` serves a live
+page of training and verification progress on port 8775.
+
+### 10,000,000 placements
+
+Median survival across games is also at least 10,000,000 placements. Sixteen
+evaluation seeds (63000001 to 63000016) were registered before play, under the
+same median rule. Fifteen reached the 10,000,000-placement cap. The exact 95%
+lower bound on the chance that a game reaches 10,000,000 is 0.70. Every game,
+including the one failure, was replayed independently move by move.
+
+The surviving games cleared 14,643 to 14,645 hyperlayers each. Sampled every
+100,000 placements, their stacks never exceeded height 11 and they carried at
+most 15 holes.
+
+Seed 63000013 was healthy at 2,700,000 placements and topped out at 2,797,644
+on a CROSS. Layer clears stalled on a few open cells at the board's border in
+the lowest levels. The stack rose to the ceiling, and only then did holes
+cascade. The learned scorer has no feature for completing layers, and training
+games of 32,000 placements are far too short to expose a hazard this rare: one
+top-out in about 213 million placements, counting six 10,000,000-placement
+screening games.
+
+`--engine native` runs the game loop in C (`t4_play_trained_wells`) around the
+same policy call, about 6x faster. Over all 1,000,000 placements of seed
+61000001 it reproduced the Python loop's moves and board exactly.
+
+```bash
+.venv/bin/python tools/verify_trained_wells.py play --engine native --seed 63000001 --cap 10000000 --every 100000 --output runs/trained-wells-10m
+.venv/bin/python tools/verify_trained_wells.py replay --seed 63000001 --output runs/trained-wells-10m
+```
+
+[10,000,000-placement evaluation, failure analysis and replay fingerprints](validation/trained-wells-10m.json).
+
 ## Train for survival
 
 Start an eight-hour continuation from a local, calibrated Spatial V4 checkpoint:
@@ -79,6 +167,36 @@ activations. Human mode enables manual placement.
 
 See [view controls](docs/eight-views.md), [playback speed](docs/playback-speed.md)
 and [logging](docs/benchmark-logging.md).
+
+## Check two-drop CROSS recovery
+
+Given a saved board on which CROSS cannot land, this CPU tool searches for a
+non-clearing drop of the current piece followed by a drop of the visible piece
+that clears a layer and reopens a CROSS landing. It requires only the standard
+library and the snapshot's `board`, `current` and `next_piece` fields. It accepts
+evaluator JSON and gzipped snapshots, including `data` and `snapshot` wrappers.
+
+```bash
+python tools/find_two_drop_cross.py tests/fixtures/two-drop-cross.json --prefer 8 4 14 4
+```
+
+The example reproduces the archived RING and HOOK drops on seed 300040.
+Omit `--prefer` for deterministic geometric order, or repeat it to try first
+poses in policy order. Output includes each drop's coordinates, cleared layers
+and afterboard hash. An empty `moves` array means no pair meets the predicate.
+
+Of 49 candidate boards from 64 historical training games, 24 had a verified
+two-drop recovery. On four selected roots played to physical top-out, the
+witness gained 791 placements in total over greedy. A one-drop clear rule
+reproduced 758 of that gain. [Validation and per-game results](validation/two-drop-cross.json)
+
+On 13 separate historical greedy streams, three contained a two-drop recovery
+across 123,799 recorded decisions. From the earliest recovery in each game,
+the frozen actor survived another 375, 1,693 and 815 placements. Forcing the
+two-drop recovery gave 375, 1,693 and 707. The one-drop rule chose the same
+two moves in all three games. On the third board the actor restored CROSS two
+moves later, and both lines placed their next CROSS on move 18. All three
+opportunities came from historical selection games. [Transfer results and matched trajectories](validation/two-drop-greedy-transfer.json)
 
 ## Compare frozen models
 

@@ -1,0 +1,177 @@
+{
+  "scope": "Four eligible final closures among eight original public 612000-cold games. Eight sampled legal futures per board. Both continuations use the same greedy actor after the root action.",
+  "replicate_order": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "natural_registration_utc": "2026-11-26T17:29:35.673781+00:00",
+  "provenance": {
+    "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+    "runtime_revision": "57d67abf54ef8f231a161df3761c64a820ddca79",
+    "natural_registration_sha256": "2de8ca187fb54409cec49efa1c7370183f1b31fed5edf6a3294a4cb0d56cc2d7",
+    "capped_registration_sha256": "1c5b53925181d8a2bc2fbeb443a70aa2baf8b319cad0248caea638e1123e197d",
+    "capped_result_sha256": "74830d136e4884931625328860a3f1ef9762dedd0338ed59d6ed384d59ef290a",
+    "repeated_capped_result_sha256": "f9b05547645a07d731bed5078a4634420402b214106629ab5a5b06fe45082c99",
+    "boundary_verification_sha256": "d48887b53d6f6005aca80faea0a539eeaace1c8643d8ca1b5faad9d25092f9fa",
+    "natural_result_sha256": "157b91d42b643b333aa70ad04de2a841531bf3898ca20e845e0bfbbfaa011b2e",
+    "natural_runner_sha256": "d9388d9ad5e971feb43be0d30c419ca13f737935406f1c2edb9cf8f6f28a9ab1"
+  },
+  "endpoints_sha256": "2fe1468c256a439b7b68792f7808ed22bbf44fb9e67b9d0de21687bb09ae57d2",
+  "coverage": {
+    "source_boards": 4,
+    "paired_futures": 32,
+    "natural_physical_endings": 64,
+    "terminal_piece_counts": {
+      "CROSS": 64
+    },
+    "already_physical_at_128_or_earlier": 44,
+    "continued_after_128": {
+      "best_preserving": 13,
+      "greedy": 7
+    },
+    "pairs_by_arms_alive_at_128": {
+      "one": 6,
+      "neither": 19,
+      "both": 7
+    },
+    "natural_censored": 0,
+    "controller_stops": 0
+  },
+  "overall": {
+    "wins": 10,
+    "ties": 19,
+    "losses": 3,
+    "mean_difference": 375.03125,
+    "net_placements": 12001,
+    "median_difference": 0.0,
+    "mean_greedy": 417.9375,
+    "mean_best_preserving": 792.96875,
+    "at_128": {
+      "wins": 6,
+      "ties": 26,
+      "losses": 0,
+      "mean_difference": 23.4375
+    }
+  },
+  "roots": {
+    "48200003": {
+      "greedy": [
+        2,
+        10,
+        11,
+        5,
+        6,
+        9,
+        10,
+        4
+      ],
+      "best_preserving": [
+        2342,
+        10,
+        11,
+        1617,
+        6,
+        9,
+        10,
+        2367
+      ],
+      "wins": 3,
+      "ties": 5,
+      "losses": 0,
+      "mean_difference": 789.375,
+      "net_placements": 6315,
+      "mean_without_this_root": 236.91666666666666
+    },
+    "48200005": {
+      "greedy": [
+        751,
+        2850,
+        729,
+        2,
+        724,
+        3,
+        2864,
+        5
+      ],
+      "best_preserving": [
+        2149,
+        2766,
+        735,
+        1457,
+        2827,
+        737,
+        2841,
+        5
+      ],
+      "wins": 5,
+      "ties": 1,
+      "losses": 2,
+      "mean_difference": 698.625,
+      "net_placements": 5589,
+      "mean_without_this_root": 267.1666666666667
+    },
+    "48200011": {
+      "greedy": [
+        876,
+        4444,
+        9,
+        10,
+        7,
+        6,
+        6,
+        6
+      ],
+      "best_preserving": [
+        1620,
+        3051,
+        9,
+        10,
+        7,
+        6,
+        6,
+        6
+      ],
+      "wins": 1,
+      "ties": 6,
+      "losses": 1,
+      "mean_difference": -81.125,
+      "net_placements": -649,
+      "mean_without_this_root": 527.0833333333334
+    },
+    "48200013": {
+      "greedy": [
+        4,
+        3,
+        4,
+        2,
+        3,
+        3,
+        3,
+        3
+      ],
+      "best_preserving": [
+        4,
+        3,
+        4,
+        748,
+        3,
+        3,
+        3,
+        3
+      ],
+      "wins": 1,
+      "ties": 7,
+      "losses": 0,
+      "mean_difference": 93.25,
+      "net_placements": 746,
+      "mean_without_this_root": 468.9583333333333
+    }
+  },
+  "limits": "The four boards were selected where the original actor lost its final CROSS landing and a shortlist alternative existed. Futures on one board share a decision. These data estimate the conditional effect of preserving once under the specified draws. They provide no unbiased estimate of whole-game survival or deployment benefit."
+}

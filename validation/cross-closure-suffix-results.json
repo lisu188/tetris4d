@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "context": {
+    "cohort": "All four original 612000-cold final closures with a surviving alternative in the shortlist, out of eight retrospective public games. Eight paired hypothetical futures per root. Both arms switch to the unchanged greedy actor after the first decision.",
+    "placements": "Number of legal placements after the root, including that decision, capped at 128. Physical loss on move 128 counts as top-out.",
+    "interpretation": "Games still alive at 128 have unknown lifetimes. Streams share four archived starting boards. These observations describe conditional endgame survival.",
+    "replicates": "Placement arrays are in replicate order 0 through 7. Horizon lists give zero-based replicate indices."
+  },
+  "plan_sha256": "1c5b53925181d8a2bc2fbeb443a70aa2baf8b319cad0248caea638e1123e197d",
+  "runner_sha256": "84ed606038e21c9256cbac6d3884de2ba1c843e7e9a2b5d9a2cf0512b5694ad1",
+  "runtime_revision": "57d67abf54ef8f231a161df3761c64a820ddca79",
+  "torch": "2.14.1+cu130",
+  "checkpoint_sha256": "31709fbe3c294874352c2c8166814298d8ff77a8cd59ea802f43b55b0b815543",
+  "full_result_sha256": "f9b05547645a07d731bed5078a4634420402b214106629ab5a5b06fe45082c99",
+  "independent_repeat_of_result_sha256": "74830d136e4884931625328860a3f1ef9762dedd0338ed59d6ed384d59ef290a",
+  "identical_per_arm_boards_draws_endings_clears_and_placements": true,
+  "paired_futures": 32,
+  "placement_horizon": 128,
+  "overall": {
+    "greedy": {
+      "mean_restricted_placements": 32.25,
+      "ends": {
+        "top_out": 25,
+        "horizon": 7
+      }
+    },
+    "best_preserving": {
+      "mean_restricted_placements": 55.6875,
+      "ends": {
+        "horizon": 13,
+        "top_out": 19
+      }
+    },
+    "mean_paired_restricted_difference": 23.4375
+  },
+  "roots": {
+    "48200003": {
+      "pairs": 8,
+      "resolved": 8,
+      "wins": 3,
+      "ties": 5,
+      "losses": 0,
+      "mean_resolved_difference": 46.625,
+      "greedy": {
+        "placements": [2, 10, 11, 5, 6, 9, 10, 4],
+        "alive_at_horizon": []
+      },
+      "best_preserving": {
+        "placements": [128, 10, 11, 128, 6, 9, 10, 128],
+        "alive_at_horizon": [0, 3, 7]
+      }
+    },
+    "48200005": {
+      "pairs": 8,
+      "resolved": 8,
+      "wins": 2,
+      "ties": 6,
+      "losses": 0,
+      "mean_resolved_difference": 31.375,
+      "greedy": {
+        "placements": [128, 128, 128, 2, 128, 3, 128, 5],
+        "alive_at_horizon": [0, 1, 2, 4, 6]
+      },
+      "best_preserving": {
+        "placements": [128, 128, 128, 128, 128, 128, 128, 5],
+        "alive_at_horizon": [0, 1, 2, 3, 4, 5, 6]
+      }
+    },
+    "48200011": {
+      "pairs": 8,
+      "resolved": 8,
+      "wins": 0,
+      "ties": 8,
+      "losses": 0,
+      "mean_resolved_difference": 0,
+      "greedy": {
+        "placements": [128, 128, 9, 10, 7, 6, 6, 6],
+        "alive_at_horizon": [0, 1]
+      },
+      "best_preserving": {
+        "placements": [128, 128, 9, 10, 7, 6, 6, 6],
+        "alive_at_horizon": [0, 1]
+      }
+    },
+    "48200013": {
+      "pairs": 8,
+      "resolved": 8,
+      "wins": 1,
+      "ties": 7,
+      "losses": 0,
+      "mean_resolved_difference": 15.75,
+      "greedy": {
+        "placements": [4, 3, 4, 2, 3, 3, 3, 3],
+        "alive_at_horizon": []
+      },
+      "best_preserving": {
+        "placements": [4, 3, 4, 128, 3, 3, 3, 3],
+        "alive_at_horizon": [3]
+      }
+    }
+  }
+}
