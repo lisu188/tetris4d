@@ -280,7 +280,11 @@ typedef struct {
 typedef struct {
     int rotation, base, z, holes, levels;
     int64_t score, trials;
+    const double *weights; /* learned linear scorer, or NULL for the fixed rules */
+    double dscore;
 } WellChoice;
+
+enum { WELL_FEATURES = 7 };
 
 static int has_neighbor(int column, int direction) {
     int coordinate = (column >> (4*(direction/2))) & 15;
@@ -400,6 +404,26 @@ static void consider_well_move(const CrossField *field, const int32_t *shapes,
         if (top > high) high = top;
     }
     int levels = __builtin_popcount(gaps & ~field->buried_levels);
+    if (best->weights) {
+        int covers_ready, roughness = 0;
+        int benefit = well_progress(field, shape, base, z, &covers_ready);
+        for (int j = 0; j < shape[4]; ++j) {
+            const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+            int index = base + column[0], old = field->height[index], top = z + column[3];
+            for (int k = 0; k < WELL_ARMS; ++k) if (has_neighbor(index, k)) {
+                int neighbor = field->height[index+well_steps[k]];
+                roughness += (top-neighbor)*(top-neighbor) - (old-neighbor)*(old-neighbor);
+            }
+        }
+        const double *v = best->weights;
+        double score = v[0]*levels + v[1]*holes + v[2]*covers_ready - v[3]*benefit
+                     + v[4]*cost + v[5]*roughness + v[6]*high;
+        if (score < best->dscore) {
+            best->rotation = rotation; best->base = base; best->z = z;
+            best->holes = holes; best->levels = levels; best->dscore = score;
+        }
+        return;
+    }
     if (levels > best->levels || (levels == best->levels && holes > best->holes)) return;
 
     int covers_ready;
@@ -467,8 +491,28 @@ static void consider_well_arms(const CrossField *field, const int32_t *shapes,
 /* board is the canonical 4096-column bitmask. piece_index follows expanded
    PieceStream order (I=0, CROSS=13), turn is the number already placed.
    out: rotation, x, y, w, landing, new holes, newly buried levels, trials. */
+static int cross_wells_impl(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out);
+
 int t4_cross_wells(const uint16_t *board, const int32_t *shapes, int rotations,
                    int piece_index, uint32_t turn, int budget, int32_t *out) {
+    return cross_wells_impl(board, shapes, rotations, piece_index, turn, budget, NULL, out);
+}
+
+/* Same candidate generator, but each candidate is scored by a learned linear
+   function of the seven well features (lower is better). */
+int t4_cross_wells_weighted(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out) {
+    if (!weights) return -1;
+    for (int i = 0; i < WELL_FEATURES; ++i) if (!isfinite(weights[i])) return -1;
+    return cross_wells_impl(board, shapes, rotations, piece_index, turn, budget, weights, out);
+}
+
+static int cross_wells_impl(const uint16_t *board, const int32_t *shapes, int rotations,
+                            int piece_index, uint32_t turn, int budget,
+                            const double *weights, int32_t *out) {
     if (!board || !out || piece_index < 0 || piece_index >= 15 || budget < 0) return -1;
     int valid = t4_validate_shapes(shapes, rotations);
     if (valid < 0) return valid;
@@ -492,7 +536,8 @@ int t4_cross_wells(const uint16_t *board, const int32_t *shapes, int rotations,
     }
     if (piece_index != 13) find_cross_wells(&field);
 
-    WellChoice best = {.rotation = -1, .holes = 999, .levels = 99, .score = INT64_C(1)<<61};
+    WellChoice best = {.rotation = -1, .holes = 999, .levels = 99, .score = INT64_C(1)<<61,
+                      .weights = weights, .dscore = HUGE_VAL};
     uint32_t state = (UINT32_C(0x9e3779b9)*(turn+1u)) ^ UINT32_C(0x84937923)
                    ^ (UINT32_C(0xa3324543)*(uint32_t)piece_index);
     if (!state) state = 3;
@@ -523,4 +568,60 @@ int t4_cross_wells(const uint16_t *board, const int32_t *shapes, int rotations,
     out[3] = best.base >> 8; out[4] = best.z; out[5] = best.holes; out[6] = best.levels;
     out[7] = best.trials < INT32_MAX ? (int32_t)best.trials : INT32_MAX;
     return 1;
+}
+
+/* Play the trained-wells policy over a fixed piece sequence without leaving C.
+   board: 4096 column masks in engine order, updated in place.
+   shapes: the expanded pieces' shape records back to back; piece p uses
+   shape_count[p] records starting at record shape_offset[p].
+   pieces: expanded piece index of each placement; turn0 is the number of
+   placements already made, so the policy sees the same turn as in Python.
+   moves: 7 bytes per placement (piece, rotation, x, y, w, landing z, cleared
+   layers). Returns the placements made; fewer than n means the next piece had
+   no legal move (physical top-out). Negative values report invalid input. */
+int t4_play_trained_wells(uint16_t *board, const int32_t *shapes, const int32_t *shape_offset,
+                          const int32_t *shape_count, const uint8_t *pieces, int n,
+                          uint32_t turn0, int budget, const double *weights, uint8_t *moves) {
+    if (!board || !shapes || !shape_offset || !shape_count || !pieces || !moves || !weights
+            || n < 0 || budget < 0) return -1;
+    for (int i = 0; i < WELL_FEATURES; ++i) if (!isfinite(weights[i])) return -1;
+    for (int p = 0; p < 15; ++p) {
+        if (shape_count[p] < 1 || shape_count[p] > 255 || shape_offset[p] < 0) return -2;
+        int valid = t4_validate_shapes(shapes + (size_t)shape_offset[p]*SHAPE_STRIDE, shape_count[p]);
+        if (valid < 0) return valid;
+    }
+    for (int t = 0; t < n; ++t) {
+        int piece = pieces[t];
+        if (piece >= 15) return -8;
+        const int32_t *rotations = shapes + (size_t)shape_offset[piece]*SHAPE_STRIDE;
+        int32_t out[8];
+        int found = cross_wells_impl(board, rotations, shape_count[piece], piece, turn0 + (uint32_t)t,
+                                     budget, weights, out);
+        if (found < 0) return found;
+        if (!found) return t;
+        const int32_t *shape = rotations + (size_t)out[0]*SHAPE_STRIDE;
+        int base = out[3]*256 + out[2]*16 + out[1], z = out[4];
+        if (z < 0 || z + shape[2] > HEIGHT) return -9;
+        for (int j = 0; j < shape[4]; ++j) {
+            const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+            unsigned cells = (unsigned)column[1] << z;
+            if (board[base + column[0]] & cells) return -10;
+            board[base + column[0]] |= (uint16_t)cells;
+        }
+        unsigned full = 0xffffu;
+        for (int i = 0; i < AREA && full; ++i) full &= board[i];
+        if (full) {
+            for (int i = 0; i < AREA; ++i) {
+                unsigned mask = board[i], kept = 0;
+                for (int level = 0, k = 0; level < HEIGHT; ++level)
+                    if (!((full >> level) & 1u)) kept |= ((mask >> level) & 1u) << k++;
+                board[i] = (uint16_t)kept;
+            }
+        }
+        uint8_t *record = moves + (size_t)t*7;
+        record[0] = (uint8_t)piece; record[1] = (uint8_t)out[0]; record[2] = (uint8_t)out[1];
+        record[3] = (uint8_t)out[2]; record[4] = (uint8_t)out[3]; record[5] = (uint8_t)z;
+        record[6] = (uint8_t)__builtin_popcount(full);
+    }
+    return n;
 }

@@ -91,9 +91,10 @@ class RendererTests(unittest.TestCase):
             else:
                 candidate = copy.deepcopy(new[name])
                 if name == '_load_native':
-                    # Check the two added signatures and compare the other bindings with the baseline.
+                    # Check the added signatures and compare the other bindings with the baseline.
                     signatures = {
                         't4_cross_wells': '[pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer]',
+                        't4_cross_wells_weighted': '[pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer, pointer]',
                         't4_sustained_metrics': '[pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]',
                     }
                     bindings = []

@@ -907,6 +907,7 @@ def _load_native() -> bool:
         signatures = {
             't4_capabilities': [],
             't4_cross_wells': [pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer],
+            't4_cross_wells_weighted': [pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer, pointer],
             't4_validate_shapes': [pointer, integer],
             't4_features': [pointer, pointer, pointer, pointer],
             't4_buried': [pointer, integer],
@@ -1382,8 +1383,11 @@ def choose_hyperlayer_move(*args, **kwargs) -> Decision | None:
 TARGET_POLICIES = ('hyperlayer', 'sustained', 'neural')
 
 
+WELL_POLICIES = ('cross-wells', 'trained-wells')
+
+
 def default_candidate_budget(policy: str) -> int:
-    return CROSS_WELLS_CANDIDATES if policy == 'cross-wells' else DEFAULT_CANDIDATES
+    return CROSS_WELLS_CANDIDATES if policy in WELL_POLICIES else DEFAULT_CANDIDATES
 
 
 def choose_cross_wells_move(board: Board, piece: str, turn: int,
@@ -1416,8 +1420,54 @@ def choose_cross_wells_move(board: Board, piece: str, turn: int,
                     1, 1, budget, bool(budget and len(shapes) > 1), 'cross-wells')
 
 
-def cross_wells_decision_steps(board: Board, piece: str, turn: int, budget: int):
-    decision = choose_cross_wells_move(board, piece, turn, budget)
+TRAINED_WELLS_MODEL = Path(__file__).resolve().parent / 'models' / 'trained-wells.json'
+_TRAINED_WELLS_WEIGHTS = None
+
+
+def trained_wells_weights() -> tuple[float, ...]:
+    global _TRAINED_WELLS_WEIGHTS
+    if _TRAINED_WELLS_WEIGHTS is None:
+        model = json.loads(TRAINED_WELLS_MODEL.read_text())
+        weights = tuple(float(v) for v in model['weights'])
+        if model.get('schema') != 'trained-wells-linear-v1' or len(weights) != 7 \
+                or not all(math.isfinite(v) for v in weights):
+            raise ValueError(f'{TRAINED_WELLS_MODEL} is not a trained-wells-linear-v1 model.')
+        _TRAINED_WELLS_WEIGHTS = weights
+    return _TRAINED_WELLS_WEIGHTS
+
+
+def choose_trained_wells_move(board: Board, piece: str, turn: int,
+                              budget: int = CROSS_WELLS_CANDIDATES,
+                              weights: tuple[float, ...] | None = None) -> Decision | None:
+    """Score CROSS-well candidates with the learned linear weights."""
+    if piece not in SHAPES or type(turn) is not int or turn < 0:
+        raise ValueError('Expected a registered piece and a nonnegative turn.')
+    if BACKEND == 'auto':
+        configure_backend()
+    if BACKEND != 'native':
+        raise ValueError('Trained wells requires the native backend. Build it with python tools/build_native.py.')
+    started = time.perf_counter()
+    vector = _NUMPY.asarray(trained_wells_weights() if weights is None else weights, dtype=_NUMPY.float64)
+    context = evaluate_board(board)
+    shapes = native_shapes(piece)
+    result = _NUMPY.empty(8, dtype=_NUMPY.int32)
+    found = _NATIVE.t4_cross_wells_weighted(context.native_board.ctypes.data, shapes.ctypes.data,
+                                            len(shapes), PIECE_NAMES.index(piece), turn & 0xffffffff,
+                                            budget, vector.ctypes.data, result.ctypes.data)
+    if found < 0:
+        _native_check(found)
+    if not found:
+        return None
+    rotation, x, y, w, z, _, _, evaluations = map(int, result)
+    move = make_move(board, piece, rotation, x, y, w)
+    if move is None or move.candidate.z != z:
+        raise AssertionError('Trained well selection disagrees with rigid drop physics.')
+    return Decision(move, move.score, evaluations, (time.perf_counter() - started) * 1000,
+                    1, 1, budget, bool(budget and len(shapes) > 1), 'trained-wells')
+
+
+def cross_wells_decision_steps(board: Board, piece: str, turn: int, budget: int, trained: bool = False):
+    decision = (choose_trained_wells_move if trained else choose_cross_wells_move)(board, piece, turn, budget)
     yield decision.evaluations if decision else 0
     return decision
 
@@ -2411,10 +2461,10 @@ class TetrisApp:
         self._draw_id = None
         self._in_tick = False
         self._force_draw = False
-        if policy not in ('network', 'hyperlayer', 'sustained', 'neural', 'cross-wells'):
+        if policy not in ('network', 'hyperlayer', 'sustained', 'neural') + WELL_POLICIES:
             raise ValueError('Unknown planner policy.')
-        if policy == 'cross-wells' and configure_backend(BACKEND) != 'native':
-            raise ValueError('Cross-wells requires the native backend. Build it with python tools/build_native.py.')
+        if policy in WELL_POLICIES and configure_backend(BACKEND) != 'native':
+            raise ValueError('Well planners require the native backend. Build it with python tools/build_native.py.')
         if policy == 'neural' and NEURAL_AGENT is None:
             raise ValueError('Neural policy requires a trained --neural-checkpoint.')
         target_layer_status(EMPTY_BOARD, target)
@@ -2549,7 +2599,7 @@ class TetrisApp:
         ttk.Label(policy_row, text='Planner:', style='Muted.Tetris.TLabel').pack(side='left')
         policies = ['network', 'hyperlayer', 'sustained']
         if BACKEND == 'native':
-            policies.append('cross-wells')
+            policies.extend(WELL_POLICIES)
         if NEURAL_AGENT is not None:
             policies.append('neural')
         self.policy_box = ttk.Combobox(policy_row, textvariable=self.policy, values=policies, state='readonly', width=12)
@@ -2712,9 +2762,10 @@ class TetrisApp:
         else:
             if self.policy.get() == 'neural':
                 self.search = NEURAL_AGENT.steps(self.game, int(self.target.get()), self.candidates)
-            elif self.policy.get() == 'cross-wells':
+            elif self.policy.get() in WELL_POLICIES:
                 self.search = cross_wells_decision_steps(self.game.board, self.game.current,
-                                                         self.game.pieces, self.candidates)
+                                                         self.game.pieces, self.candidates,
+                                                         self.policy.get() == 'trained-wells')
             elif self.policy.get() in TARGET_POLICIES:
                 self.search = (sustained_decision_steps if self.policy.get() == 'sustained' else hyperlayer_decision_steps)(self.game.board, self.game.current, int(self.target.get()),
                                                         self.candidates, self.game.pieces)
@@ -2894,7 +2945,7 @@ class TetrisApp:
             layer = target_layer_status(self.game.board, int(self.target.get()))
             behavior = 'pause on clear requested' if self.stop_after_clear else 'continuous play'
             self.target_progress.set(f'Z={layer.target}: {layer.filled:,}/{AREA:,} filled · {layer.buried:,} buried gaps · {behavior}')
-        elif self.policy.get() == 'cross-wells':
+        elif self.policy.get() in WELL_POLICIES:
             self.target_progress.set('Building and protecting CROSS landing sites')
         else:
             self.target_progress.set('Neural score with optional next-piece lookahead')
@@ -2932,6 +2983,7 @@ class TetrisApp:
             self.status.set('Human: arrows/WASD move X/Y · Q/E move W · 1–6 rotate XY/XZ/XW/YZ/YW/ZW · Shift reverses · Space/Enter drops · [ ] selects W view.')
         else:
             mode = ('CROSS landing-site planner' if self.policy.get() == 'cross-wells' else
+                    'trained CROSS landing-site scorer' if self.policy.get() == 'trained-wells' else
                     'target planner, depth 1, protected target + sigmoid tie-break' if self.policy.get() in TARGET_POLICIES else
                     f'{self.candidates:,} candidates/board, beam {self.beam}' if self.candidates else f'all placements/board, beam {self.beam}')
             pace = 'Unlimited · no animation delay' if self.speed.get() == 0 else f'{self.speed.get():g}/s animation'
@@ -3267,7 +3319,7 @@ def run_self_tests() -> dict:
 
 def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, policy: str = 'network',
              piece_set: str = 'expanded', target: int = 1, stop_after_clear: bool = False) -> dict:
-    if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural', 'cross-wells'):
+    if policy not in ('network', 'random', 'hyperlayer', 'sustained', 'neural') + WELL_POLICIES:
         raise ValueError('Unknown policy.')
     target_layer_status(EMPTY_BOARD, target)
     game, timings = Game(seed, piece_set), []
@@ -3286,6 +3338,8 @@ def run_game(seed: int, pieces: int, depth: int, beam: int, candidates: int, pol
                 decision = NEURAL_AGENT.choose(game, active_target, candidates)
             elif policy == 'cross-wells':
                 decision = choose_cross_wells_move(game.board, game.current, game.pieces, candidates)
+            elif policy == 'trained-wells':
+                decision = choose_trained_wells_move(game.board, game.current, game.pieces, candidates)
             elif policy in TARGET_POLICIES:
                 decision = (choose_sustained_move if policy == 'sustained' else choose_hyperlayer_move)(game.board, game.current, active_target, candidates, game.pieces)
             else:
@@ -3403,7 +3457,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                          default=Path(__file__).resolve().parent / 'models' / 'trained-sigmoid.json',
                          help='Load a validated JSON checkpoint; defaults to models/trained-sigmoid.json beside this script.')
     weights.add_argument('--baseline', action='store_true', help='Use the original untrained weights instead of a checkpoint.')
-    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural', 'cross-wells'), default='sustained',
+    parser.add_argument('--policy', choices=('network', 'hyperlayer', 'sustained', 'neural') + WELL_POLICIES, default='sustained',
                         help='Select the move planner. Cross-wells reserves landing sites for CROSS pieces and requires native scoring.')
     parser.add_argument('--neural-checkpoint', type=Path, help='Opt in to a trained PyTorch policy; default launch remains sustained.')
     parser.add_argument('--neural-device', choices=('auto', 'cpu', 'cuda'), default='auto')
@@ -3415,7 +3469,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('--depth', type=int, choices=(1, 2), default=2)
     parser.add_argument('--beam', type=int, default=DEFAULT_BEAM)
     parser.add_argument('--candidates', type=int,
-                        help='Candidate budget per board. Defaults to 1536 for cross-wells or 2048 otherwise. Use 0 for exhaustive search.')
+                        help='Candidate budget per board. Defaults to 1536 for cross-wells and trained-wells or 2048 otherwise. Use 0 for exhaustive search.')
     parser.add_argument('--pieces', type=int, default=100)
     parser.add_argument('--games', type=int, default=3)
     parser.add_argument('--compare', action='store_true', help='Also test a random policy over sampled legal placements.')

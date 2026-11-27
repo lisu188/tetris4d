@@ -1,0 +1,902 @@
+{
+ "policy": "trained-wells",
+ "claim": "Median survival across the 16 pre-registered evaluation games is >= 10,000,000 placements (capped): 15 of 16 games reached 10,000,000 consecutive placements from an empty board, each replayed independently.",
+ "model": {
+  "path": "models/trained-wells.json",
+  "sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b"
+ },
+ "preregistration": {
+  "registered_at": "2026-11-27T10:33:50+01:00",
+  "goal": "median survival across games >= 10,000,000 placements",
+  "model_sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b",
+  "evaluation_seeds": [
+   63000001,
+   63000002,
+   63000003,
+   63000004,
+   63000005,
+   63000006,
+   63000007,
+   63000008,
+   63000009,
+   63000010,
+   63000011,
+   63000012,
+   63000013,
+   63000014,
+   63000015,
+   63000016
+  ],
+  "cap": 10000000,
+  "engine": "native game loop (t4_play_trained_wells) calling the same t4_cross_wells_weighted policy; shown identical to the Python loop over all 1,000,000 placements of seed 61000001",
+  "rule": "Before any of these seeds is played: play each from an empty board with the frozen model until 10,000,000 placements or physical top-out, and replay every placement independently in Python. Survival of a capped game is recorded as >= 10,000,000. The primary result is the median over these 16 games; it is >= 10,000,000 iff at least 9 of 16 games reach the cap. Every outcome is reported; no seed is dropped or replaced. Screening on probe seeds 71000003-71000008 (6/6 reached 10M) informed only the decision to run this evaluation. Seeds are disjoint from all training, probe and earlier verification seeds."
+ },
+ "median_evaluation": {
+  "games": 16,
+  "reached_cap": 15,
+  "survival": [
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000",
+   2797644,
+   ">= 10,000,000",
+   ">= 10,000,000",
+   ">= 10,000,000"
+  ],
+  "median_survival": ">= 10,000,000 (cap)",
+  "median_at_least_10m": true,
+  "p_reach_10m_95ci_lower_clopper_pearson": 0.6977,
+  "total_placements": 152797644,
+  "total_layers": 223743,
+  "max_height_seen_at_samples": 16,
+  "max_holes_seen_at_samples": 1685
+ },
+ "survivors": {
+  "games": [
+   63000001,
+   63000002,
+   63000003,
+   63000004,
+   63000005,
+   63000006,
+   63000007,
+   63000008,
+   63000009,
+   63000010,
+   63000011,
+   63000012,
+   63000014,
+   63000015,
+   63000016
+  ],
+  "max_height_seen_at_samples": 11,
+  "max_holes_seen_at_samples": 15,
+  "layers_range": [
+   14643,
+   14645
+  ]
+ },
+ "failure_analysis": {
+  "seed": 63000013,
+  "placements": 2797644,
+  "next_piece": "CROSS",
+  "next_piece_has_legal_move": false,
+  "policy_fidelity": "Recomputing the Python-loop policy decision for each of the last 107,644 placements (2,690,000 to the end) gave 0 mismatches against the native-loop record.",
+  "timeline": "Healthy at 2,700,000 (height 7, 0 holes, 16,704 occupied cells). From about 2,770,000 the gap between layer clears grew past 1,000 placements and occupancy rose; a column reached height 16 at about 2,789,000 with 0 holes and 34,608 occupied cells. The first hole appeared about 2,793,000; forced holes then cascaded (1,685 at top-out) until no CROSS placement remained.",
+  "mechanism": "Clears stalled on a few open, unburied cells at the board border in the lowest levels (for example, 1 empty cell at level 0 and 4 at level 1 at 2,785,000, mostly on the border), not on reserved CROSS-well centres. The learned scorer has no feature rewarding layer completion, and CEM drove the height-cost weight to about zero (-0.00088), so low border cells can stay open while well building continues higher up.",
+  "implication": "The hazard is rare (one top-out in about 213 million placements across screening and evaluation) and invisible to the 32,000-placement training games. A layer-completion feature or a long-horizon training signal is the natural next step for longer horizons."
+ },
+ "engine_equivalence": {
+  "note": "The native loop (t4_play_trained_wells) replays the same t4_cross_wells_weighted policy call. On seed 61000001 it reproduced the Python-loop game exactly over 1,000,000 placements.",
+  "seed": 61000001,
+  "placements": 1000000,
+  "native_moves_sha256": "aea975607a70d5e1d659d40974b403d07317dac90e23dfa607d6a8d9e6498c99",
+  "python_moves_sha256": "aea975607a70d5e1d659d40974b403d07317dac90e23dfa607d6a8d9e6498c99",
+  "native_board_sha256": "e8739ddce260d86268fe0f9c3541a1133605445b6fde1dc5f1d808aab7fcfadd",
+  "python_board_sha256": "e8739ddce260d86268fe0f9c3541a1133605445b6fde1dc5f1d808aab7fcfadd",
+  "identical": true,
+  "native_seconds": 190.5,
+  "python_seconds": 1209.0
+ },
+ "screening_probe_seeds": {
+  "note": "Run before registering the evaluation, only to decide whether to run it. Not replayed.",
+  "games": [
+   {
+    "seed": 71000003,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14645,
+    "cells_placed": 59999993,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 6,
+    "final_holes": 0,
+    "occupied_cells": 14073,
+    "end_has_legal_move": true,
+    "board_sha256": "01ff88fbbc70f81632545809e00293b62ce4d0ba3a19360f1e4d7c9ef195b386",
+    "moves_sha256": "fc758f92a3bea06fc0347f7ca4497fba9cd999cab4efe2a0fe6671bf860d7036",
+    "engine": "native-loop",
+    "play_seconds": 1748.2,
+    "samples_every_100000": {
+     "max_height_range": [
+      5,
+      10
+     ],
+     "holes_max": 0,
+     "occupied_cells_range": [
+      11508,
+      26107
+     ]
+    }
+   },
+   {
+    "seed": 71000004,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14644,
+    "cells_placed": 60000000,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 7,
+    "final_holes": 2,
+    "occupied_cells": 18176,
+    "end_has_legal_move": true,
+    "board_sha256": "1db9195c49019a44e5442adbd7c93534a3fd2770755f58c693c02316b95371a4",
+    "moves_sha256": "cc6a79ca0d21966a883fc682cdb5d7503f4897d6cb365fb2179247d35543472d",
+    "engine": "native-loop",
+    "play_seconds": 1752.8,
+    "samples_every_100000": {
+     "max_height_range": [
+      6,
+      10
+     ],
+     "holes_max": 9,
+     "occupied_cells_range": [
+      15295,
+      26884
+     ]
+    }
+   },
+   {
+    "seed": 71000005,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14644,
+    "cells_placed": 60000000,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 7,
+    "final_holes": 0,
+    "occupied_cells": 18176,
+    "end_has_legal_move": true,
+    "board_sha256": "261688903aa5a47e1d6d80fd929e1fa8c49781ea7dad58057f66d01dea0fc422",
+    "moves_sha256": "b77d6f63cc9089be272ef3d5720237e26788ab411dbe05e2bf4eacf64f8de347",
+    "engine": "native-loop",
+    "play_seconds": 1747.3,
+    "samples_every_100000": {
+     "max_height_range": [
+      5,
+      10
+     ],
+     "holes_max": 0,
+     "occupied_cells_range": [
+      11256,
+      27641
+     ]
+    }
+   },
+   {
+    "seed": 71000006,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14643,
+    "cells_placed": 59999998,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 9,
+    "final_holes": 6,
+    "occupied_cells": 22270,
+    "end_has_legal_move": true,
+    "board_sha256": "36b0b10707ed573c15dacf8d044a09c6b426dfe030e75dd49c8567eb77570a07",
+    "moves_sha256": "2c874797d92e6db077262a7cfd57d046b968608a1e6540d7cc811effae5e682b",
+    "engine": "native-loop",
+    "play_seconds": 1752.8,
+    "samples_every_100000": {
+     "max_height_range": [
+      7,
+      10
+     ],
+     "holes_max": 13,
+     "occupied_cells_range": [
+      16576,
+      28041
+     ]
+    }
+   },
+   {
+    "seed": 71000007,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14643,
+    "cells_placed": 59999998,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 8,
+    "final_holes": 10,
+    "occupied_cells": 22270,
+    "end_has_legal_move": true,
+    "board_sha256": "09670350881da9a1024b211945c8bd886247f9020c400e3257d2466ddf97fd3e",
+    "moves_sha256": "44cf4b7d466a72dc75ba8ad0e4bdf648251fb2808517e9062ad4e124d8e84c0c",
+    "engine": "native-loop",
+    "play_seconds": 1751.1,
+    "samples_every_100000": {
+     "max_height_range": [
+      7,
+      10
+     ],
+     "holes_max": 15,
+     "occupied_cells_range": [
+      16256,
+      28288
+     ]
+    }
+   },
+   {
+    "seed": 71000008,
+    "cap": 10000000,
+    "placements": 10000000,
+    "layers": 14645,
+    "cells_placed": 59999996,
+    "stop_reason": "piece_limit",
+    "top_out": false,
+    "final_max_height": 6,
+    "final_holes": 0,
+    "occupied_cells": 14076,
+    "end_has_legal_move": true,
+    "board_sha256": "a3381b55760e78f8621832f5a70f2f51d9eb33de5574fc807a917d4eeabf32a7",
+    "moves_sha256": "48fd23ebff3a8269902ef40f17d7a332d7808622afbf2d38c4507b01b0fb4d47",
+    "engine": "native-loop",
+    "play_seconds": 1749.8,
+    "samples_every_100000": {
+     "max_height_range": [
+      6,
+      9
+     ],
+     "holes_max": 0,
+     "occupied_cells_range": [
+      11904,
+      22208
+     ]
+    }
+   }
+  ]
+ },
+ "evaluation_games": [
+  {
+   "seed": 63000001,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 60000007,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 4,
+   "occupied_cells": 18183,
+   "end_has_legal_move": true,
+   "board_sha256": "97fc9c82e1f2f7d6e77702eae18cd0fced0ddb6207ce929ca27ac4f166d41ebd",
+   "moves_sha256": "b890646a3e746a8fbbc205a9e7a2420201aa72730e67712951f9ace5e4e1d2d5",
+   "engine": "native-loop",
+   "play_seconds": 2192.7,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     10
+    ],
+    "holes_max": 7,
+    "occupied_cells_range": [
+     15434,
+     28864
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "97fc9c82e1f2f7d6e77702eae18cd0fced0ddb6207ce929ca27ac4f166d41ebd",
+    "moves_sha256": "b890646a3e746a8fbbc205a9e7a2420201aa72730e67712951f9ace5e4e1d2d5",
+    "next_piece": "O",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26345,
+    "replay_seconds": 767.6
+   }
+  },
+  {
+   "seed": 63000002,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 59999995,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 18171,
+   "end_has_legal_move": true,
+   "board_sha256": "25c96824dbf70568c1e0587a15fa3e4a2be827ade387abcfb093eb043bcd94be",
+   "moves_sha256": "15485e42a0264a3d9b71a52e0e0402810b703fd120cab070bb61e47a20356996",
+   "engine": "native-loop",
+   "play_seconds": 2178.7,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12167,
+     23808
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "25c96824dbf70568c1e0587a15fa3e4a2be827ade387abcfb093eb043bcd94be",
+    "moves_sha256": "15485e42a0264a3d9b71a52e0e0402810b703fd120cab070bb61e47a20356996",
+    "next_piece": "HOOK",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26357,
+    "replay_seconds": 652.5
+   }
+  },
+  {
+   "seed": 63000003,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14643,
+   "cells_placed": 60000000,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 22272,
+   "end_has_legal_move": true,
+   "board_sha256": "bbccfe2c1e55d3dce0c6def46426aebebe68528a8c41d63ad8bdce95f1507bbe",
+   "moves_sha256": "8536d6bdd9dfc6b5d95148cf81e8a203e117c8363296d4105f3905038898bf77",
+   "engine": "native-loop",
+   "play_seconds": 2176.7,
+   "samples_every_100000": {
+    "max_height_range": [
+     5,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12103,
+     23171
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14643,
+    "board_sha256": "bbccfe2c1e55d3dce0c6def46426aebebe68528a8c41d63ad8bdce95f1507bbe",
+    "moves_sha256": "8536d6bdd9dfc6b5d95148cf81e8a203e117c8363296d4105f3905038898bf77",
+    "next_piece": "RING",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26338,
+    "replay_seconds": 652.0
+   }
+  },
+  {
+   "seed": 63000004,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14645,
+   "cells_placed": 60000007,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 0,
+   "occupied_cells": 14087,
+   "end_has_legal_move": true,
+   "board_sha256": "74261bd307d2ca432098b3fc2741f1fa9a9e0d26fdcd09eb5041a9940a198768",
+   "moves_sha256": "bf1c64641b299993f86392b4f56841f055a47fdba8847209a0c0421348ab6828",
+   "engine": "native-loop",
+   "play_seconds": 2174.7,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     12160,
+     25536
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14645,
+    "board_sha256": "74261bd307d2ca432098b3fc2741f1fa9a9e0d26fdcd09eb5041a9940a198768",
+    "moves_sha256": "bf1c64641b299993f86392b4f56841f055a47fdba8847209a0c0421348ab6828",
+    "next_piece": "O",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26376,
+    "replay_seconds": 631.5
+   }
+  },
+  {
+   "seed": 63000005,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 59999995,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 4,
+   "occupied_cells": 18171,
+   "end_has_legal_move": true,
+   "board_sha256": "8a06d10f3dfc89fa8713f1406c1ee8acb09fcc531a19aa5ba86e102731ee77cf",
+   "moves_sha256": "029da985833cd7efe312b5ae2b519b86c48ad123f739d4dfb92e9feb6f6988dd",
+   "engine": "native-loop",
+   "play_seconds": 2194.5,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     10
+    ],
+    "holes_max": 14,
+    "occupied_cells_range": [
+     16252,
+     27521
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "8a06d10f3dfc89fa8713f1406c1ee8acb09fcc531a19aa5ba86e102731ee77cf",
+    "moves_sha256": "029da985833cd7efe312b5ae2b519b86c48ad123f739d4dfb92e9feb6f6988dd",
+    "next_piece": "HYPER",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26377,
+    "replay_seconds": 670.1
+   }
+  },
+  {
+   "seed": 63000006,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 59999985,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 2,
+   "occupied_cells": 18161,
+   "end_has_legal_move": true,
+   "board_sha256": "36dc23c38543757aa655f6ff63de4b06094ef77f1d596e1cc775df8b1144c19e",
+   "moves_sha256": "42a8e5cc90d51e440ed9b34d4db08f8077f354e48eef70125a7f03872b8ba508",
+   "engine": "native-loop",
+   "play_seconds": 2229.9,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     11
+    ],
+    "holes_max": 11,
+    "occupied_cells_range": [
+     15301,
+     29179
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "36dc23c38543757aa655f6ff63de4b06094ef77f1d596e1cc775df8b1144c19e",
+    "moves_sha256": "42a8e5cc90d51e440ed9b34d4db08f8077f354e48eef70125a7f03872b8ba508",
+    "next_piece": "BRIDGE",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26356,
+    "replay_seconds": 687.1
+   }
+  },
+  {
+   "seed": 63000007,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 60000008,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 7,
+   "occupied_cells": 18184,
+   "end_has_legal_move": true,
+   "board_sha256": "14f3d06190cda6b9dc68d3955fb0d59a5da9ac23b4f0ed5c153b1dfc50df00f1",
+   "moves_sha256": "3f87f194426c6a816ec0e6c2272fcfb8a7b23a865c952cfe0529cd0daecd317b",
+   "engine": "native-loop",
+   "play_seconds": 2230.0,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 13,
+    "occupied_cells_range": [
+     15683,
+     26947
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "14f3d06190cda6b9dc68d3955fb0d59a5da9ac23b4f0ed5c153b1dfc50df00f1",
+    "moves_sha256": "3f87f194426c6a816ec0e6c2272fcfb8a7b23a865c952cfe0529cd0daecd317b",
+    "next_piece": "C",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26393,
+    "replay_seconds": 736.4
+   }
+  },
+  {
+   "seed": 63000008,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14643,
+   "cells_placed": 60000005,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 1,
+   "occupied_cells": 22277,
+   "end_has_legal_move": true,
+   "board_sha256": "2df827106768def2bac52a44997fc01b750594f72b22e8cf131f11b934dfe52c",
+   "moves_sha256": "15997306c9126bd15ababd4933e9e5839390a388deeff1d2fe417ef87d6e601c",
+   "engine": "native-loop",
+   "play_seconds": 2242.6,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 9,
+    "occupied_cells_range": [
+     15808,
+     28279
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14643,
+    "board_sha256": "2df827106768def2bac52a44997fc01b750594f72b22e8cf131f11b934dfe52c",
+    "moves_sha256": "15997306c9126bd15ababd4933e9e5839390a388deeff1d2fe417ef87d6e601c",
+    "next_piece": "O",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26368,
+    "replay_seconds": 738.0
+   }
+  },
+  {
+   "seed": 63000009,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 60000006,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 4,
+   "occupied_cells": 18182,
+   "end_has_legal_move": true,
+   "board_sha256": "974ea5280dcb889e200eca3b250f36ae450394f15ead513374fa89262db83d71",
+   "moves_sha256": "5c5c40a3d8b76a6849732eea929f677352264d26661ff98542f8350f3f0965ff",
+   "engine": "native-loop",
+   "play_seconds": 2126.0,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     11
+    ],
+    "holes_max": 9,
+    "occupied_cells_range": [
+     15999,
+     27904
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "974ea5280dcb889e200eca3b250f36ae450394f15ead513374fa89262db83d71",
+    "moves_sha256": "5c5c40a3d8b76a6849732eea929f677352264d26661ff98542f8350f3f0965ff",
+    "next_piece": "NOVA",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26350,
+    "replay_seconds": 654.1
+   }
+  },
+  {
+   "seed": 63000010,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14645,
+   "cells_placed": 59999988,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 6,
+   "final_holes": 0,
+   "occupied_cells": 14068,
+   "end_has_legal_move": true,
+   "board_sha256": "bdab3e33c6f3e285934c2df1e448da8ab18e5ef073156511c2d5e4b9e618e4de",
+   "moves_sha256": "aa5f8a421997e40576216b1802744355e5249a18daea95b0cd5216121cac21df",
+   "engine": "native-loop",
+   "play_seconds": 2115.8,
+   "samples_every_100000": {
+    "max_height_range": [
+     5,
+     9
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     10688,
+     25280
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14645,
+    "board_sha256": "bdab3e33c6f3e285934c2df1e448da8ab18e5ef073156511c2d5e4b9e618e4de",
+    "moves_sha256": "aa5f8a421997e40576216b1802744355e5249a18daea95b0cd5216121cac21df",
+    "next_piece": "STAIR",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26353,
+    "replay_seconds": 571.3
+   }
+  },
+  {
+   "seed": 63000011,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14645,
+   "cells_placed": 59999995,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 6,
+   "final_holes": 0,
+   "occupied_cells": 14075,
+   "end_has_legal_move": true,
+   "board_sha256": "27fbf3a6202a9fd2589d02b41be7fca6a8df5ed533373d3ecddae454c72d9b14",
+   "moves_sha256": "9f780a8da6fa2c997344bc87131969088d36e4de2f0a9636a81e54163ed9d3a4",
+   "engine": "native-loop",
+   "play_seconds": 2130.0,
+   "samples_every_100000": {
+    "max_height_range": [
+     5,
+     10
+    ],
+    "holes_max": 0,
+    "occupied_cells_range": [
+     9536,
+     24578
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14645,
+    "board_sha256": "27fbf3a6202a9fd2589d02b41be7fca6a8df5ed533373d3ecddae454c72d9b14",
+    "moves_sha256": "9f780a8da6fa2c997344bc87131969088d36e4de2f0a9636a81e54163ed9d3a4",
+    "next_piece": "STAIR",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26378,
+    "replay_seconds": 566.0
+   }
+  },
+  {
+   "seed": 63000012,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14643,
+   "cells_placed": 59999992,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 3,
+   "occupied_cells": 22264,
+   "end_has_legal_move": true,
+   "board_sha256": "bb4e6825a38a6185d1b72a9514938eb182c749478ef92ac6f85480a5438542a9",
+   "moves_sha256": "83403dae66114b5132f0e3acd7e9eea6f0cf716f51a0cc249db69f67064df601",
+   "engine": "native-loop",
+   "play_seconds": 2122.7,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     10
+    ],
+    "holes_max": 7,
+    "occupied_cells_range": [
+     16387,
+     27840
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14643,
+    "board_sha256": "bb4e6825a38a6185d1b72a9514938eb182c749478ef92ac6f85480a5438542a9",
+    "moves_sha256": "83403dae66114b5132f0e3acd7e9eea6f0cf716f51a0cc249db69f67064df601",
+    "next_piece": "I",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26350,
+    "replay_seconds": 610.2
+   }
+  },
+  {
+   "seed": 63000013,
+   "cap": 10000000,
+   "placements": 2797644,
+   "layers": 4084,
+   "cells_placed": 16785853,
+   "stop_reason": "top_out",
+   "top_out": true,
+   "final_max_height": 16,
+   "final_holes": 1685,
+   "occupied_cells": 57789,
+   "end_has_legal_move": false,
+   "board_sha256": "42b48c01eb5fd07fa8f7224bf903939144db7ec3d985415f72b9694b652f53cf",
+   "moves_sha256": "afa62830da949f2e5d5340c99ad36a94df6ad106a8ea74fde3bf096dd815a448",
+   "engine": "native-loop",
+   "play_seconds": 626.4,
+   "samples_every_100000": {
+    "max_height_range": [
+     5,
+     16
+    ],
+    "holes_max": 1685,
+    "occupied_cells_range": [
+     11654,
+     57789
+    ]
+   },
+   "replay": {
+    "placements_replayed": 2797644,
+    "layers": 4084,
+    "board_sha256": "42b48c01eb5fd07fa8f7224bf903939144db7ec3d985415f72b9694b652f53cf",
+    "moves_sha256": "afa62830da949f2e5d5340c99ad36a94df6ad106a8ea74fde3bf096dd815a448",
+    "next_piece": "CROSS",
+    "next_piece_has_legal_move": false,
+    "reference_drop_cross_checks": 8802,
+    "replay_seconds": 187.4
+   }
+  },
+  {
+   "seed": 63000014,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 60000003,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 0,
+   "occupied_cells": 18179,
+   "end_has_legal_move": true,
+   "board_sha256": "c3b083efd420fe0fadab8ecc237ea49a87dac005eb58c601863080dc4415ea80",
+   "moves_sha256": "9fb23edae15f5fefec96f383830fc968560dce0221ee4caf3b706610eba780c6",
+   "engine": "native-loop",
+   "play_seconds": 2102.4,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     10
+    ],
+    "holes_max": 3,
+    "occupied_cells_range": [
+     11771,
+     26170
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "c3b083efd420fe0fadab8ecc237ea49a87dac005eb58c601863080dc4415ea80",
+    "moves_sha256": "9fb23edae15f5fefec96f383830fc968560dce0221ee4caf3b706610eba780c6",
+    "next_piece": "S",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26329,
+    "replay_seconds": 555.9
+   }
+  },
+  {
+   "seed": 63000015,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14644,
+   "cells_placed": 60000001,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 7,
+   "final_holes": 4,
+   "occupied_cells": 18177,
+   "end_has_legal_move": true,
+   "board_sha256": "22e2b19816c912223110d454ed84d025f7b422f668baa1e5112ccb95c0997d39",
+   "moves_sha256": "561e9285124812df020ad5a62aa916815448064a1b798cef116adb3abf024879",
+   "engine": "native-loop",
+   "play_seconds": 2106.6,
+   "samples_every_100000": {
+    "max_height_range": [
+     6,
+     9
+    ],
+    "holes_max": 15,
+    "occupied_cells_range": [
+     15552,
+     26049
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14644,
+    "board_sha256": "22e2b19816c912223110d454ed84d025f7b422f668baa1e5112ccb95c0997d39",
+    "moves_sha256": "561e9285124812df020ad5a62aa916815448064a1b798cef116adb3abf024879",
+    "next_piece": "BRIDGE",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26353,
+    "replay_seconds": 648.2
+   }
+  },
+  {
+   "seed": 63000016,
+   "cap": 10000000,
+   "placements": 10000000,
+   "layers": 14643,
+   "cells_placed": 60000009,
+   "stop_reason": "piece_limit",
+   "top_out": false,
+   "final_max_height": 8,
+   "final_holes": 8,
+   "occupied_cells": 22281,
+   "end_has_legal_move": true,
+   "board_sha256": "e4785ec9e46a287f4a32e032674480a7559e4811e5d9a4a6b0c9bdd7c6d76a65",
+   "moves_sha256": "56e99232102131ec4553b6074c6666eb536d7a80b4359dc046344dbbc7075562",
+   "engine": "native-loop",
+   "play_seconds": 2103.8,
+   "samples_every_100000": {
+    "max_height_range": [
+     7,
+     11
+    ],
+    "holes_max": 14,
+    "occupied_cells_range": [
+     17088,
+     29824
+    ]
+   },
+   "replay": {
+    "placements_replayed": 10000000,
+    "layers": 14643,
+    "board_sha256": "e4785ec9e46a287f4a32e032674480a7559e4811e5d9a4a6b0c9bdd7c6d76a65",
+    "moves_sha256": "56e99232102131ec4553b6074c6666eb536d7a80b4359dc046344dbbc7075562",
+    "next_piece": "C",
+    "next_piece_has_legal_move": true,
+    "reference_drop_cross_checks": 26346,
+    "replay_seconds": 590.0
+   }
+  }
+ ],
+ "digest_encoding": {
+  "moves_sha256": "SHA-256 of concatenated uint8 tuples (expanded piece index, rotation, x, y, w, landing z, cleared layers).",
+  "board_sha256": "SHA-256 of 4096 little-endian uint16 column masks in engine order."
+ },
+ "reproduce": [
+  ".venv/bin/python tools/build_native.py",
+  ".venv/bin/python tools/verify_trained_wells.py play --engine native --seed 63000001 --cap 10000000 --every 100000 --output runs/trained-wells-10m",
+  ".venv/bin/python tools/verify_trained_wells.py replay --seed 63000001 --output runs/trained-wells-10m"
+ ]
+}
