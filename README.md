@@ -268,3 +268,40 @@ placement. Reuse recorded games from Python with `tetris_game_library.iter_games
     python -B tetris_game_library.py verify --limit 100
     python -B tetris_game_library.py import runs/   # backfill legacy JSON recordings
 
+## Checking CROSS mobility between snapshots
+
+A positive result from `cross_survives_interval(start_board, end_board, cleared_layers)`
+in [tetris_cross_height.py](tetris_cross_height.py) certifies that a rigid CROSS
+could land on every board between two snapshots from the same game, including
+both endpoints. A negative result calls for replay. Supply packed column masks,
+the increase in cleared layers, and optionally the increase in `cells_placed`
+as `added_cells` for an independent mass check.
+
+With zero clears, placements only add cells, so the final column heights bound
+all earlier heights. With one clear at unknown height, the checker considers
+each level where the start board's surviving cells fit into the end board and
+enough cells were placed to fill the level. For each possible level it puts
+that full layer back into an upper bound on the final heights. A legal CROSS
+on each such board certifies the interval. The landing may differ by level.
+For multiple clears, supply the chronological sequence of nonzero 16-bit
+`clear_masks`, each in the coordinates immediately before that clear.
+Inverting these masks in reverse order gives upper heights for the whole
+interval. With only the count for multiple clears, the checker requests replay.
+
+Adding the number of clears to each final height is unsafe. A high cleared cell
+can expose a deep gap. A regression test uses a nearly full layer at level 14
+and a vertical I that fills its last cell. No CROSS fits at the initial snapshot,
+but many fit on the final board even after adding one to each height.
+
+The [archive audit](validation/cross-height-certificate.json) replays 49,285
+placements in eight registered historical training games. Direct rigid landing
+checks found 387 of 388 windows always had a landing. The certificate identified
+those 387, including all 15 one-clear windows, and sent the remaining window to
+replay. The simple final-height-plus-count bound underestimated an actual
+column height in all 15 one-clear windows. This sample had no multiple-clear
+window. The reproduction command takes the original game-library directory.
+
+```bash
+python tests/test_cross_height.py
+python tools/validate_cross_height.py --library /path/to/game-library
+```
