@@ -479,6 +479,7 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         result.update(runner_updates=self.progress['runner_updates'], checkpoint_sha256=base.file_hash(self.last))
         base.durable_json(self.root / f'afterstate-selection-{self.progress["runner_updates"]:08d}.json', result)
         self.emit('afterstate_selection_complete', score=result['score'], top_k=self.args.afterstate_top_k,
+                  preview_policy=result['preview_policy'],
                   runner_updates=self.progress['runner_updates'])
 
     def afterstate_policy_check(self):
@@ -504,13 +505,14 @@ class SurvivalTrainer(v3.SurvivalTrainer):
         runs = []
         for episode, reason in zip(episodes, reasons):
             base.library.finish(episode.state, reason)
-            runs.append({**episode.state.summary(), 'policy': 'afterstate', 'stop_reason': reason,
+            runs.append({**episode.state.summary(), 'policy': 'afterstate', 'preview_policy': 'public-bag-mean',
+                         'stop_reason': reason,
                          'evaluation_complete': reason in ('top_out', 'planner_blocked', 'piece_limit'),
                          'capped': reason == 'piece_limit', 'wall_seconds': seconds})
             self.emit('afterstate_selection_game', **runs[-1])
         complete = all(run['evaluation_complete'] for run in runs)
         return {'complete': complete, 'runs': runs, 'score': base.survival_score(runs) if complete else None,
-                'top_k': self.args.afterstate_top_k,
+                'top_k': self.args.afterstate_top_k, 'preview_policy': 'public-bag-mean',
                 'note': 'Report-only afterstate ranking with the current critic; best checkpoint selection unchanged.'}
 
     def configure_model(self, resuming):
