@@ -1,0 +1,182 @@
+{
+  "registration": {
+    "salt": "cross-height-envelope-audit-v1",
+    "sampling": "Eight seeds in ascending SHA256(salt|seed|integer); lowest SHA256(salt|record|id) per seed; historical expanded training files of at least 1024 placements. Exclude all seed IDs, entire reserved train/development roster, and live ranges in the prior selective-ranker registration.",
+    "prior_exclusions_sha256": "e1bc35e05c32341a2fbc1e4c682d5cd359dfe5799c9b85bc97e9a21295c4f931",
+    "registered_unix": 1795716668.4743762,
+    "window": 128,
+    "eligible_seeds": 43,
+    "roots": [
+      {
+        "seed": 300532,
+        "record_id": "f3a8cf313e0945a087f79406375ce6bca26a433afa4f7bf6b7ad6834008fbe90",
+        "file": "games/f3/f3a8cf313e0945a087f79406375ce6bca26a433afa4f7bf6b7ad6834008fbe90.npz",
+        "placements": 5944,
+        "file_sha256": "f5b64cc5fe74dbecb8af2ddcdf9ceb63c643bdf5396f390a34a37da04bdee4c9"
+      },
+      {
+        "seed": 300426,
+        "record_id": "76284e2d3555f2329353fd059d1cdf394c8bc08166f98050119399cea039da0a",
+        "file": "games/76/76284e2d3555f2329353fd059d1cdf394c8bc08166f98050119399cea039da0a.npz",
+        "placements": 6003,
+        "file_sha256": "37c01971d7b3f46bfcada3677406c59ac78d4baa6710b99d50b3f66d069da3f0"
+      },
+      {
+        "seed": 300030,
+        "record_id": "1a0e4844d41e26a3cd868910b38f5cf2a8e7e45086c57017439c6033492e4c51",
+        "file": "games/1a/1a0e4844d41e26a3cd868910b38f5cf2a8e7e45086c57017439c6033492e4c51.npz",
+        "placements": 6859,
+        "file_sha256": "9c74478633272db9ca605fc646b1757958b9f538097344de91b7f28f6e8ad616"
+      },
+      {
+        "seed": 300412,
+        "record_id": "5ac47ca95739198afb276b6c351a0fbf5e71ce7bd2dd799284fbb74f011038a4",
+        "file": "games/5a/5ac47ca95739198afb276b6c351a0fbf5e71ce7bd2dd799284fbb74f011038a4.npz",
+        "placements": 6159,
+        "file_sha256": "34d6a8f88ae30f9d3c173b0368c6d97b7865baa58ce3bf36af87c96196836a8d"
+      },
+      {
+        "seed": 300488,
+        "record_id": "504e724e2168026a9be0c687aef4ca9002d780af76629c68c6564299f5022827",
+        "file": "games/50/504e724e2168026a9be0c687aef4ca9002d780af76629c68c6564299f5022827.npz",
+        "placements": 5997,
+        "file_sha256": "8e936d74859af8b5743c0e5d814a93ebf3ecee381ca24d54219c3b86e2ed86f7"
+      },
+      {
+        "seed": 300414,
+        "record_id": "2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8",
+        "file": "games/2f/2faba9786e789fc940d5010ca6b4a8b5670d8f8aba113382aa9b8e84b47d8bb8.npz",
+        "placements": 5235,
+        "file_sha256": "ccaf00ed06fc8d3a6b2add8a59f99e54ffe767a384396b69cc47ab5bedba392e"
+      },
+      {
+        "seed": 300490,
+        "record_id": "7d5c685bd9df80a864dbb98ea6009c305513cffb3cfbe00b4abb7c9021a5a201",
+        "file": "games/7d/7d5c685bd9df80a864dbb98ea6009c305513cffb3cfbe00b4abb7c9021a5a201.npz",
+        "placements": 5481,
+        "file_sha256": "cab30af1edf0d45d4eeb56e0aa2c06dee7cca6d32745c01c575f87ac1bc021c4"
+      },
+      {
+        "seed": 300260,
+        "record_id": "d8a8b892c9fbe8d6217e5acd85366cb1dada83d7e157f863c270c747e8753eec",
+        "file": "games/d8/d8a8b892c9fbe8d6217e5acd85366cb1dada83d7e157f863c270c747e8753eec.npz",
+        "placements": 7607,
+        "file_sha256": "7d5dacd880ee7f87c1ba7359f27f2b24bd58f9cc5e765a9b9c75e09abdd7bc84"
+      }
+    ]
+  },
+  "registration_sha256": "a43d5ba02bca1a68d860fed4b4bfba4ed6180e3f632333b5eed62ba5dece953a",
+  "audit": {
+    "placements": 49285,
+    "counts": {
+      "windows_zero": 373,
+      "windows_always_fit": 387,
+      "certified_unknown_zero": 372,
+      "certified_known_masks": 387,
+      "windows_one": 15,
+      "certified_unknown_one": 15,
+      "windows_violating_height_plus_count": 15,
+      "windows_multiple": 0,
+      "unsafe_height_plus_count_skips": 0
+    },
+    "per_game": [
+      {
+        "seed": 300532,
+        "counts": {
+          "windows_zero": 45,
+          "windows_always_fit": 47,
+          "certified_unknown_zero": 45,
+          "certified_known_masks": 47,
+          "windows_one": 2,
+          "certified_unknown_one": 2,
+          "windows_violating_height_plus_count": 2
+        }
+      },
+      {
+        "seed": 300426,
+        "counts": {
+          "windows_zero": 45,
+          "windows_always_fit": 47,
+          "certified_unknown_zero": 45,
+          "certified_known_masks": 47,
+          "windows_one": 2,
+          "certified_unknown_one": 2,
+          "windows_violating_height_plus_count": 2
+        }
+      },
+      {
+        "seed": 300030,
+        "counts": {
+          "windows_zero": 52,
+          "windows_always_fit": 54,
+          "certified_unknown_zero": 52,
+          "certified_known_masks": 54,
+          "windows_one": 2,
+          "certified_unknown_one": 2,
+          "windows_violating_height_plus_count": 2
+        }
+      },
+      {
+        "seed": 300412,
+        "counts": {
+          "windows_zero": 47,
+          "windows_always_fit": 49,
+          "certified_unknown_zero": 47,
+          "certified_known_masks": 49,
+          "windows_one": 2,
+          "certified_unknown_one": 2,
+          "windows_violating_height_plus_count": 2
+        }
+      },
+      {
+        "seed": 300488,
+        "counts": {
+          "windows_zero": 45,
+          "windows_always_fit": 47,
+          "certified_unknown_zero": 45,
+          "certified_known_masks": 47,
+          "windows_one": 2,
+          "certified_unknown_one": 2,
+          "windows_violating_height_plus_count": 2
+        }
+      },
+      {
+        "seed": 300414,
+        "counts": {
+          "windows_zero": 40,
+          "windows_always_fit": 40,
+          "certified_unknown_zero": 39,
+          "certified_known_masks": 40,
+          "windows_one": 1,
+          "certified_unknown_one": 1,
+          "windows_violating_height_plus_count": 1
+        }
+      },
+      {
+        "seed": 300490,
+        "counts": {
+          "windows_zero": 42,
+          "windows_always_fit": 43,
+          "certified_unknown_zero": 42,
+          "certified_known_masks": 43,
+          "windows_one": 1,
+          "certified_unknown_one": 1,
+          "windows_violating_height_plus_count": 1
+        }
+      },
+      {
+        "seed": 300260,
+        "counts": {
+          "windows_zero": 57,
+          "windows_always_fit": 60,
+          "certified_unknown_zero": 57,
+          "certified_known_masks": 60,
+          "windows_one": 3,
+          "certified_unknown_one": 3,
+          "windows_violating_height_plus_count": 3
+        }
+      }
+    ],
+    "false_certificates": 0
+  }
+}

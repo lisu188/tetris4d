@@ -1,0 +1,825 @@
+{
+  "schema": "archived-greedy-two-drop-transfer-v1",
+  "research_question": "Does the frozen two-drop recovery transfer to ordinary trajectories on source streams excluded from recovery design, and does it improve on one proactive clear from that opportunity?",
+  "design": {
+    "predeclared_before_screening": true,
+    "archive_selection": "Every historical expanded selection-neural or evaluation-neural-greedy library index row with exactly greedy_neural behavior, selecting earliest recorded_utc then lexicographically smallest game ID per seed. Exclude seeds ever in library training, original 64 PR59 sources, prior exclusion manifest protected IDs, and ongoing fresh-eight streams. All stop reasons included. Library archive write/import timestamp determines chronology, not game duration. Historical evaluation/development exposure is distinct from staying disjoint from recovery design.",
+    "chronological_decisions": "All predecision states before actual recorded placements, including temporary CROSS extinctions. For each seed use the earliest physically verified non-clearing current drop + clearing visible drop restoring CROSS. Stop physical search after its first positive; continue eligibility counts for the entire recording.",
+    "controls": "Ordinary greedy 612000-plain, two forced witness poses then ordinary greedy, and the same proactive single-drop clear at each of two decisions then ordinary greedy. One-drop tests the shortlist in stable actor rank order, then asks the physical engine for a clearing outside placement. All three use the same stream, target state and isolated FP32 actor at batch 32, shortlist 128. Identical complete post-window evaluator states share continuation. Physical top-outs verified for all three controls at every selected root.",
+    "eligible_unique_recordings": 63,
+    "greedy_source_streams": 13,
+    "historical_roles": {
+      "selection-neural": 9,
+      "evaluation-neural-greedy": 4
+    },
+    "historical_outcome": "All selected records happened to end at physical top-out. Outcomes were not a selection criterion.",
+    "exposure": "All seeds were absent from the 64 original training games, all library training seed IDs and both eight-seed current danger curricula. Eight source streams were previously used to evaluate the incumbent; all three witness-positive seeds are in that historical selection cohort. These are tests of a recovery mechanism on independently recorded boards. They do not provide a fresh-game promotion score."
+  },
+  "coverage": {
+    "decisions": 123799,
+    "zero": 169,
+    "zero_visible_non_cross": 155,
+    "nonburied_maxslice": 37,
+    "static_positive": 28,
+    "solver_calls": 12,
+    "ordinary_piece_pairs": 225,
+    "zero_piece_pairs": 113,
+    "static_piece_pairs": 27,
+    "positive_source_streams": 3,
+    "positive_historical_selection": 3,
+    "positive_historical_evaluation": 0
+  },
+  "outcome": {
+    "remaining_placements_arm_order": [
+      "ordinary",
+      "pair",
+      "single"
+    ],
+    "all_physical": true,
+    "ordinary_sum": 2883,
+    "pair_sum": 2775,
+    "single_sum": 2775,
+    "pair_minus_ordinary_sum": -108,
+    "number_of_distinct_post_window_states": 4,
+    "positive_tied_negative_pair_vs_ordinary": [
+      0,
+      2,
+      1
+    ],
+    "pair_actions_equivalent_to_single_at_all_three": true
+  },
+  "per_source_stream": [
+    {
+      "seed": 910001,
+      "phase": "selection-neural",
+      "record_id": "86ef81edaadfbc22ae202893a090573099c61f161fd52f5dadeb7bce4138b769",
+      "archive_sha256": "5d680748429fbea71114e5568aab6548ea67465452083c95bb8e508b5eac7e0f",
+      "placements": 7344,
+      "zero_cross_boards": 10,
+      "static_positive": 0
+    },
+    {
+      "seed": 910003,
+      "phase": "selection-neural",
+      "record_id": "60d3ad45b6603d0e096b9aae5b8057c41bd6a8c46761375f50067b3f08fbb663",
+      "archive_sha256": "b5200e0dfb911551a81fb3eb05222e469be528aa230f9b1c0f85f327e18629bb",
+      "placements": 7228,
+      "zero_cross_boards": 19,
+      "static_positive": 0
+    },
+    {
+      "seed": 94001,
+      "phase": "evaluation-neural-greedy",
+      "record_id": "5a50537848334f82e1931755fe28ebeba8bc66fc408b05e770023f83f0bf7320",
+      "archive_sha256": "a286e1e3b789367ffaacdecad0a1080ccf12cf0ba7daf57591666ae0fb0f7346",
+      "placements": 6244,
+      "zero_cross_boards": 15,
+      "static_positive": 0
+    },
+    {
+      "seed": 94003,
+      "phase": "evaluation-neural-greedy",
+      "record_id": "bd75ec60244f1162d99c7e3c5f29d68f9b5ecd6def1bb98675597134c5e0dd56",
+      "archive_sha256": "f4947525e7e6a73d3124339d96bd46f2b5f376dcf0fafbc25a7b52616876305f",
+      "placements": 6960,
+      "zero_cross_boards": 7,
+      "static_positive": 0
+    },
+    {
+      "seed": 94005,
+      "phase": "evaluation-neural-greedy",
+      "record_id": "cbf2d94bcd4f805a975a602c87f8f74bf11a54346e72ab2b1629a103213ddc35",
+      "archive_sha256": "ca03cfe03a06f586d897866bd53f93ba39eb795737f7db457c734ec7930454db",
+      "placements": 9740,
+      "zero_cross_boards": 15,
+      "static_positive": 0
+    },
+    {
+      "seed": 94007,
+      "phase": "evaluation-neural-greedy",
+      "record_id": "14673639c552a22870a36470f1bf0013a1edbad62152da1ac4d459ed6aeee565",
+      "archive_sha256": "2fdf4edf7b2f4f885f3d5078813f119bfd2a7448150b051f4101ecceecdf9ed1",
+      "placements": 6221,
+      "zero_cross_boards": 11,
+      "static_positive": 0
+    },
+    {
+      "seed": 951001,
+      "phase": "selection-neural",
+      "record_id": "d5344a8d7e36fb4b2c9b3acfa38ad645ea2d6a4628322157fb973afa3f7dc183",
+      "archive_sha256": "4b6436e6259f9804ef9a4c847f9171a5359bba8c798d3ae7d4e9cbc11a8bf8b8",
+      "placements": 16641,
+      "zero_cross_boards": 14,
+      "static_positive": 0
+    },
+    {
+      "seed": 910011,
+      "phase": "selection-neural",
+      "record_id": "7141d2b4f8272723b869199524217a3f6610d5c5d4ee9d22029a6eb70a42bedb",
+      "archive_sha256": "4200a36af877123aee94baf71891130680644f5d52a6bdabbad2be5b1c1246a0",
+      "placements": 6505,
+      "zero_cross_boards": 11,
+      "static_positive": 0
+    },
+    {
+      "seed": 910005,
+      "phase": "selection-neural",
+      "record_id": "7e7929743d1ed652e912227bb6aeb3593680758cc78b975345cdeda54fc7b37a",
+      "archive_sha256": "4b405ce8bed89055746a59d2cc45984c6f2fc8c8c47b3a5096735ecde8137dba",
+      "placements": 7319,
+      "zero_cross_boards": 19,
+      "static_positive": 17,
+      "earliest_witness": {
+        "offset": 7304,
+        "board_sha256": "c38150ed27dcd904dbe37c4a1a793cf54ad6792ed5f11e30f8c1f1f6b15ee811",
+        "stream_sha256": "a2a06065ab9023a7a5c15c98a558ac6ec476aa2b655450a6f3eaa4579a4c80a8",
+        "current": "NOVA",
+        "visible": "BRIDGE",
+        "first_actor_rank": 1,
+        "reopened_origins": 221,
+        "ordinary_two_drop_one_drop_remaining": [
+          375,
+          375,
+          375
+        ]
+      }
+    },
+    {
+      "seed": 910009,
+      "phase": "selection-neural",
+      "record_id": "cfb766895de432bba4d6cbbb98e080c26a56a9131ec92b0e97170c54a4a54c70",
+      "archive_sha256": "927df76438425dd319b5854ed0ac6b0d130b53360f6cfd06b4c7bf584f725beb",
+      "placements": 8148,
+      "zero_cross_boards": 4,
+      "static_positive": 3
+    },
+    {
+      "seed": 910007,
+      "phase": "selection-neural",
+      "record_id": "7a946cdf361a1602f45925c2a43f9588a0dc1d15e6ea391423455495294a4bbf",
+      "archive_sha256": "eacf43eee5c62441d8433f27f65c6acbc1109f4443b30f90158a57086dd1e45d",
+      "placements": 13252,
+      "zero_cross_boards": 8,
+      "static_positive": 4,
+      "earliest_witness": {
+        "offset": 13249,
+        "board_sha256": "d3489785a6632fa80fd51e378680b0f8215c55d4108a428816c20a614d24ad66",
+        "stream_sha256": "5c98f2c598ccbd9ded7ef5a5cd1ec9282035f45d1964f568c9e86f63452d4f6e",
+        "current": "FORK",
+        "visible": "L",
+        "first_actor_rank": 1,
+        "reopened_origins": 2018,
+        "ordinary_two_drop_one_drop_remaining": [
+          1693,
+          1693,
+          1693
+        ]
+      }
+    },
+    {
+      "seed": 910015,
+      "phase": "selection-neural",
+      "record_id": "839d24d5af55bedb2ecc15a976fa09188d3481a8cfece3a6d0c7c8a68a7539dd",
+      "archive_sha256": "8b0ddbb06f982f8c62ab6df8b2ad1d2aab5d980de7695745165d49f0f0426a30",
+      "placements": 13561,
+      "zero_cross_boards": 21,
+      "static_positive": 4,
+      "earliest_witness": {
+        "offset": 12634,
+        "board_sha256": "a3bade659c03efa50dd50fe9daadf2cc49bc346a7b918b1af13aea258febbd3b",
+        "stream_sha256": "978211214a472abc134ee75d6e5a7c0ac4366520e38066dff837c772abb0f526",
+        "current": "B",
+        "visible": "BRIDGE",
+        "first_actor_rank": 1,
+        "reopened_origins": 1673,
+        "ordinary_two_drop_one_drop_remaining": [
+          815,
+          707,
+          707
+        ]
+      }
+    },
+    {
+      "seed": 910013,
+      "phase": "selection-neural",
+      "record_id": "ef8e6b78337cffd8788533bca53344238409887afecbc5948e56b42c3852686c",
+      "archive_sha256": "aec63ce311bfa3807bf61546dde364cbaf38a887f75c2c13c3a6f079153f5f5d",
+      "placements": 14636,
+      "zero_cross_boards": 15,
+      "static_positive": 0
+    }
+  ],
+  "posthoc": {
+    "scope": "Every action-changing root among four previously played training and three new historical cases. Both trajectories replayed to exact previously observed terminal board and stream. Board geometry records occupied cells, buried empty cells (holes), maximum height and sum of occupied column heights. Action poses are [rotation,x,y,w,z,layers]. A null alternative rank/logit means outside the shortlist. Relative move 1 is the first drop from the common root; action divergence is move 2.",
+    "preview_question": "After the ordinary move, enumerate every legal physical clear of its public successor that leaves at least one CROSS center. Separately, evaluate the unchanged actor with every next preview possible under the publicly observed unordered bag. The counterfactual actor sees a public state containing the new preview and has no stream/RNG object. Fractions describe compatible symbol counts, not separate observed games. The 300012 ordinary move already clears, so its successor calculation concerns an additional clear.",
+    "cases": [
+      {
+        "seed": 300012,
+        "cohort": "historical_training",
+        "root_offset": 12218,
+        "divergence_offset": 12219,
+        "current": "S",
+        "visible": "CROSS",
+        "pre": {
+          "cross_origins": 0,
+          "holes": 15040,
+          "max_height": 16,
+          "height_sum": 59672,
+          "occupied": 44632,
+          "top_height_columns": 425,
+          "highest_fill": 4095,
+          "board_sha256": "bc8883cb2ea831d071bc1375c12ccad0321236dd9310b36464c78faa4533d8ae"
+        },
+        "greedy": [
+          21,
+          8,
+          0,
+          12,
+          13,
+          1
+        ],
+        "greedy_rank": 1,
+        "greedy_logit": 92.97897338867188,
+        "alternative": [
+          2,
+          8,
+          0,
+          12,
+          13,
+          1
+        ],
+        "alternative_shortlist_rank": 5,
+        "alternative_logit": 92.85245513916016,
+        "single_mode": "shortlist_clear",
+        "single_shortlist_rank": 1,
+        "public_successor_after_ordinary": {
+          "successor": "CROSS",
+          "legal_restoring_clears": 0,
+          "compatible_previews": [
+            "C",
+            "STAIR",
+            "RING",
+            "HYPER"
+          ],
+          "greedy_selects_restoring_clear_for": [],
+          "each_preview_admitted_by_a_restoring_clear": false,
+          "applies_to_nonclearing_ordinary": false
+        },
+        "arms": {
+          "ordinary": {
+            "remaining_from_root": 617,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "7c62e2619d42c94ef1014cd75e9e79fed76762dd29f4b5d216349294b98a154e",
+            "verified_terminal_stream_sha256": "527c24a20b20aa78fb9bf2b756ac778d9ce0039f38817c51d8b1e1615a047158",
+            "clears_from_divergence": 1,
+            "CROSS_placements_from_divergence": 41,
+            "zero_afterstates_from_divergence": 17,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 1087,
+              "holes": 14636,
+              "max_height": 15,
+              "height_sum": 55176,
+              "occupied": 40540,
+              "top_height_columns": 0,
+              "highest_fill": 3978,
+              "board_sha256": "9fcd8d7da5905deb5ec3d1790e95960886e7892a06c83a88b09c81f2a81cebfa",
+              "placed": "S",
+              "layers_since_root": 1
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12220,
+                "current_placed": "S",
+                "pose": [
+                  21,
+                  8,
+                  0,
+                  12,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1087
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12220,
+                "current_placed": "S",
+                "pose": [
+                  21,
+                  8,
+                  0,
+                  12,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1087
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 3,
+                "absolute_after_offset": 12221,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  12,
+                  12,
+                  12,
+                  12,
+                  0
+                ],
+                "origins_before": 1087,
+                "origins_after": 1080
+              }
+            }
+          },
+          "pair": {
+            "remaining_from_root": 650,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "24b752d7c948f5fed15312cc49f034faaaf15bb4b48a75dcc751a78ab9652ae5",
+            "verified_terminal_stream_sha256": "e8e77e1a5326b70c135e6dd392bd5a5043f82c83c0f4ec092465456f92559323",
+            "clears_from_divergence": 1,
+            "CROSS_placements_from_divergence": 43,
+            "zero_afterstates_from_divergence": 14,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 1084,
+              "holes": 14636,
+              "max_height": 15,
+              "height_sum": 55176,
+              "occupied": 40540,
+              "top_height_columns": 0,
+              "highest_fill": 3978,
+              "board_sha256": "589b7edb9c932aab061b754645776271b6e925e1b262f3f3acc4ca19c7c7d451",
+              "placed": "S",
+              "layers_since_root": 1
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12220,
+                "current_placed": "S",
+                "pose": [
+                  2,
+                  8,
+                  0,
+                  12,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1084
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12220,
+                "current_placed": "S",
+                "pose": [
+                  2,
+                  8,
+                  0,
+                  12,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1084
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 3,
+                "absolute_after_offset": 12221,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  12,
+                  12,
+                  12,
+                  12,
+                  0
+                ],
+                "origins_before": 1084,
+                "origins_after": 1077
+              }
+            }
+          }
+        }
+      },
+      {
+        "seed": 300040,
+        "cohort": "historical_training",
+        "root_offset": 11480,
+        "divergence_offset": 11481,
+        "current": "HOOK",
+        "visible": "STAIR",
+        "pre": {
+          "cross_origins": 0,
+          "holes": 16198,
+          "max_height": 16,
+          "height_sum": 60506,
+          "occupied": 44308,
+          "top_height_columns": 494,
+          "highest_fill": 4095,
+          "board_sha256": "613003c565ccc60c9e8fc5a5d1a55369c8d1a39acf4cddc1ddfd6641a4a82364"
+        },
+        "greedy": [
+          17,
+          9,
+          6,
+          9,
+          13,
+          0
+        ],
+        "greedy_rank": 1,
+        "greedy_logit": -2.9275448322296143,
+        "alternative": [
+          43,
+          10,
+          2,
+          14,
+          12,
+          1
+        ],
+        "alternative_shortlist_rank": null,
+        "alternative_logit": null,
+        "single_mode": "outside_clear",
+        "single_shortlist_rank": null,
+        "public_successor_after_ordinary": {
+          "successor": "STAIR",
+          "legal_restoring_clears": 0,
+          "compatible_previews": [
+            "O",
+            "L",
+            "S",
+            "B",
+            "FORK",
+            "BRIDGE",
+            "HYPER"
+          ],
+          "greedy_selects_restoring_clear_for": [],
+          "each_preview_admitted_by_a_restoring_clear": false,
+          "applies_to_nonclearing_ordinary": true
+        },
+        "arms": {
+          "ordinary": {
+            "remaining_from_root": 538,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "e42ff5838937fab2f874e5880607c136c3fff2a87fe6953844051566f0c93c52",
+            "verified_terminal_stream_sha256": "d5cdd75ffa27163360383d3e48d418d5a518cef9fa1af08f063e9940ab86deee",
+            "clears_from_divergence": 1,
+            "CROSS_placements_from_divergence": 35,
+            "zero_afterstates_from_divergence": 9,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 0,
+              "holes": 16198,
+              "max_height": 16,
+              "height_sum": 60512,
+              "occupied": 44314,
+              "top_height_columns": 494,
+              "highest_fill": 4095,
+              "board_sha256": "f103ee66b08383ad3fddcced4483d0ad0afeb40cd0948e78d62a845d46a7eea7",
+              "placed": "HOOK",
+              "layers_since_root": 0
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 6,
+                "absolute_after_offset": 11486,
+                "current_placed": "S",
+                "pose": [
+                  8,
+                  10,
+                  3,
+                  15,
+                  12,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 538
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 6,
+                "absolute_after_offset": 11486,
+                "current_placed": "S",
+                "pose": [
+                  8,
+                  10,
+                  3,
+                  15,
+                  12,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 538
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 25,
+                "absolute_after_offset": 11505,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  3,
+                  11,
+                  11,
+                  13,
+                  0
+                ],
+                "origins_before": 485,
+                "origins_after": 481
+              }
+            }
+          },
+          "pair": {
+            "remaining_from_root": 1296,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "a3146ccd3a08799f6c31ad98b7ce35bf464851e38f51c9bdebc1939c271510fc",
+            "verified_terminal_stream_sha256": "af9c9fdd7657b2e61a75ad02bbf228af97c2cb34f5c28a537609a5ec5f1cecbe",
+            "clears_from_divergence": 2,
+            "CROSS_placements_from_divergence": 85,
+            "zero_afterstates_from_divergence": 13,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 544,
+              "holes": 16050,
+              "max_height": 15,
+              "height_sum": 56268,
+              "occupied": 40218,
+              "top_height_columns": 0,
+              "highest_fill": 3890,
+              "board_sha256": "e7e64cfbbbf2e7c84d661a9313c6ad64e6d3822a683a2b3d4e2a7ae1b1a33a84",
+              "placed": "HOOK",
+              "layers_since_root": 1
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 11482,
+                "current_placed": "HOOK",
+                "pose": [
+                  43,
+                  10,
+                  2,
+                  14,
+                  12,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 544
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 11482,
+                "current_placed": "HOOK",
+                "pose": [
+                  43,
+                  10,
+                  2,
+                  14,
+                  12,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 544
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 25,
+                "absolute_after_offset": 11505,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  3,
+                  11,
+                  11,
+                  13,
+                  0
+                ],
+                "origins_before": 487,
+                "origins_after": 484
+              }
+            }
+          }
+        }
+      },
+      {
+        "seed": 910015,
+        "cohort": "historical_nontraining",
+        "root_offset": 12634,
+        "divergence_offset": 12635,
+        "current": "BRIDGE",
+        "visible": "I",
+        "pre": {
+          "cross_origins": 0,
+          "holes": 20161,
+          "max_height": 16,
+          "height_sum": 59107,
+          "occupied": 38946,
+          "top_height_columns": 275,
+          "highest_fill": 4095,
+          "board_sha256": "a96526ed68334b66f3757a5a75a39edeeae9ad7a34561f9a4f72ba044081e80e"
+        },
+        "greedy": [
+          167,
+          4,
+          13,
+          0,
+          14,
+          0
+        ],
+        "greedy_rank": 1,
+        "greedy_logit": -3.606672525405884,
+        "alternative": [
+          6,
+          2,
+          6,
+          14,
+          13,
+          1
+        ],
+        "alternative_shortlist_rank": null,
+        "alternative_logit": null,
+        "single_mode": "outside_clear",
+        "single_shortlist_rank": null,
+        "public_successor_after_ordinary": {
+          "successor": "I",
+          "legal_restoring_clears": 0,
+          "compatible_previews": [
+            "O",
+            "L",
+            "S",
+            "C",
+            "NOVA",
+            "STAIR",
+            "HOOK",
+            "HYPER"
+          ],
+          "greedy_selects_restoring_clear_for": [],
+          "each_preview_admitted_by_a_restoring_clear": false,
+          "applies_to_nonclearing_ordinary": true
+        },
+        "arms": {
+          "ordinary": {
+            "remaining_from_root": 815,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "414a37538c8af2a449b25c1fb4645fab6d3698286c47ca95c6ef265c0b6f5506",
+            "verified_terminal_stream_sha256": "da80a403ec32353481bd59750ff91f2cf04f1deebe830df3d293ad077253fb15",
+            "clears_from_divergence": 1,
+            "CROSS_placements_from_divergence": 53,
+            "zero_afterstates_from_divergence": 12,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 0,
+              "holes": 20161,
+              "max_height": 16,
+              "height_sum": 59115,
+              "occupied": 38954,
+              "top_height_columns": 279,
+              "highest_fill": 4095,
+              "board_sha256": "2528a6236b83a839d13e10a06b40e951a5fa18f831502394c27d5192913390eb",
+              "placed": "BRIDGE",
+              "layers_since_root": 0
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 4,
+                "absolute_after_offset": 12638,
+                "current_placed": "STAIR",
+                "pose": [
+                  14,
+                  4,
+                  7,
+                  14,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1679
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 4,
+                "absolute_after_offset": 12638,
+                "current_placed": "STAIR",
+                "pose": [
+                  14,
+                  4,
+                  7,
+                  14,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1679
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 18,
+                "absolute_after_offset": 12652,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  8,
+                  0,
+                  8,
+                  12,
+                  0
+                ],
+                "origins_before": 1644,
+                "origins_after": 1638
+              }
+            }
+          },
+          "pair": {
+            "remaining_from_root": 707,
+            "terminal_piece": "CROSS",
+            "verified_terminal_board_sha256": "5205a7ff702f920e11c25779777a1b2299d14cb27e3b76f5c3834b9de42bd9cd",
+            "verified_terminal_stream_sha256": "bc93740a4a5ce1f228f7a265399c181c656d208ad2dacd7b6e5926f49faef203",
+            "clears_from_divergence": 1,
+            "CROSS_placements_from_divergence": 46,
+            "zero_afterstates_from_divergence": 15,
+            "reopenings_from_divergence": 1,
+            "immediate_afterboard": {
+              "cross_origins": 1673,
+              "holes": 19378,
+              "max_height": 15,
+              "height_sum": 54236,
+              "occupied": 34858,
+              "top_height_columns": 0,
+              "highest_fill": 4024,
+              "board_sha256": "35e8242d585e86006a9524c15549b76fd8230a3c2274222164d1360f72f8e0aa",
+              "placed": "BRIDGE",
+              "layers_since_root": 1
+            },
+            "first_verified_events": {
+              "first_clear_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12636,
+                "current_placed": "BRIDGE",
+                "pose": [
+                  6,
+                  2,
+                  6,
+                  14,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1673
+              },
+              "first_reopening_at_or_after_divergence": {
+                "relative_move_from_root": 2,
+                "absolute_after_offset": 12636,
+                "current_placed": "BRIDGE",
+                "pose": [
+                  6,
+                  2,
+                  6,
+                  14,
+                  13,
+                  1
+                ],
+                "origins_before": 0,
+                "origins_after": 1673
+              },
+              "first_cross_placed_at_or_after_divergence": {
+                "relative_move_from_root": 18,
+                "absolute_after_offset": 12652,
+                "current_placed": "CROSS",
+                "pose": [
+                  0,
+                  5,
+                  5,
+                  10,
+                  13,
+                  0
+                ],
+                "origins_before": 1654,
+                "origins_after": 1644
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Seven selected intervention roots across two studies, including only one action-changing independent root. These local interventions do not measure survival averaged over fresh games.",
+    "Positive center counts, a clear, or a higher local mobility count do not identify the full causal path to later top-out. A matched frozen continuation identifies the net effect of the changed action on that one stream.",
+    "The original archive was generated by older greedy policies. All paired continuations use the fixed CPU actor. CPU and GPU policies can separate on near-tied scores."
+  ],
+  "provenance": {
+    "index_sha256": "c24d7865c60c890d5672d927cc7691d9d69f5754b5ac14b4c4e392a8d55730a0",
+    "historical_plan_sha256": "c387c2f993b78b0aa5678005e7a6621b761d03ba8f6bc0e9bbd7e100f025ccdc",
+    "scanner_sha256": "42d0149e087a2924589d07ac069a1bb9ccdb5e7c38abc6a951dc9010601e7120",
+    "screen_sha256": "6ca054a7bf5f75157d980a3d89ea1dbb145cf1338d4bc70293e9e39ec0cf1e37",
+    "continuation_method_sha256": "2da56719dee144c16f538b54509844c9b8bc0b60d5c7c662aeb21b902a73a20e",
+    "natural_endpoints_sha256": "9d614616537ea6d382c93224b054fc69cf368992a5e4656a132fabae3985edef",
+    "posthoc_method_sha256": "388968109b246b540cbbf1f86b7cc6e3a04f7e10ab0ffbe2d36537f0bd6eae0c",
+    "posthoc_results_sha256": "fbe150eae9eef2b9629c50bef1207823201f5a2ef2e785420bfd10db1f421a60",
+    "prior_training_endpoints_sha256": "e9edf5330fed084270f53426c37f3e76046e01d7aca4bc3333da73c96b90265c",
+    "prior_one_drop_selection_method_sha256": "a0662be0959528b0603f35e90f9053b7a9ff3fdad77aa524bf5ee87b98f18789",
+    "physical_solver_sha256": "d14a3405f4a40eafc8e95c53f6401fd2145400b032166d1a19c2626f5c08736e",
+    "actor_tensor_sha256": "51dee439fe46013a71dd4216abffda2c80f6353fab4a3826690760c7f7c547ed",
+    "checkpoint_sha256": "d7d93a168575a136e6b9ba20fa5c2dd6a85dd15c28cadda54bd7e3978a39565f",
+    "native_sha256": "848c0b7577c474c62b1ac40372ad637b33134434142481ee85b7c721b9a3bd56"
+  }
+}

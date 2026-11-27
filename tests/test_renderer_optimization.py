@@ -74,6 +74,11 @@ class RendererTests(unittest.TestCase):
                 for method, fn in old_methods.items():
                     if method not in ('render_metrics', '__init__', 'refresh_plan', 'place', '_draw_now'):
                         candidate = copy.deepcopy(new_methods[method])
+                        if method == 'change_policy':
+                            expected = ast.parse(
+                                'if self.automatic_budget:\n    self.candidates = default_candidate_budget(self.policy.get())'
+                            ).body[0]
+                            self.assertEqual(ast.dump(candidate.body.pop(0)), ast.dump(expected))
                         if method == '_advance_search':
                             expected = ast.parse("if self.decision is not None and self.decision.policy == 'neural' and self.decision.target is not None:\n    self.target.set(str(self.decision.target))").body[0]
                             removed = []
@@ -89,30 +94,46 @@ class RendererTests(unittest.TestCase):
             else:
                 candidate = copy.deepcopy(new[name])
                 if name == '_load_native':
-                    # PPO adds this exact native binding; retain the original
-                    # invariant for every pre-existing engine/native statement.
-                    expected = ast.parse("{'t4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]}").body[0].value
+                    # Check the added signatures and compare the other bindings with the baseline.
+                    signatures = {
+                        't4_cross_wells': '[pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer]',
+                        't4_cross_wells_weighted': '[pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer, pointer]',
+                        't4_sustained_metrics': '[pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]',
+                    }
+                    # PPO also registers this optional binding when the library exports it.
                     optional = ast.parse("if hasattr(library, 't4_board_features'):\n    signatures['t4_board_features'] = [pointer] * 5").body[0]
+                    optional_found = []
                     bindings = []
                     class StripNativeMetrics(ast.NodeTransformer):
                         def visit_If(self, node):
                             if ast.dump(node) == ast.dump(optional):
-                                bindings.append(node)
+                                optional_found.append(node)
                                 return None
                             return self.generic_visit(node)
 
                         def visit_Dict(self, node):
                             retained = []
                             for key, value in zip(node.keys, node.values):
-                                if isinstance(key, ast.Constant) and key.value == 't4_sustained_metrics':
-                                    bindings.append(ast.Dict(keys=[key], values=[value]))
+                                if isinstance(key, ast.Constant) and key.value in signatures:
+                                    bindings.append((key.value, ast.unparse(value)))
                                 else:
                                     retained.append((key, value))
                             node.keys = [key for key, _ in retained]
                             node.values = [value for _, value in retained]
                             return self.generic_visit(node)
                     candidate = StripNativeMetrics().visit(candidate)
-                    self.assertEqual([ast.dump(binding) for binding in bindings], [ast.dump(expected), ast.dump(optional)])
+                    self.assertCountEqual(bindings, signatures.items())
+                    self.assertEqual(len(optional_found), 1)
+                if name == 'launch_demo':
+                    # Derive the optional GUI budget while keeping rendering and event-loop setup identical.
+                    declaration = ast.parse(
+                        'budget = None if args.automatic_budget and NEURAL_AGENT is None else args.candidates'
+                    ).body[0]
+                    setup = next(i for i, stmt in enumerate(candidate.body) if ast.dump(stmt) == ast.dump(declaration))
+                    candidate.body.pop(setup)
+                    app_call = candidate.body[setup].value
+                    self.assertEqual((app_call.func.id, ast.unparse(app_call.args[4])), ('TetrisApp', 'budget'))
+                    app_call.args[4] = ast.parse('args.candidates', mode='eval').body
                 if name == 'pooled_histograms':
                     # Exact C-speed validation of the 4096 heights (issue #35).
                     original = 'any((not isinstance(h, int) or not 0 <= h <= HEIGHT for h in heights))'

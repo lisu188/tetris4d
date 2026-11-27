@@ -42,6 +42,8 @@ jobs:
         run: |
           python tests/test_network_structure.py --backend python
           python tests/test_network_structure.py --backend numpy
+      - name: Test public bag reconstruction and paired survival metrics
+        run: python -m unittest discover -s tests -p test_cross_closure_suffixes.py
       - name: Test automatic fallback without site packages
         run: python -S sparse_tetris_4d_optimized.py --test --backend auto --baseline
       - name: Test no-argument launch defaults
