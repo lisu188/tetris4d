@@ -168,6 +168,36 @@ activations. Human mode enables manual placement.
 See [view controls](docs/eight-views.md), [playback speed](docs/playback-speed.md)
 and [logging](docs/benchmark-logging.md).
 
+## Check two-drop CROSS recovery
+
+Given a saved board on which CROSS cannot land, this CPU tool searches for a
+non-clearing drop of the current piece followed by a drop of the visible piece
+that clears a layer and reopens a CROSS landing. It requires only the standard
+library and the snapshot's `board`, `current` and `next_piece` fields. It accepts
+evaluator JSON and gzipped snapshots, including `data` and `snapshot` wrappers.
+
+```bash
+python tools/find_two_drop_cross.py tests/fixtures/two-drop-cross.json --prefer 8 4 14 4
+```
+
+The example reproduces the archived RING and HOOK drops on seed 300040.
+Omit `--prefer` for deterministic geometric order, or repeat it to try first
+poses in policy order. Output includes each drop's coordinates, cleared layers
+and afterboard hash. An empty `moves` array means no pair meets the predicate.
+
+Of 49 candidate boards from 64 historical training games, 24 had a verified
+two-drop recovery. On four selected roots played to physical top-out, the
+witness gained 791 placements in total over greedy. A one-drop clear rule
+reproduced 758 of that gain. [Validation and per-game results](validation/two-drop-cross.json)
+
+On 13 separate historical greedy streams, three contained a two-drop recovery
+across 123,799 recorded decisions. From the earliest recovery in each game,
+the frozen actor survived another 375, 1,693 and 815 placements. Forcing the
+two-drop recovery gave 375, 1,693 and 707. The one-drop rule chose the same
+two moves in all three games. On the third board the actor restored CROSS two
+moves later, and both lines placed their next CROSS on move 18. All three
+opportunities came from historical selection games. [Transfer results and matched trajectories](validation/two-drop-greedy-transfer.json)
+
 ## Compare frozen models
 
 Always supply checkpoint paths explicitly. This example evaluates the incumbent
