@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import math
-import json
 from pathlib import Path
 import sys
 

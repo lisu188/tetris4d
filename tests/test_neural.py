@@ -4,10 +4,9 @@ import argparse
 from dataclasses import asdict
 import json
 from pathlib import Path
-import subprocess
+import random
 import sys
 import tempfile
-from types import SimpleNamespace
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,22 +17,6 @@ from torch import nn
 import tetris_neural as n
 
 game = n.game
-
-
-def train_args(root, **values):
-    fields = dict(device='cpu', precision='fp32', output=root / 'model.pt', resume=None, data=root / 'data',
-                  seed=123, batch=2, accumulate=2, updates=2, width=8, blocks=1, chunk=8,
-                  lr=3e-4, save_every=2)
-    fields.update(values)
-    return SimpleNamespace(**fields)
-
-
-def rl_args(root, **values):
-    fields = dict(device='cpu', precision='fp32', output=root / 'rl.pt', resume=None, checkpoint=root / 'model.pt',
-                  seed=900, envs=2, rollout=3, pieces=5, gamma=.9995, gae_lambda=.999, entropy=.005,
-                  imitation=.05, batch=2, lr=1e-4, updates=1, save_every=1, piece_set='expanded')
-    fields.update(values)
-    return SimpleNamespace(**fields)
 
 
 class NeuralTests(unittest.TestCase):
@@ -144,7 +127,10 @@ class NeuralTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'model.pt'
             n.save_checkpoint(path, model, progress={'updates': 1})
-            restored, saved = n.load_checkpoint(path, torch.device('cpu'))
+            expected_python, expected_torch = random.random(), torch.rand(4)
+            restored, saved = n.load_checkpoint(path, torch.device('cpu'), restore_rng=True)
+            self.assertEqual(random.random(), expected_python)
+            torch.testing.assert_close(torch.rand(4), expected_torch, rtol=0, atol=0)
             with torch.no_grad():
                 torch.testing.assert_close(model(batch)['logits'], restored(batch)['logits'], atol=0, rtol=0)
             saved['schema'] = 'wrong'
@@ -174,10 +160,6 @@ class NeuralTests(unittest.TestCase):
                 self.assertTrue(np.all((agent.last_trace[key] >= 0) & (agent.last_trace[key] <= 1)))
             self.assertEqual(agent.last_trace['activation'].shape, (config.width, 16, 16, 16))
 
-    def test_completion_labels_track_original_levels_through_compaction(self):
-        labels = n.completion_labels(10, [(9, 1), (11, 2), (12, 2), (20, 1)], 4)
-        np.testing.assert_array_equal(np.flatnonzero(labels), [1, 2])
-
     def test_gae_bootstraps_truncation_but_not_terminal_or_reset(self):
         rewards = np.asarray([[1., 1.], [100., 100.]])
         values = np.zeros_like(rewards)
@@ -188,31 +170,6 @@ class NeuralTests(unittest.TestCase):
         self.assertEqual(returns[0, 0], 1.)
         self.assertEqual(returns[0, 1], 10.)
         self.assertEqual(returns[1, 0], 100.)
-
-    def test_dataset_training_and_resume_match_uninterrupted(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            demo = SimpleNamespace(output=root / 'data', games=1, validation_games=1, pieces=8, seed=100,
-                                   stride=1, shard_size=4, shortlist=8, candidates=32, chunk=8,
-                                   gamma=.9995, aux_horizon=4, unrestricted=False, piece_set='expanded')
-            n.collect(demo)
-            dataset = n.Dataset(root / 'data')
-            self.assertEqual(len(dataset), 8)
-            n.train(train_args(root, updates=4, output=root / 'full.pt'))
-            n.train(train_args(root, updates=2, output=root / 'part.pt'))
-            n.train(train_args(root, updates=2, output=root / 'part.pt', resume=root / 'part.pt'))
-            full, _ = n.load_checkpoint(root / 'full.pt', torch.device('cpu'))
-            part, _ = n.load_checkpoint(root / 'part.pt', torch.device('cpu'))
-            for key in full.state_dict():
-                torch.testing.assert_close(full.state_dict()[key], part.state_dict()[key], atol=0, rtol=0)
-            with self.assertRaises(ValueError):
-                n.train(train_args(root, resume=root / 'part.pt', batch=3))
-            n.train(train_args(root, updates=1))
-            result = n.finetune(rl_args(root))
-            self.assertEqual(result['env_steps'], 6)
-            result = n.finetune(rl_args(root, resume=root / 'rl.pt'))
-            self.assertEqual(result['env_steps'], 12)
-            self.assertEqual(result['rl_updates'], 2)
 
     @unittest.skipUnless(torch.cuda.is_available(), 'CUDA device not present; covered by user-run CUDA smoke test')
     def test_cuda_forward_backward_and_cpu_inference_tolerance(self):

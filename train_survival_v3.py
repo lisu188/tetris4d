@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import asdict
 import hashlib
-import json
 from pathlib import Path
 import sys
 import time
