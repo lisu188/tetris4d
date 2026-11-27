@@ -34,6 +34,8 @@ jobs:
       - run: python -B tests/test_survival_v4_gpu.py
       - run: python -B tests/test_exhaustive_screening.py
       - run: python -B tests/test_v4_improvements.py
+      - run: python -B -m unittest discover -s tests -p test_spatial_curriculum.py
+      - run: python -B -m unittest discover -s tests -p test_spatial_ppo_benchmark.py
       - run: python -B tests/test_survival_v5.py
       - run: python -B tests/test_afterstate_td_model.py
       - run: python -B tests/test_evaluate_afterstate_td.py
@@ -41,6 +43,7 @@ jobs:
       - run: python -B tests/test_survival_v3_migration.py
       - run: python tests/test_survival_longevity.py
       - run: python tests/test_rollout_cache.py
+      - run: python -B -m unittest discover -s tests -p test_fixed_rollout.py
       - run: python -B -m unittest discover -s tests -p 'test_gpu*.py'
       - run: python tests/test_neuron_analysis.py
       - run: python -B -m unittest discover -s tests -p test_training_dashboard.py

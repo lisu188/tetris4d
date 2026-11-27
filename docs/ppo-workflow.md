@@ -46,6 +46,74 @@ keeps `last.pt`, `previous.pt`, selected `best.pt`, a manifest, metrics and a
 summary. `best.pt` ranks complete development games and can still be the imported
 policy at update zero.
 
+## RTX 4060 Ti throughput and matched curriculum experiments
+
+For exhaustive Spatial V4 FP32 training, `--group-exhaustive` batches pieces by their
+enumerated candidate count and restores environment order. `--compact-rollout` stores
+fixed board and local column descriptors during collection for reuse by PPO.
+`--actor-only-kl` evaluates policy logits during KL checks. Each option can be
+benchmarked independently. CUDA FP32 exhaustive training enables these three options
+by default. To compare individual paths, use `--no-group-exhaustive`,
+`--no-compact-rollout`, or `--no-actor-only-kl`. The compact buffer observes `--rollout-cache-mib` and the
+available CUDA memory limit. Update telemetry records its actual storage path.
+
+A complete benchmark needs the incumbent and two built checkouts, the reference and the
+candidate. It uses a single CUDA device, five alternating groups, 32 environments,
+256 steps and two PPO epochs. Each worker checks action, board, gradient, model,
+optimizer, KL and random-stream fingerprints. Use a fresh output directory.
+
+```bash
+.venv/bin/python tools/benchmark_spatial_ppo.py \
+  --reference /path/to/built/reference --incumbent /path/to/incumbent.pt \
+  --output runs/spatial-ppo-benchmark
+```
+
+For a paired run that exercises the memory guard, add `--workload boundaries`
+and use a new output directory. At a 744 MiB cache limit, the combined worker
+must retain raw records while CUDA preparation stays active. Two measured
+environments start on fixed boards. One must clear four layers on its first
+move and the other must recover its target from layer 12 to layer 15. Both
+moves and their resulting board hashes are checked against the reference.
+
+Use `--distinct-danger-seeds` to draw the requested number of start positions from
+training recordings with distinct source seeds. `--danger-per-game` controls how many
+positions each chosen game supplies. Selection seeds are excluded. With
+`--defer-selection`, training writes recovery checkpoints and leaves development and
+holdout games to a separate evaluator. Sampled selection records critic predictions
+every 128 placements to the game boundary and reports errors by remaining game length.
+
+On an RTX 4060 Ti, the median paired speedup was **1.70×** over five seeds.
+Median throughput rose from 230 to 388 placements per second. The reference
+reserved 4,198 MiB of GPU memory. The combined path reserved 2,248–2,616 MiB.
+These runs measured opening positions through placement 260. All selected
+actions, final boards, gradients, model parameters, Adam state, RNG and KL
+decisions matched. The five paired runs at the 744 MiB cache limit also matched
+and gave a median speedup of **1.55×**. Each recorded five cleared layers and
+one target recovery. Per-option timings and memory measurements are in the
+[full-rollout validation](../validation/spatial-ppo-throughput.json).
+
+The matched curriculum runner reserves one GPU and compares 160 updates per arm
+(1,310,720 placements each). Its control uses four starts from each of eight training
+seeds. The second arm uses one start from each of 32 training seeds. Both use a
+25% danger-start probability and the same incumbent, training seed and PPO settings.
+It chooses one trained endpoint on eight development games before opening the
+72-seed paired greedy holdout. The frozen protocol identifies its exact incumbent
+by SHA-256. Training, development, and holdout GPU reservation hours are reported
+separately. Rerunning the command resumes from completed updates and cached games.
+
+In the completed comparison, the eight-source-seed control won development
+selection. On 72 fresh paired games it averaged 37,117 placements against the
+incumbent's 39,719. The paired mean difference was −2,602 placements (95%
+bootstrap interval −4,537 to −699), so the incumbent remains the recommended
+checkpoint. Both arms used the same single training seed. The
+[curriculum results](../validation/spatial-ppo-curriculum.json) list placements
+for every holdout seed and include checkpoint hashes and GPU hours.
+
+```bash
+.venv/bin/python -B -u tools/run_spatial_curriculum.py \
+  --incumbent /path/to/incumbent.pt --output runs/spatial-curriculum
+```
+
 ## Interrupt and resume
 
 Run under your normal persistent terminal/session manager for long training. A
@@ -56,8 +124,9 @@ checks algorithm and source signatures and rejects an incompatible resume.
 Each invocation grants its specified `--hours` anew. Record the original UTC
 deadline before starting; after interruption, resume with the remaining hours.
 For example, after two hours of an eight-hour allocation, use `--hours 6` with
-the same other arguments. Exact resume restores the saved actor, critic,
-optimizer, environment streams and calibration state from the latest save. A settings change starts a new experiment in a new directory.
+the same other arguments. Exact resume restores the saved actor, critic, optimizer, environment streams, calibration
+state and danger-start generator. It replays the original danger positions by their
+frozen game IDs and offsets, including when new games have entered the library. A settings change starts a new experiment in a new directory.
 
 Diagnostics include actor/critic gradient norms, actor hashes, candidate-score
 variation, sigmoid saturation and teacher-objective deviations. These distinguish

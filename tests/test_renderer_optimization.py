@@ -63,7 +63,10 @@ class RendererTests(unittest.TestCase):
             return {node.name: node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.ClassDef))}
         old, new = named(before), named(after)
         for name, node in old.items():
-            if name in ('WellView', 'AllWellView', 'SliceAtlas', 'main', 'run_game'):
+            # The fused native board evaluator is checked against this same historical
+            # baseline by value below. The renderer still consumes the original features.
+            if name in ('WellView', 'AllWellView', 'SliceAtlas', 'main', 'run_game',
+                        'evaluate_board', '_native_features', 'sigmoid_roughness'):
                 continue
             if name == 'TetrisApp':
                 old_methods = {n.name: n for n in node.body if isinstance(n, ast.FunctionDef)}
@@ -97,8 +100,17 @@ class RendererTests(unittest.TestCase):
                         't4_cross_wells_weighted': '[pointer, pointer, integer, integer, ctypes.c_uint32, integer, pointer, pointer]',
                         't4_sustained_metrics': '[pointer, pointer, integer, pointer, pointer, integer, integer, pointer, pointer, pointer]',
                     }
+                    # PPO also registers this optional binding when the library exports it.
+                    optional = ast.parse("if hasattr(library, 't4_board_features'):\n    signatures['t4_board_features'] = [pointer] * 5").body[0]
+                    optional_found = []
                     bindings = []
                     class StripNativeMetrics(ast.NodeTransformer):
+                        def visit_If(self, node):
+                            if ast.dump(node) == ast.dump(optional):
+                                optional_found.append(node)
+                                return None
+                            return self.generic_visit(node)
+
                         def visit_Dict(self, node):
                             retained = []
                             for key, value in zip(node.keys, node.values):
@@ -111,6 +123,7 @@ class RendererTests(unittest.TestCase):
                             return self.generic_visit(node)
                     candidate = StripNativeMetrics().visit(candidate)
                     self.assertCountEqual(bindings, signatures.items())
+                    self.assertEqual(len(optional_found), 1)
                 if name == 'launch_demo':
                     # Derive the optional GUI budget while keeping rendering and event-loop setup identical.
                     declaration = ast.parse(
@@ -133,19 +146,6 @@ class RendererTests(unittest.TestCase):
                             return super().generic_visit(node)
                     candidate = RestoreValidation().visit(candidate)
                     self.assertEqual(len(swapped), 1)
-                if name == 'evaluate_board':
-                    # Two exact speedups: C-speed column validation and ndarray.tolist().
-                    rewrites = {'not _valid_columns(board)': 'any((not isinstance(v, int) or v < 0 or v >= 1 << HEIGHT for v in board))',
-                                'tuple(native[1].tolist())': 'tuple(map(int, native[1]))'}
-                    replaced = []
-                    class RestoreOriginal(ast.NodeTransformer):
-                        def generic_visit(self, node):
-                            if isinstance(node, ast.expr) and ast.unparse(node) in rewrites:
-                                replaced.append(ast.unparse(node))
-                                return ast.parse(rewrites[ast.unparse(node)], mode='eval').body
-                            return super().generic_visit(node)
-                    candidate = RestoreOriginal().visit(candidate)
-                    self.assertEqual(sorted(replaced), sorted(rewrites))
                 if name == 'Game':
                     # The game library adds optional recording hooks only: a finalizer,
                     # `recording = ...` lookups and `if recording is not None:` calls.
@@ -173,6 +173,18 @@ class RendererTests(unittest.TestCase):
                 self.assertEqual(ast.dump(node), ast.dump(candidate), name)
         self.assertEqual(game.PIECE_CELLS, baseline.PIECE_CELLS)
         self.assertEqual(game.ROUGHNESS_TABLE, baseline.ROUGHNESS_TABLE)
+
+    def test_board_evaluation_matches_renderer_baseline(self):
+        backend = game.BACKEND
+        self.addCleanup(game.configure_backend, backend)
+        game.configure_backend('auto')
+        baseline.configure_backend('python')
+        rng = random.Random(561)
+        for board in (game.EMPTY_BOARD, (65535,) * game.AREA,
+                      tuple(rng.getrandbits(rng.randrange(17)) for _ in range(game.AREA))):
+            expected, actual = baseline.evaluate_board(board), game.evaluate_board(board)
+            for field in ('board', 'heights', 'height_sum', 'holes', 'roughness', 'fill_counts', 'score', 'near_clear'):
+                self.assertEqual(getattr(expected, field), getattr(actual, field), field)
 
     def test_face_geometry_matches_reference_exactly(self):
         old, new = baseline.WellView(self.canvases[0]), game.WellView(self.canvases[1])

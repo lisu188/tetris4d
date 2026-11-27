@@ -1,0 +1,367 @@
+{
+  "schema": "spatial-ppo-throughput-v1",
+  "reference_revision": "d4941db8275284e47b310ba933a02cf9145d39bd",
+  "incumbent_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "workload": {
+    "envs": 32,
+    "steps": 256,
+    "placements": 8192,
+    "epochs": 2,
+    "precision": "fp32",
+    "optimizer_batch": 256,
+    "per_pair_seeds": [
+      418000,
+      418100,
+      418200,
+      418300,
+      418400
+    ],
+    "initialization": "Fresh games. Four unmeasured environment steps and one short optimizer update before timing.",
+    "order": "Alternating forward and reversed variant order. Each worker starts a separate process."
+  },
+  "passing_parity": [
+    "all selected actions",
+    "32 final board hashes",
+    "all model tensors",
+    "parameter gradients",
+    "Adam state",
+    "CPU and CUDA RNG",
+    "final exact KL",
+    "KL early stop and optimizer step count"
+  ],
+  "variants": {
+    "reference": {
+      "wall_seconds": [
+        36.274,
+        36.594,
+        35.123,
+        35.52,
+        35.594
+      ],
+      "median_placements_per_second": 230.15,
+      "median_paired_speedup_vs_reference": 1.0,
+      "median_paired_speedup_vs_native": 0.9362,
+      "median_phase_seconds": {
+        "prepare_seconds": 17.815,
+        "inference_transfer_seconds": 1.298,
+        "commit_seconds": 4.715,
+        "bootstrap_seconds": 0.029,
+        "update": 11.552
+      },
+      "peak_reserved_mib": [
+        4198,
+        4198,
+        4198,
+        4198,
+        4198
+      ],
+      "cache_paths": [
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound"
+      ]
+    },
+    "native": {
+      "wall_seconds": [
+        33.958,
+        34.176,
+        33.111,
+        33.381,
+        32.54
+      ],
+      "median_placements_per_second": 245.41,
+      "median_paired_speedup_vs_reference": 1.0682,
+      "median_paired_speedup_vs_native": 1.0,
+      "median_phase_seconds": {
+        "prepare_seconds": 17.557,
+        "inference_transfer_seconds": 1.324,
+        "commit_seconds": 2.51,
+        "bootstrap_seconds": 0.02,
+        "update": 11.556
+      },
+      "peak_reserved_mib": [
+        4198,
+        4198,
+        4198,
+        4198,
+        4198
+      ],
+      "cache_paths": [
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound"
+      ]
+    },
+    "grouped": {
+      "wall_seconds": [
+        29.758,
+        25.039,
+        25.02,
+        24.932,
+        23.789
+      ],
+      "median_placements_per_second": 327.42,
+      "median_paired_speedup_vs_reference": 1.4246,
+      "median_paired_speedup_vs_native": 1.3389,
+      "median_phase_seconds": {
+        "prepare_seconds": 10.24,
+        "inference_transfer_seconds": 1.379,
+        "commit_seconds": 2.576,
+        "bootstrap_seconds": 0.019,
+        "update": 10.553
+      },
+      "peak_reserved_mib": [
+        2632,
+        2540,
+        2610,
+        2716,
+        2924
+      ],
+      "cache_paths": [
+        "raw_cache",
+        "raw_cache",
+        "raw_cache",
+        "raw_cache",
+        "raw_cache"
+      ]
+    },
+    "actor_kl": {
+      "wall_seconds": [
+        32.42,
+        33.232,
+        31.784,
+        31.512,
+        33.463
+      ],
+      "median_placements_per_second": 252.69,
+      "median_paired_speedup_vs_reference": 1.105,
+      "median_paired_speedup_vs_native": 1.0418,
+      "median_phase_seconds": {
+        "prepare_seconds": 17.575,
+        "inference_transfer_seconds": 1.286,
+        "commit_seconds": 2.529,
+        "bootstrap_seconds": 0.021,
+        "update": 10.343
+      },
+      "peak_reserved_mib": [
+        4198,
+        4198,
+        4198,
+        4198,
+        4198
+      ],
+      "cache_paths": [
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound",
+        "memory_bound"
+      ]
+    },
+    "fixed_features": {
+      "wall_seconds": [
+        29.078,
+        28.755,
+        28.036,
+        28.035,
+        28.814
+      ],
+      "median_placements_per_second": 284.89,
+      "median_paired_speedup_vs_reference": 1.2528,
+      "median_paired_speedup_vs_native": 1.181,
+      "median_phase_seconds": {
+        "prepare_seconds": 17.796,
+        "inference_transfer_seconds": 1.436,
+        "commit_seconds": 2.42,
+        "bootstrap_seconds": 0.02,
+        "update": 6.806
+      },
+      "peak_reserved_mib": [
+        3518,
+        3440,
+        3518,
+        3440,
+        3440
+      ],
+      "cache_paths": [
+        "fixed_features",
+        "fixed_features",
+        "fixed_features",
+        "fixed_features",
+        "fixed_features"
+      ]
+    },
+    "combined": {
+      "wall_seconds": [
+        21.285,
+        21.738,
+        20.044,
+        19.017,
+        21.133
+      ],
+      "median_placements_per_second": 387.64,
+      "median_paired_speedup_vs_reference": 1.7042,
+      "median_paired_speedup_vs_native": 1.5954,
+      "median_phase_seconds": {
+        "prepare_seconds": 10.478,
+        "inference_transfer_seconds": 1.335,
+        "commit_seconds": 2.456,
+        "bootstrap_seconds": 0.02,
+        "update": 6.777
+      },
+      "peak_reserved_mib": [
+        2252,
+        2248,
+        2306,
+        2412,
+        2616
+      ],
+      "cache_paths": [
+        "fixed_features",
+        "fixed_features",
+        "fixed_features",
+        "fixed_features",
+        "fixed_features"
+      ]
+    }
+  },
+  "target_paired_speedup": 1.1,
+  "combined_passes": true,
+  "scope": "Opening positions through placement 260 per environment. Full games, checkpoint I/O and selection are outside this timing.",
+  "native_replay": {
+    "moves": 4096,
+    "clears": 3,
+    "wall_median_seconds_reference": 2.26774,
+    "wall_median_seconds_fused": 1.20748,
+    "paired_trials": 5,
+    "final_board_sha256": "6ffeb567019947bb535cd3144d4e862ae34b0301343610cd6c72863a8fb9bd99",
+    "parity": [
+      "all replay rows and move scores",
+      "board hashes",
+      "piece stream",
+      "target",
+      "summary",
+      "rendered piece geometry"
+    ]
+  },
+  "combined_runtime_fingerprints": {
+    "1-combined": {
+      "trainer": "651a4b1182e71c2ce987a7aad1cb0eeec55a0917d3197536047e8ef783605c79",
+      "ppo": "e8ad2fbe7b8206e08a9b99b7674bedbb6d23bd11af98a2899c764192b506e0ef",
+      "architecture": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+      "preparer": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+      "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+      "model_after_update": "68bbc986804e392dc4eb3714a6f5b06965e38ff00af83c2855563b36ea9d52cc"
+    },
+    "2-combined": {
+      "trainer": "651a4b1182e71c2ce987a7aad1cb0eeec55a0917d3197536047e8ef783605c79",
+      "ppo": "e8ad2fbe7b8206e08a9b99b7674bedbb6d23bd11af98a2899c764192b506e0ef",
+      "architecture": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+      "preparer": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+      "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+      "model_after_update": "a803203d5d18508d33bac69dbb6296aa93ff912acf63d1adc11329a76ca3ecd4"
+    },
+    "3-combined": {
+      "trainer": "0869d4af9e1d10015a7c930f58e6b00cf5b784df689b96af7cc8e2984c0d3dc1",
+      "ppo": "18498cfd492e5d6f1f553a04c414cbe1de7a2dda05b3db1c5fe9c95d10fac810",
+      "architecture": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+      "preparer": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+      "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+      "model_after_update": "b0e7d57663d78202f618a99b8e7435dc0a0a2ffe00c9f6ba3f8e18104ef8ad60"
+    },
+    "4-combined": {
+      "trainer": "0869d4af9e1d10015a7c930f58e6b00cf5b784df689b96af7cc8e2984c0d3dc1",
+      "ppo": "18498cfd492e5d6f1f553a04c414cbe1de7a2dda05b3db1c5fe9c95d10fac810",
+      "architecture": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+      "preparer": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+      "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+      "model_after_update": "31bef020b9b688b590d1f8b1c28a8965b49ddd98da2cff82ab222b613ffb214c"
+    },
+    "5-combined": {
+      "trainer": "0869d4af9e1d10015a7c930f58e6b00cf5b784df689b96af7cc8e2984c0d3dc1",
+      "ppo": "18498cfd492e5d6f1f553a04c414cbe1de7a2dda05b3db1c5fe9c95d10fac810",
+      "architecture": "6a4624c89f18dbc38ca46ec7f0d4f60549f8da6c08922aae676db64de881ba67",
+      "preparer": "a9f82f8978d2b3cdaaa94bf3b69c0872c5728528c205104c372197ebf32310ab",
+      "native": "ac9d26cfce455c3de12219679cc1b4c9d45a8b4e66a0676d30d936c16261577f",
+      "model_after_update": "f11cd7719da2e196218d90c34bd0d64036a5bfcc833f5ef03d54575734a75172"
+    }
+  },
+  "boundary_workload": {
+    "candidate_revision": "63c9533ba2ee33d059b09e24aab4231a323dc42f",
+    "cache_limit_mib": 744,
+    "workload": "32 environments, 256 steps, two PPO epochs, with a four-layer clear and a target recovered from 12 to 15.",
+    "combined_storage": "Fixed-feature buffer hit its quota and fell back to raw records. CUDA preparation stayed active.",
+    "all_paired_proofs_match": true,
+    "combined_passes": true,
+    "median_paired_speedup": 1.5488,
+    "pairs": [
+      {
+        "seed": 418000,
+        "reference_seconds": 36.8827,
+        "combined_seconds": 27.63361,
+        "paired_speedup": 1.3347,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2626.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "290b153bb49086fb333796c34ed133eeb6990dc10168e6951c68559b43dd09d8"
+      },
+      {
+        "seed": 418100,
+        "reference_seconds": 37.79573,
+        "combined_seconds": 22.83344,
+        "paired_speedup": 1.65528,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2636.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "7fd4306723a628fdb12695bcb285808c778241fd8ccb79a71ac76d84c133dd0e"
+      },
+      {
+        "seed": 418200,
+        "reference_seconds": 37.20324,
+        "combined_seconds": 24.02008,
+        "paired_speedup": 1.54884,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2656.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "251e80c5ffbe845e6fc27ac68fd00dab6557c705de08d22f0aaa35f9978db810"
+      },
+      {
+        "seed": 418300,
+        "reference_seconds": 37.48274,
+        "combined_seconds": 24.34926,
+        "paired_speedup": 1.53938,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2554.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "4cda2ab3d6877de4a7408c6e7bf9ec20c050502536679b4e5bfefa1fdc4e8ef8"
+      },
+      {
+        "seed": 418400,
+        "reference_seconds": 37.65404,
+        "combined_seconds": 23.35464,
+        "paired_speedup": 1.61227,
+        "reference_reserved_mib": 4198.0,
+        "combined_reserved_mib": 2794.0,
+        "clears": 5,
+        "target_recoveries": 1,
+        "terminals": 1,
+        "model_sha256": "f81a911992bda2111e55039a1d056c1d9556ce8233cb65488b5fc0d335950813"
+      }
+    ]
+  }
+}

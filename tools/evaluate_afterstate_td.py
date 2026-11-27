@@ -35,7 +35,7 @@ def digest(value):
 
 def runtime_identity(device):
     paths = [Path(__file__), ROOT/'native/libtetris4d_native.so']
-    paths += [ROOT/(name+'.py') for name in ('tetris_afterstate_td', 'tetris_neural', 'tetris_survival_v4',
+    paths += [ROOT/(name+'.py') for name in ('tetris_afterstate_td', 'tetris_neural', 'tetris_survival_v3', 'tetris_survival_v4',
               'sparse_tetris_4d_optimized', 'tetris_gpu_simulation', 'tetris_gpu_encoding',
               'tetris_gpu_spatial', 'tetris_gpu_board_features', 'tetris_survival_v5', 'train_overnight',
               'train_survival_v4', 'tetris_game_library')]
@@ -170,7 +170,21 @@ def summarize(rows, seeds, policy, cap):
             'median': statistics.median(placements) if rows else None, 'minimum': min(placements, default=None)}
 
 
-def select_moves(model, states, targets, scoring, device, preparer):
+def _fixed_actor_choices(model, batch, size):
+    """Give each cached greedy game the same FP32 kernel shapes, independent of its peers."""
+    rows, width = batch['valid'].shape
+    fixed = {}
+    for name, value in batch.items():
+        if name in neural.CANDIDATE_FIELDS and width < model.config.shortlist:
+            pad = (0, 0) * (value.ndim - 2) + (0, model.config.shortlist - width)
+            value = torch.nn.functional.pad(value, pad)
+        if rows < size:
+            value = torch.cat((value, value[:1].expand(size - rows, *value.shape[1:])))
+        fixed[name] = value.contiguous()
+    return model.actor_logits(fixed)[:rows].argmax(-1)
+
+
+def select_moves(model, states, targets, scoring, device, preparer, ppo_batch_size=None):
     """Map live batch indices to their (recovered target, chosen placement)."""
     if preparer is None:
         moves = {}
@@ -182,6 +196,8 @@ def select_moves(model, states, targets, scoring, device, preparer):
             if scoring:
                 pool = model.prepare_cpu(prepared, state)
                 choice = int(pool.indices[0, model.choose(pool).item()])
+            elif ppo_batch_size:
+                choice = int(_fixed_actor_choices(model, neural.collate([prepared.arrays], device), ppo_batch_size).item())
             else:
                 choice = int(model(neural.collate([prepared.arrays], device))['logits'].argmax(1).item())
             moves[index] = (int(prepared.arrays['targets']), prepared.options[choice])
@@ -192,6 +208,8 @@ def select_moves(model, states, targets, scoring, device, preparer):
     if scoring:
         pool = model.prepare_device(result, states)
         actions = pool.indices.gather(1, model.choose(pool)[:, None]).squeeze(1)
+    elif ppo_batch_size:
+        actions = _fixed_actor_choices(model, result.batch, ppo_batch_size)
     else:
         actions = model(result.batch)['logits'].argmax(-1)
     return {i: (int(result.targets[i]), candidate)
@@ -200,7 +218,7 @@ def select_moves(model, states, targets, scoring, device, preparer):
 
 @torch.inference_mode()
 def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=None,
-                   stop_requested=None, on_finish=None):
+                   stop_requested=None, on_finish=None, ppo_batch_size=None, group_exhaustive=False):
     """Fresh greedy lockstep evaluation. Per-game time includes concurrent lockstep peers."""
     import tetris_afterstate_td as td
 
@@ -209,6 +227,9 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         raise ValueError('Expected a positive cap, distinct fresh seeds and top_k=16')
     if policy not in POLICY_ORDER:
         raise ValueError('Unknown evaluation policy')
+    if ppo_batch_size is not None and (policy != 'ppo' or type(ppo_batch_size) is not int or ppo_batch_size < 1
+                                       or not hasattr(model, 'actor_logits')):
+        raise ValueError('Fixed-shape greedy evaluation requires a Spatial PPO actor and a positive batch size')
     began = time.monotonic()
     original_model = model
     was_training = model.training
@@ -220,16 +241,19 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
         preparer = None
         if torch.device(device).type == 'cuda':
             from tetris_gpu_simulation import GpuPreparer
-            preparer = GpuPreparer(model.base.config if scoring else model.config, device)
+            preparer = GpuPreparer(model.base.config if scoring else model.config, device, group_exhaustive=group_exhaustive)
         states = {seed: game.Game(seed, 'expanded') for seed in seeds}
         for state in states.values():
             base.library.ignore(state)
-        targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds)
+        capacity = ppo_batch_size or len(seeds)
+        targets, rows, live = dict.fromkeys(seeds, 1), {}, list(seeds[:capacity])
+        next_seed = len(live)
         while live:
             if (deadline is not None and time.monotonic() >= deadline) or (stop_requested and stop_requested()):
                 break
             current = [states[s] for s in live]
-            moves = select_moves(model, current, [targets[s] for s in live], scoring, device, preparer)
+            options = (ppo_batch_size,) if ppo_batch_size else ()
+            moves = select_moves(model, current, [targets[s] for s in live], scoring, device, preparer, *options)
             playable = [live[i] for i in moves]
             for i, (target, candidate) in moves.items():
                 seed, state = live[i], current[i]
@@ -252,6 +276,9 @@ def evaluate_fresh(model, seeds, *, policy, cap, device, top_k=TOP_K, deadline=N
                 if on_finish:
                     on_finish(row)
             live = [seed for seed in playable if seed not in rows]
+            added = seeds[next_seed:next_seed + capacity - len(live)]
+            live.extend(added)
+            next_seed += len(added)
         return {**summarize(rows, seeds, policy, cap), 'wall_seconds': time.monotonic()-began}
     finally:
         original_model.train(was_training)
@@ -291,19 +318,37 @@ def extension_pair(results):
     return []
 
 
-def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, device, budget, runtime, weights_hash, cache_dir):
+def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, device, budget, runtime,
+                        weights_hash, cache_dir, *, ppo_batch_size=None, group_exhaustive=False):
     started = time.monotonic()
     identity = {'policy': name, 'checkpoint': checkpoint_hash, 'weights': weights_hash, 'runtime': runtime,
-                'screening': 'exhaustive', 'top_k': TOP_K, 'cap': cap, 'split': split, 'seeds': list(seeds)}
+                'screening': 'exhaustive', 'top_k': TOP_K, 'cap': cap}
+    if ppo_batch_size is None:
+        identity.update(split=split, seeds=list(seeds))
+    else:
+        if (name != 'ppo' or type(ppo_batch_size) is not int or ppo_batch_size < 1
+                or not seeds or cap < 1 or len(set(seeds)) != len(seeds)):
+            raise ValueError('Expected distinct seeds and a positive greedy PPO evaluation batch size')
+        identity.update(greedy_actor='fixed-fp32-v1', batch_size=ppo_batch_size, piece_set='expanded')
+    if group_exhaustive:
+        identity['group_exhaustive'] = True
     path = cache_dir/digest(identity)
     rows = {}
+    def validate(row, seed):
+        if (row['seed'] != seed or not 0 <= row['placements'] <= cap or row['clears'] < 0
+                or row['reason'] not in ('cap', 'top_out', 'target_or_no_move')
+                or (row['reason'] == 'cap') != (row['placements'] == cap)):
+            raise ValueError(f'Invalid completed evaluation for seed {seed}')
+
     def record(row):
+        validate(row, row['seed'])
         key = dict(identity, seed=row['seed'])
         write_cache(path/f"{row['seed']}.json", key, row)
         rows[row['seed']] = row
     for seed in seeds:
         row = checked_cached(path/f'{seed}.json', dict(identity, seed=seed))
         if row is not None:
+            validate(row, seed)
             rows[seed] = row
     missing = [s for s in seeds if s not in rows]
     if missing and not budget.expired():
@@ -311,7 +356,10 @@ def evaluate_checkpoint(checkpoint, checkpoint_hash, name, seeds, cap, split, de
         model = load_model(checkpoint, device)
         if base.file_hash(checkpoint) != checkpoint_hash:
             raise ValueError('Evaluation checkpoint changed during load')
-        evaluate_fresh(model, missing, policy=name, cap=cap, device=device, stop_requested=budget.expired, on_finish=record)
+        if ppo_batch_size and torch.device(device).type == 'cuda':
+            model.fused_encoding = True
+        evaluate_fresh(model, missing, policy=name, cap=cap, device=device, stop_requested=budget.expired,
+                       on_finish=record, ppo_batch_size=ppo_batch_size, group_exhaustive=group_exhaustive)
         print(f'{name} cap {cap}: {len(rows)}/{len(seeds)} games, {time.monotonic()-start:.1f}s', flush=True)
         del model
     result = summarize(rows, seeds, name, cap)

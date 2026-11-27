@@ -744,9 +744,10 @@ class Trainer:
             if rollout is None:
                 break
             self.update(rollout, warmup)
+            del rollout  # Release retained GPU inputs before checkpointing and selection.
             due = self.progress['runner_updates'] % self.args.save_every == 0 or time.monotonic() - self.saved_at >= self.args.save_seconds
             ready = self.progress['warmup_updates'] >= self.args.warmup_updates
-            selection_due = ready and self.last_evaluated_update != self.progress['runner_updates'] and (
+            selection_due = ready and self.selection_ready() and self.last_evaluated_update != self.progress['runner_updates'] and (
                 self.best_record is None or time.monotonic() - self.evaluated_at >= self.args.eval_minutes * 60)
             if due or selection_due or self.budget.expired():
                 last_details = self.save()

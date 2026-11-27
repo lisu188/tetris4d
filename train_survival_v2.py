@@ -247,6 +247,8 @@ class Rollout:
     truncations: np.ndarray
     timings: dict
     gpu_prepare: dict | None = None
+    fixed_cache: FixedRolloutCache | None = None
+    fixed_fallback: str | None = None
 
 
 class RolloutCache:
@@ -309,6 +311,44 @@ class RolloutCache:
         return batch, values
 
 
+class FixedRolloutCache(RolloutCache):
+    """Own PPO inputs from collection onward, including behavior logp in its original order."""
+    CANDIDATE_KEYS = RolloutCache.CANDIDATE_KEYS | {'local'}
+
+    def __init__(self, fixed, count, maximum, limit):
+        self.device = fixed['valid'].device
+        self.lengths = []
+        shapes = {name: ((count, maximum, *value.shape[2:]) if name in self.CANDIDATE_KEYS
+                         else (count, *value.shape[1:])) for name, value in fixed.items()}
+        self.bytes = sum(math.prod(shape) * fixed[name].element_size() for name, shape in shapes.items())
+        self.bytes += count * (maximum * 4 + 2 * 8 + 2 * 4)
+        if self.bytes > limit:
+            raise MemoryError('fixed rollout exceeds memory bound')
+        self.inputs = {name: fixed[name].new_zeros(shape) for name, shape in shapes.items()}
+        self.targets = {'old': torch.full((count, maximum), -torch.inf, dtype=torch.float32, device=self.device),
+                        'actions': torch.empty(count, dtype=torch.int64, device=self.device),
+                        'labels': torch.empty(count, dtype=torch.int64, device=self.device),
+                        'advantage': torch.empty(count, dtype=torch.float32, device=self.device),
+                        'returns': torch.empty(count, dtype=torch.float32, device=self.device)}
+
+    def append(self, fixed, logp, labels, lengths):
+        start = len(self.lengths)
+        rows = slice(start, start + len(lengths))
+        width = logp.shape[1]
+        for name, value in fixed.items():
+            dst = self.inputs[name][rows]
+            if name in self.CANDIDATE_KEYS:
+                dst = dst[:, :width]
+            dst.copy_(value)
+        self.targets['old'][rows, :width].copy_(logp)
+        self.targets['labels'][rows].copy_(labels)
+        self.lengths.extend(lengths)
+
+    def finish(self, choices, advantage, returns):
+        for key, values in (('actions', choices), ('advantage', advantage), ('returns', returns)):
+            self.targets[key][:len(choices)].copy_(torch.as_tensor(values))
+
+
 class SurvivalTrainer(base.Trainer):
     algorithm = ALGORITHM
 
@@ -332,6 +372,8 @@ class SurvivalTrainer(base.Trainer):
                 'runner_sha256': base.file_hash(Path(base.__file__)),
                 **{name: getattr(self.args, name) for name in names},
                 'cache_rollout': getattr(self.args, 'cache_rollout', False),
+                **({'compact_rollout': True} if getattr(self.args, 'compact_rollout', False) else {}),
+                **({'actor_only_kl': True} if getattr(self.args, 'actor_only_kl', False) else {}),
                 'nonnegative_bootstrap': getattr(self.args, 'nonnegative_bootstrap', False),
                 'freeze_encoder': getattr(self.args, 'freeze_encoder', False),
                 'rollout_cache_mib': getattr(self.args, 'rollout_cache_mib', 1024),
@@ -394,9 +436,14 @@ class SurvivalTrainer(base.Trainer):
         self.reference_policy = reference
         self.reference_actor_sha256 = actor_digest(reference)
 
+    def kl_logits(self, model, batch):
+        if getattr(self.args, 'actor_only_kl', False) and hasattr(model, 'actor_logits'):
+            return model.actor_logits(batch)
+        return model(batch)['logits']
+
     @torch.no_grad()
     def reference_logp(self, batch):
-        return self.policy_logp(self.reference_policy(batch)['logits'], batch['valid'])
+        return self.policy_logp(self.kl_logits(self.reference_policy, batch), batch['valid'])
 
     def create_optimizer(self):
         actor = [p for n, p in self.model.named_parameters()
@@ -506,7 +553,8 @@ class SurvivalTrainer(base.Trainer):
         retained = per_record * self.args.envs * self.args.rollout
         free = cuda_available_bytes(self.device)
         limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
-        needed = retained * (2 if getattr(self.args, 'cache_rollout', False) else 1) + 128 * 2**20
+        duplicate = getattr(self.args, 'cache_rollout', False) and not getattr(self.args, 'compact_rollout', False)
+        needed = retained * (2 if duplicate else 1) + 128 * 2**20
         if retained > limit or needed > free // 2:
             return {**plan, 'reason': 'memory_bound', 'estimated_retained_bytes': retained,
                     'estimated_with_cache_bytes': needed, 'free_bytes': free, 'limit_bytes': limit}
@@ -518,7 +566,8 @@ class SurvivalTrainer(base.Trainer):
                 try:
                     if self._gpu_preparer is None:
                         from tetris_gpu_simulation import GpuPreparer
-                        self._gpu_preparer = GpuPreparer(self.model.config, self.device)
+                        options = {'group_exhaustive': True} if getattr(self.args, 'group_exhaustive', False) else {}
+                        self._gpu_preparer = GpuPreparer(self.model.config, self.device, **options)
                     result = self._gpu_preparer.prepare_batch([e.state for e in self.environments],
                                                               [e.target for e in self.environments])
                 except torch.OutOfMemoryError:
@@ -736,6 +785,7 @@ class SurvivalTrainer(base.Trainer):
         records, choices, labels, old = [], [], [], []
         values, next_values, rewards, terminals, truncations = [], [], [], [], []
         self.model.eval()
+        fixed_cache = fixed_fallback = None
         for step in range(self.args.rollout):
             if self.budget.expired():
                 break
@@ -751,6 +801,10 @@ class SurvivalTrainer(base.Trainer):
             batch = (device_prepared.batch if device_prepared is not None else
                      neural.collate([p.arrays for p in self.prepared], self.device))
             with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
+                if step == 0 and getattr(self.args, 'compact_rollout', False):
+                    fixed_cache, batch, fixed_fallback = self.start_fixed_cache(batch)
+                elif fixed_cache is not None:
+                    batch = self.model.fixed_inputs(batch)
                 prediction = self.model(batch)
                 logp = self.policy_logp(prediction['logits'], batch['valid'])
                 teachers = (device_prepared.teachers if device_prepared is not None else
@@ -763,6 +817,10 @@ class SurvivalTrainer(base.Trainer):
                         logp, prediction['value'], teachers, getattr(self.args, 'coalesce_transfers', False),
                         keep_logp_device=device_prepared is not None)
                     candidates = device_prepared.selected_candidates(selected) if device_prepared is not None else None
+                if fixed_cache is not None:
+                    batch_labels = (device_prepared.teachers if device_prepared is not None else
+                                    label_tensor([p.teacher for p in self.prepared], self.device))
+                    fixed_cache.append(batch, logp, batch_labels, [len(p.options) for p in self.prepared])
             timings['inference_transfer_seconds'] += time.perf_counter() - started
             if values:
                 continuing = ~(terminals[-1] | truncations[-1])
@@ -773,11 +831,12 @@ class SurvivalTrainer(base.Trainer):
             following_values = np.zeros(self.args.envs, dtype=np.float32)
             for i, index in enumerate(selected):
                 episode, prepared = self.environments[i], self.prepared[i]
-                records.append(prepared.arrays)
                 choices.append(index)
-                labels.append(prepared.teacher)
-                old_row = probabilities[i, :len(prepared.options)]
-                old.append(old_row if device_prepared is not None else old_row.clone())
+                if fixed_cache is None:
+                    records.append(prepared.arrays)
+                    labels.append(prepared.teacher)
+                    old_row = probabilities[i, :len(prepared.options)]
+                    old.append(old_row if device_prepared is not None else old_row.clone())
                 started = time.perf_counter()
                 candidate = candidates[i] if candidates is not None else prepared.options[index]
                 move = base.apply_move(episode, candidate, self.progress['updates'],
@@ -813,7 +872,7 @@ class SurvivalTrainer(base.Trainer):
             for i in range(self.args.envs):
                 if terminal[i] or truncated[i]:
                     self.finish_episode(i, 'piece_limit' if truncated[i] else base.stopped_reason(self.environments[i].state))
-        if not records:
+        if not choices:
             return None
         final = np.flatnonzero(~(terminals[-1] | truncations[-1])).tolist()
         if final:
@@ -825,21 +884,49 @@ class SurvivalTrainer(base.Trainer):
                                          getattr(self.args, 'nonnegative_bootstrap', False))
         raw = advantage.ravel().copy()
         normalized = (raw - raw.mean()) / max(1e-6, float(raw.std()))
+        if fixed_cache is not None:
+            fixed_cache.finish(choices, normalized, returns.ravel())
         return Rollout(records, choices, labels, normalized, returns.ravel(), old, np.asarray(values).ravel(),
                        raw, np.asarray(terminals).ravel(), np.asarray(truncations).ravel(), timings,
-                       gpu_prepare=gpu_plan if gpu_plan['requested'] else None)
+                       gpu_prepare=gpu_plan if gpu_plan['requested'] else None,
+                       fixed_cache=fixed_cache, fixed_fallback=fixed_fallback)
+
+    def start_fixed_cache(self, batch):
+        """Choose storage before sampling the first action; allocation failure keeps the raw path."""
+        if not hasattr(self.model, 'fixed_inputs'):
+            raise ValueError('--compact-rollout requires Spatial V4 fixed board features')
+        limit = getattr(self.args, 'rollout_cache_mib', 1024) * 2**20
+        if self.device.type == 'cuda':
+            limit = min(limit, cuda_available_bytes(self.device) // 4)
+        try:
+            fixed = self.model.fixed_inputs(batch)
+            cache = FixedRolloutCache(fixed, self.args.envs * self.args.rollout, self.model.config.shortlist, limit)
+            return cache, fixed, None
+        except torch.OutOfMemoryError:
+            reason = 'allocation_failed'
+        except MemoryError:
+            reason = 'memory_bound'
+        if self.device.type == 'cuda':
+            torch.cuda.empty_cache()
+        return None, batch, reason
+
+    def cache_for(self, rollout):
+        if getattr(rollout, 'fixed_cache', None) is not None:
+            return rollout.fixed_cache
+        cache = getattr(self, '_rollout_cache', None)
+        return cache if cache is not None and cache.rollout is rollout else None
 
     def policy_batch(self, rollout, indices):
-        cache = getattr(self, '_rollout_cache', None)
-        if cache is not None and cache.rollout is rollout:
+        cache = self.cache_for(rollout)
+        if cache is not None:
             batch, values = cache.select(indices, targets=False)
             return batch, values['old']
         batch = neural.collate([rollout.records[i] for i in indices], self.device)
         return batch, self.old_batch(rollout, indices, batch['valid'].shape[1])
 
     def old_batch(self, rollout, indices, size):
-        cache = getattr(self, '_rollout_cache', None)
-        if cache is not None and cache.rollout is rollout and size <= cache.targets['old'].shape[1]:
+        cache = self.cache_for(rollout)
+        if cache is not None and size <= cache.targets['old'].shape[1]:
             selected = torch.tensor(indices, dtype=torch.long, device=self.device)
             return cache.targets['old'][:, :size].index_select(0, selected)
         rows = [rollout.old_logp[i] for i in indices]
@@ -854,10 +941,10 @@ class SurvivalTrainer(base.Trainer):
         pending = []
         coalesce = getattr(self.args, 'coalesce_transfers', False)
         with torch.no_grad(), neural.precision_context(self.device, self.args.precision):
-            for start in range(0, len(rollout.records), self.args.batch):
-                indices = list(range(start, min(start + self.args.batch, len(rollout.records))))
+            for start in range(0, len(rollout.choices), self.args.batch):
+                indices = list(range(start, min(start + self.args.batch, len(rollout.choices))))
                 batch, old = self.policy_batch(rollout, indices)
-                current = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                current = self.policy_logp(self.kl_logits(self.model, batch), batch['valid'])
                 value = legacy.exact_kl(old, current, batch['valid']).sum()
                 if coalesce:
                     pending.append(value)
@@ -865,22 +952,22 @@ class SurvivalTrainer(base.Trainer):
                     total += float(value.item())
         for value in scalar_values(pending):
             total += value
-        return total / len(rollout.records)
+        return total / len(rollout.choices)
 
     @torch.no_grad()
     def reference_rollout_kl(self, rollout):
         values = []
         with neural.precision_context(self.device, self.args.precision):
-            for start in range(0, len(rollout.records), self.args.batch):
-                indices = list(range(start, min(start + self.args.batch, len(rollout.records))))
+            for start in range(0, len(rollout.choices), self.args.batch):
+                indices = list(range(start, min(start + self.args.batch, len(rollout.choices))))
                 batch, _ = self.policy_batch(rollout, indices)
-                current = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                current = self.policy_logp(self.kl_logits(self.model, batch), batch['valid'])
                 values.append(legacy.exact_kl(self.reference_logp(batch), current, batch['valid']).sum())
-        return sum(scalar_values(values)) / len(rollout.records)
+        return sum(scalar_values(values)) / len(rollout.choices)
 
     def update_inputs(self, rollout, indices):
-        cache = getattr(self, '_rollout_cache', None)
-        if cache is not None and cache.rollout is rollout:
+        cache = self.cache_for(rollout)
+        if cache is not None:
             return cache.select(indices)
         batch, old = self.policy_batch(rollout, indices)
         return batch, {'old': old, 'actions': torch.tensor([rollout.choices[i] for i in indices], device=self.device),
@@ -890,8 +977,12 @@ class SurvivalTrainer(base.Trainer):
 
     def create_rollout_cache(self, rollout):
         self._rollout_cache = None
+        if rollout.fixed_cache is not None:
+            return {'requested': True, 'enabled': True, 'storage': 'fixed_features', 'bytes': rollout.fixed_cache.bytes}
         requested = getattr(self.args, 'cache_rollout', False)
         telemetry = {'requested': requested, 'enabled': False, 'bytes': 0}
+        if rollout.fixed_fallback:
+            telemetry['fixed_fallback'] = rollout.fixed_fallback
         if not requested:
             return telemetry
         required = RolloutCache.required_bytes(rollout)
@@ -914,16 +1005,16 @@ class SurvivalTrainer(base.Trainer):
 
     @torch.no_grad()
     def actor_diagnostics(self, rollout):
-        count = min(len(rollout.records), self.args.batch, 16)
-        cache = getattr(self, '_rollout_cache', None)
-        if cache is not None and cache.rollout is rollout:
+        count = min(len(rollout.choices), self.args.batch, 16)
+        cache = self.cache_for(rollout)
+        if cache is not None:
             batch, inputs = cache.select(list(range(count)))
             actions = inputs['actions']
         else:
             batch = neural.collate(rollout.records[:count], self.device)
             actions = torch.tensor(rollout.choices[:count], device=self.device)
         diagnostics = self.model.ranking_diagnostics(batch)
-        logp = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+        logp = self.policy_logp(self.kl_logits(self.model, batch), batch['valid'])
         winners, deficit = legacy.utility_targets(batch['features'], batch['valid'])
         probability = logp.exp()
         rows = torch.arange(count, device=self.device)
@@ -941,7 +1032,7 @@ class SurvivalTrainer(base.Trainer):
         try:
             telemetry = self.create_rollout_cache(rollout)
             result = self._update(rollout, warmup, started, telemetry)
-            if rollout.gpu_prepare is not None and rollout.gpu_prepare['enabled']:
+            if rollout.fixed_cache is not None or (rollout.gpu_prepare is not None and rollout.gpu_prepare['enabled']):
                 self._previous_device_rollout = weakref.ref(rollout)
             return result
         finally:
@@ -952,6 +1043,7 @@ class SurvivalTrainer(base.Trainer):
         reference = getattr(self, '_previous_device_rollout', None)
         previous = reference() if reference is not None else None
         if previous is not None:
+            previous.fixed_cache = None
             previous.records.clear()
             previous.old_logp.clear()
             previous.labels.clear()
@@ -959,7 +1051,7 @@ class SurvivalTrainer(base.Trainer):
 
     def _update(self, rollout, warmup, start_time, cache_telemetry):
         self.model.train()
-        size = len(rollout.records)
+        size = len(rollout.choices)
         epoch_count = 1 if warmup else self.args.ppo_epochs
         stop, steps, finished_epochs, total_weight = False, 0, 0, 0
         totals, per_loss_norms = {}, {}
@@ -1042,7 +1134,7 @@ class SurvivalTrainer(base.Trainer):
                     for start in range(0, len(subset), self.args.batch):
                         indices = subset[start:start + self.args.batch]
                         batch, old = self.policy_batch(rollout, indices)
-                        logp = self.policy_logp(self.model(batch)['logits'], batch['valid'])
+                        logp = self.policy_logp(self.kl_logits(self.model, batch), batch['valid'])
                         value = legacy.exact_kl(old, logp, batch['valid']).sum()
                         if coalesce:
                             pending_kl.append(value)
@@ -1186,6 +1278,10 @@ def arguments(argv=None):
     extra.add_argument('--allow-uncalibrated', action='store_true')
     extra.add_argument('--allow-concurrent', action='store_true')
     extra.add_argument('--gradient-every', type=int, default=10)
+    extra.add_argument('--compact-rollout', action=argparse.BooleanOptionalAction, default=False,
+                       help='Retain fixed Spatial V4 board and local column features once for PPO')
+    extra.add_argument('--actor-only-kl', action=argparse.BooleanOptionalAction, default=False,
+                       help='Use the Spatial V4 actor alone for exact policy-distribution checks')
     extra.add_argument('--cache-rollout', action='store_true', help='Cache immutable PPO rollout inputs on device for each update')
     extra.add_argument('--rollout-cache-mib', type=int, default=1024, help='Maximum rollout input cache MiB; allocation safely falls back before optimization')
     extra.add_argument('--coalesce-transfers', action='store_true',

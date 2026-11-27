@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import random
 import sys
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -45,6 +46,27 @@ class NativeTests(unittest.TestCase):
             for target in range(16):
                 status = game.target_layer_status(board, target)
                 self.assertEqual(status.buried, sum(not (m & (1 << target)) and bool(m >> (target+1)) for m in board))
+
+    def test_native_board_roughness_matches_reference_and_legacy_abi(self):
+        rng = random.Random(2891)
+        boards = [game.EMPTY_BOARD,
+                  tuple((1 << (i % 17)) - 1 for i in range(game.AREA)),
+                  tuple(rng.getrandbits(rng.randrange(17)) for _ in range(game.AREA))]
+        old_api = SimpleNamespace(t4_features=game._NATIVE.t4_features)
+        for threshold in (.25, 2., 6.):
+            game.configure_network(dict(self.parameters, threshold=threshold))
+            for board in boards:
+                heights, holes = game.board_features(board)
+                expected = math.fsum(game.ROUGHNESS_TABLE[game.HEIGHT + heights[b] - heights[a]]
+                                     for a, b in game.NEIGHBORS)
+                with patch.object(game, 'sigmoid_roughness', side_effect=AssertionError('Unfused path')):
+                    fused = game.evaluate_board(board)
+                self.assertEqual((fused.roughness, fused.holes, fused.height_sum), (expected, holes, sum(heights)))
+                game.evaluate_board.cache_clear()
+                with patch.object(game, '_NATIVE', old_api):
+                    fallback = game.evaluate_board(board)
+                self.assertEqual((fused.heights, fused.fill_counts, fused.score),
+                                 (fallback.heights, fallback.fill_counts, fallback.score))
 
     def test_scalar_and_simd_scores_are_bit_identical(self):
         rng = random.Random(31951)

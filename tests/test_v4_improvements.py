@@ -1,9 +1,11 @@
 """Issues #31-#38: V4 training defaults, throughput, selection and experiments."""
 from pathlib import Path
+import json
 import os
 import random
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -72,6 +74,18 @@ class ArgumentTests(unittest.TestCase):
         with patch.object(v4, 'gpu_defaults', return_value=['--gpu-prepare']):
             self.assertEqual(v4.arguments([]).screening, 'exhaustive')
             self.assertEqual(v4.arguments(['--screening', 'sampled']).screening, 'sampled')
+
+    def test_cuda_optimizations_default_to_validated_fp32_exhaustive_path(self):
+        def flags(*args):
+            options = v4.arguments(list(args))
+            return options.group_exhaustive, options.compact_rollout, options.actor_only_kl
+        with patch.object(torch.cuda, 'is_available', return_value=True):
+            self.assertEqual(flags('--device', 'cuda'), (True, True, True))
+            for opts in (('--device', 'cpu'), ('--no-gpu-defaults',),
+                         ('--precision', 'bf16'), ('--precision', 'fp32', '--precision=bf16'), ('--screening', 'sampled')):
+                self.assertEqual(flags(*opts), (False, False, False))
+            self.assertEqual(flags('--no-group-exhaustive', '--no-compact-rollout'), (False, False, True))
+            self.assertEqual(flags('--no-actor-only-kl'), (True, True, False))
 
     def test_overlap_prepare_is_opt_in(self):
         self.assertFalse(v4.arguments(['--no-gpu-defaults']).overlap_prepare)
@@ -356,16 +370,22 @@ class AfterstateTests(TrainerHarness):
 class DangerStartTests(TrainerHarness):
     def setUp(self):
         super().setUp()
-        import json
         library = v4.base.library
         self.root = self.directory / 'library'
         library.configure(self.root)
         self.addCleanup(library.configure, None, False)
-        state = game.Game(4242, 'expanded')
-        library.tag(state, phase='training', source='test')
+        self.record(4242)
+        patcher = patch.object(library, 'default_root', return_value=self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def record(self, seed, phase='training', salt=0):
+        library = v4.base.library
+        state = game.Game(seed, 'expanded')
+        library.tag(state, phase=phase, source='test')
         target = 1
         for _ in range(60):
-            decision = game.choose_sustained_move(state.board, state.current, target, 64, state.pieces)
+            decision = game.choose_sustained_move(state.board, state.current, target, 64, state.pieces + salt)
             library.annotate(state, 'teacher', 0, target)
             state.commit(decision.move)
         library.finish(state, 'top_out')
@@ -374,9 +394,79 @@ class DangerStartTests(TrainerHarness):
         for row in rows:
             row['game_over'] = True
         index.write_text(''.join(json.dumps(row) + '\n' for row in rows))
-        patcher = patch.object(library, 'default_root', return_value=self.root)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        return rows[-1]['id']
+
+    def test_distinct_danger_sources_filter_seed_phase_and_game_id(self):
+        self.record(4242, salt=13)
+        self.record(4333)
+        self.record(4337)
+        self.record(4335, phase='selection-sampled')
+        excluded = self.record(4336)
+        options = ('--distinct-danger-seeds', '--danger-per-game', '1', '--danger-starts', '.5',
+                   '--danger-window', '5', '20', '--selection-seeds', '4337')
+        args = self.arguments(*options, '--danger-pool', '2')
+        pool = v4.build_danger_pool(args, self.root, exclude_game_ids=[excluded], exclude_seeds=[4337])
+        self.assertCountEqual([start['state'].seed for start in pool], [4242, 4333])
+        trainer = self.trainer(*options, '--danger-pool', '3')
+        self.assertCountEqual([start['state'].seed for start in trainer.danger_pool], [4242, 4333, 4336])
+        with self.assertRaisesRegex(ValueError, 'Insufficient distinct'):
+            self.trainer(*options, '--danger-pool', '4')
+
+    def test_checkpoint_restores_future_start_types_sources_and_offsets(self):
+        def schedule(trainer, count):
+            draws = []
+            for _ in range(count):
+                episode = trainer.new_episode()
+                v4.base.library.ignore(episode.state)
+                draws.append((episode.number, episode.state.seed, episode.start))
+            return draws
+
+        for legacy in (False, True):
+            with self.subTest(legacy=legacy):
+                options = ('--danger-starts', '.5', '--danger-window', '5', '20', '--danger-pool', '4',
+                           '--run-dir', str(self.directory / ('legacy' if legacy else 'current')))
+                trainer = self.trainer(*options)
+                schedule(trainer, 53)
+                if legacy:
+                    metadata = trainer.checkpoint_metadata()
+                    del metadata['danger_rng']
+                    with patch.object(trainer, 'checkpoint_metadata', return_value=metadata):
+                        trainer.save('test_legacy')
+                else:
+                    # A restored stream must honor its stored position even if episode count alone differs.
+                    trainer._danger_rng.getrandbits(37)
+                    trainer.save('test_current')
+                want_state = trainer._danger_rng.getstate()
+                expected = schedule(trainer, 100)
+                self.assertTrue(any(draw[2] is None for draw in expected))
+                self.assertGreater(len({draw[2]['offset'] for draw in expected if draw[2]}), 1)
+                resumed = self.trainer(*options)
+                self.assertEqual(resumed._danger_rng.getstate(), want_state)
+                self.assertEqual(schedule(resumed, 100), expected)
+
+    def test_resume_keeps_saved_danger_sources_when_library_grows(self):
+        options = ('--danger-starts', '.75', '--danger-window', '5', '20', '--danger-pool', '1',
+                   '--distinct-danger-seeds', '--danger-per-game', '1')
+        original = self.trainer(*options)
+        original.save('before_library_grows')
+        start = original.danger_pool[0]
+        for seed in range(4400, 4410):
+            self.record(seed)
+            new_choice = v4.build_danger_pool(original.args, self.root)[0]
+            if new_choice['game_id'] != start['game_id']:
+                break
+        self.assertNotEqual(new_choice['game_id'], start['game_id'])
+        resumed = self.trainer(*options)
+        recovered = resumed.danger_pool[0]
+        for key in ('game_id', 'offset', 'target', 'remaining_recorded'):
+            self.assertEqual(recovered[key], start[key])
+        self.assertEqual(recovered['state'].board, start['state'].board)
+        self.assertEqual(resumed.signature, original.signature)
+        for _ in range(10):
+            a, b = original.new_episode(), resumed.new_episode()
+            self.assertEqual((a.number, a.start, a.state.board), (b.number, b.start, b.state.board))
+            v4.base.library.ignore(a.state)
+            v4.base.library.ignore(b.state)
 
     def test_pool_offsets_and_unrecorded_copies(self):
         args = self.arguments('--danger-starts', '.5', '--danger-window', '5', '20', '--danger-pool', '3')
@@ -418,6 +508,53 @@ class DangerStartTests(TrainerHarness):
         trainer = self.trainer()
         self.assertEqual(trainer.danger_pool, [])
         self.assertTrue(all(e.start is None for e in trainer.environments))
+
+
+class CriticSamplingTests(TrainerHarness):
+    def test_long_sampled_games_use_terminal_window_and_exclude_censored_targets(self):
+        trainer = self.trainer('--selection-seeds', '831', '833', '--selection-pieces', '64000')
+        one_option = SimpleNamespace(arrays={}, options=[0])
+
+        def batch(rows):
+            return {'valid': torch.ones((rows, 1), dtype=torch.bool)}
+
+        def prepare_batch(states, targets):
+            prepared = [None if state.game_over else one_option for state in states]
+            live = [i for i, p in enumerate(prepared) if p is not None]
+            return SimpleNamespace(prepared=prepared, environment_indices=live, targets=targets,
+                                   batch=batch(len(live)), selected_candidates=lambda actions: [0] * len(actions))
+
+        def predict(inputs):
+            return {'logits': torch.zeros_like(inputs['valid'], dtype=torch.float32),
+                    'value': torch.zeros(len(inputs['valid']))}
+
+        def advance(episode, *_args):
+            # Simulate sample boundaries and one intervening observation without expensive game physics.
+            state = episode.state
+            state.pieces += 127 if state.pieces % 128 else 1
+            state.game_over = state.seed == 831 and state.pieces == 51200
+
+        for lockstep in (False, True):
+            with (self.subTest(lockstep=lockstep),
+                  patch.object(trainer, 'lockstep_available', return_value=lockstep),
+                  patch.object(trainer, '_selection_preparer', return_value=SimpleNamespace(prepare_batch=prepare_batch)),
+                  patch.object(trainer, 'prepare_episode', lambda e: None if e.state.game_over else one_option),
+                  patch.object(trainer.model, 'forward', side_effect=predict),
+                  patch.object(v4.neural, 'collate', lambda rows, device: batch(len(rows))),
+                  patch.object(v4.base, 'apply_move', advance)):
+                result = trainer.sampled_policy_check()
+            self.assertTrue(result['complete'])
+            finished, capped = result['runs']
+            self.assertEqual((finished['pieces'], finished['critic_samples']), (51200, 400))
+            self.assertEqual((capped['pieces'], capped['critic_samples']), (64000, 500))
+            self.assertTrue(capped['capped'])
+            self.assertIsNone(capped['critic_monte_carlo'])
+            errors = finished['critic_monte_carlo']
+            self.assertAlmostEqual(errors['mean_signed_error_pieces'], -25664.)
+            for name, count, mae in [('1-256', 2, 192.), ('257-2048', 14, 1216.), ('2049+', 384, 26688.)]:
+                group = errors['by_remaining_placements'][name]
+                self.assertEqual(group['samples'], count)
+                self.assertAlmostEqual(group['mae_pieces'], mae)
 
 
 @unittest.skipUnless(os.environ.get('TETRIS4D_TEST_CUDA') == '1', 'CUDA probes require TETRIS4D_TEST_CUDA=1')

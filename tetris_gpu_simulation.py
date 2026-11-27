@@ -10,6 +10,7 @@ change any default backend and does not claim GPU-resident game progression.
 """
 from __future__ import annotations
 
+from bisect import bisect_left
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 import math
@@ -26,6 +27,9 @@ import tetris_neural as neural
 MAX_GPU_CANDIDATES = 4096
 MAX_GPU_SHORTLIST = 256
 SUMMARY_KERNEL_LIMIT = 16384
+# The expanded catalogue ranges from 2,744 to 648,000 exhaustive placements.
+# Three groups avoid sorting mostly padded rows while retaining GPU parallelism.
+EXHAUSTIVE_GROUP_LIMITS = (115_000, 350_000)
 
 
 @triton.jit
@@ -92,7 +96,7 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
                       sample_counts, vertical_rotations, targets, board_scores,
                       rough_delta, weights, specs_out, scores_out, gains_out,
                       future_out, delta_out, clear_out, valid_out,
-                      CANDIDATES: tl.constexpr, SAMPLES: tl.constexpr,
+                      CANDIDATES: tl.constexpr, SAMPLES: tl.constexpr, TEMPLATE_STRIDE: tl.constexpr,
                       ROTATIONS: tl.constexpr, PROTECT: tl.constexpr,
                       BLOCK: tl.constexpr):
     row = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
@@ -102,8 +106,8 @@ def _candidate_kernel(boards, heights, counts, statistics, shapes, templates,
     samples = tl.load(sample_counts + piece)
     sampled = live & (row < samples)
     anchored = live & (row >= SAMPLES) & (row < SAMPLES + 4096) & (piece == 0)
-    rotation = tl.load(templates + (piece * SAMPLES + row) * 2, sampled, 0)
-    local = tl.load(templates + (piece * SAMPLES + row) * 2 + 1, sampled, 0)
+    rotation = tl.load(templates + (piece * TEMPLATE_STRIDE + row) * 2, sampled, 0)
+    local = tl.load(templates + (piece * TEMPLATE_STRIDE + row) * 2 + 1, sampled, 0)
     vertical = tl.load(vertical_rotations + piece)
     rotation = tl.where(anchored, vertical, rotation)
     shape = (tl.load(piece_offsets + piece) + rotation) * 182
@@ -435,7 +439,7 @@ class DevicePreparedBatch:
 class GpuPreparer:
     """Per-call owned output tensors; retained rollout records remain valid."""
 
-    def __init__(self, config=None, device="cuda"):
+    def __init__(self, config=None, device="cuda", *, group_exhaustive=False):
         self.config = neural.Config() if config is None else config
         self.device = torch.device(device)
         if self.device.type != "cuda":
@@ -445,6 +449,7 @@ class GpuPreparer:
         self.names = tuple(game.PIECE_NAMES)
         self.rotations = max(map(len, game.SHAPES.values()))
         self.budget = self.config.screening_budget
+        self.group_exhaustive = group_exhaustive
         self._teacher_parameters = game.network_parameters()
         self._reference_only_reason = (
             "candidate_budget_bound" if self.budget > MAX_GPU_CANDIDATES else
@@ -482,6 +487,7 @@ class GpuPreparer:
             sizes.append(len(rows))
             vertical.append(next((i for i, s in enumerate(game.SHAPES[piece]) if len(s.columns) == 1), -1))
         self.samples = max(sizes)
+        self._piece_samples = tuple(sizes)
         template = np.zeros((len(self.names), self.samples, 2), dtype=np.int32)
         for i, rows in enumerate(templates):
             template[i, :len(rows)] = rows
@@ -597,9 +603,28 @@ class GpuPreparer:
             return DevicePreparedBatch((), (), {}, torch.empty(0, dtype=torch.int64, device=self.device), (), ())
         if self._reference_only_reason is not None:
             return self._reference_batch(states, targets, self._reference_only_reason)
-        n = len(states)
         piece_ids = [self.names.index(state.current) for state in states]
-        candidates = max(self.config.shortlist, self.samples + (4096 if 0 in piece_ids else 0))
+        if not self.group_exhaustive or self.budget:
+            return self._prepare_group(states, targets, piece_ids, self.samples)
+        groups = {}
+        for env, piece in enumerate(piece_ids):
+            bucket = bisect_left(EXHAUSTIVE_GROUP_LIMITS, self._piece_samples[piece])
+            groups.setdefault(bucket, []).append(env)
+        if len(groups) == 1:
+            return self._prepare_group(states, targets, piece_ids, max(self._piece_samples[p] for p in piece_ids))
+        prepared = []
+        for indices in groups.values():
+            pieces = [piece_ids[i] for i in indices]
+            width = max(self._piece_samples[p] for p in pieces)
+            group = self._prepare_group([states[i] for i in indices], [targets[i] for i in indices], pieces, width)
+            prepared.append((indices, group))
+        return _merge_prepared_groups(prepared)
+
+    def _prepare_group(self, states, targets, piece_ids, samples):
+        n = len(states)
+        # The anchored I placements follow the group's sampled region in original
+        # board-column order. Removing invalid padding between them preserves ties.
+        candidates = max(self.config.shortlist, samples + (4096 if 0 in piece_ids else 0))
         shortlist = min(self.config.shortlist, candidates)
         starts = np.zeros((n, self.rotations), dtype=np.int32)
         strides = np.ones_like(starts)
@@ -646,7 +671,7 @@ class GpuPreparer:
             device_pieces, self.shape_offsets, self.sample_counts, self.vertical_rotations,
             device_targets, board_scores, self.rough_delta, self.weights, specifications,
             scores, gains, future, deltas, clears, valid, CANDIDATES=candidates,
-            SAMPLES=self.samples, ROTATIONS=self.rotations, PROTECT=self.config.protect_target,
+            SAMPLES=samples, TEMPLATE_STRIDE=self.samples, ROTATIONS=self.rotations, PROTECT=self.config.protect_target,
             BLOCK=128, enable_fp_fusion=False, num_warps=4)
         self._score_clearing(boards, device_pieces, specifications, scores, clears, valid)
         if candidates <= SUMMARY_KERNEL_LIMIT:
@@ -801,25 +826,44 @@ def merge_prepared_batches(first, second):
     views of each group's own allocations.
     """
     offset = len(first.prepared)
-    halves = [b for b in (first, second) if b.environment_indices]
-    if len(halves) < 2:
-        batch = halves[0] if halves else first
-        indices = (first.environment_indices if batch is first
-                   else tuple(offset + i for i in second.environment_indices))
-        return DevicePreparedBatch(first.prepared + second.prepared, indices, batch.batch, batch.teachers,
-                                   first.cpu_fallbacks + second.cpu_fallbacks, first.targets + second.targets,
-                                   batch._option_specs, batch._option_scores)
-    width = max(first._option_specs.shape[1], second._option_specs.shape[1])
-    batch = {name: torch.cat([_pad_candidates(b.batch[name], width) if name in CANDIDATE_FIELDS else b.batch[name]
-                              for b in halves], dim=0)
-             for name in first.batch}
+    return _merge_prepared_groups([(range(offset), first),
+                                   (range(offset, offset + len(second.prepared)), second)])
+
+
+def _merge_prepared_groups(groups):
+    """Restore caller order for per-environment records and compact inference rows."""
+    count = sum(len(indices) for indices, _ in groups)
+    prepared, reasons, targets = [None] * count, [None] * count, [None] * count
+    active, rows = [], []
+    for indices, result in groups:
+        for local, env in enumerate(indices):
+            prepared[env] = result.prepared[local]
+            reasons[env] = result.cpu_fallbacks[local]
+            targets[env] = result.targets[local]
+        if result.environment_indices:
+            active.append(result)
+            rows.extend(indices[i] for i in result.environment_indices)
+    original = tuple(sorted(rows))
+    if len(active) <= 1:
+        batch = active[0] if active else groups[0][1]
+        return DevicePreparedBatch(tuple(prepared), original, batch.batch, batch.teachers, tuple(reasons),
+                                   tuple(targets), batch._option_specs, batch._option_scores)
+    order = None
+    if rows != list(original):
+        order = torch.tensor(sorted(range(len(rows)), key=rows.__getitem__), device=active[0].teachers.device)
+    width = max(b._option_specs.shape[1] for b in active)
+
+    def combine(tensors, candidate_field=False):
+        if candidate_field:
+            tensors = [_pad_candidates(t, width) for t in tensors]
+        combined = torch.cat(tensors)
+        return combined if order is None else combined.index_select(0, order)
+
+    batch = {name: combine([b.batch[name] for b in active], name in CANDIDATE_FIELDS)
+             for name in active[0].batch}
     return DevicePreparedBatch(
-        first.prepared + second.prepared,
-        first.environment_indices + tuple(offset + i for i in second.environment_indices),
-        batch, torch.cat((first.teachers, second.teachers)),
-        first.cpu_fallbacks + second.cpu_fallbacks, first.targets + second.targets,
-        torch.cat([_pad_candidates(b._option_specs, width) for b in halves]),
-        torch.cat([_pad_candidates(b._option_scores, width) for b in halves]))
+        tuple(prepared), original, batch, combine([b.teachers for b in active]), tuple(reasons), tuple(targets),
+        combine([b._option_specs for b in active], True), combine([b._option_scores for b in active], True))
 
 
 def compile_offline():
@@ -836,7 +880,7 @@ def compile_offline():
          ["*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32", "*i32",
           "*i32", "*i32", "*i32", "*i32", "*i64", "*fp64", "*fp64", "*fp64", "*i32",
           "*fp64", "*i32", "*i32", "*i32", "*i32", "*i1"],
-         {"CANDIDATES": 6144, "SAMPLES": 2048, "ROTATIONS": 192, "PROTECT": True, "BLOCK": 128}, 4),
+         {"CANDIDATES": 6144, "SAMPLES": 2048, "TEMPLATE_STRIDE": 2048, "ROTATIONS": 192, "PROTECT": True, "BLOCK": 128}, 4),
         (_summary_kernel,
          ["*i1", "*i32", "*i32", "*i32", "*i32", "*i32", "*i64", "*i32"],
          {"CANDIDATES": 6144, "BLOCK": 8192}, 8),

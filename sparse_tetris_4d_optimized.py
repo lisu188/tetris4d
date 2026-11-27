@@ -156,7 +156,10 @@ def pooled_histograms(heights: tuple[int, ...]) -> tuple[tuple[int, ...], tuple[
 def sigmoid_roughness(heights: tuple[int, ...]) -> float:
     if BACKEND not in ('numpy', 'native'):
         return math.fsum(ROUGHNESS_TABLE[heights[b] - heights[a] + HEIGHT] for a, b in NEIGHBORS)
-    counts = pooled_histograms(heights)[1]
+    return _histogram_roughness(pooled_histograms(heights)[1])
+
+
+def _histogram_roughness(counts) -> float:
     return sum(count * tick for count, tick in zip(counts, ROUGHNESS_TICKS)) / ROUGHNESS_DENOMINATOR
 
 
@@ -614,11 +617,14 @@ def _valid_columns(board: Board) -> bool:
 def evaluate_board(board: Board) -> BoardEvaluation:
     if len(board) != AREA or not _valid_columns(board):
         raise ValueError('Invalid 4D board.')
-    native = _native_features(board) if BACKEND == 'native' else None
-    if native is not None:
+    native = None
+    if BACKEND == 'native':
+        differences = _NUMPY.empty(HEIGHT + 1, dtype=_NUMPY.int32) if hasattr(_NATIVE, 't4_board_features') else None
+        native = _native_features(board, differences)
         heights = tuple(native[1].tolist())
-        holes = int(native[3][1])
-        counts = tuple(map(int, native[2]))
+        height_sum, holes = native[3].tolist()
+        counts = tuple(native[2].tolist())
+        roughness = _histogram_roughness(differences.tolist()) if differences is not None else sigmoid_roughness(heights)
     else:
         heights, holes = board_features(board)
         counts = [0] * HEIGHT
@@ -627,8 +633,8 @@ def evaluate_board(board: Board) -> BoardEvaluation:
                 bit = mask & -mask
                 counts[bit.bit_length() - 1] += 1
                 mask ^= bit
-    roughness = sigmoid_roughness(heights)
-    height_sum = sum(heights)
+        roughness = sigmoid_roughness(heights)
+        height_sum = sum(heights)
     score = HEIGHT_WEIGHT * height_sum + HOLES_WEIGHT * holes + BUMP_WEIGHT * roughness
     context = BoardEvaluation(board, heights, height_sum, holes, roughness, tuple(counts), score,
                               max(counts) + max(PIECE_SIZES.values()) >= AREA)
@@ -917,6 +923,8 @@ def _load_native() -> bool:
             't4_sustained_metrics': [pointer, pointer, integer, pointer, pointer, integer, integer,
                                      pointer, pointer, pointer],
         }
+        if hasattr(library, 't4_board_features'):
+            signatures['t4_board_features'] = [pointer] * 5
         for name, arguments in signatures.items():
             function = getattr(library, name)
             function.argtypes, function.restype = arguments, integer
@@ -940,14 +948,17 @@ def _native_check(result: int) -> None:
         raise ValueError(f'Native kernel rejected its input (code {result}).')
 
 
-def _native_features(board: Board):
+def _native_features(board: Board, differences=None):
     np = _NUMPY
     columns = np.asarray(board, dtype=np.uint16)
     heights = np.empty(AREA, dtype=np.int32)
     counts = np.empty(HEIGHT, dtype=np.int32)
     totals = np.empty(2, dtype=np.int32)
-    _native_check(_NATIVE.t4_features(columns.ctypes.data, heights.ctypes.data,
-                                      counts.ctypes.data, totals.ctypes.data))
+    arguments = columns.ctypes.data, heights.ctypes.data, counts.ctypes.data, totals.ctypes.data
+    if differences is None:
+        _native_check(_NATIVE.t4_features(*arguments))
+    else:
+        _native_check(_NATIVE.t4_board_features(*arguments, differences.ctypes.data))
     for array in (columns, heights, counts):
         array.flags.writeable = False
     return columns, heights, counts, totals

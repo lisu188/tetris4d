@@ -1,0 +1,625 @@
+{
+  "schema": "spatial-ppo-curriculum-validation-v1",
+  "runtime_revision": "45bf66e9b5c6df43b0f7a6a203db4a3b1563c212",
+  "plan_sha256": "ae12bfa69914b2995b2478daaec46bd21a632bd173a4b4b91523724ef11dc1ea",
+  "device": "NVIDIA GeForce RTX 4060 Ti",
+  "torch": "2.14.1+cu130",
+  "training_seed": 445000,
+  "initial_weights_sha256": "1d294bc1912bb5e727fb9d42b6956d9aec0f6f1be6cbe0085465bbc184d35a59",
+  "incumbent_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "danger_probability": 0.25,
+  "development_seeds": [
+    16435001,
+    16435003,
+    16435005,
+    16435007,
+    16435009,
+    16435011,
+    16435013,
+    16435015
+  ],
+  "arms": {
+    "control": {
+      "updates": 160,
+      "placements": 1310720,
+      "optimizer_steps": 10240,
+      "checkpoint_sha256": "8da3b47e5a4319c7515dab18253f7b49d2f870b29c83ba3f10c03fe5ec78def8",
+      "danger_source_seeds": 8,
+      "rollout_updates_with_terminal": 45,
+      "completed_training_episodes": 63,
+      "development": {
+        "mean": 33075.5,
+        "minimum": 14191,
+        "median": 34510.5,
+        "placements": [
+          36962,
+          14191,
+          44064,
+          26545,
+          32059,
+          31910,
+          39411,
+          39462
+        ]
+      }
+    },
+    "diverse": {
+      "updates": 160,
+      "placements": 1310720,
+      "optimizer_steps": 10240,
+      "checkpoint_sha256": "25b7ba72dfd24f78a9d3105fe3af16a9f60030fb8dd09e1d5b47bee34b3d57bf",
+      "danger_source_seeds": 32,
+      "rollout_updates_with_terminal": 41,
+      "completed_training_episodes": 63,
+      "development": {
+        "mean": 27002.375,
+        "minimum": 12576,
+        "median": 26650.5,
+        "placements": [
+          40771,
+          41898,
+          26008,
+          41169,
+          12576,
+          27293,
+          13417,
+          12887
+        ]
+      }
+    }
+  },
+  "selected_arm": "control",
+  "cap": 64000,
+  "holdout": {
+    "incumbent": {
+      "mean": 39718.76388888889,
+      "median": 40431.5,
+      "minimum": 29618,
+      "censored": 0
+    },
+    "candidate": {
+      "mean": 37116.805555555555,
+      "median": 37736.5,
+      "minimum": 8721,
+      "censored": 0
+    }
+  },
+  "paired": {
+    "mean_difference": -2601.9583333333335,
+    "relative_gain": -0.06550954960764066,
+    "paired_bootstrap_95": [
+      -4536.996180555555,
+      -699.2680555555557
+    ],
+    "wins": 25,
+    "ties": 0,
+    "passes": false
+  },
+  "per_seed_placements": [
+    {
+      "seed": 26435001,
+      "incumbent": 35997,
+      "candidate": 39376
+    },
+    {
+      "seed": 26435003,
+      "incumbent": 44580,
+      "candidate": 32072
+    },
+    {
+      "seed": 26435005,
+      "incumbent": 45198,
+      "candidate": 41620
+    },
+    {
+      "seed": 26435007,
+      "incumbent": 42100,
+      "candidate": 34374
+    },
+    {
+      "seed": 26435009,
+      "incumbent": 31655,
+      "candidate": 46079
+    },
+    {
+      "seed": 26435011,
+      "incumbent": 44271,
+      "candidate": 34022
+    },
+    {
+      "seed": 26435013,
+      "incumbent": 38022,
+      "candidate": 29623
+    },
+    {
+      "seed": 26435015,
+      "incumbent": 36939,
+      "candidate": 35366
+    },
+    {
+      "seed": 26435017,
+      "incumbent": 42579,
+      "candidate": 37870
+    },
+    {
+      "seed": 26435019,
+      "incumbent": 45116,
+      "candidate": 40549
+    },
+    {
+      "seed": 26435021,
+      "incumbent": 30874,
+      "candidate": 28123
+    },
+    {
+      "seed": 26435023,
+      "incumbent": 42659,
+      "candidate": 29013
+    },
+    {
+      "seed": 26435025,
+      "incumbent": 38690,
+      "candidate": 38162
+    },
+    {
+      "seed": 26435027,
+      "incumbent": 38192,
+      "candidate": 35712
+    },
+    {
+      "seed": 26435029,
+      "incumbent": 40982,
+      "candidate": 47970
+    },
+    {
+      "seed": 26435031,
+      "incumbent": 34351,
+      "candidate": 40601
+    },
+    {
+      "seed": 26435033,
+      "incumbent": 34482,
+      "candidate": 42079
+    },
+    {
+      "seed": 26435035,
+      "incumbent": 32099,
+      "candidate": 31218
+    },
+    {
+      "seed": 26435037,
+      "incumbent": 33368,
+      "candidate": 41496
+    },
+    {
+      "seed": 26435039,
+      "incumbent": 42441,
+      "candidate": 33110
+    },
+    {
+      "seed": 26435041,
+      "incumbent": 42306,
+      "candidate": 30218
+    },
+    {
+      "seed": 26435043,
+      "incumbent": 38475,
+      "candidate": 42587
+    },
+    {
+      "seed": 26435045,
+      "incumbent": 32178,
+      "candidate": 45140
+    },
+    {
+      "seed": 26435047,
+      "incumbent": 33296,
+      "candidate": 36437
+    },
+    {
+      "seed": 26435049,
+      "incumbent": 51407,
+      "candidate": 38260
+    },
+    {
+      "seed": 26435051,
+      "incumbent": 40602,
+      "candidate": 38505
+    },
+    {
+      "seed": 26435053,
+      "incumbent": 50439,
+      "candidate": 38493
+    },
+    {
+      "seed": 26435055,
+      "incumbent": 36948,
+      "candidate": 44584
+    },
+    {
+      "seed": 26435057,
+      "incumbent": 47202,
+      "candidate": 37923
+    },
+    {
+      "seed": 26435059,
+      "incumbent": 35491,
+      "candidate": 40353
+    },
+    {
+      "seed": 26435061,
+      "incumbent": 43901,
+      "candidate": 39321
+    },
+    {
+      "seed": 26435063,
+      "incumbent": 41789,
+      "candidate": 27567
+    },
+    {
+      "seed": 26435065,
+      "incumbent": 41896,
+      "candidate": 39392
+    },
+    {
+      "seed": 26435067,
+      "incumbent": 47389,
+      "candidate": 37549
+    },
+    {
+      "seed": 26435069,
+      "incumbent": 45615,
+      "candidate": 44333
+    },
+    {
+      "seed": 26435071,
+      "incumbent": 41679,
+      "candidate": 31030
+    },
+    {
+      "seed": 26435073,
+      "incumbent": 41574,
+      "candidate": 46797
+    },
+    {
+      "seed": 26435075,
+      "incumbent": 44033,
+      "candidate": 39875
+    },
+    {
+      "seed": 26435077,
+      "incumbent": 41465,
+      "candidate": 33267
+    },
+    {
+      "seed": 26435079,
+      "incumbent": 32672,
+      "candidate": 37536
+    },
+    {
+      "seed": 26435081,
+      "incumbent": 35029,
+      "candidate": 45675
+    },
+    {
+      "seed": 26435083,
+      "incumbent": 41394,
+      "candidate": 37939
+    },
+    {
+      "seed": 26435085,
+      "incumbent": 44352,
+      "candidate": 34620
+    },
+    {
+      "seed": 26435087,
+      "incumbent": 41622,
+      "candidate": 40260
+    },
+    {
+      "seed": 26435089,
+      "incumbent": 32328,
+      "candidate": 35490
+    },
+    {
+      "seed": 26435091,
+      "incumbent": 33614,
+      "candidate": 31378
+    },
+    {
+      "seed": 26435093,
+      "incumbent": 39162,
+      "candidate": 40133
+    },
+    {
+      "seed": 26435095,
+      "incumbent": 42297,
+      "candidate": 36478
+    },
+    {
+      "seed": 26435097,
+      "incumbent": 32518,
+      "candidate": 41654
+    },
+    {
+      "seed": 26435099,
+      "incumbent": 36636,
+      "candidate": 32507
+    },
+    {
+      "seed": 26435101,
+      "incumbent": 43091,
+      "candidate": 17522
+    },
+    {
+      "seed": 26435103,
+      "incumbent": 31065,
+      "candidate": 39859
+    },
+    {
+      "seed": 26435105,
+      "incumbent": 33413,
+      "candidate": 46896
+    },
+    {
+      "seed": 26435107,
+      "incumbent": 38671,
+      "candidate": 29795
+    },
+    {
+      "seed": 26435109,
+      "incumbent": 37926,
+      "candidate": 8721
+    },
+    {
+      "seed": 26435111,
+      "incumbent": 29618,
+      "candidate": 35136
+    },
+    {
+      "seed": 26435113,
+      "incumbent": 40216,
+      "candidate": 33607
+    },
+    {
+      "seed": 26435115,
+      "incumbent": 43799,
+      "candidate": 38544
+    },
+    {
+      "seed": 26435117,
+      "incumbent": 39381,
+      "candidate": 37161
+    },
+    {
+      "seed": 26435119,
+      "incumbent": 45348,
+      "candidate": 37239
+    },
+    {
+      "seed": 26435121,
+      "incumbent": 40261,
+      "candidate": 46547
+    },
+    {
+      "seed": 26435123,
+      "incumbent": 43497,
+      "candidate": 46545
+    },
+    {
+      "seed": 26435125,
+      "incumbent": 39946,
+      "candidate": 37603
+    },
+    {
+      "seed": 26435127,
+      "incumbent": 44548,
+      "candidate": 35027
+    },
+    {
+      "seed": 26435129,
+      "incumbent": 46663,
+      "candidate": 33193
+    },
+    {
+      "seed": 26435131,
+      "incumbent": 46781,
+      "candidate": 36897
+    },
+    {
+      "seed": 26435133,
+      "incumbent": 35807,
+      "candidate": 40431
+    },
+    {
+      "seed": 26435135,
+      "incumbent": 37927,
+      "candidate": 45217
+    },
+    {
+      "seed": 26435137,
+      "incumbent": 43158,
+      "candidate": 36576
+    },
+    {
+      "seed": 26435139,
+      "incumbent": 44135,
+      "candidate": 37520
+    },
+    {
+      "seed": 26435141,
+      "incumbent": 32794,
+      "candidate": 29125
+    },
+    {
+      "seed": 26435143,
+      "incumbent": 37802,
+      "candidate": 39513
+    }
+  ],
+  "promotion_rule": {
+    "relative_gain_at_least": 0.05,
+    "paired_bootstrap_lower_95_above": 0
+  },
+  "recommendation": "incumbent",
+  "recommended_checkpoint_sha256": "a6470b4ef118aea46969922559ed4f58826b82f0ae08c26ff81acdc0eac84cd9",
+  "gpu_reservation_hours": {
+    "training": 2.308030880434445,
+    "development": 0.4218047537550026,
+    "holdout": 2.7685922930363933
+  },
+  "weight_probes": {
+    "positions": 40,
+    "games": 10,
+    "legal_candidates": 5028,
+    "weights_vs_incumbent": {
+      "control": {
+        "all": {
+          "count": 102830,
+          "changed": 102830,
+          "relative_l2": 0.2132460088848955
+        },
+        "critic": {
+          "count": 53689,
+          "changed": 53689,
+          "relative_l2": 0.28326025581941294
+        },
+        "candidate": {
+          "count": 29704,
+          "changed": 29704,
+          "relative_l2": 0.0465173355157398
+        },
+        "spatial": {
+          "count": 1152,
+          "changed": 1152,
+          "relative_l2": 0.15938525064250292
+        },
+        "actor": {
+          "count": 49141,
+          "changed": 49141,
+          "relative_l2": 0.04591457300325819
+        }
+      },
+      "diverse": {
+        "all": {
+          "count": 102830,
+          "changed": 102830,
+          "relative_l2": 0.20341613631950892
+        },
+        "critic": {
+          "count": 53689,
+          "changed": 53689,
+          "relative_l2": 0.2694340395250516
+        },
+        "candidate": {
+          "count": 29704,
+          "changed": 29704,
+          "relative_l2": 0.04425136189309016
+        },
+        "spatial": {
+          "count": 1152,
+          "changed": 1152,
+          "relative_l2": 0.17014555701271705
+        },
+        "actor": {
+          "count": 49141,
+          "changed": 49141,
+          "relative_l2": 0.04935496958030012
+        }
+      }
+    },
+    "interventions": {
+      "control:incumbent": {
+        "positions": 40,
+        "choices_changed": 18,
+        "mean_kl": 0.12110438329989621,
+        "mean_critic_shift_placements": -3367.639202513965,
+        "mean_abs_critic_shift_placements": 10341.91002313164
+      },
+      "diverse:incumbent": {
+        "positions": 40,
+        "choices_changed": 17,
+        "mean_kl": 0.11905551719017064,
+        "mean_critic_shift_placements": -4778.287146892399,
+        "mean_abs_critic_shift_placements": 9567.039988841861
+      },
+      "diverse:control": {
+        "positions": 40,
+        "choices_changed": 18,
+        "mean_kl": 0.22538749595016566,
+        "mean_critic_shift_placements": -1410.6479443784337,
+        "mean_abs_critic_shift_placements": 1892.2663954843301
+      },
+      "control:restore-candidate": {
+        "positions": 40,
+        "choices_changed": 13,
+        "mean_kl": 0.10379630807944853,
+        "mean_critic_shift_placements": 0.0,
+        "mean_abs_critic_shift_placements": 0.0
+      },
+      "control:restore-spatial": {
+        "positions": 40,
+        "choices_changed": 3,
+        "mean_kl": 0.012037123396454456,
+        "mean_critic_shift_placements": 0.0,
+        "mean_abs_critic_shift_placements": 0.0
+      },
+      "control:restore-critic": {
+        "positions": 40,
+        "choices_changed": 0,
+        "mean_kl": 0.0,
+        "mean_critic_shift_placements": 3367.639202513965,
+        "mean_abs_critic_shift_placements": 10341.91002313164
+      },
+      "diverse:restore-candidate": {
+        "positions": 40,
+        "choices_changed": 10,
+        "mean_kl": 0.08569335663840597,
+        "mean_critic_shift_placements": 0.0,
+        "mean_abs_critic_shift_placements": 0.0
+      },
+      "diverse:restore-spatial": {
+        "positions": 40,
+        "choices_changed": 9,
+        "mean_kl": 0.028743066784812983,
+        "mean_critic_shift_placements": 0.0,
+        "mean_abs_critic_shift_placements": 0.0
+      },
+      "diverse:restore-critic": {
+        "positions": 40,
+        "choices_changed": 0,
+        "mean_kl": 0.0,
+        "mean_critic_shift_placements": 4778.287146892399,
+        "mean_abs_critic_shift_placements": 9567.039988841861
+      }
+    },
+    "remaining_life_forecasts": {
+      "incumbent": {
+        "10_percent": 23159.292793273926,
+        "50_percent": 18555.36994934082,
+        "512_to_end": 12053.942584991455,
+        "32_to_end": 11008.399868011475
+      },
+      "control": {
+        "10_percent": 36086.79962158203,
+        "50_percent": 14538.258409500122,
+        "512_to_end": 406.1400349950418,
+        "32_to_end": 275.2503194846213
+      },
+      "diverse": {
+        "10_percent": 32687.7254486084,
+        "50_percent": 12781.684303283691,
+        "512_to_end": 131.95797987282276,
+        "32_to_end": 62.48887628316879
+      }
+    },
+    "comparison": {
+      "arm:incumbent": "KL(incumbent || endpoint), endpoint minus incumbent value (placements).",
+      "diverse:control": "KL(control || diverse), diverse minus control value.",
+      "arm:restore-module": "KL(endpoint || endpoint with only specified module restored from incumbent); restored minus endpoint value.",
+      "greedy": "Different argmax over identical legal candidate order; per-state winning indices refer to that original shortlist.",
+      "aggregation": "Equal per-position mean; 4 positions from each of 10 archived game seeds. 0.001 value units per placement. Forecasts and actions are diagnostics, not measured survival."
+    }
+  },
+  "scope": "One matched PPO training seed. Holdout games are paired by seed. Probe boards and recorded remaining life come from ten separate historical games."
+}
