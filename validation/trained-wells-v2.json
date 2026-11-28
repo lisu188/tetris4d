@@ -1,0 +1,547 @@
+{
+ "policy": "trained-wells v2 (layer completion)",
+ "model": {
+  "path": "models/trained-wells-v2.json",
+  "sha256": "6d6a39e625521dd0ffbe6a1dda8af97543b813933d4d07497dad668a782d67a1",
+  "weights": [
+   856.5710521832791,
+   62.66609242536427,
+   3.3084458724660624,
+   0.2765619947464743,
+   0.0024320473914978707,
+   0.2185492948062531,
+   0.9501430176478569,
+   -3.0125003247117026,
+   -59.900214288466756
+  ],
+  "feature_names": [
+   "new_levels",
+   "new_holes",
+   "covers_ready",
+   "well_benefit",
+   "height_cost",
+   "roughness",
+   "high",
+   "completed_levels",
+   "completion_urgency"
+  ]
+ },
+ "motivation": "Every v1 top-out followed the same path: open cells at the bottom levels stall layer clears, occupancy climbs to the ceiling, and a CROSS finds no landing.",
+ "features_added": {
+  "completed_levels": "levels the placement fills completely",
+  "completion_urgency": "sum over levels of placed cells divided by that level's empty cells before the move"
+ },
+ "v1_compatibility": "With the two new weights at zero the scorer is unchanged; the v2 code reproduced the 1,000,000-placement v1 game on seed 61000001 move for move (moves SHA-256 aea97560...).",
+ "training": {
+  "method": "CEM fine-tuning from the v1 theta, new features starting at 0",
+  "fitness": "-(mean occupancy + 0.5 * peak occupancy) over two shared 300,000-placement games per generation; top-outs penalized",
+  "generations": [
+   {
+    "generation": 0,
+    "median_cost": 1135357,
+    "best_cost": 19242,
+    "previous_mean_cost": 28197,
+    "top_outs": 21,
+    "completion_weights": [
+     6.356660393382636,
+     -8.732119681547038
+    ]
+   },
+   {
+    "generation": 1,
+    "median_cost": 28134,
+    "best_cost": 17460,
+    "previous_mean_cost": 27133,
+    "top_outs": 9,
+    "completion_weights": [
+     4.366487680657693,
+     -23.334354102273913
+    ]
+   },
+   {
+    "generation": 2,
+    "median_cost": 25456,
+    "best_cost": 19904,
+    "previous_mean_cost": 24429,
+    "top_outs": 0,
+    "completion_weights": [
+     -0.7924279257116488,
+     -29.608385163959586
+    ]
+   },
+   {
+    "generation": 3,
+    "median_cost": 16426,
+    "best_cost": 14815,
+    "previous_mean_cost": 16804,
+    "top_outs": 0,
+    "completion_weights": [
+     -0.18517560766816407,
+     -41.56564567620588
+    ]
+   },
+   {
+    "generation": 4,
+    "median_cost": 16623,
+    "best_cost": 15646,
+    "previous_mean_cost": 17109,
+    "top_outs": 0,
+    "completion_weights": [
+     -0.9985935607867202,
+     -50.3768380622881
+    ]
+   },
+   {
+    "generation": 5,
+    "median_cost": 17241,
+    "best_cost": 16623,
+    "previous_mean_cost": 17257,
+    "top_outs": 0,
+    "completion_weights": [
+     -2.5414909428979326,
+     -47.96120386208487
+    ]
+   },
+   {
+    "generation": 6,
+    "median_cost": 14704,
+    "best_cost": 14155,
+    "previous_mean_cost": 14743,
+    "top_outs": 0,
+    "completion_weights": [
+     -0.30390361840164887,
+     -58.402440097938744
+    ]
+   },
+   {
+    "generation": 7,
+    "median_cost": 16763,
+    "best_cost": 14910,
+    "previous_mean_cost": 16633,
+    "top_outs": 0,
+    "completion_weights": [
+     -3.0125003247117026,
+     -59.900214288466756
+    ]
+   }
+  ]
+ },
+ "paired_comparison": {
+  "seeds": [
+   66000001,
+   66000016
+  ],
+  "placements_per_game": 2000000,
+  "summary": {
+   "v1": {
+    "games": 16,
+    "top_outs": 0,
+    "placements": 32000000,
+    "mean_occupancy": 18408.3,
+    "mean_of_max_occupancy": 30012.6,
+    "worst_max_occupancy": 33936,
+    "worst_max_height": 11,
+    "worst_longest_gap": 3600,
+    "excursions": {
+     "20000": 4554,
+     "24000": 1227,
+     "28000": 109,
+     "32000": 3
+    },
+    "layers_per_million": 1462.5
+   },
+   "v2": {
+    "games": 16,
+    "top_outs": 0,
+    "placements": 32000000,
+    "mean_occupancy": 8684.1,
+    "mean_of_max_occupancy": 12756.8,
+    "worst_max_occupancy": 15008,
+    "worst_max_height": 7,
+    "worst_longest_gap": 2343,
+    "excursions": {
+     "20000": 0,
+     "24000": 0,
+     "28000": 0,
+     "32000": 0
+    },
+    "layers_per_million": 1463.9
+   },
+   "paired_max_occupancy_difference": {
+    "models": "v2 - v1",
+    "mean": -17255.8,
+    "lower_in_b": 16,
+    "games": 16
+   }
+  }
+ },
+ "v2_replay_check": {
+  "seed": 66100001,
+  "placements": 2000000,
+  "layers": 2928,
+  "moves_sha256": "6ffa39832cb76ed56ed6ef563118cda122cbabc53d5021e303e298b5e6013950",
+  "replay_matches": true,
+  "next_piece_has_legal_move": true,
+  "reference_drop_cross_checks": 6927
+ },
+ "lifetime": {
+  "model_of_hazard": "constant per-placement top-out hazard; capped and running games count as exposure",
+  "v1": {
+   "prior": {
+    "placements": 233997644,
+    "top_outs": 1,
+    "source": "21 x 1M (validation/trained-wells-1m.json), 6 x 10M screening and 16 x 10M evaluation (validation/trained-wells-10m.json), one 200k probe"
+   },
+   "uncapped_run": {
+    "run": {
+     "model": "models/trained-wells.json",
+     "model_sha256": "dbfeaedb06cb2fbbefc10c6ef44ac700795532d8396ced768a7bbcf3cf266c1b",
+     "engine_root": "checkout at b3b4c18 (PR #64 head; same trained-wells code as main)",
+     "seeds": [
+      64000001,
+      64000500
+     ],
+     "hours": 6.0,
+     "workers": 8,
+     "started": "2026-11-27T20:05:05+0100"
+    },
+    "games": [
+     {
+      "seed": 64000001,
+      "placements": 38076000,
+      "top_out": false,
+      "max_occupancy": 31078,
+      "max_height": 11,
+      "longest_gap_between_clears": 3291,
+      "moves_sha256": "695462006be77086c7d9d73045b8c2d78dba8a6a61efac98ff66405f4c4e5fda"
+     },
+     {
+      "seed": 64000002,
+      "placements": 37926000,
+      "top_out": false,
+      "max_occupancy": 29157,
+      "max_height": 12,
+      "longest_gap_between_clears": 3263,
+      "moves_sha256": "50b91a073ee730b7016d720c8f457e52d7ff5319ebe0f2c99dfeca841187553e"
+     },
+     {
+      "seed": 64000003,
+      "placements": 8127728,
+      "top_out": true,
+      "max_occupancy": 56721,
+      "max_height": 16,
+      "longest_gap_between_clears": 3199,
+      "moves_sha256": "1cdaa2a3316415b1ad52e5412af90b18923eab9211bd8055a790b2b036ec037b"
+     },
+     {
+      "seed": 64000004,
+      "placements": 37128000,
+      "top_out": false,
+      "max_occupancy": 34464,
+      "max_height": 12,
+      "longest_gap_between_clears": 3571,
+      "moves_sha256": "8ea9977b9c0721df0936f7c33d6ef13ed9d4a8de5051ae89c03b3b7623221cb0"
+     },
+     {
+      "seed": 64000005,
+      "placements": 9521766,
+      "top_out": true,
+      "max_occupancy": 56922,
+      "max_height": 16,
+      "longest_gap_between_clears": 3361,
+      "moves_sha256": "c2ac7490ea95c05d4afe66bad0803d36fb90b50be6ec406e0c6c369be3b304e8"
+     },
+     {
+      "seed": 64000006,
+      "placements": 37650000,
+      "top_out": false,
+      "max_occupancy": 30595,
+      "max_height": 11,
+      "longest_gap_between_clears": 3357,
+      "moves_sha256": "b9facf1eec350daaab5519a06f663af7553933ac0af5c421ede64a1a2b979de4"
+     },
+     {
+      "seed": 64000007,
+      "placements": 13938764,
+      "top_out": true,
+      "max_occupancy": 57797,
+      "max_height": 16,
+      "longest_gap_between_clears": 3643,
+      "moves_sha256": "db5514ebce357083e73e751ae17915d4bc75c3de68d2443bfc76baa8843d4522"
+     },
+     {
+      "seed": 64000008,
+      "placements": 37808000,
+      "top_out": false,
+      "max_occupancy": 33024,
+      "max_height": 11,
+      "longest_gap_between_clears": 3757,
+      "moves_sha256": "22db0e1d4c2cda365996da9c24657c2dfe041de3ca0b8104e49409bbefecfff4"
+     },
+     {
+      "seed": 64000009,
+      "placements": 29492000,
+      "top_out": false,
+      "max_occupancy": 34692,
+      "max_height": 12,
+      "longest_gap_between_clears": 3478,
+      "moves_sha256": "f9fde00ff7ea5d80c423f4f6955b46ddd7ae700b2a379b585600f98f43c8617b"
+     },
+     {
+      "seed": 64000010,
+      "placements": 27728000,
+      "top_out": false,
+      "max_occupancy": 36007,
+      "max_height": 12,
+      "longest_gap_between_clears": 3639,
+      "moves_sha256": "cb55173a74cbc1fb6dbdb6166675394664f16984a76850285b1bc6e58251d87d"
+     },
+     {
+      "seed": 64000011,
+      "placements": 23406000,
+      "top_out": false,
+      "max_occupancy": 32832,
+      "max_height": 11,
+      "longest_gap_between_clears": 3230,
+      "moves_sha256": "fb391b3039b98cb4dfc31e4de13c5e0c94c1e5be126ebbca96d666e4faf0cef6"
+     }
+    ],
+    "unfinished": [],
+    "placements": 300802258,
+    "top_outs": 3
+   },
+   "topout_replays": [
+    {
+     "seed": 64000003,
+     "replayed_from": 8000000,
+     "replayed_to": 8127728,
+     "next_piece": "CROSS",
+     "next_piece_has_legal_move": false
+    },
+    {
+     "seed": 64000005,
+     "replayed_from": 9400000,
+     "replayed_to": 9521766,
+     "next_piece": "CROSS",
+     "next_piece_has_legal_move": false
+    },
+    {
+     "seed": 64000007,
+     "replayed_from": 13800000,
+     "replayed_to": 13938764,
+     "next_piece": "CROSS",
+     "next_piece_has_legal_move": false
+    }
+   ],
+   "pooled": {
+    "placements": 534799902,
+    "top_outs": 4,
+    "median_lower_95": 36195072,
+    "mean_estimate": 133699976,
+    "median_estimate": 92673761,
+    "median_upper_95": 340129206
+   }
+  },
+  "v2": {
+   "prior": {
+    "placements": 34000000,
+    "top_outs": 0,
+    "source": "paired comparison (16 x 2M) and the 2M replay-checked game"
+   },
+   "uncapped_run": {
+    "run": {
+     "model": "models/trained-wells-v2.json",
+     "model_sha256": "6d6a39e625521dd0ffbe6a1dda8af97543b813933d4d07497dad668a782d67a1",
+     "engine_root": "this branch",
+     "seeds": [
+      67000001,
+      67000500
+     ],
+     "hours": 4.34,
+     "workers": 8,
+     "started": "2026-11-27T21:44:39+0100"
+    },
+    "games": [
+     {
+      "seed": 67000001,
+      "placements": 26034000,
+      "top_out": false,
+      "max_occupancy": 11840,
+      "max_height": 7,
+      "longest_gap_between_clears": 1754,
+      "moves_sha256": "45983f8efabf517feaf8619b9e8a8fd509238803f82b01eb8173b43b90c46c79"
+     },
+     {
+      "seed": 67000002,
+      "placements": 25928000,
+      "top_out": false,
+      "max_occupancy": 11748,
+      "max_height": 7,
+      "longest_gap_between_clears": 1647,
+      "moves_sha256": "de143094017c7525334819dbde5c1163afef66b745e83137e012fec2069d98bb"
+     },
+     {
+      "seed": 67000003,
+      "placements": 26012000,
+      "top_out": false,
+      "max_occupancy": 11968,
+      "max_height": 7,
+      "longest_gap_between_clears": 1636,
+      "moves_sha256": "c2f314a070d4d8a85564b9a8f8413a1e11ab8a74b4f991451bc9097b605bb186"
+     },
+     {
+      "seed": 67000004,
+      "placements": 26092000,
+      "top_out": false,
+      "max_occupancy": 11589,
+      "max_height": 7,
+      "longest_gap_between_clears": 1672,
+      "moves_sha256": "f97b502e1db7b482757af7e0dba3fb8e71f362433e4c50dd6c0afcf0f70379fb"
+     },
+     {
+      "seed": 67000005,
+      "placements": 25938000,
+      "top_out": false,
+      "max_occupancy": 14948,
+      "max_height": 7,
+      "longest_gap_between_clears": 2246,
+      "moves_sha256": "86ccee7dce58b8892401b65b1f0466184bb55c4a8eed94829e5387f13f6cd104"
+     },
+     {
+      "seed": 67000006,
+      "placements": 25946000,
+      "top_out": false,
+      "max_occupancy": 14656,
+      "max_height": 8,
+      "longest_gap_between_clears": 2293,
+      "moves_sha256": "df00ae76f828855809c1384a7327a1486a7e195d56b11d45d7f288d2707112ba"
+     },
+     {
+      "seed": 67000007,
+      "placements": 26084000,
+      "top_out": false,
+      "max_occupancy": 14933,
+      "max_height": 7,
+      "longest_gap_between_clears": 2386,
+      "moves_sha256": "a54f62c30889650d672525aa631d34aab755ced946ef843b46b99735e9b927bf"
+     },
+     {
+      "seed": 67000008,
+      "placements": 26016000,
+      "top_out": false,
+      "max_occupancy": 14432,
+      "max_height": 7,
+      "longest_gap_between_clears": 2323,
+      "moves_sha256": "8c736470d1c9cf627f91ec6e025375ec4f7195326e0f4ec625b11d79b8249de8"
+     }
+    ],
+    "unfinished": [],
+    "placements": 208050000,
+    "top_outs": 0
+   },
+   "overnight_continuation": {
+    "run": {
+     "model": "models/trained-wells-v2.json",
+     "model_sha256": "6d6a39e625521dd0ffbe6a1dda8af97543b813933d4d07497dad668a782d67a1",
+     "engine_root": "this branch",
+     "seeds": [
+      67100001,
+      67100500
+     ],
+     "hours": 8.0,
+     "workers": 8,
+     "started": "2026-11-28T02:05:28+0100"
+    },
+    "games": [
+     {
+      "seed": 67100001,
+      "placements": 91278000,
+      "top_out": false,
+      "max_occupancy": 11844,
+      "max_height": 7,
+      "longest_gap_between_clears": 1726,
+      "moves_sha256": "48d7746f6b6f5099846c4e89c38a1e9918c834ea656b21d3d8524779058b79d5"
+     },
+     {
+      "seed": 67100002,
+      "placements": 90964000,
+      "top_out": false,
+      "max_occupancy": 15140,
+      "max_height": 7,
+      "longest_gap_between_clears": 2355,
+      "moves_sha256": "8deb20c9155fa8b1cf3d5cfa50438355a58560833a12b8d137ed7186ecdc4413"
+     },
+     {
+      "seed": 67100003,
+      "placements": 91384000,
+      "top_out": false,
+      "max_occupancy": 11716,
+      "max_height": 7,
+      "longest_gap_between_clears": 1730,
+      "moves_sha256": "70d6a9fe2ce344e0de7d12ea612f3465b4ce0f9e18d4565359c1615cfc144dc4"
+     },
+     {
+      "seed": 67100004,
+      "placements": 91402000,
+      "top_out": false,
+      "max_occupancy": 11806,
+      "max_height": 7,
+      "longest_gap_between_clears": 1732,
+      "moves_sha256": "8b549005d037a722dc3f3d78ae829ef04d0fdf181d55a7c4b80fb68b3a045ee8"
+     },
+     {
+      "seed": 67100005,
+      "placements": 91500000,
+      "top_out": false,
+      "max_occupancy": 14724,
+      "max_height": 7,
+      "longest_gap_between_clears": 2263,
+      "moves_sha256": "b8ac71ccfa4acf0cf06ce556ec2dc52665a87b121c2b63a82bb9be384fca75dd"
+     },
+     {
+      "seed": 67100006,
+      "placements": 91312000,
+      "top_out": false,
+      "max_occupancy": 14432,
+      "max_height": 7,
+      "longest_gap_between_clears": 2246,
+      "moves_sha256": "49be9a361bc76c843287a877567ec19143d32ba5afb3fecdf747155b866e9f08"
+     },
+     {
+      "seed": 67100007,
+      "placements": 91574000,
+      "top_out": false,
+      "max_occupancy": 12032,
+      "max_height": 7,
+      "longest_gap_between_clears": 1767,
+      "moves_sha256": "5fb45ea5b707d36dd7306b4666618764c9232d2fb5aa09868eb5e8cba239a0f7"
+     },
+     {
+      "seed": 67100008,
+      "placements": 91454000,
+      "top_out": false,
+      "max_occupancy": 14656,
+      "max_height": 7,
+      "longest_gap_between_clears": 2263,
+      "moves_sha256": "afe11874c3243cd76a8d87d04481c86b0c67d08eb85f72363ebaa77ba82d92f0"
+     }
+    ],
+    "unfinished": [],
+    "placements": 730868000,
+    "top_outs": 0
+   },
+   "topout_replays": [],
+   "pooled": {
+    "placements": 972918000,
+    "top_outs": 0,
+    "median_lower_95": 182813067
+   }
+  },
+  "comparison": {
+   "v1_rate_per_placement": 7.479432933777913e-09,
+   "v2_placements": 972918000,
+   "v2_top_outs_expected_at_v1_rate": 7.28,
+   "probability_of_observed_or_fewer_v2_top_outs_at_v1_rate": 0.000691
+  }
+ }
+}

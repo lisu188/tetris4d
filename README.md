@@ -116,6 +116,55 @@ same policy call, about 6x faster. Over all 1,000,000 placements of seed
 
 [10,000,000-placement evaluation, failure analysis and replay fingerprints](validation/trained-wells-10m.json).
 
+### Version 2: completing layers
+
+All four v1 top-outs failed the same way. A few open cells, mostly at the
+board's border, stayed empty in the bottom levels, so layer clears stopped.
+Occupancy then rose until the stack reached the ceiling and a CROSS had nowhere
+to land.
+
+`models/trained-wells-v2.json` adds two features to the same scorer:
+
+- **Completed levels:** how many levels the move completes.
+- **Completion urgency:** for each level, the share of its remaining empty cells
+  the move fills, summed over levels.
+
+`tools/finetune_wells_policy.py` re-tuned all nine weights by CEM, starting from
+the v1 weights. Its fitness favours low mean and peak occupancy in
+300,000-placement games, because rising occupancy comes before every stall.
+With both new weights at zero the scorer is unchanged. The v2 code reproduced
+v1's 1,000,000-placement game on seed 61000001 move for move.
+
+On 16 shared fresh seeds of 2,000,000 placements each:
+
+| | v1 | v2 |
+|---|---|---|
+| Mean occupied cells | 18,408 | 8,684 |
+| Worst peak occupancy | 33,936 | 15,008 |
+| Worst peak height | 11 | 7 |
+| Samples above 28,000 cells | 109 | 0 |
+
+Uncapped games on registered seeds measure game length directly, together with
+the earlier capped verification games:
+
+| | Placements played | Top-outs | Median game length |
+|---|---|---|---|
+| v1 | 534.8 million | 4 | about 93 million (95%: 36 – 340 million) |
+| v2 | 972.9 million | 0 | at least 183 million (95% lower bound) |
+
+At v1's top-out rate, v2 would have been expected to top out 7.3 times; the
+chance of seeing none is 0.07%. The longest single v2 game reached 91.6
+million placements and was still alive when its time budget ran out.
+`tools/measure_wells_lifetime.py` runs uncapped games and replays any top-out
+from a saved window. `tools/compare_wells_models.py` runs paired comparisons.
+[Version 2 training, comparison and lifetime record](validation/trained-wells-v2.json).
+
+`--policy trained-wells` in the benchmark CLI and the GUI now uses
+`models/trained-wells-v2.json`. Each v2 placement costs about 28% more than a v1
+placement. The 1,000,000- and 10,000,000-placement results above belong to the
+v1 model, `models/trained-wells.json`, which `tools/verify_trained_wells.py`
+still plays by default. Pass `--model models/trained-wells-v2.json` to verify v2.
+
 ## Train for survival
 
 Start an eight-hour continuation from a local, calibrated Spatial V4 checkpoint:
