@@ -1,0 +1,66 @@
+{
+  "schema": "trained-wells-linear-v2",
+  "feature_names": [
+    "new_levels",
+    "new_holes",
+    "covers_ready",
+    "well_benefit",
+    "height_cost",
+    "roughness",
+    "high",
+    "completed_levels",
+    "completion_urgency"
+  ],
+  "weights": [
+    856.5710521832791,
+    62.66609242536427,
+    3.3084458724660624,
+    0.2765619947464743,
+    0.0024320473914978707,
+    0.2185492948062531,
+    0.9501430176478569,
+    -3.0125003247117026,
+    -59.900214288466756
+  ],
+  "theta": [
+    2.482028264015545,
+    2.072422010391841,
+    0.6372401709942339,
+    1.1070515927794218,
+    0.08028961981781654,
+    1.0288378643633744,
+    0.908581698867127,
+    -0.09895671844711709,
+    -0.8300460189936225
+  ],
+  "parameterization": "sinh",
+  "weight_formula": "w = sinh(3*theta) / scale",
+  "scale": [
+    1.0,
+    4.0,
+    1.0,
+    50.0,
+    100.0,
+    50.0,
+    8.0,
+    0.1,
+    0.1
+  ],
+  "lower_score_is_better": true,
+  "budget": 1536,
+  "training": {
+    "method": "cross-entropy method fine-tuning on long-game occupancy (native loop)",
+    "initialization": "theta of trained-wells.json for the first seven features; 0 for the two layer-completion features",
+    "fitness": "-(mean occupancy + 0.5 * peak occupancy) per game, sampled every 2000 placements; top-outs penalized",
+    "rng_seed": 20261128,
+    "generations": 8,
+    "population": 16,
+    "elite": 4,
+    "games_per_generation": 2,
+    "placements_per_game": 300000,
+    "train_seed_range": [
+      65000000,
+      65000015
+    ]
+  }
+}

@@ -1431,19 +1431,30 @@ def choose_cross_wells_move(board: Board, piece: str, turn: int,
                     1, 1, budget, bool(budget and len(shapes) > 1), 'cross-wells')
 
 
-TRAINED_WELLS_MODEL = Path(__file__).resolve().parent / 'models' / 'trained-wells.json'
+TRAINED_WELLS_MODEL = Path(__file__).resolve().parent / 'models' / 'trained-wells-v2.json'
 _TRAINED_WELLS_WEIGHTS = None
+
+
+TRAINED_WELLS_FEATURES = 9
+_TRAINED_WELLS_SCHEMAS = {'trained-wells-linear-v1': 7, 'trained-wells-linear-v2': 9}
+
+
+def full_wells_weights(weights) -> tuple[float, ...]:
+    """Pad a 7-weight (v1) vector with zero layer-completion weights."""
+    weights = tuple(float(v) for v in weights)
+    if len(weights) not in (7, TRAINED_WELLS_FEATURES) or not all(math.isfinite(v) for v in weights):
+        raise ValueError('Trained-wells weights must be 7 or 9 finite numbers.')
+    return weights + (0.0,) * (TRAINED_WELLS_FEATURES - len(weights))
 
 
 def trained_wells_weights() -> tuple[float, ...]:
     global _TRAINED_WELLS_WEIGHTS
     if _TRAINED_WELLS_WEIGHTS is None:
         model = json.loads(TRAINED_WELLS_MODEL.read_text())
-        weights = tuple(float(v) for v in model['weights'])
-        if model.get('schema') != 'trained-wells-linear-v1' or len(weights) != 7 \
-                or not all(math.isfinite(v) for v in weights):
-            raise ValueError(f'{TRAINED_WELLS_MODEL} is not a trained-wells-linear-v1 model.')
-        _TRAINED_WELLS_WEIGHTS = weights
+        expected = _TRAINED_WELLS_SCHEMAS.get(model.get('schema'))
+        if expected is None or len(model['weights']) != expected:
+            raise ValueError(f'{TRAINED_WELLS_MODEL} is not a trained-wells-linear model.')
+        _TRAINED_WELLS_WEIGHTS = full_wells_weights(model['weights'])
     return _TRAINED_WELLS_WEIGHTS
 
 
@@ -1458,7 +1469,8 @@ def choose_trained_wells_move(board: Board, piece: str, turn: int,
     if BACKEND != 'native':
         raise ValueError('Trained wells requires the native backend. Build it with python tools/build_native.py.')
     started = time.perf_counter()
-    vector = _NUMPY.asarray(trained_wells_weights() if weights is None else weights, dtype=_NUMPY.float64)
+    vector = _NUMPY.asarray(trained_wells_weights() if weights is None else full_wells_weights(weights),
+                            dtype=_NUMPY.float64)
     context = evaluate_board(board)
     shapes = native_shapes(piece)
     result = _NUMPY.empty(8, dtype=_NUMPY.int32)

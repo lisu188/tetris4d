@@ -294,6 +294,8 @@ typedef struct {
     unsigned buried_levels;
     CrossWell partial[PARTIAL_WELLS];
     int partial_count, ready_count;
+    int completion;          /* score the layer-completion features (v2 weights) */
+    int empties[HEIGHT];     /* empty cells per level before the move */
 } CrossField;
 
 typedef struct {
@@ -303,7 +305,10 @@ typedef struct {
     double dscore;
 } WellChoice;
 
-enum { WELL_FEATURES = 7 };
+/* Seven rule features, then two layer-completion features: levels a move
+   completes, and the summed fraction of each level's remaining empty cells
+   that it fills. A version-1 model has zero weights for the last two. */
+enum { WELL_FEATURES = 9 };
 
 static int has_neighbor(int column, int direction) {
     int coordinate = (column >> (4*(direction/2))) & 15;
@@ -437,6 +442,19 @@ static void consider_well_move(const CrossField *field, const int32_t *shapes,
         const double *v = best->weights;
         double score = v[0]*levels + v[1]*holes + v[2]*covers_ready - v[3]*benefit
                      + v[4]*cost + v[5]*roughness + v[6]*high;
+        if (field->completion) {
+            int placed_at[HEIGHT] = {0}, completed = 0;
+            double urgency = 0.0;
+            for (int j = 0; j < shape[4]; ++j) {
+                const int32_t *column = shape + HEADER + j*COLUMN_STRIDE;
+                for (int level = z + column[2]; level < z + column[3]; ++level) ++placed_at[level];
+            }
+            for (int level = 0; level < HEIGHT; ++level) if (placed_at[level] && field->empties[level]) {
+                completed += placed_at[level] == field->empties[level];
+                urgency += (double)placed_at[level] / field->empties[level];
+            }
+            score += v[7]*completed + v[8]*urgency;
+        }
         if (score < best->dscore) {
             best->rotation = rotation; best->base = base; best->z = z;
             best->holes = holes; best->levels = levels; best->dscore = score;
@@ -552,6 +570,13 @@ static int cross_wells_impl(const uint16_t *board, const int32_t *shapes, int ro
         int height = mask ? 32 - __builtin_clz(mask) : 0;
         field.height[i] = (uint8_t)height;
         field.buried_levels |= ((1u << height) - 1u) ^ mask;
+    }
+    if (weights && (weights[7] != 0.0 || weights[8] != 0.0)) {
+        int filled[HEIGHT] = {0};
+        for (int i = 0; i < AREA; ++i)
+            for (unsigned mask = board[i]; mask; mask &= mask - 1u) ++filled[__builtin_ctz(mask)];
+        for (int level = 0; level < HEIGHT; ++level) field.empties[level] = AREA - filled[level];
+        field.completion = 1;
     }
     if (piece_index != 13) find_cross_wells(&field);
 

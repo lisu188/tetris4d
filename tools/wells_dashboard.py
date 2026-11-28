@@ -15,6 +15,7 @@ import hashlib
 from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 from pathlib import Path
 import time
 
@@ -136,7 +137,120 @@ def game_set(run: Path, title: str, directory: str, cap: int) -> str:
 {line_chart(series, "max_height", "Max height", height=200, x_max=cap, y_floor=0)}'''
 
 
-def page(run: Path, sets) -> str:
+def poisson_bounds(events: int, level: float = 0.95):
+    """Exact two-sided bounds on a Poisson mean given the observed count."""
+    alpha = (1 - level) / 2
+
+    def cdf(k, mu):
+        term = total = math.exp(-mu)
+        for i in range(1, k + 1):
+            term *= mu / i
+            total += term
+        return total
+
+    def solve(target, lo, hi):
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if target(mid) else (lo, mid)
+        return (lo + hi) / 2
+
+    lower = 0.0 if events == 0 else solve(lambda mu: 1 - cdf(events - 1, mu) < alpha, 0.0, 10.0 * events + 10)
+    upper = solve(lambda mu: cdf(events, mu) > alpha, 0.0, 10.0 * events + 50)
+    return lower, upper
+
+
+def describe(exposure: int, deaths: int) -> str:
+    low, high = poisson_bounds(deaths)
+    if deaths:
+        mean = exposure / deaths
+        upper = f'{0.6931 * exposure / low / 1e6:,.0f}M' if low else 'unbounded'
+        return (f'{0.6931 * mean / 1e6:,.0f}M median · {mean / 1e6:,.0f}M mean '
+                f'(95%: {0.6931 * exposure / high / 1e6:,.0f}M – {upper} median)')
+    if exposure:
+        return f'no top-outs yet · median above {0.6931 * exposure / high / 1e6:,.0f}M (95% lower bound)'
+    return 'no data yet'
+
+
+def lifetime_set(run: Path, title: str, directory: str, prior=None) -> str:
+    folder = run / directory
+    meta = read_json(folder / 'run.json') or {}
+    games, now = [], time.time()
+    for path in sorted(folder.glob('progress-*.jsonl')):
+        seed = int(path.stem.split('-')[1])
+        result = read_json(folder / f'game-{seed}.json')
+        if result:
+            status = 'top-out' if result['top_out'] else 'censored'
+            games.append((seed, result['placements'], status, result['max_occupancy'], result['max_height'],
+                          result['longest_gap_between_clears']))
+        else:
+            rows = read_rows(path)
+            placed = rows[-1]['placements'] if rows else 0
+            fresh = now - path.stat().st_mtime < 900
+            games.append((seed, placed, 'running' if fresh else 'stopped', None, None, None))
+    exposure = sum(g[1] for g in games)
+    deaths = sum(g[2] == 'top-out' for g in games)
+    estimate = describe(exposure, deaths)
+    pooled = ''
+    if prior:
+        prior_exposure, prior_deaths = prior
+        pooled = (f'<p>Pooled with {prior_exposure / 1e6:,.0f}M earlier verified placements and {prior_deaths} '
+                  f'top-out(s) of the same model: <b>{describe(exposure + prior_exposure, deaths + prior_deaths)}</b></p>')
+    rows = ''.join(
+        f'<tr><td>{seed}</td><td>{placed:,}</td><td>{escape(status)}</td>'
+        f'<td>{"" if occ is None else f"{occ:,}"}</td><td>{"" if h is None else h}</td>'
+        f'<td>{"" if gap is None else f"{gap:,}"}</td></tr>'
+        for seed, placed, status, occ, h, gap in sorted(games, key=lambda g: -g[1])[:40])
+    model = escape(str(meta.get('model_sha256', ''))[:12])
+    return f'''<h2>{escape(title)}</h2><p class="muted">Model {model}… · uncapped games, censored at the time budget.</p>
+<div class="tiles"><div class="tile">Top-outs<b>{deaths}</b>in {len(games)} games</div>
+<div class="tile">Placements played<b>{exposure / 1e6:,.0f}M</b>all games, uncapped</div>
+<div class="tile">Running<b>{sum(g[2] == "running" for g in games)}</b>games in progress</div></div>
+<p>Game-length estimate (constant hazard), this run: <b>{estimate}</b>.</p>{pooled}
+<p class="muted">While games are running these estimates are pessimistic: a top-out counts at once, but a running
+game's placements count only up to its last 10M checkpoint. Every game records its exact count at the deadline.</p>
+<div class="table"><table><tr><th>Seed</th><th>Placements</th><th>Status</th><th>Peak occupancy</th><th>Peak height</th>
+<th>Longest gap between clears</th></tr>{rows}</table></div>'''
+
+
+def finetune_set(run: Path, directory: str) -> str:
+    gens = read_rows(run / directory / 'generations.jsonl')
+    if not gens:
+        return ''
+    rows = ''.join(
+        f'<tr><td>{g["generation"]}</td><td>{-g["fitness_quartiles"][2]:,.0f}</td><td>{-g["best_fitness"]:,.0f}</td>'
+        f'<td>{-g["previous_mean_fitness"]:,.0f}</td><td>{g["top_outs"]}</td>'
+        f'<td>{g["mean_weights"][7]:.3g} · {g["mean_weights"][8]:.3g}</td><td>{g["seconds"]:.0f}s</td></tr>'
+        for g in gens)
+    return f'''<h2>Layer-completion fine-tuning (CEM)</h2><p class="muted">Cost = mean occupancy + 0.5 × peak occupancy over
+{gens[0]["placements"]:,}-placement games (lower is better). Last column: learned weights for completed levels and completion urgency.</p>
+<div class="table"><table><tr><th>Gen</th><th>Median cost</th><th>Best cost</th><th>Previous mean's cost</th><th>Top-outs</th>
+<th>Completion weights</th><th>Time</th></tr>{rows}</table></div>'''
+
+
+def comparison_set(run: Path, path: str) -> str:
+    data = read_json(run / path)
+    if not data:
+        return ''
+    summary = data['summary']
+    names = [name for name in data['models']]
+    metrics = (('Top-outs', 'top_outs', '{:,}'), ('Mean occupied cells', 'mean_occupancy', '{:,.0f}'),
+               ('Average per-game peak occupancy', 'mean_of_max_occupancy', '{:,.0f}'),
+               ('Worst peak occupancy', 'worst_max_occupancy', '{:,}'), ('Worst peak height', 'worst_max_height', '{}'),
+               ('Longest gap between clears', 'worst_longest_gap', '{:,}'),
+               ('Layers per million placements', 'layers_per_million', '{:,.1f}'))
+    rows = ''.join(f'<tr><td>{label}</td>' + ''.join(f'<td>{fmt.format(summary[n][key])}</td>' for n in names) + '</tr>'
+                   for label, key, fmt in metrics)
+    rows += ''.join(f'<tr><td>Excursions above {int(limit):,} cells</td>' +
+                    ''.join(f'<td>{summary[n]["excursions"][limit]:,}</td>' for n in names) + '</tr>'
+                    for limit in summary[names[0]]['excursions'])
+    head = ''.join(f'<th>{escape(n)}</th>' for n in names)
+    seeds = data['seeds']
+    return f'''<h2>Paired comparison</h2><p class="muted">Same {seeds[1] - seeds[0] + 1} fresh seeds, {data["placements"]:,}
+placements per game, sampled every {data["sample_every"]:,}.</p><div class="table"><table><tr><th></th>{head}</tr>{rows}</table></div>'''
+
+
+def page(run: Path, sets, lifetimes=(), finetune=None, comparison=None, priors=None) -> str:
+    priors = priors or {}
     gens = read_rows(run / 'cem-sinh' / 'generations.jsonl')
     model = read_json(MODEL)
     model_sha = hashlib.sha256(MODEL.read_bytes()).hexdigest()[:12] if model else 'missing'
@@ -147,7 +261,10 @@ def page(run: Path, sets) -> str:
         f'<td>{g["fitness_quartiles"][2]:,.0f}</td><td>{g["fitness_quartiles"][4]:,.0f}</td><td>{g["elite_capped"]}/4</td>'
         f'<td>{escape(" · ".join(f"{n} {w:.3g}" for n, w in zip(names, g.get("mean_weights", []))))}</td></tr>'
         for g in gens)
-    sections = ''.join(game_set(run, title, directory, cap) for title, directory, cap in sets)
+    sections = ''.join(lifetime_set(run, title, directory, priors.get(directory)) for title, directory in lifetimes)
+    sections += comparison_set(run, comparison) if comparison else ''
+    sections += finetune_set(run, finetune) if finetune else ''
+    sections += ''.join(game_set(run, title, directory, cap) for title, directory, cap in sets)
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="10"><title>Trained wells</title><style>
 :root{{color-scheme:dark}} body{{margin:0;background:#12151a;color:#e6e6e6;font:15px/1.5 system-ui,sans-serif}}
@@ -174,6 +291,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path)
     parser.add_argument('--port', type=int, default=8775)
+    parser.add_argument('--lifetime', action='append', metavar='TITLE=DIR',
+                        help='an uncapped measure_wells_lifetime.py run to summarize; repeatable')
+    parser.add_argument('--finetune', metavar='DIR', help='a finetune_wells_policy.py output directory')
+    parser.add_argument('--comparison', metavar='FILE', help='a compare_wells_models.py result')
+    parser.add_argument('--prior', action='append', metavar='DIR=PLACEMENTS:TOPOUTS',
+                        help='earlier verified exposure of the same model, pooled into DIR\'s estimate')
     parser.add_argument('--set', action='append', metavar='TITLE=DIR:CAP',
                         help='a game set to show, e.g. "1M verification=verify-1m:1000000"; repeatable')
     args = parser.parse_args(argv)
@@ -182,11 +305,17 @@ def main(argv=None):
         title, rest = spec.split('=', 1)
         directory, cap = rest.rsplit(':', 1)
         sets.append((title, directory, int(cap)))
+    lifetimes = [tuple(spec.split('=', 1)) for spec in args.lifetime or []]
+    priors = {}
+    for spec in args.prior or []:
+        directory, numbers = spec.split('=', 1)
+        placements, topouts = numbers.split(':')
+        priors[directory] = (int(placements), int(topouts))
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             try:
-                body = page(args.run, sets).encode()
+                body = page(args.run, sets, lifetimes, args.finetune, args.comparison, priors).encode()
                 code = 200
             except Exception as error:  # noqa: BLE001 - show the problem instead of a dead page
                 body = f'<pre>{escape(type(error).__name__)}: {escape(str(error))}</pre>'.encode()
